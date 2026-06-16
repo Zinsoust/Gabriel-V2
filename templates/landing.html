@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gabriel — Intelligence de marché</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    height: 100vh;
+    overflow: hidden;
+    background: #0a0e1a;
+  }
+
+  /* ── Fond image ── */
+  .hero-bg {
+    position: fixed;
+    inset: 0;
+    background-image: url('/static/chess.webp');
+    background-size: cover;
+    background-position: center center;
+    z-index: 0;
+  }
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to bottom,
+        rgba(10,14,26,.18) 0%,
+        rgba(10,14,26,.08) 35%,
+        rgba(10,14,26,.22) 70%,
+        rgba(10,14,26,.55) 100%);
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 40px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-decoration: none;
+  }
+  .logo-icon {
+    width: 30px; height: 30px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    font-size: 14px;
+  }
+  .logo-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -.02em;
+  }
+  .topbar-right {
+    font-size: 13px;
+    color: rgba(255,255,255,.45);
+    letter-spacing: -.01em;
+  }
+
+  /* ── Centre ── */
+  .center {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 24px;
+    gap: 0;
+    margin-top: -80px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.6);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 100px;
+    padding: 6px 16px;
+    background: rgba(255,255,255,.07);
+    backdrop-filter: blur(12px);
+    margin-bottom: 28px;
+  }
+  .badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #C4A87A;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    font-size: clamp(36px, 5.5vw, 68px);
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    letter-spacing: -.035em;
+    line-height: 1.08;
+    margin-bottom: 36px;
+    max-width: 760px;
+    text-shadow: 0 2px 32px rgba(0,0,0,.3);
+  }
+  h1 .gold {
+    color: #F5D98B;
+    text-shadow: 0 2px 16px rgba(0,0,0,.55);
+  }
+
+  /* ── Input card ── */
+  .input-card {
+    background: rgba(255,255,255,.88);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.7);
+    box-shadow:
+      0 8px 32px rgba(0,0,0,.14),
+      0 1px 0 rgba(255,255,255,.9) inset;
+    padding: 18px 20px 16px;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .url-input {
+    flex: 1;
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 15px;
+    font-family: inherit;
+    color: #1d1d1f;
+    letter-spacing: -.01em;
+  }
+  .url-input::placeholder {
+    color: rgba(0,0,0,.35);
+    font-size: 14px;
+  }
+  .go-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: #C4A87A;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 120ms, transform 120ms;
+    color: #fff;
+    font-size: 16px;
+  }
+  .go-btn:hover { opacity: .88; transform: translateX(1px); }
+
+  /* ── Pills ── */
+  .pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(0,0,0,.5);
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid rgba(0,0,0,.1);
+    background: rgba(0,0,0,.04);
+    cursor: pointer;
+    transition: all 120ms;
+    user-select: none;
+  }
+  .pill:hover { background: rgba(0,0,0,.07); color: rgba(0,0,0,.72); }
+  .pill.active {
+    background: #C4A87A;
+    border-color: #C4A87A;
+    color: #fff;
+  }
+  .pill svg { opacity: .7; }
+  .pill.active svg { opacity: 1; }
+
+  /* ── Mobile ── */
+  @media (max-width: 600px) {
+    .topbar { padding: 18px 20px; }
+    .center { margin-top: -20px; }
+    h1 { font-size: 32px; margin-bottom: 28px; }
+    .badge { margin-bottom: 20px; }
+    .input-card { border-radius: 16px; padding: 14px 14px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero-bg"></div>
+
+<!-- Top bar -->
+<header class="topbar">
+  <a href="/" class="logo">
+    <div class="logo-icon">✦</div>
+    <span class="logo-name">Gabriel</span>
+  </a>
+  <span class="topbar-right">gabriel.ai</span>
+</header>
+
+<!-- Centre -->
+<main class="center">
+  <span class="badge">Intelligence de marché</span>
+
+  <h1>Révélez la valeur<br><span class="gold">cachée</span> de votre marché.</h1>
+
+  <div class="input-card">
+    <div class="input-row">
+      <input
+        type="url"
+        class="url-input"
+        id="url-input"
+        placeholder="Collez un lien YouTube, Instagram ou TikTok"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button class="go-btn" onclick="goToApp()" title="Analyser">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 8h10M9 4l4 4-4 4"/>
+        </svg>
+      </button>
+    </div>
+    <div class="pills" id="pills">
+      <span class="pill active" data-src="youtube" onclick="setPlatform(this,'youtube')">
+        <svg width="13" height="10" viewBox="0 0 20 14" fill="currentColor"><path d="M19.6 2.2A2.5 2.5 0 0 0 17.8.4C16.3 0 10 0 10 0S3.7 0 2.2.4A2.5 2.5 0 0 0 .4 2.2 26 26 0 0 0 0 7a26 26 0 0 0 .4 4.8A2.5 2.5 0 0 0 2.2 13.6C3.7 14 10 14 10 14s6.3 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 20 7a26 26 0 0 0-.4-4.8zM8 10V4l5.2 3L8 10z"/></svg>
+        YouTube
+      </span>
+      <span class="pill" data-src="instagram" onclick="setPlatform(this,'instagram')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        Instagram
+      </span>
+      <span class="pill" data-src="tiktok" onclick="setPlatform(this,'tiktok')">
+        <svg width="12" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19.6 5.5a5.6 5.6 0 0 1-3.6-1.3V12a7 7 0 1 1-5.4-6.8v3.8a3.3 3.3 0 1 0 2.4 3.2V0h3.6a5.6 5.6 0 0 0 3 5.5z"/></svg>
+        TikTok
+      </span>
+      <span class="pill" data-src="text" onclick="setPlatform(this,'text')">
+        <svg width="13" height="11" viewBox="0 0 16 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 2h14M1 7h10M1 12h7"/></svg>
+        Texte libre
+      </span>
+    </div>
+  </div>
+</main>
+
+<script>
+  const PLACES = {
+    youtube:   'Collez un lien YouTube…',
+    instagram: 'Collez un lien Instagram…',
+    tiktok:    'Collez un lien TikTok…',
+    text:      'Collez vos commentaires ici…',
+  };
+  let currentSrc = 'youtube';
+
+  function setPlatform(el, src) {
+    currentSrc = src;
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('url-input').placeholder = PLACES[src];
+  }
+
+  function goToApp() {
+    const url = document.getElementById('url-input').value.trim();
+    if (url) {
+      window.location.href = '/app?src=' + encodeURIComponent(currentSrc) + '&content=' + encodeURIComponent(url);
+    } else {
+      window.location.href = '/app';
+    }
+  }
+
+  document.getElementById('url-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') goToApp();
+  });
+</script>
+</body>
+</html>
