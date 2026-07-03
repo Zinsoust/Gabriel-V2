@@ -4,3 +4,5 @@ class BaseAgent:
 
     def run(self, ctx):
         raise NotImplementedError
+
+AgentBase = BaseAgent  # alias — compatibilité agents/__init__.py

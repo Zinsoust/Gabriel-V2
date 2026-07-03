@@ -20,6 +20,15 @@ Thumbs.db
 
 # Logs
 logs/
+gabriel.log
+gabriel_err.log
+
+# Données utilisateur locales (ne jamais committer)
+brain_profile.json
+contexte_business.json
+history.json
+data/feedbacks.json
+data/local_*.json
 
 # Base de données locale
 *.db
@@ -29,3 +38,7 @@ logs/
 *.pem
 *.key
 *.p12
+
+# Outils locaux
+.claude/
+.agents/
