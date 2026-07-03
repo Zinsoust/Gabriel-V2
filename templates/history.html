@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}Gabriel — Historique{% endblock %}
+{% block page_name %}Historique{% endblock %}
+
+{% block head %}
+<style>
+  .hist-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .hist-count  { font-size: 11px; color: var(--text-muted); }
+
+  .hist-list   { display: flex; flex-direction: column; gap: 10px; }
+
+  .hist-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .hist-card:hover {
+    border-color: rgba(216,185,130,0.18);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.22);
+    transform: translateY(-1px);
+  }
+
+  .hist-meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .hist-title {
+    font-size: 13px; font-weight: 500; color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hist-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .hist-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 500; letter-spacing: 0.05em;
+  }
+  .badge-source   { background: rgba(255,255,255,0.04); border: 1px solid var(--border-soft); color: var(--text-muted); }
+  .badge-strategy { background: rgba(216,185,130,0.08); border: 1px solid rgba(216,185,130,0.2); color: var(--champagne-soft); }
+  .hist-date  { font-size: 10px; color: var(--text-disabled); }
+  .hist-nb    { font-size: 10px; color: var(--text-muted); }
+
+  .hist-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .hist-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: var(--radius-md); font-size: 10px; font-weight: 500;
+    border: 1px solid var(--border-soft); background: transparent; cursor: pointer;
+    color: var(--text-muted); transition: all 0.15s; white-space: nowrap;
+  }
+  .hist-btn svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .hist-btn:hover { border-color: rgba(216,185,130,0.25); color: var(--champagne-soft); background: rgba(216,185,130,0.04); }
+  .hist-btn.danger:hover { border-color: rgba(220,80,80,0.3); color: rgba(220,80,80,0.7); background: rgba(220,80,80,0.04); }
+  .hist-btn:disabled { opacity: 0.35; cursor: default; }
+
+  .hist-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; min-height: 320px; gap: 10px;
+  }
+  .hist-empty-icon { font-size: 28px; color: var(--text-disabled); margin-bottom: 4px; }
+  .hist-empty-title { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+  .hist-empty-desc  { font-size: 11px; color: var(--text-disabled); max-width: 280px; line-height: 1.7; }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    padding: 10px 16px; border-radius: var(--radius-md); font-size: 11px;
+    background: rgba(30,28,26,0.95); border: 1px solid var(--border-soft);
+    color: var(--text-secondary); z-index: 1000;
+    opacity: 0; transform: translateY(8px); transition: all 0.25s;
+    pointer-events: none;
+  }
+  .toast.visible { opacity: 1; transform: translateY(0); }
+  .toast.success { border-color: rgba(120,200,140,0.25); color: rgba(120,200,140,0.85); }
+  .toast.error   { border-color: rgba(220,80,80,0.25);  color: rgba(220,80,80,0.75); }
+
+  #loading-indicator { text-align: center; padding: 60px 0; color: var(--text-muted); font-size: 12px; }
+
+  /* Skeleton cards pendant le chargement */
+  .hist-skeleton {
+    height: 62px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 10px;
+  }
+</style>
+{% endblock %}
+
+{% block header_actions %}
+<a href="/psychologue" class="btn btn-ghost btn-sm">
+  <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Nouvelle analyse
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="hist-header">
+  <div>
+    <div style="font-size:15px;font-weight:500;color:var(--text-primary);margin-bottom:3px;">Vos analyses</div>
+    <div class="hist-count" id="hist-count">Chargement…</div>
+  </div>
+</div>
+
+<div id="loading-indicator">
+  <div class="hist-skeleton skeleton"></div>
+  <div class="hist-skeleton skeleton"></div>
+  <div class="hist-skeleton skeleton"></div>
+</div>
+<div class="hist-list" id="hist-list" style="display:none;"></div>
+<div class="hist-empty hidden" id="hist-empty">
+  <div class="hist-empty-icon">◷</div>
+  <div class="hist-empty-title">Aucune analyse pour l'instant</div>
+  <div class="hist-empty-desc">Lancez votre première analyse depuis la page Psychologue pour voir vos résultats ici.</div>
+  <a href="/psychologue" class="btn btn-ghost btn-sm" style="margin-top:8px;">Lancer une analyse</a>
+</div>
+
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadHistory() {
+  try {
+    const r = await fetch('/history');
+    if (!r.ok) throw new Error('Erreur serveur');
+    const data = await r.json();
+    renderHistory(data);
+  } catch (e) {
+    document.getElementById('loading-indicator').textContent = 'Erreur de chargement. Rechargez la page.';
+  }
+}
+
+function renderHistory(items) {
+  document.getElementById('loading-indicator').style.display = 'none';
+  const list  = document.getElementById('hist-list');
+  const empty = document.getElementById('hist-empty');
+  const count = document.getElementById('hist-count');
+
+  if (!items || !items.length) {
+    empty.classList.remove('hidden');
+    count.textContent = '0 analyse';
+    return;
+  }
+
+  count.textContent = `${items.length} analyse${items.length > 1 ? 's' : ''}`;
+  list.style.display = 'flex';
+  list.innerHTML = items.map(item => cardHTML(item)).join('');
+
+  // Stagger entrance animation for each card
+  list.querySelectorAll('.hist-card').forEach((card, i) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(10px)';
+    card.style.transition = 'none';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        card.style.transition = `opacity 0.32s ease ${i * 0.045}s, transform 0.32s cubic-bezier(0.22, 1, 0.36, 1) ${i * 0.045}s`;
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      });
+    });
+  });
+}
+
+function cardHTML(item) {
+  const aid      = item.analysis_id || '';
+  const title    = esc(item.title || item.source || 'Analyse');
+  const source   = esc(item.source || '');
+  const nb       = item.nb_commentaires ? `${item.nb_commentaires} commentaires` : '';
+  const dateStr  = formatDate(item.created_at || '');
+  const hasStrat = item.has_strategy;
+
+  return `<div class="hist-card" id="card-${aid}">
+    <div class="hist-meta">
+      <div class="hist-title" title="${title}">${title}</div>
+      <div class="hist-sub">
+        ${source ? `<span class="hist-badge badge-source">${source}</span>` : ''}
+        ${hasStrat ? `<span class="hist-badge badge-strategy">◈ Stratégie</span>` : ''}
+        ${nb ? `<span class="hist-nb">${nb}</span>` : ''}
+        ${dateStr ? `<span class="hist-date">${dateStr}</span>` : ''}
+      </div>
+    </div>
+    <div class="hist-actions">
+      <button class="hist-btn" onclick="openAnalysis('${aid}')" title="Voir l'analyse Psychologue">
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Analyse
+      </button>
+      ${hasStrat ? `<button class="hist-btn" onclick="openStrategy('${aid}')" title="Ouvrir la stratégie" style="border-color:rgba(216,185,130,0.3);color:rgba(216,185,130,0.85);">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Stratégie →
+      </button>` : ''}
+      <button class="hist-btn" onclick="exportPdf('${aid}', this)" title="Exporter en PDF">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        PDF
+      </button>
+      <button class="hist-btn danger" onclick="deleteAnalysis('${aid}', this)" title="Supprimer">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+async function openAnalysis(aid) {
+  showToast('Chargement…', '');
+  try {
+    const r = await fetch(`/history/${aid}/load`);
+    if (!r.ok) { showToast('Analyse introuvable', 'error'); return; }
+    const d = await r.json();
+    if (!d.success || !d.full_result) { showToast('Données indisponibles', 'error'); return; }
+    sessionStorage.setItem('gabriel_restore', JSON.stringify({
+      full_result:      d.full_result,
+      strategie_result: d.strategie_result || null,
+      analysis_id:      aid,
+    }));
+    window.location.href = '/psychologue?restore=' + encodeURIComponent(aid);
+  } catch(e) {
+    showToast('Erreur de chargement', 'error');
+  }
+}
+
+async function openStrategy(aid) {
+  showToast('Chargement de la stratégie…', '');
+  try {
+    const r = await fetch(`/history/${aid}/load`);
+    if (!r.ok) { showToast('Analyse introuvable', 'error'); return; }
+    const d = await r.json();
+    if (!d.success) { showToast('Données indisponibles', 'error'); return; }
+    sessionStorage.setItem('gabriel_restore_stratege', JSON.stringify({
+      analysis_id:      aid,
+      full_result:      d.full_result || {},
+      strategie_result: d.strategie_result || null,
+    }));
+    window.location.href = '/stratege?restore=' + encodeURIComponent(aid);
+  } catch(e) {
+    showToast('Erreur de chargement', 'error');
+  }
+}
+
+async function exportPdf(aid, btn) {
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const r = await fetch(`/export/pdf/${aid}`);
+    if (!r.ok) { showToast('Erreur PDF', 'error'); return; }
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `gabriel_${aid}.pdf`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast('PDF téléchargé', 'success');
+  } catch(e) {
+    showToast('Erreur PDF', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> PDF`;
+  }
+}
+
+async function deleteAnalysis(aid, btn) {
+  if (!confirm('Supprimer cette analyse ? Cette action est irréversible.')) return;
+  btn.disabled = true;
+  try {
+    const r = await fetch(`/history/${aid}`, {method: 'DELETE'});
+    if (!r.ok) { showToast('Erreur suppression', 'error'); btn.disabled = false; return; }
+    const card = document.getElementById(`card-${aid}`);
+    if (card) {
+      card.style.opacity = '0'; card.style.transform = 'translateX(8px)';
+      card.style.transition = 'all 0.2s';
+      setTimeout(() => {
+        card.remove();
+        const remaining = document.querySelectorAll('.hist-card').length;
+        document.getElementById('hist-count').textContent =
+          `${remaining} analyse${remaining !== 1 ? 's' : ''}`;
+        if (remaining === 0) {
+          document.getElementById('hist-list').style.display = 'none';
+          document.getElementById('hist-empty').classList.remove('hidden');
+        }
+      }, 220);
+    }
+    showToast('Analyse supprimée', 'success');
+  } catch(e) {
+    showToast('Erreur suppression', 'error'); btn.disabled = false;
+  }
+}
+
+function formatDate(str) {
+  if (!str) return '';
+  const d = new Date(str.replace(' ', 'T'));
+  if (isNaN(d)) return str.slice(0, 16);
+  return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'}) +
+    ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let _toastTimer = null;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast visible ${type || ''}`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { t.className = 'toast'; }, 2800);
+}
+
+loadHistory();
+</script>
+{% endblock %}

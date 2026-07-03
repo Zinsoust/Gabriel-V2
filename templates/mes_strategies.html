@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}Gabriel — Mes Stratégies{% endblock %}
+{% block page_name %}Mes Stratégies{% endblock %}
+
+{% block head %}
+<style>
+  /* ─── Stats ───────────────────────────────────────────── */
+  .ms-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:22px; }
+  .ms-stat { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:18px 20px; }
+  .ms-stat-val { font-size:26px; font-weight:600; color:var(--text-primary); letter-spacing:-0.02em; line-height:1; margin-bottom:6px; }
+  .ms-stat-val.gold { color:#D8B982; }
+  .ms-stat-val.green { color:rgba(120,200,140,0.85); }
+  .ms-stat-lbl { font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:500; }
+
+  /* ─── Filtres ─────────────────────────────────────────── */
+  .ms-filters { display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
+  .ms-filter { padding:7px 15px; border-radius:20px; border:1px solid var(--border-soft); background:transparent; color:var(--text-muted); font-size:11px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:inherit; }
+  .ms-filter:hover { border-color:rgba(216,185,130,0.3); color:var(--champagne-soft); }
+  .ms-filter.active { background:rgba(216,185,130,0.1); border-color:rgba(216,185,130,0.35); color:#D8B982; }
+
+  /* ─── Liste ───────────────────────────────────────────── */
+  .ms-list { display:flex; flex-direction:column; gap:12px; }
+  .ms-card { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:18px 20px; transition:border-color 0.2s; animation:gb-slide-up 0.3s cubic-bezier(0.22,1,.36,1) both; }
+  .ms-card:hover { border-color:rgba(216,185,130,0.2); }
+  .ms-card-top { display:flex; align-items:flex-start; gap:14px; margin-bottom:14px; }
+  .ms-card-body { flex:1; min-width:0; }
+  .ms-card-title { font-size:14px; font-weight:500; color:var(--text-primary); line-height:1.5; margin-bottom:6px; }
+  .ms-card-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .ms-card-date { font-size:11px; color:var(--text-muted); }
+  .ms-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:500; letter-spacing:0.02em; }
+  .ms-badge .dot { width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0; }
+  .ms-badge.useful   { background:rgba(120,200,140,0.08); border:1px solid rgba(120,200,140,0.22); color:rgba(120,200,140,0.85); }
+  .ms-badge.partial  { background:rgba(216,185,130,0.07); border:1px solid rgba(216,185,130,0.2);  color:var(--champagne-soft); }
+  .ms-badge.notuseful{ background:rgba(255,100,100,0.06); border:1px solid rgba(255,100,100,0.18); color:rgba(255,140,140,0.8); }
+  .ms-badge.worked   { background:rgba(120,200,140,0.1);  border:1px solid rgba(120,200,140,0.3);  color:rgba(130,210,150,0.9); }
+  .ms-badge.noresult { background:rgba(255,255,255,0.03); border:1px solid var(--border-soft); color:var(--text-muted); }
+  .ms-badge.untested { background:rgba(255,255,255,0.02); border:1px dashed var(--border-soft); color:var(--text-disabled); }
+
+  .ms-card-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .ms-act { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:var(--radius-md); border:1px solid var(--border-soft); background:transparent; color:var(--text-secondary); font-size:11px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:inherit; white-space:nowrap; }
+  .ms-act:hover { border-color:rgba(216,185,130,0.3); color:#D8B982; }
+  .ms-act.primary { background:rgba(216,185,130,0.1); border-color:rgba(216,185,130,0.28); color:#D8B982; }
+  .ms-act.primary:hover { background:rgba(216,185,130,0.17); }
+  .ms-act svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+  .ms-act-del { width:30px; height:30px; padding:0; justify-content:center; }
+  .ms-act-del:hover { border-color:rgba(255,100,100,0.3); color:rgba(255,130,130,0.8); }
+
+  /* ─── Tracking résultat (inline) ──────────────────────── */
+  .ms-track { border-top:1px solid var(--border-soft); padding-top:14px; margin-top:2px; }
+  .ms-track-label { font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:600; margin-bottom:9px; }
+  .ms-track-options { display:flex; gap:7px; flex-wrap:wrap; }
+  .ms-track-btn { padding:7px 14px; border-radius:var(--radius-md); border:1px solid var(--border-soft); background:transparent; color:var(--text-muted); font-size:11px; cursor:pointer; transition:all 0.15s; font-family:inherit; display:inline-flex; align-items:center; gap:6px; }
+  .ms-track-btn:hover { border-color:rgba(216,185,130,0.3); color:var(--text-secondary); }
+  .ms-track-btn.sel-worked   { background:rgba(120,200,140,0.1); border-color:rgba(120,200,140,0.3); color:rgba(130,210,150,0.9); }
+  .ms-track-btn.sel-noresult { background:rgba(255,180,0,0.06); border-color:rgba(255,180,0,0.2); color:rgba(255,190,90,0.85); }
+  .ms-track-btn.sel-untested { background:rgba(255,255,255,0.04); border-color:var(--border-medium); color:var(--text-secondary); }
+  .ms-track-done { font-size:11px; color:rgba(120,200,140,0.8); display:inline-flex; align-items:center; gap:6px; margin-left:4px; }
+
+  /* ─── Empty / loading ─────────────────────────────────── */
+  .ms-empty { text-align:center; padding:64px 24px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); }
+  .ms-empty-glyph { width:54px; height:54px; border-radius:14px; background:rgba(216,185,130,0.06); border:1px solid rgba(216,185,130,0.15); display:flex; align-items:center; justify-content:center; font-size:24px; margin:0 auto 16px; }
+  .ms-empty-title { font-size:15px; font-weight:500; color:var(--text-primary); margin-bottom:8px; }
+  .ms-empty-desc { font-size:12px; color:var(--text-muted); line-height:1.7; max-width:340px; margin:0 auto 18px; }
+  .ms-empty-cta { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; border-radius:var(--radius-md); background:rgba(216,185,130,0.1); border:1px solid rgba(216,185,130,0.28); color:#D8B982; font-size:12px; font-weight:500; text-decoration:none; transition:all 0.2s; }
+  .ms-empty-cta:hover { background:rgba(216,185,130,0.17); transform:translateY(-1px); }
+  .ms-loading { text-align:center; padding:60px; color:var(--text-muted); font-size:12px; }
+</style>
+{% endblock %}
+
+{% block header_actions %}
+<a href="/stratege" class="btn btn-ghost btn-sm" style="text-decoration:none;">+ Nouvelle stratégie</a>
+{% endblock %}
+
+{% block content %}
+<div class="ms-stats" id="ms-stats" style="display:none;">
+  <div class="ms-stat"><div class="ms-stat-val" id="ms-total">0</div><div class="ms-stat-lbl">Stratégies créées</div></div>
+  <div class="ms-stat"><div class="ms-stat-val green" id="ms-worked">0</div><div class="ms-stat-lbl">Ont fonctionné</div></div>
+  <div class="ms-stat"><div class="ms-stat-val gold" id="ms-useful">0</div><div class="ms-stat-lbl">Jugées utiles</div></div>
+</div>
+
+<div class="ms-filters" id="ms-filters" style="display:none;">
+  <button class="ms-filter active" data-filter="all"      onclick="setFilter(this)">Toutes</button>
+  <button class="ms-filter"        data-filter="worked"   onclick="setFilter(this)">Ont fonctionné</button>
+  <button class="ms-filter"        data-filter="useful"   onclick="setFilter(this)">Jugées utiles</button>
+  <button class="ms-filter"        data-filter="untested" onclick="setFilter(this)">Pas encore testées</button>
+</div>
+
+<div class="ms-loading" id="ms-loading">Chargement de vos stratégies…</div>
+<div class="ms-list" id="ms-list"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let _all = [];
+let _filter = 'all';
+
+function _esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _fmtDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}) +
+           ' · ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  } catch(e) { return ''; }
+}
+
+async function load() {
+  try {
+    const r = await fetch('/strategies');
+    _all = r.ok ? await r.json() : [];
+  } catch(e) { _all = []; }
+  document.getElementById('ms-loading').style.display = 'none';
+  render();
+}
+
+function render() {
+  const list = document.getElementById('ms-list');
+
+  if (!_all.length) {
+    document.getElementById('ms-stats').style.display = 'none';
+    document.getElementById('ms-filters').style.display = 'none';
+    list.innerHTML = `
+      <div class="ms-empty">
+        <div class="ms-empty-glyph">◈</div>
+        <div class="ms-empty-title">Aucune stratégie sauvegardée</div>
+        <div class="ms-empty-desc">Chaque stratégie générée par le Stratège est conservée ici. Vous pourrez la rouvrir et suivre si elle a fonctionné sur le terrain.</div>
+        <a href="/stratege" class="ms-empty-cta">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Lancer le Stratège
+        </a>
+      </div>`;
+    return;
+  }
+
+  // Stats
+  document.getElementById('ms-stats').style.display = 'grid';
+  document.getElementById('ms-filters').style.display = 'flex';
+  document.getElementById('ms-total').textContent  = _all.length;
+  document.getElementById('ms-worked').textContent = _all.filter(s => s.resultat === 'fonctionne').length;
+  document.getElementById('ms-useful').textContent = _all.filter(s => s.usefulness === 'oui').length;
+
+  // Filtrage
+  const rows = _all.filter(s => {
+    if (_filter === 'worked')   return s.resultat === 'fonctionne';
+    if (_filter === 'useful')   return s.usefulness === 'oui';
+    if (_filter === 'untested') return !s.resultat || s.resultat === 'pas_teste';
+    return true;
+  });
+
+  if (!rows.length) {
+    list.innerHTML = `<div class="ms-empty"><div class="ms-empty-title">Aucune stratégie dans ce filtre</div></div>`;
+    return;
+  }
+
+  list.innerHTML = rows.map(s => cardHtml(s)).join('');
+}
+
+function usefulBadge(u) {
+  if (u === 'oui')           return `<span class="ms-badge useful"><span class="dot"></span>Jugée utile</span>`;
+  if (u === 'partiellement') return `<span class="ms-badge partial"><span class="dot"></span>Partiellement utile</span>`;
+  if (u === 'non')           return `<span class="ms-badge notuseful"><span class="dot"></span>Peu utile</span>`;
+  return '';
+}
+
+function resultBadge(r) {
+  if (r === 'fonctionne')    return `<span class="ms-badge worked"><span class="dot"></span>A fonctionné</span>`;
+  if (r === 'sans_resultat') return `<span class="ms-badge noresult"><span class="dot"></span>Sans résultat</span>`;
+  return `<span class="ms-badge untested"><span class="dot"></span>Pas encore testée</span>`;
+}
+
+function cardHtml(s) {
+  const id = s.strategy_id;
+  return `
+    <div class="ms-card" id="card-${id}">
+      <div class="ms-card-top">
+        <div class="ms-card-body">
+          <div class="ms-card-title">${_esc(s.title || 'Stratégie')}</div>
+          <div class="ms-card-meta">
+            <span class="ms-card-date">${_fmtDate(s.created_at)}</span>
+            ${usefulBadge(s.usefulness)}
+            ${resultBadge(s.resultat)}
+          </div>
+        </div>
+        <div class="ms-card-actions">
+          <a class="ms-act primary" href="/stratege?strategy=${id}" style="text-decoration:none;">
+            <svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+            Ouvrir
+          </a>
+          <button class="ms-act ms-act-del" title="Supprimer" onclick="del('${id}')">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="ms-track" id="track-${id}">
+        <div class="ms-track-label">Cette stratégie a-t-elle fonctionné&nbsp;?</div>
+        <div class="ms-track-options">
+          <button class="ms-track-btn ${s.resultat==='fonctionne'?'sel-worked':''}"   onclick="mark('${id}','fonctionne')">✓ Oui, elle a marché</button>
+          <button class="ms-track-btn ${s.resultat==='sans_resultat'?'sel-noresult':''}" onclick="mark('${id}','sans_resultat')">○ Appliquée, sans résultat</button>
+          <button class="ms-track-btn ${(!s.resultat||s.resultat==='pas_teste')?'sel-untested':''}" onclick="mark('${id}','pas_teste')">— Pas encore testée</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function mark(strategyId, resultat) {
+  const strat = _all.find(s => s.strategy_id === strategyId);
+  if (strat) strat.resultat = resultat;
+
+  // Mise à jour optimiste de l'UI de la carte
+  const track = document.getElementById('track-' + strategyId);
+  if (track) {
+    track.querySelectorAll('.ms-track-btn').forEach(b => b.classList.remove('sel-worked','sel-noresult','sel-untested'));
+    const map = {fonctionne:'sel-worked', sans_resultat:'sel-noresult', pas_teste:'sel-untested'};
+    const btns = track.querySelectorAll('.ms-track-btn');
+    const idx  = {fonctionne:0, sans_resultat:1, pas_teste:2}[resultat];
+    if (btns[idx]) btns[idx].classList.add(map[resultat]);
+  }
+
+  // Mise à jour des badges + stats
+  const card = document.getElementById('card-' + strategyId);
+  const meta = card?.querySelector('.ms-card-meta');
+  if (meta) {
+    meta.innerHTML = `<span class="ms-card-date">${_fmtDate(strat.created_at)}</span>${usefulBadge(strat.usefulness)}${resultBadge(resultat)}`;
+  }
+  document.getElementById('ms-worked').textContent = _all.filter(s => s.resultat === 'fonctionne').length;
+
+  try {
+    await fetch('/feedback', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({strategy_id: strategyId, analysis_id: strat?.analysis_id || '', resultat})
+    });
+  } catch(e) {}
+}
+
+async function del(strategyId) {
+  if (!confirm('Supprimer définitivement cette stratégie ?')) return;
+  try { await fetch('/strategies/' + strategyId, {method:'DELETE'}); } catch(e) {}
+  _all = _all.filter(s => s.strategy_id !== strategyId);
+  render();
+}
+
+function setFilter(btn) {
+  _filter = btn.dataset.filter;
+  document.querySelectorAll('.ms-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+load();
+</script>
+{% endblock %}

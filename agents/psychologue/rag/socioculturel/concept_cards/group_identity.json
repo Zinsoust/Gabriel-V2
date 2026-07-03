@@ -1,0 +1,44 @@
+{
+  "id": "SOC-003",
+  "title": "Identité de groupe",
+  "domain": "psychologie_sociale",
+  "source_files": ["009_principles_of_social_psychology.md", "020_introduction_to_sociology_3e.md"],
+  "concept": "Identité de groupe",
+  "definition": "L'identité sociale (Tajfel & Turner 1979) est la partie de l'estime de soi qui vient de l'appartenance à un groupe. Les individus catégorisent le monde en 'nous' (ingroup) et 'eux' (outgroup), favorisent l'ingroup et dévalorisent l'outgroup. Cette dynamique génère cohésion interne et rejet externe. Plus l'identité de groupe est saillante, plus ces mécanismes sont intenses. Le créateur de contenu est perçu comme appartenant à un groupe — ou en est exclu.",
+  "use_when": [
+    "Les commentaires utilisent un langage 'nous' vs 'eux' explicitement",
+    "L'audience défend le créateur comme 'un des leurs' ou le rejette comme outsider",
+    "On détecte des marqueurs d'appartenance communautaire forts",
+    "Les conflits dans les commentaires ont une dimension identitaire claire"
+  ],
+  "dashboard_triggers": [
+    "langage collectif dominant ('nous', 'notre', 'eux', 'ces gens')",
+    "marqueurs communautaires dans les tokens dominants",
+    "défense active de l'identité de groupe",
+    "polarisation ingroup/outgroup mesurable"
+  ],
+  "interpretation_rule": "Quand l'identité de groupe est active, le contenu n'est plus jugé sur ses mérites objectifs mais sur sa position par rapport au groupe : est-il pour nous ou contre nous ? Le créateur perçu comme ingroup bénéficie d'un favoritisme automatique ; perçu comme outgroup, ses contenus sont rejetés même s'ils sont objectivement de qualité. Le signal à détecter : l'audience juge-t-elle le contenu ou juge-t-elle l'appartenance du créateur ?",
+  "what_to_observe": [
+    "Pronoms collectifs : 'nous autres', 'notre communauté', 'les gens comme nous'",
+    "Désignation de l'outgroup : 'ces gens-là', 'eux qui ne comprennent pas'",
+    "Défense de l'identité : 'attaquer ce créateur c'est nous attaquer'",
+    "Trahison perçue : quand le créateur dévie de la ligne du groupe"
+  ],
+  "warnings": [
+    "L'identité de groupe protège de la critique rationnelle — ne pas s'attendre à des débats factuels",
+    "La trahison perçue (prendre la position de l'outgroup) est souvent plus durement sanctionnée que les critiques de l'outgroup",
+    "Les groupes en ligne ont des frontières moins stables que les groupes physiques"
+  ],
+  "output_guidance": "Identifier les marqueurs d'identité de groupe dominants, la nature de l'outgroup perçu, et la position du créateur dans cette dynamique ingroup/outgroup.",
+  "example_interpretation": "L'audience s'identifie fortement comme [groupe X]. Les commentaires négatifs proviennent majoritairement de [groupe Y] perçu comme outgroup. Le créateur est actuellement positionné comme ingroup par [X%] de l'audience — cette position est un actif fragile qui se construit par des signaux d'appartenance cohérents.",
+  "confidence_factors": [
+    "Fréquence des pronoms collectifs et des désignations d'outgroup",
+    "Intensité de la réaction lors de perceptions de trahison identitaire",
+    "Cohérence des marqueurs d'appartenance"
+  ],
+  "avoid": [
+    "Supposer que l'identité de groupe est visible uniquement dans les conflits",
+    "Négliger les dynamiques ingroup/outgroup dans les analyses qui semblent consensuelles",
+    "Recommander de prendre position dans des conflits ingroup/outgroup sans analysis des conséquences"
+  ]
+}

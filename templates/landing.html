@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gabriel — Intelligence stratégique pour votre audience</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Epilogue:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/gabriel.css') }}">
+  <style>
+    @font-face { font-family: 'Creato Display'; src: url("{{ url_for('static', filename='fonts/CreatoDisplay-Thin.otf') }}") format('opentype'); font-weight: 200; font-style: normal; }
+    @font-face { font-family: 'Creato Display'; src: url("{{ url_for('static', filename='fonts/CreatoDisplay-ThinItalic.otf') }}") format('opentype'); font-weight: 200; font-style: italic; }
+    @font-face { font-family: 'Creato Display'; src: url("{{ url_for('static', filename='fonts/CreatoDisplay-Light.otf') }}") format('opentype'); font-weight: 300; font-style: normal; }
+    @font-face { font-family: 'Creato Display'; src: url("{{ url_for('static', filename='fonts/CreatoDisplay-Regular.otf') }}") format('opentype'); font-weight: 400; font-style: normal; }
+    @font-face { font-family: 'Creato Display'; src: url("{{ url_for('static', filename='fonts/CreatoDisplay-Medium.otf') }}") format('opentype'); font-weight: 500; font-style: normal; }
+    @font-face { font-family: 'Creato Display'; src: url("{{ url_for('static', filename='fonts/CreatoDisplay-Bold.otf') }}") format('opentype'); font-weight: 700; font-style: normal; }
+    @font-face { font-family: 'Creato Display'; src: url("{{ url_for('static', filename='fonts/CreatoDisplay-ExtraBold.otf') }}") format('opentype'); font-weight: 800; font-style: normal; }
+    @font-face { font-family: 'Creato Display'; src: url("{{ url_for('static', filename='fonts/CreatoDisplay-Black.otf') }}") format('opentype'); font-weight: 900; font-style: normal; }
+
+    /* ── TOKENS ── */
+    :root {
+      --champ: #D8B982;
+      --champ-dim: rgba(216,185,130,0.55);
+      --champ-ghost: rgba(216,185,130,0.08);
+      --champ-border: rgba(216,185,130,0.22);
+      --line: rgba(250,250,248,0.065);
+      --line-strong: rgba(250,250,248,0.10);
+      --bg: #050506;
+      --bg1: #0A0A0C;
+      --bg2: #0E0E11;
+      --text1: #EDEAE3;
+      --text2: #8A8A8E;
+      --text3: #55555A;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      margin: 0;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      color: var(--text1);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ════════════════════════════════
+       HERO OUTER / INNER — SCROLL EXPANSION
+    ════════════════════════════════ */
+    .lhero-outer {
+      background: #000;
+      /* initial padding — JS overrides on scroll */
+      padding: 32px 32px 0;
+      will-change: padding;
+    }
+    .lhero-inner {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      min-height: 780px;
+      background-image: url("{{ url_for('static', filename='images/image-1782086549980.webp') }}");
+      background-size: cover;
+      /* parallax position driven by JS */
+      background-position: center 0px;
+      will-change: border-radius, background-position;
+    }
+    .lhero-inner::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.68) 0%,
+        rgba(0,0,0,0.82) 38%,
+        rgba(0,0,0,0.95) 100%
+      );
+      pointer-events: none; z-index: 1;
+    }
+    /* subtle grid texture */
+    .lhero-inner::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 56px 56px;
+      pointer-events: none; z-index: 0;
+      opacity: 0.35;
+    }
+    .lhero-inner > * { position: relative; z-index: 2; }
+
+    /* ── NAVBAR ── */
+    .lnav {
+      position: absolute;
+      top: 0; left: 0; right: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 26px 36px;
+    }
+    .lnav-logo { display: flex; align-items: center; gap: 0; text-decoration: none; }
+    .lnav-mark { height: 38px; flex-shrink: 0; }
+    .lnav-mark img { height: 100%; width: auto; object-fit: contain; display: block; }
+    .lnav-center { display: flex; gap: 32px; align-items: center; }
+    .lnav-link {
+      color: rgba(255,255,255,0.62); text-decoration: none;
+      font-size: 13px; font-weight: 400;
+      letter-spacing: 0.01em;
+      transition: color 0.18s;
+    }
+    .lnav-link:hover { color: rgba(255,255,255,0.92); }
+    .lnav-cta {
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 999px; padding: 8px 22px;
+      color: rgba(255,255,255,0.90); text-decoration: none; font-size: 13px;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.04);
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .lnav-cta:hover {
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.48);
+    }
+
+    /* ── HERO CONTENT ── */
+    .lhero-content {
+      position: absolute;
+      top: 0; bottom: 60px; left: 0; right: 0;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 96px 48px 0;
+      will-change: transform, opacity;
+    }
+
+    /* badge label */
+    .lhero-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: 1px solid var(--champ-border);
+      border-radius: 999px;
+      padding: 5px 14px;
+      margin-bottom: 28px;
+      background: rgba(216,185,130,0.05);
+      backdrop-filter: blur(4px);
+    }
+    .lhero-badge-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--champ);
+      opacity: 0.8;
+    }
+    .lhero-badge span {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--champ-dim);
+    }
+
+    /* title */
+    .lhero-title {
+      font-family: 'Epilogue', 'DM Sans', system-ui, sans-serif;
+      font-size: clamp(34px, 5.2vw, 64px);
+      font-weight: 200;
+      color: #fff;
+      margin: 0 0 18px;
+      letter-spacing: 0.01em;
+      line-height: 1.10;
+      max-width: 780px;
+    }
+    .lhero-title em {
+      font-style: italic;
+      font-family: 'Epilogue', 'DM Sans', system-ui, sans-serif;
+      font-weight: 200;
+      color: var(--champ);
+    }
+
+    /* subtitle */
+    .lhero-sub {
+      font-family: 'Epilogue', 'DM Sans', system-ui, sans-serif;
+      font-size: 15px;
+      color: rgba(255,255,255,0.62);
+      max-width: 520px;
+      line-height: 1.72;
+      margin: 0 0 10px;
+      font-weight: 300;
+    }
+
+    /* signature */
+    .lhero-signature {
+      font-size: 12px;
+      color: rgba(255,255,255,0.32);
+      letter-spacing: 0.06em;
+      font-weight: 500;
+      margin-bottom: 32px;
+    }
+    .lhero-signature span { color: var(--champ-dim); }
+
+    /* ── ANALYSE CARD ── */
+    .lhero-card {
+      width: 100%; max-width: 580px;
+      border: 1px solid rgba(255,255,255,0.11);
+      border-radius: 18px; overflow: hidden;
+      background: rgba(4,4,6,0.82);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      box-shadow:
+        0 32px 96px rgba(0,0,0,0.65),
+        0 0 0 1px rgba(255,255,255,0.04),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    /* tabs */
+    .lhc-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 0 20px;
+      gap: 0;
+    }
+    .lhc-tab {
+      flex: 1; padding: 14px 4px 13px;
+      background: none; border: none; cursor: pointer;
+      font-size: 11px; font-weight: 500;
+      letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.26);
+      border-bottom: 1.5px solid transparent; margin-bottom: -1px;
+      font-family: inherit;
+      transition: color 0.18s;
+    }
+    .lhc-tab.active { color: var(--champ); border-bottom-color: var(--champ); }
+    .lhc-tab:hover:not(.active) { color: rgba(255,255,255,0.52); }
+
+    .lhc-body { padding: 20px 20px 4px; }
+    .lhc-textarea {
+      width: 100%; min-height: 120px;
+      background: none; border: none; outline: none;
+      padding: 0; resize: none;
+      font-size: 13px; color: rgba(255,255,255,0.80);
+      font-family: inherit; line-height: 1.80;
+    }
+    .lhc-textarea::placeholder {
+      color: rgba(255,255,255,0.18);
+      line-height: 1.80;
+    }
+    .lhc-url {
+      width: 100%; background: none; border: none; outline: none;
+      padding: 16px 0;
+      font-size: 14px; color: rgba(255,255,255,0.80);
+      font-family: inherit;
+    }
+    .lhc-url::placeholder { color: rgba(255,255,255,0.20); }
+
+    /* card meta bar */
+    .lhc-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 18px 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .lhc-counter {
+      font-size: 10px; font-weight: 500;
+      color: rgba(255,255,255,0.20);
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+    }
+    .lhc-counter.has-content { color: rgba(216,185,130,0.45); }
+    .lhc-secure {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; color: rgba(255,255,255,0.18);
+      letter-spacing: 0.04em;
+    }
+    .lhc-secure svg { width: 9px; height: 9px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* card CTA */
+    .lhc-cta {
+      padding: 14px 18px 16px;
+    }
+    .lhc-btn {
+      width: 100%;
+      padding: 12px 20px; border-radius: 10px;
+      background: var(--champ); border: none;
+      color: #0D0D0F;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.04em; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity 0.18s, transform 0.15s, box-shadow 0.18s;
+    }
+    .lhc-btn:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(216,185,130,0.25);
+    }
+    .lhc-btn:active { transform: translateY(0); box-shadow: none; }
+    .lhc-btn-arrow { font-size: 15px; }
+
+    /* ── PLATFORM STRIP ── */
+    .lhero-logos {
+      position: absolute;
+      bottom: 22px; left: 0; right: 0;
+      display: flex; justify-content: center; align-items: center;
+      gap: 28px; flex-wrap: wrap; padding: 0 32px;
+    }
+    .lhero-logos-label {
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 0.10em; text-transform: uppercase;
+      color: rgba(255,255,255,0.20);
+    }
+    .lhero-logos-sep { width: 20px; height: 1px; background: rgba(255,255,255,0.12); }
+    .lhero-logos span {
+      color: rgba(255,255,255,0.36);
+      font-size: 12px; font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    /* ════════════════════════════════
+       STATS
+    ════════════════════════════════ */
+    .lstats {
+      display: flex; justify-content: center;
+      border-bottom: 1px solid var(--line);
+      background: var(--bg1);
+    }
+    .lstat {
+      flex: 1; max-width: 220px;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 44px 24px; border-right: 1px solid var(--line); text-align: center;
+    }
+    .lstat:last-child { border-right: none; }
+    .lstat-val {
+      font-size: 36px; font-weight: 300;
+      letter-spacing: -0.04em; color: var(--champ);
+      line-height: 1; margin-bottom: 8px;
+    }
+    .lstat-lbl {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.12em; color: rgba(250,250,248,0.26);
+    }
+
+    /* ════════════════════════════════
+       SECTION LAYOUT
+    ════════════════════════════════ */
+    .lsec {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 100px 60px;
+    }
+    .lsec-label {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.16em; color: var(--champ); opacity: 0.65;
+      display: block; margin-bottom: 14px;
+    }
+    .lsec-title {
+      font-size: clamp(22px, 2.6vw, 32px); font-weight: 700;
+      letter-spacing: -0.03em; color: var(--text1);
+      margin: 0; line-height: 1.18;
+    }
+    .lsec-sub {
+      font-size: 14px; color: var(--text2);
+      max-width: 560px; line-height: 1.78;
+      margin: 16px 0 0;
+    }
+
+    /* ════════════════════════════════
+       RESULTS SECTION (NEW)
+    ════════════════════════════════ */
+    .lresults {
+      border-top: 1px solid var(--line);
+      background: var(--bg1);
+    }
+    .lresults-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: 48px;
+    }
+    .lresult-card {
+      background: var(--bg);
+      padding: 36px 32px 32px;
+      transition: background 0.22s;
+    }
+    .lresult-card:hover { background: rgba(216,185,130,0.025); }
+    .lresult-icon {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      background: var(--champ-ghost);
+      border: 1px solid var(--champ-border);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 22px;
+    }
+    .lresult-icon svg {
+      width: 16px; height: 16px;
+      stroke: var(--champ); fill: none; stroke-width: 1.6;
+    }
+    .lresult-num {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--champ);
+      opacity: 0.45; display: block; margin-bottom: 10px;
+    }
+    .lresult-title {
+      font-size: 15px; font-weight: 600;
+      color: var(--text1); margin: 0 0 12px;
+      letter-spacing: -0.015em;
+    }
+    .lresult-desc {
+      font-size: 13px; color: var(--text2);
+      line-height: 1.72; margin: 0 0 20px;
+    }
+    .lresult-tags {
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .lresult-tag {
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.38);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 4px; padding: 3px 8px;
+    }
+
+    /* ════════════════════════════════
+       PROCESS (COMMENT ÇA MARCHE)
+    ════════════════════════════════ */
+    .lhow { border-top: 1px solid var(--line); }
+    .lhow-steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: 48px;
+    }
+    .lhow-step {
+      background: var(--bg1);
+      padding: 28px 24px;
+      transition: background 0.22s;
+    }
+    .lhow-step:hover { background: rgba(216,185,130,0.022); }
+    .lhow-num {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--champ);
+      opacity: 0.5; display: block; margin-bottom: 16px;
+    }
+    .lhow-step h3 {
+      font-size: 13px; font-weight: 600;
+      color: var(--text1); margin: 0 0 8px;
+      letter-spacing: -0.01em; line-height: 1.3;
+    }
+    .lhow-step p {
+      font-size: 12px; color: var(--text2);
+      line-height: 1.72; margin: 0;
+    }
+
+    /* ════════════════════════════════
+       AGENTS — PSYCHOLOGUE
+    ════════════════════════════════ */
+    .lpersona { border-top: 1px solid var(--line); }
+    .lpersona-inner {
+      display: flex; gap: 64px; align-items: flex-start;
+    }
+    .lpersona-text { flex: 0 0 320px; position: sticky; top: 48px; }
+    .lpersona-points {
+      display: flex; flex-direction: column; gap: 22px;
+      margin: 32px 0 36px;
+    }
+    .lpersona-point { display: flex; gap: 14px; align-items: flex-start; }
+    .lpersona-point-num {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.10em;
+      color: var(--champ); opacity: 0.5;
+      width: 16px; flex-shrink: 0; padding-top: 1px;
+    }
+    .lpersona-point strong {
+      font-size: 13px; font-weight: 600;
+      color: var(--text1); display: block; margin-bottom: 4px;
+      letter-spacing: -0.01em;
+    }
+    .lpersona-point p {
+      font-size: 12px; color: var(--text2);
+      line-height: 1.65; margin: 0;
+    }
+    .lpersona-cta {
+      display: inline-flex; align-items: center;
+      font-size: 13px; font-weight: 600;
+      color: var(--champ); text-decoration: none;
+      letter-spacing: 0.02em;
+      position: relative;
+      transition: opacity 0.15s;
+    }
+    .lpersona-cta::after {
+      content: '';
+      position: absolute; left: 0; bottom: -2px;
+      width: 0; height: 1px;
+      background: var(--champ);
+      transition: width 0.35s ease;
+    }
+    .lpersona-cta:hover::after { width: 100%; }
+    .lpersona-cta:hover { opacity: 0.75; }
+
+    /* portrait grid */
+    .lpersona-grid { flex: 1; display: flex; gap: 10px; }
+    .lpcol { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .lpcol--mid { padding-top: 52px; }
+    .lpcol--late { padding-top: 104px; }
+    .lpcard {
+      border-radius: 12px; overflow: hidden;
+      position: relative; aspect-ratio: 3/4;
+      background: linear-gradient(160deg, #1a1512, #0d0b08);
+      background-size: cover; background-position: center top;
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+    .lpcard:hover {
+      border-color: rgba(216,185,130,0.28);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(216,185,130,0.10);
+    }
+    .lpcard::before {
+      content: ''; position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.40) 55%, rgba(0,0,0,0.88) 100%);
+    }
+    .lpcard-silh {
+      position: absolute; inset: 0; z-index: 2;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    .lpcard-silh::before {
+      content: '';
+      width: 42%; padding-bottom: 42%;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: -10%;
+    }
+    .lpcard-silh::after {
+      content: '';
+      width: 86%; height: 38%;
+      border-radius: 50% 50% 0 0;
+      background: rgba(255,255,255,0.028);
+    }
+    .lpcard.has-photo .lpcard-silh { display: none; }
+    .lpcard-foot {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 16px 12px 13px; z-index: 3;
+    }
+    .lpcard-name {
+      font-size: 11px; font-weight: 600;
+      color: rgba(255,255,255,0.92); letter-spacing: -0.01em; margin-bottom: 6px;
+    }
+    .lpcard-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+    .lpcard-tags span {
+      font-size: 9px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--champ);
+      background: rgba(216,185,130,0.12);
+      border: 1px solid rgba(216,185,130,0.25);
+      border-radius: 4px; padding: 2px 6px;
+    }
+
+    /* ════════════════════════════════
+       AGENTS — STRATÈGE
+    ════════════════════════════════ */
+    .lagent { border-top: 1px solid var(--line); }
+    .lagent-inner { max-width: 1040px; margin: 0 auto; }
+    .lstrat-body {
+      display: grid; grid-template-columns: 1fr 1px 1fr;
+      gap: 0 0;
+      border: 1px solid var(--line); border-radius: 14px;
+      margin-top: 44px;
+      background: rgba(255,255,255,0.01);
+      overflow: hidden;
+    }
+    .lstrat-col {
+      padding: 36px 40px;
+    }
+    .lstrat-col:last-child { border-left: 1px solid var(--line); }
+    .lstrat-col-label {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--champ); opacity: 0.55;
+      margin-bottom: 20px; display: block;
+    }
+    .lstrat-divider { background: var(--line); width: 1px; }
+    .lagent-list {
+      list-style: none; padding: 0; margin: 0;
+      display: flex; flex-direction: column; gap: 9px;
+    }
+    .lagent-list li {
+      font-size: 13px; color: var(--text2);
+      line-height: 1.5; padding-left: 16px; position: relative;
+    }
+    .lagent-list li::before {
+      content: '–'; position: absolute; left: 0;
+      color: var(--champ); opacity: 0.40;
+    }
+    .lstrat-quote {
+      font-size: 15px; font-style: italic;
+      color: rgba(250,250,248,0.30);
+      text-align: center; margin: 32px 0 0;
+      letter-spacing: -0.01em;
+    }
+
+    /* ════════════════════════════════
+       CAPACITÉS
+    ════════════════════════════════ */
+    .lcap { border-top: 1px solid var(--line); background: var(--bg1); }
+    .lcap-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--line);
+      border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+      margin-top: 44px;
+    }
+    .lcap-card {
+      padding: 24px 26px; background: var(--bg);
+      transition: background 0.2s;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .lcap-card:hover { background: rgba(216,185,130,0.028); }
+    .lcap-card-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--champ); opacity: 0.4;
+      flex-shrink: 0; margin-top: 5px;
+    }
+    .lcap-card span {
+      font-size: 13px; color: var(--text2); line-height: 1.6;
+    }
+    .lcap-card--wide { grid-column: span 3; }
+    .lcap-card--wide span { color: rgba(216,185,130,0.65); font-weight: 500; }
+    .lcap-card--wide .lcap-card-dot { display: none; }
+
+    /* ════════════════════════════════
+       CTA FINAL
+    ════════════════════════════════ */
+    .lcta {
+      padding: 120px 60px;
+      text-align: center;
+      border-top: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+    /* subtle radial glow */
+    .lcta::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse, rgba(216,185,130,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .lcta-eyebrow {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--champ); opacity: 0.55;
+      display: block; margin-bottom: 20px;
+    }
+    .lcta-title {
+      font-family: 'Creato Display', 'DM Sans', system-ui, sans-serif;
+      font-size: clamp(32px, 5vw, 60px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: var(--text1);
+      line-height: 1.06;
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .lcta-sub {
+      font-size: 14px; color: var(--text2);
+      max-width: 420px; margin: 0 auto 42px;
+      line-height: 1.72;
+    }
+    .lcta-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 32px; border-radius: 10px;
+      background: var(--champ); border: none;
+      color: #0D0D0F;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.05em; cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.18s, transform 0.18s;
+    }
+    .lcta-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+
+    /* ════════════════════════════════
+       FOOTER
+    ════════════════════════════════ */
+    .lfooter {
+      padding: 22px 60px;
+      border-top: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; color: rgba(250,250,248,0.20);
+      background: var(--bg1);
+    }
+    .lfooter-lock { display: flex; align-items: center; gap: 6px; }
+    .lfooter-lock svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ════════════════════════════════
+       SCROLL REVEAL
+    ════════════════════════════════ */
+    .lreveal {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .lreveal--on { opacity: 1; transform: none; }
+    .lsec-label::after {
+      content: ''; display: block;
+      width: 0; height: 1px;
+      background: var(--champ); opacity: 0.45;
+      transition: width 0.70s ease 0.22s;
+      margin-top: 5px;
+    }
+    .lreveal--on .lsec-label::after { width: 28px; }
+
+    /* ════════════════════════════════
+       PERSONA PHOTO BACKGROUNDS
+    ════════════════════════════════ */
+    .lpcard-p1  { background-image: url("{{ url_for('static', filename='images/personas/p1.jpeg') }}"); }
+    .lpcard-p2  { background-image: url("{{ url_for('static', filename='images/personas/p2.jpeg') }}"); }
+    .lpcard-p3  { background-image: url("{{ url_for('static', filename='images/personas/p3.jpeg') }}"); }
+    .lpcard-p4  { background-image: url("{{ url_for('static', filename='images/personas/p4.jpeg') }}"); }
+    .lpcard-p5  { background-image: url("{{ url_for('static', filename='images/personas/p5.jpeg') }}"); }
+    .lpcard-p6  { background-image: url("{{ url_for('static', filename='images/personas/p6.jpeg') }}"); }
+    .lpcard-p7  { background-image: url("{{ url_for('static', filename='images/personas/p7.jpeg') }}"); }
+    .lpcard-p8  { background-image: url("{{ url_for('static', filename='images/personas/p8.jpeg') }}"); background-position: center top; }
+    .lpcard-p9  { background-image: url("{{ url_for('static', filename='images/personas/p9.jpeg') }}"); background-position: center top; }
+    .lpcard-p10 { background-image: url("{{ url_for('static', filename='images/personas/p10.jpeg') }}"); }
+    .lpcard-p11 { background-image: url("{{ url_for('static', filename='images/personas/p11.jpeg') }}"); }
+    .lpcard-p12 { background-image: url("{{ url_for('static', filename='images/personas/p12.jpeg') }}"); }
+    .lpcard-p13 { background-image: url("{{ url_for('static', filename='images/personas/p13.jpeg') }}"); }
+    .lpcard-p14 { background-image: url("{{ url_for('static', filename='images/personas/p14.jpeg') }}"); }
+    .lpcard-p15 { background-image: url("{{ url_for('static', filename='images/personas/p15.jpeg') }}"); }
+    .lpcard-p16 { background-image: url("{{ url_for('static', filename='images/personas/p16.jpeg') }}"); }
+
+    /* ════════════════════════════════
+       ANIMATIONS
+    ════════════════════════════════ */
+    @keyframes lEntrance {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes lNavDrop {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes lChampPulse {
+      0%, 100% { color: var(--champ); }
+      50%       { color: #F1D7A8; text-shadow: 0 0 32px rgba(216,185,130,0.22); }
+    }
+    @keyframes lpFloat {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-7px); }
+    }
+    @keyframes champGlow {
+      0%, 100% { box-shadow: 0 0 0px rgba(216,185,130,0); }
+      50%       { box-shadow: 0 0 18px rgba(216,185,130,0.20); }
+    }
+    @keyframes champSweep {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes lStatIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes badgePulse {
+      0%, 100% { opacity: 0.8; }
+      50%       { opacity: 1; }
+    }
+
+    .lnav            { animation: lNavDrop  0.60s ease 0.00s both; }
+    .lhero-badge     { animation: lEntrance 0.70s ease 0.15s both; }
+    .lhero-title     { animation: lEntrance 0.80s ease 0.28s both; }
+    .lhero-sub       { animation: lEntrance 0.80s ease 0.40s both; }
+    .lhero-signature { animation: lEntrance 0.75s ease 0.50s both; }
+    .lhero-card      { animation: lEntrance 0.80s ease 0.60s both; }
+    .lhero-logos     { animation: lEntrance 0.65s ease 0.80s both; }
+
+    .lhero-title em { animation: lChampPulse 5s ease-in-out 2.5s infinite; }
+    .lhero-badge-dot { animation: badgePulse 2.5s ease-in-out infinite; }
+
+    .lpcol:nth-child(1) .lpcard:nth-child(1) { animation: lpFloat 4.8s ease-in-out 0.0s infinite, champGlow 6.0s ease-in-out 0.0s infinite; }
+    .lpcol:nth-child(1) .lpcard:nth-child(2) { animation: lpFloat 4.8s ease-in-out 1.6s infinite, champGlow 6.0s ease-in-out 2.5s infinite; }
+    .lpcol:nth-child(1) .lpcard:nth-child(3) { animation: lpFloat 4.8s ease-in-out 3.2s infinite, champGlow 6.0s ease-in-out 5.0s infinite; }
+    .lpcol:nth-child(1) .lpcard:nth-child(4) { animation: lpFloat 4.8s ease-in-out 0.8s infinite, champGlow 6.0s ease-in-out 1.2s infinite; }
+    .lpcol:nth-child(1) .lpcard:nth-child(5) { animation: lpFloat 4.8s ease-in-out 2.4s infinite, champGlow 6.0s ease-in-out 3.8s infinite; }
+    .lpcol:nth-child(1) .lpcard:nth-child(6) { animation: lpFloat 4.8s ease-in-out 4.0s infinite, champGlow 6.0s ease-in-out 0.7s infinite; }
+    .lpcol:nth-child(2) .lpcard:nth-child(1) { animation: lpFloat 4.8s ease-in-out 0.5s infinite, champGlow 6.0s ease-in-out 1.5s infinite; }
+    .lpcol:nth-child(2) .lpcard:nth-child(2) { animation: lpFloat 4.8s ease-in-out 2.1s infinite, champGlow 6.0s ease-in-out 4.0s infinite; }
+    .lpcol:nth-child(2) .lpcard:nth-child(3) { animation: lpFloat 4.8s ease-in-out 3.7s infinite, champGlow 6.0s ease-in-out 0.3s infinite; }
+    .lpcol:nth-child(2) .lpcard:nth-child(4) { animation: lpFloat 4.8s ease-in-out 1.3s infinite, champGlow 6.0s ease-in-out 2.8s infinite; }
+    .lpcol:nth-child(2) .lpcard:nth-child(5) { animation: lpFloat 4.8s ease-in-out 2.9s infinite, champGlow 6.0s ease-in-out 5.3s infinite; }
+    .lpcol:nth-child(3) .lpcard:nth-child(1) { animation: lpFloat 4.8s ease-in-out 1.1s infinite, champGlow 6.0s ease-in-out 2.0s infinite; }
+    .lpcol:nth-child(3) .lpcard:nth-child(2) { animation: lpFloat 4.8s ease-in-out 2.7s infinite, champGlow 6.0s ease-in-out 4.5s infinite; }
+    .lpcol:nth-child(3) .lpcard:nth-child(3) { animation: lpFloat 4.8s ease-in-out 0.3s infinite, champGlow 6.0s ease-in-out 0.9s infinite; }
+    .lpcol:nth-child(3) .lpcard:nth-child(4) { animation: lpFloat 4.8s ease-in-out 1.9s infinite, champGlow 6.0s ease-in-out 3.3s infinite; }
+    .lpcol:nth-child(3) .lpcard:nth-child(5) { animation: lpFloat 4.8s ease-in-out 3.5s infinite, champGlow 6.0s ease-in-out 5.8s infinite; }
+
+    .lpcard:hover .lpcard-tags span {
+      background: linear-gradient(90deg, rgba(216,185,130,0.08), rgba(216,185,130,0.28), rgba(216,185,130,0.08));
+      background-size: 200% 100%;
+      animation: champSweep 1.2s ease infinite;
+      border-color: rgba(216,185,130,0.45);
+      color: #fff;
+    }
+    .lstat.is-visible { animation: lStatIn 0.5s ease both; }
+
+    /* ════════════════════════════════
+       RESPONSIVE
+    ════════════════════════════════ */
+    @media (max-width: 900px) {
+      .lresults-grid { grid-template-columns: 1fr; }
+      .lhow-steps { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .lhero-outer { padding: 12px 12px 0; }
+      .lhero-inner { min-height: 680px; }
+      .lnav { padding: 20px; }
+      .lnav-center { display: none; }
+      .lhero-content { padding: 80px 20px 0; }
+      .lhero-title { font-size: 32px; }
+      .lhero-logos { gap: 16px; padding: 0 16px; bottom: 14px; }
+      .lhero-logos-label, .lhero-logos-sep { display: none; }
+      .lstats { flex-wrap: wrap; }
+      .lstat { max-width: none; border-right: none; border-bottom: 1px solid var(--line); padding: 28px 20px; }
+      .lstat:last-child { border-bottom: none; }
+      .lsec { padding: 64px 24px; }
+      .lresults-grid { grid-template-columns: 1fr; }
+      .lhow-steps { grid-template-columns: 1fr; }
+      .lpersona-inner { flex-direction: column; gap: 40px; }
+      .lpersona-text { flex: none; position: static; }
+      .lpersona-grid { gap: 8px; }
+      .lpcol--mid { padding-top: 28px; }
+      .lpcol--late { padding-top: 56px; }
+      .lstrat-body { grid-template-columns: 1fr; }
+      .lstrat-divider { display: none; }
+      .lstrat-col:last-child { border-left: none; border-top: 1px solid var(--line); }
+      .lcap-grid { grid-template-columns: 1fr; }
+      .lcap-card--wide { grid-column: span 1; }
+      .lcta { padding: 80px 24px; }
+      .lfooter { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
+      .lagent { padding: 60px 24px; }
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .lnav, .lhero-badge, .lhero-title, .lhero-sub, .lhero-signature,
+      .lhero-card, .lhero-logos,
+      .lhero-title em, .lhero-badge-dot { animation: none !important; }
+      .lpcard { animation: none !important; }
+      .lreveal { opacity: 1; transform: none; transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     HERO
+══════════════════════════════ -->
+<div class="lhero-outer">
+  <div class="lhero-inner">
+
+    <nav class="lnav">
+      <a href="/" class="lnav-logo">
+        <div class="lnav-mark">
+          <img src="{{ url_for('static', filename='images/gabriel_logo.png') }}" alt="Gabriel" />
+        </div>
+      </a>
+      <div class="lnav-center">
+        <a href="#fonctionnalites" class="lnav-link">Fonctionnalités</a>
+        <a href="#comment-ca-marche" class="lnav-link">Comment ça marche</a>
+      </div>
+      <a href="/login" class="lnav-cta">Connexion</a>
+    </nav>
+
+    <div class="lhero-content">
+
+      <div class="lhero-badge">
+        <span class="lhero-badge-dot"></span>
+        <span>Intelligence stratégique · IA</span>
+      </div>
+
+      <h1 class="lhero-title">
+        Transformez les signaux de votre audience<br>en <em>décisions stratégiques.</em>
+      </h1>
+
+      <p class="lhero-sub">
+        Gabriel analyse vos commentaires, URLs et réactions d'audience pour révéler ce que votre marché ressent, désire, refuse et valorise réellement.
+      </p>
+
+      <p class="lhero-signature">
+        <span>Le Psychologue comprend.</span> &nbsp;·&nbsp; <span>Le Stratège décide.</span> &nbsp;·&nbsp; <span>Le Créateur écrit.</span>
+      </p>
+
+      <div class="lhero-card">
+        <div class="lhc-tabs">
+          <button class="lhc-tab active" data-tab="manual"    onclick="lhTab(this,'manual')">
+            Commentaires
+          </button>
+          <button class="lhc-tab" data-tab="youtube"   onclick="lhTab(this,'youtube')">YouTube</button>
+          <button class="lhc-tab" data-tab="instagram" onclick="lhTab(this,'instagram')">Instagram</button>
+          <button class="lhc-tab" data-tab="tiktok"    onclick="lhTab(this,'tiktok')">TikTok</button>
+        </div>
+        <div class="lhc-body">
+          <div id="lhp-manual">
+            <textarea
+              class="lhc-textarea"
+              id="lh-comments"
+              placeholder="Collez vos commentaires ici, un par ligne…&#10;&#10;Exemple :&#10;« Ce contenu m'a vraiment aidé, je le partage ! »&#10;« Je comprends pas l'intérêt par rapport à ce qu'il y a déjà »&#10;« Exactement ce dont j'avais besoin, merci »"
+              oninput="lhCount(this)"
+            ></textarea>
+          </div>
+          <div id="lhp-youtube" style="display:none">
+            <input class="lhc-url" id="lh-yt" type="url" placeholder="https://youtube.com/watch?v=…">
+          </div>
+          <div id="lhp-instagram" style="display:none">
+            <input class="lhc-url" id="lh-ig" type="text" placeholder="https://instagram.com/p/…">
+          </div>
+          <div id="lhp-tiktok" style="display:none">
+            <input class="lhc-url" id="lh-tt" type="url" placeholder="https://tiktok.com/@…/video/…">
+          </div>
+        </div>
+        <div class="lhc-meta">
+          <span class="lhc-counter" id="lhc-counter">Minimum 3 commentaires</span>
+          <span class="lhc-secure">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Données privées
+          </span>
+        </div>
+        <div class="lhc-cta">
+          <button class="lhc-btn" onclick="lhAnalyse()">
+            Analyser mon audience
+            <span class="lhc-btn-arrow">→</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="lhero-logos">
+      <span class="lhero-logos-label">Compatible avec</span>
+      <span class="lhero-logos-sep"></span>
+      <span>YouTube</span>
+      <span>Instagram</span>
+      <span>TikTok</span>
+      <span>Twitter&thinsp;/&thinsp;X</span>
+      <span>Facebook</span>
+    </div>
+
+  </div>
+</div>
+
+<main>
+
+  <!-- ── STATS STRIP ── -->
+  <div class="lstats">
+    <div class="lstat lreveal">
+      <div class="lstat-val">3</div>
+      <div class="lstat-lbl">Agents IA</div>
+    </div>
+    <div class="lstat lreveal">
+      <div class="lstat-val">10+</div>
+      <div class="lstat-lbl">Signaux mesurés</div>
+    </div>
+    <div class="lstat lreveal">
+      <div class="lstat-val">5</div>
+      <div class="lstat-lbl">Niveaux de lecture</div>
+    </div>
+    <div class="lstat lreveal">
+      <div class="lstat-val">100%</div>
+      <div class="lstat-lbl">Données privées</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       RÉSULTATS (NOUVELLE SECTION)
+  ══════════════════════════════ -->
+  <section class="lresults">
+    <div class="lsec lreveal">
+      <div>
+        <span class="lsec-label">Ce que vous obtenez</span>
+        <h2 class="lsec-title">De l'analyse brute à la décision actionnable.</h2>
+        <p class="lsec-sub">Gabriel produit trois livrables distincts à partir d'une seule source — pour comprendre, décider et agir.</p>
+      </div>
+      <div class="lresults-grid">
+
+        <div class="lresult-card lreveal">
+          <div class="lresult-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <span class="lresult-num">01</span>
+          <h3 class="lresult-title">Analyse psychologique</h3>
+          <p class="lresult-desc">Un portrait complet de votre audience : ce qu'elle ressent, craint, désire, refuse et valorise — avec personas et groupes d'opinion.</p>
+          <div class="lresult-tags">
+            <span class="lresult-tag">Peurs</span>
+            <span class="lresult-tag">Désirs</span>
+            <span class="lresult-tag">Frustrations</span>
+            <span class="lresult-tag">Objections</span>
+            <span class="lresult-tag">Personas</span>
+          </div>
+        </div>
+
+        <div class="lresult-card lreveal">
+          <div class="lresult-icon">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <span class="lresult-num">02</span>
+          <h3 class="lresult-title">Décision stratégique</h3>
+          <p class="lresult-desc">Un plan d'action fondé sur votre contexte business réel : positionnement, offre, format, canal et priorités sur 30, 60 ou 90 jours.</p>
+          <div class="lresult-tags">
+            <span class="lresult-tag">Positionnement</span>
+            <span class="lresult-tag">Offre</span>
+            <span class="lresult-tag">Canal</span>
+            <span class="lresult-tag">Priorités</span>
+          </div>
+        </div>
+
+        <div class="lresult-card lreveal">
+          <div class="lresult-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <span class="lresult-num">03</span>
+          <h3 class="lresult-title">Contenu prêt à publier</h3>
+          <p class="lresult-desc">Des posts, hooks, scripts et CTA construits sur les mots réels de votre audience — pour une résonance immédiate.</p>
+          <div class="lresult-tags">
+            <span class="lresult-tag">Hooks</span>
+            <span class="lresult-tag">Scripts</span>
+            <span class="lresult-tag">Posts</span>
+            <span class="lresult-tag">CTA</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       PROCESSUS
+  ══════════════════════════════ -->
+  <section id="comment-ca-marche" class="lhow">
+    <div class="lsec">
+      <div class="lreveal">
+        <span class="lsec-label">Processus</span>
+        <h2 class="lsec-title">De la réaction brute à la décision stratégique.</h2>
+        <p class="lsec-sub">Cinq étapes. Une source en entrée. Trois livrables actionnables en sortie.</p>
+      </div>
+      <div class="lhow-steps">
+
+        <div class="lhow-step lreveal">
+          <span class="lhow-num">01</span>
+          <h3>Collez votre source</h3>
+          <p>YouTube, Instagram, TikTok ou commentaires libres. Une URL ou un bloc de texte suffit.</p>
+        </div>
+
+        <div class="lhow-step lreveal">
+          <span class="lhow-num">02</span>
+          <h3>Gabriel mesure les signaux</h3>
+          <p>Émotions, groupes d'opinion, polarisation, objections, mots récurrents — tout est quantifié.</p>
+        </div>
+
+        <div class="lhow-step lreveal">
+          <span class="lhow-num">03</span>
+          <h3>Le Psychologue interprète</h3>
+          <p>Lecture comportementale, psychologique et sociologique. Des insights que les chiffres seuls ne donnent pas.</p>
+        </div>
+
+        <div class="lhow-step lreveal">
+          <span class="lhow-num">04</span>
+          <h3>Le Stratège priorise</h3>
+          <p>Croisement avec votre contexte business pour une direction claire, adaptée à votre situation réelle.</p>
+        </div>
+
+        <div class="lhow-step lreveal">
+          <span class="lhow-num">05</span>
+          <h3>Le Créateur écrit</h3>
+          <p>Hooks, scripts, posts et CTA construits sur les mots de votre audience. Prêts à publier.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       LE PSYCHOLOGUE — PORTRAIT GRID
+  ══════════════════════════════ -->
+  <section class="lpersona" style="border-top: 1px solid var(--line);">
+    <div class="lsec">
+      <div class="lpersona-inner">
+
+        <div class="lpersona-text lreveal">
+          <span class="lsec-label">Agent 01 · Psychologie</span>
+          <h2 class="lsec-title">Gabriel dresse le portrait de chaque voix dans vos commentaires.</h2>
+          <p class="lsec-sub" style="margin-bottom:0">Basé sur la psychologie sociale et l'analyse comportementale — Gabriel identifie les profils précis qui composent votre audience.</p>
+
+          <div class="lpersona-points">
+            <div class="lpersona-point">
+              <span class="lpersona-point-num">I</span>
+              <div>
+                <strong>Dashboard data</strong>
+                <p>Émotions, groupes d'opinion, polarisation, objections, désirs et signaux récurrents.</p>
+              </div>
+            </div>
+            <div class="lpersona-point">
+              <span class="lpersona-point-num">II</span>
+              <div>
+                <strong>Interprétation</strong>
+                <p>Ce que l'audience ressent, veut, refuse, valorise — et ce qui la bloque réellement.</p>
+              </div>
+            </div>
+            <div class="lpersona-point">
+              <span class="lpersona-point-num">III</span>
+              <div>
+                <strong>Personas</strong>
+                <p>Des profils construits sur les données réelles de votre audience, pas inventés.</p>
+              </div>
+            </div>
+          </div>
+
+          <a href="/psychologue" class="lpersona-cta">Analyser mon audience →</a>
+        </div>
+
+        <!-- portrait grid — 16 personas, 3 colonnes -->
+        <div class="lpersona-grid lreveal">
+
+          <div class="lpcol">
+            <div class="lpcard has-photo lpcard-p1">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">L'Acheteur Convaincu</div>
+                <div class="lpcard-tags"><span>Confiant</span><span>Engagé</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p6">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">Le Déçu Silencieux</div>
+                <div class="lpcard-tags"><span>Déçu</span><span>Passif</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p7">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">La Furieuse</div>
+                <div class="lpcard-tags"><span>Colère</span><span>Réactive</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p10">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">La Loyale Engagée</div>
+                <div class="lpcard-tags"><span>Positive</span><span>Attachée</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p13">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">La Professionnelle</div>
+                <div class="lpcard-tags"><span>Analytique</span><span>Curieuse</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p16">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">L'Ennuyée Chronique</div>
+                <div class="lpcard-tags"><span>Apathique</span><span>Désengagée</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lpcol lpcol--mid">
+            <div class="lpcard has-photo lpcard-p3">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">L'Opposant Vocal</div>
+                <div class="lpcard-tags"><span>Frustré</span><span>Sceptique</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p4">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">L'Enthousiaste</div>
+                <div class="lpcard-tags"><span>Vocal</span><span>Ambassadeur</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p8">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">Le Perdu Total</div>
+                <div class="lpcard-tags"><span>Confus</span><span>Déconnecté</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p11">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">Le Sceptique Analytique</div>
+                <div class="lpcard-tags"><span>Logique</span><span>Calculé</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p14">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">L'Observateur Silencieux</div>
+                <div class="lpcard-tags"><span>Discret</span><span>Attentif</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lpcol lpcol--late">
+            <div class="lpcard has-photo lpcard-p5">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">Le Curieux Passif</div>
+                <div class="lpcard-tags"><span>Hésitant</span><span>Explorateur</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p2">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">La Fidèle Critique</div>
+                <div class="lpcard-tags"><span>Exigeante</span><span>Loyale</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p9">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">L'Indifférent</div>
+                <div class="lpcard-tags"><span>Neutre</span><span>Détaché</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p12">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">L'Optimiste</div>
+                <div class="lpcard-tags"><span>Fan</span><span>Partageur</span></div>
+              </div>
+            </div>
+            <div class="lpcard has-photo lpcard-p15">
+              <div class="lpcard-silh"></div>
+              <div class="lpcard-foot">
+                <div class="lpcard-name">Le Rêveur Idéaliste</div>
+                <div class="lpcard-tags"><span>Introspectif</span><span>Sensible</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       LE STRATÈGE
+  ══════════════════════════════ -->
+  <section class="lagent" style="padding: 100px 60px;">
+    <div class="lagent-inner">
+      <div class="lreveal">
+        <span class="lsec-label">Agent 02 · Stratégie</span>
+        <h2 class="lsec-title">Le Stratège transforme l'analyse en plan d'action.</h2>
+        <p class="lsec-sub">Pas de conseils génériques. Le Stratège croise les résultats du Psychologue avec votre contexte business pour produire une direction adaptée à votre situation réelle.</p>
+      </div>
+      <div class="lstrat-body lreveal">
+        <div class="lstrat-col">
+          <span class="lstrat-col-label">Il prend en compte</span>
+          <ul class="lagent-list">
+            <li>Votre activité et secteur</li>
+            <li>Votre offre principale</li>
+            <li>Votre audience cible</li>
+            <li>Votre modèle économique</li>
+            <li>Vos objectifs prioritaires</li>
+            <li>Vos contraintes réelles</li>
+            <li>Vos résultats actuels</li>
+          </ul>
+        </div>
+        <div class="lstrat-divider"></div>
+        <div class="lstrat-col">
+          <span class="lstrat-col-label">Il peut proposer</span>
+          <ul class="lagent-list">
+            <li>Un positionnement différenciant</li>
+            <li>Une amélioration d'offre</li>
+            <li>Un angle de communication</li>
+            <li>Une stratégie de contenu</li>
+            <li>Un plan d'action priorisé</li>
+            <li>Des recommandations marketing</li>
+            <li>Actions sur 30, 60 ou 90 jours</li>
+          </ul>
+        </div>
+      </div>
+      <p class="lstrat-quote lreveal">« Pas de stratégie sérieuse sans contexte business. »</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       CAPACITÉS
+  ══════════════════════════════ -->
+  <section class="lcap" id="fonctionnalites">
+    <div class="lsec">
+      <div class="lreveal">
+        <span class="lsec-label">Capacités</span>
+        <h2 class="lsec-title">Ce que Gabriel mesure réellement.</h2>
+        <p class="lsec-sub">Dix signaux extraits de vos sources, interprétés par des agents IA spécialisés.</p>
+      </div>
+      <div class="lcap-grid">
+        <div class="lcap-card lreveal">
+          <div class="lcap-card-dot"></div>
+          <span>Émotions dominantes de l'audience</span>
+        </div>
+        <div class="lcap-card lreveal">
+          <div class="lcap-card-dot"></div>
+          <span>Groupes d'opinion et polarisation</span>
+        </div>
+        <div class="lcap-card lreveal">
+          <div class="lcap-card-dot"></div>
+          <span>Objections et résistances détectées</span>
+        </div>
+        <div class="lcap-card lreveal">
+          <div class="lcap-card-dot"></div>
+          <span>Frustrations et points de friction</span>
+        </div>
+        <div class="lcap-card lreveal">
+          <div class="lcap-card-dot"></div>
+          <span>Désirs profonds et aspirations</span>
+        </div>
+        <div class="lcap-card lreveal">
+          <div class="lcap-card-dot"></div>
+          <span>Mots et expressions récurrents</span>
+        </div>
+        <div class="lcap-card lreveal">
+          <div class="lcap-card-dot"></div>
+          <span>Personas construits sur les données</span>
+        </div>
+        <div class="lcap-card lreveal">
+          <div class="lcap-card-dot"></div>
+          <span>Interprétation psychologique et sociologique</span>
+        </div>
+        <div class="lcap-card lcap-card--wide lreveal">
+          <span>Opportunités stratégiques identifiées · Plan d'action basé sur votre contexte business réel</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════
+       CTA FINAL
+  ══════════════════════════════ -->
+  <section class="lcta" id="tarifs">
+    <span class="lcta-eyebrow lreveal">Prochaine étape</span>
+    <h2 class="lcta-title lreveal">Prêt à transformer votre audience<br>en décision stratégique&nbsp;?</h2>
+    <p class="lcta-sub lreveal">Collez une URL ou des commentaires. Gabriel s'occupe du reste — analyse, stratégie, contenu.</p>
+    <a href="/psychologue" class="lcta-btn lreveal">Analyser mon audience →</a>
+  </section>
+
+</main>
+
+<footer class="lfooter">
+  <span>© 2026 Gabriel — Intelligence stratégique</span>
+  <div class="lfooter-lock">
+    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Données privées et sécurisées.
+  </div>
+</footer>
+
+<script>
+/* ── TAB SWITCH (IDs inchangés) ── */
+function lhTab(btn, tab) {
+  document.querySelectorAll('.lhc-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['manual','youtube','instagram','tiktok'].forEach(t => {
+    document.getElementById('lhp-'+t).style.display = t === tab ? '' : 'none';
+  });
+  /* Réinitialiser le counter si on change d'onglet */
+  var counter = document.getElementById('lhc-counter');
+  if (counter) {
+    counter.textContent = 'Minimum 3 commentaires';
+    counter.classList.remove('has-content');
+  }
+}
+
+/* ── COMPTEUR DE LIGNES ── */
+function lhCount(el) {
+  var counter = document.getElementById('lhc-counter');
+  if (!counter) return;
+  var lines = el.value.split('\n').filter(function(l) { return l.trim().length > 0; });
+  var n = lines.length;
+  if (n === 0) {
+    counter.textContent = 'Minimum 3 commentaires';
+    counter.classList.remove('has-content');
+  } else if (n < 3) {
+    counter.textContent = n + ' commentaire' + (n > 1 ? 's' : '') + ' · encore ' + (3 - n) + ' minimum';
+    counter.classList.remove('has-content');
+  } else {
+    counter.textContent = n + ' commentaire' + (n > 1 ? 's' : '') + ' · prêt à analyser';
+    counter.classList.add('has-content');
+  }
+}
+
+/* ── ANALYSER (sessionStorage + redirect) ── */
+function lhAnalyse() {
+  const tab = document.querySelector('.lhc-tab.active')?.dataset.tab || 'manual';
+  const map = {manual:'lh-comments', youtube:'lh-yt', instagram:'lh-ig', tiktok:'lh-tt'};
+  const content = (document.getElementById(map[tab])?.value || '').trim();
+  if (content) {
+    sessionStorage.setItem('gabriel_source', tab === 'manual' ? 'text' : tab);
+    sessionStorage.setItem('gabriel_content', content);
+  }
+  window.location.href = '/psychologue';
+}
+
+/* ── SCROLL REVEAL + STAGGER ── */
+(function () {
+  const els = document.querySelectorAll('.lreveal');
+  const seen = new WeakMap();
+  els.forEach(el => {
+    const p = el.parentElement;
+    const idx = seen.has(p) ? seen.get(p) + 1 : 0;
+    seen.set(p, idx);
+    el.style.transitionDelay = (idx * 0.07) + 's';
+  });
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('lreveal--on');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.10 });
+  els.forEach(el => io.observe(el));
+})();
+
+/* ── STATS COUNTER ── */
+(function () {
+  function parseVal(txt) {
+    const num = parseFloat(txt.replace(/[^0-9.]/g, ''));
+    const suf = txt.replace(/[0-9.]/g, '').trim();
+    return { num, suf };
+  }
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+  function runCounter(el) {
+    const original = el.textContent.trim();
+    const { num, suf } = parseVal(original);
+    if (isNaN(num)) return;
+    const duration = 1400;
+    const start = performance.now();
+    (function tick(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const cur = Math.round(easeOut(p) * num);
+      el.textContent = cur + suf;
+      if (p < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+  const statEls = document.querySelectorAll('.lstat-val');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.closest('.lstat')?.classList.add('is-visible');
+        runCounter(e.target);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  statEls.forEach(el => io.observe(el));
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     SCROLL EXPANSION HERO + PARALLAX
+     Inspiré de scroll-expansion-hero (21st.dev)
+     — vanilla JS, zéro dépendance, GPU-friendly
+════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  var outer = document.querySelector('.lhero-outer');
+  var inner = document.querySelector('.lhero-inner');
+  if (!outer || !inner) return;
+
+  /* ── Config ── */
+  var PAD_START    = 32;   /* padding initial px */
+  var RADIUS_START = 18;   /* border-radius initial px */
+  var EXPAND_PX    = 420;  /* scroll distance pour expansion complète */
+  /*
+   * Parallax background :
+   * Le background part de "center 20%" (un peu en dessous du bord haut).
+   * Au scroll, on ajoute un décalage positif — le background descend
+   * moins vite que la page, créant l'effet de profondeur.
+   * Valeur positive en CSS background-position-y = le bg est décalé vers le bas
+   * → on voit une portion plus haute de l'image → effet parallax correct.
+   */
+  var PARALLAX_R = 0.25;
+
+  /* ── Easing cubic ease-out ── */
+  function ease(t) { return 1 - Math.pow(1 - t, 3); }
+
+  /* ── État ── */
+  var ticking = false;
+  var lastY   = -1;
+
+  function update() {
+    ticking = false;
+    var y = window.scrollY || window.pageYOffset;
+    if (y === lastY) return;
+    lastY = y;
+
+    var raw = Math.min(y / EXPAND_PX, 1);
+    var p   = ease(raw);
+
+    /* 1. Expansion */
+    var pad    = Math.round(PAD_START    * (1 - p));
+    var radius = Math.round(RADIUS_START * (1 - p));
+    outer.style.paddingTop   = pad + 'px';
+    outer.style.paddingLeft  = pad + 'px';
+    outer.style.paddingRight = pad + 'px';
+    inner.style.borderRadius = radius + 'px';
+
+    /* 2. Parallax — background se déplace moins vite que la page
+     *    Départ : 20% (donne de la marge en haut pour ne pas clipper)
+     *    + décalage proportionnel au scroll (positif = montre plus de haut)
+     */
+    var pxShift = Math.round(y * PARALLAX_R);
+    inner.style.backgroundPosition = 'center calc(20% + ' + pxShift + 'px)';
+  }
+
+  /* ── Listener passif, throttlé via rAF ── */
+  window.addEventListener('scroll', function () {
+    if (!ticking) {
+      requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  /* État initial */
+  update();
+
+  /* ── Désactiver sur mobile / reduced-motion ── */
+  var mq = window.matchMedia('(max-width: 768px), (prefers-reduced-motion: reduce)');
+  function checkMQ() {
+    if (mq.matches) {
+      outer.style.paddingTop = outer.style.paddingLeft = outer.style.paddingRight = '';
+      inner.style.borderRadius = '';
+      inner.style.backgroundPosition = 'center top';
+      window.removeEventListener('scroll', update);
+    }
+  }
+  mq.addEventListener('change', checkMQ);
+  checkMQ();
+})();
+</script>
+</body>
+</html>

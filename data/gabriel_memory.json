@@ -1,0 +1,83 @@
+[
+  {
+    "case_id": "19c3fb9a-ffa",
+    "date": "2026-06-18",
+    "fingerprint": {
+      "emotion_dominante": "admiration",
+      "asp_keywords": [
+        "économie",
+        "capables",
+        "systémique",
+        "créer",
+        "souveraineté",
+        "éveillés",
+        "africaine",
+        "prospère",
+        "génération",
+        "agir",
+        "division",
+        "citoyens",
+        "économique",
+        "crédibles",
+        "persistante",
+        "interne",
+        "nationale",
+        "nouvelle",
+        "endogène",
+        "devenir",
+        "désinformation",
+        "intègres",
+        "leaders",
+        "dépendance",
+        "manipulations",
+        "référence",
+        "manque",
+        "former",
+        "discerner"
+      ],
+      "fru_keywords": [
+        "masquée",
+        "citoyenne",
+        "manipulation",
+        "médiatique",
+        "élites",
+        "incompétence",
+        "impuissance",
+        "trahison",
+        "dépendance",
+        "économique"
+      ],
+      "objectif_business": "Créer un contenu impactant qui réduit les tensions sociales et politiques au Sénégal"
+    },
+    "audience": {
+      "emotion_dominante": "Admiration",
+      "aspirations_resume": "Des citoyens éveillés, capables de discerner les manipulations et d'agir pour la souveraineté nationale.",
+      "frustrations": [
+        "Trahison des élites",
+        "Incompétence masquée",
+        "Dépendance économique"
+      ],
+      "transformation_visee": "Devenir des acteurs économiques et politiques capables d'influencer les décisions nationales."
+    },
+    "decision": {
+      "recommandation": "Pivoter vers un format 'École de Souveraineté Citoyenne' proposant des micro-actions concrètes pour transformer la colère en pouvoir d'agir, avec un premier module gratuit '10 actions pour influencer la souveraineté depuis chez vous'.",
+      "pourquoi": "Les données suggèrent que l'audience est saturée d'analyses (alignement faible à 27%) mais affamée d'outils concrets (opportunité à 25%). Le contexte business (stratégie politique apaisante) trouve ici un levier puissant : canaliser l'énergie émotionnelle vers des actions constructives plutôt que vers la polarisation. La persistance émotionnelle (8%) garantit un engagement durable si le contenu répond au vrai besoin d'agency.",
+      "confidence_score": 0.85,
+      "decision_priority_score": 0.9
+    },
+    "contexte_business": {
+      "objectif": "Créer un contenu impactant qui réduit les tensions sociales et politiques au Sénégal",
+      "activite": "j'ai une agence marketing digital appelz agence chrétienne je m'adresse à des porteurs de projet"
+    },
+    "feedback": null,
+    "performance": {
+      "implementation_status": "partially_applied",
+      "execution_quality": 0,
+      "result_type": "positive",
+      "result_summary": "",
+      "metric_before": {},
+      "metric_after": {},
+      "created_at": "2026-06-18T14:42:15.916451"
+    }
+  }
+]

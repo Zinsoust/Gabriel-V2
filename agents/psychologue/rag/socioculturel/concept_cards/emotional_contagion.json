@@ -1,0 +1,44 @@
+{
+  "id": "SOC-006",
+  "title": "Contagion émotionnelle collective",
+  "domain": "psychologie_sociale",
+  "source_files": ["010_the_crowd_a_study_of_the_popular_mind.md", "011_psychologie_des_foules.md", "012_group_psychology_and_the_analysis_of_the_ego.md"],
+  "concept": "Contagion émotionnelle collective",
+  "definition": "Le Bon (1895) a décrit comment, dans une foule, les individus perdent leur rationalité individuelle et se laissent emporter par une 'âme collective'. Les émotions se propagent par mimétisme inconscient et amplifient les réactions collectives. Freud (1921) analyse ce phénomène comme une régression à un état primitif via l'identification au leader et aux membres du groupe. En ligne, ce phénomène se manifeste par des vagues émotionnelles : une réaction forte sur un commentaire déclenche une cascade de réactions similaires.",
+  "use_when": [
+    "Un commentaire émotionnel fort a déclenché une vague de réactions similaires",
+    "L'ambiance émotionnelle générale de la section semble homogène et intense",
+    "Le créateur a exprimé une émotion forte et l'audience la 'reçoit' et la propage",
+    "Une crise ou un conflit se propage dans les commentaires"
+  ],
+  "dashboard_triggers": [
+    "émotion dominante très forte et homogène",
+    "faible diversité émotionnelle avec intensité élevée",
+    "pattern de cascade émotionnelle visible",
+    "momentum émotionnel dans les réponses"
+  ],
+  "interpretation_rule": "La contagion émotionnelle collective dans les commentaires n'est pas représentative des émotions réelles individuelles — c'est une amplification collective. L'émotion contagieuse est souvent plus simple et plus intense que l'émotion originale. Dans les foules en ligne : la colère se propage le plus vite et le plus loin (haute valence d'activation), suivie de l'enthousiasme, puis de la tristesse. Un créateur qui exprime une émotion forte dans son contenu peut déclencher une vague émotionnelle cohérente — ou incohérente si l'audience n'est pas prête.",
+  "what_to_observe": [
+    "Cascade : un commentaire fort génère-t-il des réponses dans le même registre émotionnel ?",
+    "Amplification : les réponses sont-elles plus intenses que le déclencheur ?",
+    "Homogénéité émotionnelle : tout le monde ressent-il la même chose ?",
+    "Le rôle du créateur : a-t-il exprimé une émotion forte qui a initié la contagion ?"
+  ],
+  "warnings": [
+    "La contagion émotionnelle crée de l'engagement mais pas toujours de la conversion",
+    "Une vague de colère peut se retourner contre le créateur si le cadrage change",
+    "L'émotion contagieuse est éphémère — ne pas confondre intensité momentanée et opinion stable"
+  ],
+  "output_guidance": "Identifier si une contagion émotionnelle est active, quelle émotion se propage, et si son origine est le contenu du créateur ou un commentaire particulier.",
+  "example_interpretation": "Une contagion émotionnelle de [émotion X] est active dans cette section de commentaires, probablement initiée par [le contenu/le commentaire Y]. Cette émotion collective amplifie [signal Z] au-delà de ce que les données individuelles indiqueraient. Recommandation : [capitaliser sur cette émotion / adresser la neutraliser] avant qu'elle se dissipe.",
+  "confidence_factors": [
+    "Homogénéité de l'émotion dominante mesurée",
+    "Pattern de cascade temporelle détectable",
+    "Intensité émotionnelle vs contenu déclencheur"
+  ],
+  "avoid": [
+    "Traiter une contagion émotionnelle comme une opinion rationnelle stable",
+    "Ignorer le rôle du créateur comme initiateur de la contagion",
+    "Planifier une stratégie sur la base d'une émotion collective éphémère"
+  ]
+}

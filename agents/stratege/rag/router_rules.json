@@ -1,0 +1,29 @@
+{
+  "rag_name": "stratege",
+  "description": "Base de connaissances stratégiques orientée décision et monétisation immédiate",
+  "max_rules_method": 3,
+  "max_principles_business": 5,
+  "max_patterns_market": 5,
+  "query_triggers": [
+    "offre", "vente", "prix", "monétisation", "revenu", "client", "audience",
+    "contenu", "format", "réseau social", "stratégie", "décision", "action",
+    "confusion", "scepticisme", "bloqué", "ambitieux", "premium", "communauté",
+    "cette semaine", "maintenant", "urgence", "rapide", "premier client"
+  ],
+  "priority_sources": [
+    "strategic_method/audience_to_offer_rules.json",
+    "strategic_method/immediate_decision_rules.json",
+    "strategic_method/social_format_rules.json",
+    "market_patterns/winning_patterns.json",
+    "market_patterns/failed_patterns.json",
+    "business_principles/offer_design.json",
+    "business_principles/conversion.json",
+    "strategic_method/pricing_logic.json"
+  ],
+  "fallback_on_empty_rag": true,
+  "fallback_message": "RAG stratégique indisponible — décision basée sur psychologie audience et contexte business uniquement",
+  "performance": {
+    "cache_enabled": true,
+    "max_response_time_ms": 5000
+  }
+}

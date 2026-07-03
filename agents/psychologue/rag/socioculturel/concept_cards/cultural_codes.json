@@ -1,0 +1,44 @@
+{
+  "id": "SOC-008",
+  "title": "Codes culturels et signaux d'appartenance",
+  "domain": "sociologie_culturelle",
+  "source_files": ["020_introduction_to_sociology_3e.md", "023_education_et_sociologie.md", "008_human_nature_and_conduct.md"],
+  "concept": "Codes culturels et signaux d'appartenance",
+  "definition": "Les codes culturels (Lévi-Strauss, Hall 1976 : 'cultures à haut/bas contexte') sont les systèmes de signification implicites qui permettent aux membres d'un groupe de se reconnaître et de communiquer au-delà des mots. Ils incluent : le registre de langage (argot, niveau de formalité, vocabulaire technique), les références culturelles partagées (films, musiques, événements), les valeurs implicites, les tabous, et les codes esthétiques. Bourdieu (1979 : 'La Distinction') analyse comment les codes culturels fonctionnent comme marqueurs de classe et d'appartenance sociale.",
+  "use_when": [
+    "L'audience utilise un registre linguistique distinctif qui révèle son identité culturelle",
+    "Des références culturelles spécifiques (musiques, films, événements, personnalités) sont fréquentes",
+    "Le ton et le style de la section commentaires est cohérent avec une sous-culture identifiable",
+    "Des décalages entre le code du créateur et le code de l'audience sont visibles"
+  ],
+  "dashboard_triggers": [
+    "vocabulaire spécifique récurrent non-général",
+    "références culturelles partagées dans les commentaires",
+    "ton et registre homogène identifiable",
+    "décalage code créateur/code audience détectable"
+  ],
+  "interpretation_rule": "Le créateur qui maîtrise les codes culturels de son audience communique une appartenance au groupe avant même que le contenu ne soit jugé. Un seul code culturel bien utilisé (référence, expression, ton) peut signaler 'je suis l'un des vôtres' et ouvrir une écoute profonde. Un code mal utilisé ou emprunté maladroitement signale l'outsider et ferme l'écoute. Les codes culturels sont souvent plus discriminants que les arguments : l'audience fait confiance à quelqu'un de son groupe avant de l'écouter.",
+  "what_to_observe": [
+    "Registre dominant : formel / informel / technique / argotique / mixte",
+    "Références culturelles : quelles cultures, époques, médias ?",
+    "Valeurs implicites visibles dans le choix des mots",
+    "Décalages : le créateur parle-t-il le même 'dialecte' que son audience ?"
+  ],
+  "warnings": [
+    "Les codes culturels changent vite — un code identifié il y a 6 mois peut être obsolète",
+    "Imiter les codes culturels sans appartenance réelle est détecté rapidement et crée de la méfiance",
+    "Une audience multi-culturelle peut avoir des codes contradictoires — ne pas forcer un seul code"
+  ],
+  "output_guidance": "Identifier les codes culturels dominants de l'audience, le registre linguistique, les références culturelles principales, et si le créateur les maîtrise ou non.",
+  "example_interpretation": "L'audience s'exprime avec des codes culturels de [sous-culture/génération/milieu X] : registre [Y], références à [Z]. Le créateur utilise [maîtrise ces codes / montre un décalage sur les points P et Q]. Recommandation : intégrer [signaux d'appartenance spécifiques] dans le prochain contenu pour renforcer la connexion culturelle.",
+  "confidence_factors": [
+    "Cohérence et fréquence des codes culturels dans les commentaires",
+    "Reconnaissance mutuelle entre commentateurs (ils partagent les mêmes références)",
+    "Réactions aux codes culturels du créateur (validation vs rejet)"
+  ],
+  "avoid": [
+    "Ignorer le registre linguistique comme simple style sans implications identitaires",
+    "Recommander d'imiter des codes culturels sans vérification de l'authenticité du créateur",
+    "Confondre codes culturels temporaires et codes identitaires stables"
+  ]
+}

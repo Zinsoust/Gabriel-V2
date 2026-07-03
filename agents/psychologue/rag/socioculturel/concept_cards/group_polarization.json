@@ -1,0 +1,44 @@
+{
+  "id": "SOC-005",
+  "title": "Polarisation de groupe",
+  "domain": "psychologie_sociale",
+  "source_files": ["009_principles_of_social_psychology.md", "010_the_crowd_a_study_of_the_popular_mind.md", "011_psychologie_des_foules.md"],
+  "concept": "Polarisation de groupe",
+  "definition": "La polarisation de groupe (Moscovici & Zavalloni 1969) est le phénomène par lequel la délibération au sein d'un groupe homogène amplifie les positions initiales vers des extrêmes. Sunstein (2001) montre que les chambres d'écho numériques accélèrent ce phénomène. Le mécanisme : échanges d'arguments dans un seul sens + dynamiques de statut (prouver qu'on est plus radical = plus d'appartenance). Le résultat : des positions plus extrêmes que la moyenne initiale des membres.",
+  "use_when": [
+    "Les commentaires montrent une escalade progressive des positions",
+    "Un consensus dur et radical se forme autour d'un sujet",
+    "Les modérateurs ou voix nuancées sont rejetées ou ignorées",
+    "L'audience semble plus extrême dans les commentaires que dans ses comportements"
+  ],
+  "dashboard_triggers": [
+    "polarisation élevée mesurée dans le dashboard",
+    "escalade rhétorique dans les commentaires",
+    "rejet des positions modérées",
+    "camps très tranchés avec peu d'overlap"
+  ],
+  "interpretation_rule": "La polarisation de groupe dans les commentaires n'est pas représentative de l'audience silencieuse. La majorité silencieuse est souvent plus modérée que les commentateurs actifs. Les contenus qui prennent position dans des contextes très polarisés amplifient la dynamique — chaque camp renforce sa position. La stratégie du 'tiers chemin' (valider des éléments des deux camps tout en proposant un cadre supérieur) est la seule qui ne nourrit pas la polarisation.",
+  "what_to_observe": [
+    "Escalade : les positions se durcissent-elles au fil des commentaires ?",
+    "Rejet des nuances : 'c'est blanc ou c'est noir'",
+    "Surenchère d'appartenance : qui est 'le plus' [position du groupe] ?",
+    "Absence de dialogue : les deux camps parlent-ils entre eux ou à leurs propres membres ?"
+  ],
+  "warnings": [
+    "Les commentateurs polarisés ne représentent pas l'audience totale",
+    "Prendre position dans un contexte très polarisé aliène forcément un camp",
+    "La polarisation nourrit l'engagement mais détruit la confiance sur le long terme"
+  ],
+  "output_guidance": "Évaluer le niveau de polarisation (faible/moyen/fort/extrême), identifier les deux pôles, et préciser si la polarisation est idéologique, factuelle ou identitaire.",
+  "example_interpretation": "Polarisation forte détectée : deux camps distincts [A] et [B] avec très peu d'overlap. Cette polarisation est de nature [idéologique/factuelle/identitaire]. La majorité silencieuse (non-commentateurs) est probablement plus modérée. Recommandation : éviter de nourrir la polarisation en prenant position dans ce débat — proposer à la place un cadre supérieur qui valide les préoccupations légitimes des deux camps.",
+  "confidence_factors": [
+    "Score de polarisation mesuré",
+    "Volume de commentaires d'escalade rhétorique",
+    "Absence de commentaires modérés reçus positivement"
+  ],
+  "avoid": [
+    "Traiter la polarisation des commentaires comme représentative de l'audience totale",
+    "Recommander de prendre position dans un conflit très polarisé sans analyse des conséquences",
+    "Confondre diversité d'opinions et polarisation"
+  ]
+}

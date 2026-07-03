@@ -1,0 +1,44 @@
+{
+  "id": "PSY-003",
+  "title": "Déclencheurs émotionnels",
+  "domain": "psychologie_emotionnelle",
+  "source_files": ["001_psychology_2e.md", "002_introduction_to_psychology_the_full_noba_collection.md"],
+  "concept": "Déclencheurs émotionnels",
+  "definition": "Stimuli spécifiques (mots, images, situations, symboles) qui activent automatiquement une réponse émotionnelle forte chez un individu ou un groupe, souvent sans traitement rationnel préalable. Les déclencheurs émotionnels courts-circuitent le raisonnement analytique et engagent directement les systèmes limbiques. Ils sont culturellement conditionnés et individuellement variables.",
+  "use_when": [
+    "Les commentaires réagissent de façon disproportionnée à un élément spécifique du contenu",
+    "On détecte des pics d'émotion forte sur des passages précis",
+    "Les mots dominants dans les commentaires portent une forte charge émotionnelle",
+    "Le contenu génère un engagement émotionnel élevé même sans forte valeur informationnelle"
+  ],
+  "dashboard_triggers": [
+    "émotion dominante forte (colère, peur, enthousiasme, admiration)",
+    "score d'intensité émotionnelle élevé",
+    "tokens TF-IDF à forte valence émotionnelle",
+    "pics d'engagement sur des moments précis"
+  ],
+  "interpretation_rule": "Quand des déclencheurs émotionnels sont actifs dans l'audience, la réponse cognitive est suspendue temporairement. L'audience réagit à la charge émotionnelle du stimulus, pas à son contenu rationnel. Identifier QUEL déclencheur spécifique est actif (peur du jugement ? colère de l'injustice ? nostalgie ?) permet de comprendre la vraie nature de l'engagement — et de le reproduire ou le neutraliser selon l'objectif.",
+  "what_to_observe": [
+    "Mots ou expressions répétés avec forte charge émotionnelle dans les commentaires",
+    "Longueur des commentaires : les déclencheurs émotionnels génèrent des commentaires plus longs",
+    "Vitesse de la réponse : une réponse émotionnelle forte arrive vite, avant lecture complète",
+    "Type d'émotion : la peur et la colère déclenchent le partage, la tristesse le commentaire personnel"
+  ],
+  "warnings": [
+    "Ne pas confondre déclencheur émotionnel et manipulation — les deux existent, mais la distinction est cruciale",
+    "Un déclencheur émotionnel fort ne révèle pas ce que l'audience PENSE, mais ce qu'elle RESSENT",
+    "Les émotions fortes passent vite — l'engagement émotionnel n'est pas un indicateur de fidélité"
+  ],
+  "output_guidance": "Nommer l'émotion dominante, identifier le déclencheur probable, et préciser si l'audience répond à la charge émotionnelle (stimulus) ou au contenu (information).",
+  "example_interpretation": "Le token 'injuste' apparaît dans 23% des commentaires avec une charge émotionnelle très haute. Ce déclencheur de colère-injustice active un pattern de partage et de défense de position. Recommandation : valider explicitement le sentiment d'injustice avant de proposer une solution — la solution seule sans validation émotionnelle sera rejetée.",
+  "confidence_factors": [
+    "Présence de mots à forte valence émotionnelle mesurée",
+    "Cohérence de l'émotion détectée entre plusieurs commentaires",
+    "Disproportion entre la stimulation rationnelle et l'intensité de la réponse"
+  ],
+  "avoid": [
+    "Recommander d'exploiter les déclencheurs émotionnels sans contexte éthique",
+    "Confondre émotion exprimée et opinion réelle",
+    "Généraliser un déclencheur individuel à toute l'audience"
+  ]
+}

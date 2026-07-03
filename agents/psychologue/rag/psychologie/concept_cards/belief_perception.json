@@ -1,0 +1,44 @@
+{
+  "id": "PSY-007",
+  "title": "Croyances et perception",
+  "domain": "psychologie_cognitive",
+  "source_files": ["001_psychology_2e.md", "018_how_we_think.md", "017_theories_of_personality_open_course_text.md"],
+  "concept": "Croyances et perception",
+  "definition": "Les croyances sont des représentations mentales tenues pour vraies, qui filtrent la perception de la réalité et guident le comportement. La perception n'est pas une réception passive du monde — c'est une construction active influencée par les attentes (top-down processing). Les croyances limitantes bloquent l'action ; les croyances mobilisatrices l'amplifient. Les croyances implicites (non conscientes) sont souvent plus déterminantes que les croyances explicites.",
+  "use_when": [
+    "L'audience exprime des certitudes absolues non fondées sur des preuves",
+    "Les commentaires révèlent des croyances répétitives sur la possibilité ou l'impossibilité d'une action",
+    "On détecte des narratives limitantes récurrentes ('ça ne marche pas pour moi', 'c'est réservé à X')",
+    "L'audience refuse d'envisager des perspectives alternatives malgré des preuves"
+  ],
+  "dashboard_triggers": [
+    "croyances_limitantes détectées dans l'analyse",
+    "commentaires absolus (toujours, jamais, impossible, forcément)",
+    "résistance à la nuance avec certitude affichée",
+    "signaux d'identité forte associés à une croyance"
+  ],
+  "interpretation_rule": "Les croyances de l'audience filtrent ce qu'elle peut entendre. Un message contradictoire avec une croyance profonde sera rejeté ou distordu — même avec des preuves solides. Identifier les croyances limitantes actives permet de comprendre pourquoi certains messages n'atterrissent pas. La stratégie n'est pas de contredire la croyance mais de la valider partiellement avant de l'élargir ('vous avez raison que X est difficile — ET voici comment certains ont réussi malgré ça').",
+  "what_to_observe": [
+    "Formules absolues : 'ça ne marche jamais', 'c'est impossible pour quelqu'un comme moi'",
+    "Croyances sur la légitimité personnelle : 'qui suis-je pour...', 'je ne suis pas assez'",
+    "Croyances sur le monde : 'le système est truqué', 'les riches sont tous...'",
+    "Croyances sur le créateur : 'il dit ça pour vendre', 'elle ne comprend pas la réalité'"
+  ],
+  "warnings": [
+    "Ne pas confondre croyance limitante et analyse critique informée",
+    "Attaquer frontalement une croyance identitaire renforce son emprise — méthode dite de l'effet boomerang",
+    "Les croyances implicites sont les plus difficiles à détecter et les plus déterminantes"
+  ],
+  "output_guidance": "Lister les croyances limitantes détectées ET les croyances mobilisatrices. Préciser si elles sont identitaires (liées au 'qui je suis') ou situationnelles (liées aux circonstances).",
+  "example_interpretation": "La croyance limitante dominante est [X] — elle agit comme plafond de verre cognitif qui empêche l'audience de voir [Y] comme possible pour eux. Un contenu qui valide partiellement [X] ('oui, X est réel') avant d'introduire une exception ('et voici comment certains ont dépassé X') sera reçu sans résistance défensive.",
+  "confidence_factors": [
+    "Récurrence de la même croyance dans des commentaires indépendants",
+    "Intensité défensive de la croyance quand elle est contestée",
+    "Association de la croyance avec l'identité de groupe"
+  ],
+  "avoid": [
+    "Confronter directement une croyance identitaire sans pont cognitif",
+    "Confondre croyance et fait observable",
+    "Diagnostiquer une croyance sur un seul commentaire sans récurrence"
+  ]
+}

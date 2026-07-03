@@ -1,0 +1,46 @@
+{
+  "id": "PSY-002",
+  "title": "Biais de confirmation",
+  "domain": "psychologie_cognitive",
+  "source_files": ["001_psychology_2e.md", "004_research_methods_in_psychology.md"],
+  "concept": "Biais de confirmation",
+  "definition": "Tendance à rechercher, interpréter, mémoriser et rappeler préférentiellement les informations qui confirment les croyances préexistantes, tout en minimisant ou ignorant les informations contradictoires. Plus la croyance est identitaire (liée à l'appartenance de groupe), plus le biais est fort et résistant à la correction. (Wason 1960, Nickerson 1998)",
+  "use_when": [
+    "L'audience ne retient qu'une partie du contenu — la partie confirmant sa position",
+    "Les commentaires reformulent le message en le déformant pour le faire coller à leur cadre",
+    "La résistance aux nuances est systématique et non argumentée",
+    "Le partage du contenu est sélectif (seules les parties confirmatoires sont citées)"
+  ],
+  "dashboard_triggers": [
+    "diversité sémantique faible (audience homogène dans ses croyances)",
+    "clusters comportementaux très distincts sans overlap",
+    "signaux de validation élevés + signaux de résistance sur des aspects différents",
+    "tokens TF-IDF dominants très répétitifs et unidirectionnels",
+    "forte proportion de commentaires de validation sans nuance"
+  ],
+  "interpretation_rule": "Quand une audience filtre systématiquement le contenu pour n'en retenir que ce qui confirme sa vision du monde, le biais de confirmation est actif. Ce biais est normal — il protège l'identité. Le forcer par des preuves contraires amplifie la résistance. La stratégie efficace : présenter les preuves AVANT les conclusions, laisser l'audience co-construire la conclusion plutôt que la lui imposer.",
+  "what_to_observe": [
+    "Citations partielles du contenu dans les commentaires (sélection confirmatoire)",
+    "Refus systématique de toute nuance ou exception",
+    "Commentaires qui répondent à un contenu imaginaire plutôt qu'au contenu réel",
+    "Partage sélectif : les créateurs de contenu similaire sont traités différemment selon leur camp"
+  ],
+  "warnings": [
+    "Ne pas confondre biais de confirmation et simple désaccord informé",
+    "Le biais est universel — tout le monde l'a. Ne pas pathologiser l'audience",
+    "La correction forcée aggrave le biais — ne pas recommander des approches de 'truth bombing'",
+    "La force du biais varie selon que la croyance est identitaire ou factuelle"
+  ],
+  "output_guidance": "Identifier quelle croyance préexistante l'audience cherche à confirmer, et comment le contenu peut être repositionné pour entrer par cette croyance plutôt que contre elle.",
+  "example_interpretation": "Les tokens dominants révèlent une audience déjà convaincue de X. Le contenu qui confirme X génère 3x plus d'engagement que celui qui le nuance. Recommandation : ancrer chaque nouveau message dans la croyance validée ('comme vous le savez déjà...') avant d'élargir le cadre.",
+  "confidence_factors": [
+    "Diversité sémantique faible = audience homogène dans ses croyances",
+    "Pattern de citation sélective détectable dans les commentaires",
+    "Résistance systématique aux nuances avec fort engagement par ailleurs"
+  ],
+  "avoid": [
+    "Recommander de 'confronter' l'audience avec des faits contradictoires",
+    "Supposer que plus de preuves changeront l'opinion — l'effet boomerang est réel",
+    "Diagnostiquer sans données sur la cohérence des croyances exprimées"
+  ]
+}

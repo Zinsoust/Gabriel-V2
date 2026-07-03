@@ -1,0 +1,48 @@
+{
+  "id": "PSY-001",
+  "title": "Dissonance cognitive",
+  "domain": "psychologie_cognitive",
+  "source_files": ["001_psychology_2e.md", "018_how_we_think.md"],
+  "concept": "Dissonance cognitive",
+  "definition": "Tension psychologique inconfortable ressentie lorsqu'un individu détient simultanément deux cognitions contradictoires (croyances, comportements, attitudes). Cette tension motive des stratégies de réduction : changer une cognition, en ajouter une nouvelle conciliatrice, ou réduire l'importance d'une des deux. (Festinger 1957)",
+  "use_when": [
+    "L'audience consomme le contenu mais exprime des réserves sur les valeurs associées",
+    "Les commentaires justifient longuement un comportement apparent contredit par les déclarations",
+    "L'audience critique le créateur tout en continuant à s'abonner et interagir",
+    "On détecte simultanément des signaux d'attraction ET de rejet pour le même sujet",
+    "Les commentaires oscillent entre admiration et dévalorisation du même élément"
+  ],
+  "dashboard_triggers": [
+    "tension_interne détectée",
+    "contradiction sentiment/position",
+    "signaux mixtes favorable+défavorable sur même sujet",
+    "long justificatifs dans les commentaires",
+    "score de polarisation élevé avec audience qui reste engagée"
+  ],
+  "interpretation_rule": "Quand une audience exprime simultanément attraction et résistance envers le même contenu, la dissonance cognitive est probablement active. La résistance n'est pas un rejet — c'est la tension d'une croyance en cours de révision. Le créateur qui force le choix aggrave la dissonance. Offrir une voie de réconciliation ('vous pouvez à la fois tenir à X et intégrer Y') est plus efficace.",
+  "what_to_observe": [
+    "Commentaires qui justifient longuement une position contradictoire avec leur comportement",
+    "Attaques virulentes contre le créateur qui signent en réalité une proximité inconfortable",
+    "Minimisation ('c'est pas si grave') sans argumentation — signe de réduction de dissonance",
+    "Adoption soudaine et totale d'une position opposée après résistance prolongée",
+    "Comparaison compulsive avec des alternatives comme mécanisme de rationalisation"
+  ],
+  "warnings": [
+    "Ne pas confondre dissonance et simple désaccord — la dissonance implique une tension interne, pas juste une opinion différente",
+    "Ne pas diagnostiquer systématiquement une dissonance sur chaque critique",
+    "La réduction de dissonance peut mener à des conclusions opposées à celles attendues (rationalisation negative)",
+    "En l'absence de signaux contradictoires explicites, éviter cette interprétation"
+  ],
+  "output_guidance": "Nommer le mécanisme, identifier les deux cognitions en tension, proposer comment le créateur peut offrir une voie de réconciliation plutôt que forcer le choix.",
+  "example_interpretation": "30% de l'audience combine des likes avec des commentaires critiques sur l'approche. Ce signal de dissonance cognitive suggère que ces spectateurs valorisent le contenu mais ressentent une tension avec une croyance préexistante (ex: 'je ne devrais pas avoir besoin de conseils externes'). Stratégie recommandée : valider leur compétence existante avant de proposer l'enrichissement.",
+  "confidence_factors": [
+    "Présence de signaux contradictoires mesurables dans les données",
+    "Volume significatif de commentaires justificatifs",
+    "Pattern de résistance suivi d'engagement paradoxal"
+  ],
+  "avoid": [
+    "Dire 'ils sont incohérents' — la dissonance est un mécanisme normal, pas un défaut",
+    "Forcer une résolution dans le contenu sans offrir un pont cognitif",
+    "Utiliser ce concept sans données contradictoires claires"
+  ]
+}

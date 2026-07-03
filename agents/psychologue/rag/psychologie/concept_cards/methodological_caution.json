@@ -1,0 +1,44 @@
+{
+  "id": "PSY-012",
+  "title": "Précautions méthodologiques",
+  "domain": "methodologie_psychologique",
+  "source_files": ["004_research_methods_in_psychology.md", "005_introduction_to_statistics_in_the_psychological_sciences.md"],
+  "concept": "Précautions méthodologiques",
+  "definition": "L'analyse de commentaires en ligne présente des biais méthodologiques spécifiques : biais d'auto-sélection (qui commente n'est pas représentatif de qui regarde), biais de désirabilité sociale (on commente ce qu'on pense acceptable de dire), biais de confirmation de l'analyste, biais de visibilité (les commentaires likés sont plus visibles et orientent les réponses suivantes). Ces biais doivent être nommés et leurs effets estimés dans toute interprétation sérieuse.",
+  "use_when": [
+    "Les conclusions de l'analyse semblent trop nettes ou trop convergentes",
+    "Un seul type de commentaire semble dominer de façon suspicieuse",
+    "Les données quantitatives et qualitatives semblent contradictoires",
+    "Le volume de commentaires est faible (n<30) mais les conclusions sont fortes"
+  ],
+  "dashboard_triggers": [
+    "taux de filtrage très élevé (peu de commentaires analysés sur le total)",
+    "score de confiance bas dans le dashboard",
+    "diversité sémantique très faible (risque d'echo chamber)",
+    "volume total très faible (<50 commentaires)"
+  ],
+  "interpretation_rule": "Toute interprétation doit être accompagnée d'une estimation de sa fiabilité. Les conclusions basées sur moins de 30 commentaires ou sur un taux de commentateurs < 1% des vues doivent être présentées avec des réserves explicites. La règle : les signaux forts sur des volumes faibles sont moins fiables que les signaux modérés sur des volumes élevés. Signaler quand une conclusion dépasse ce que les données permettent d'affirmer.",
+  "what_to_observe": [
+    "Représentativité : le ratio commentaires/vues (un ratio faible = biais de sélection fort)",
+    "Diversité : est-ce que plusieurs perspectives s'expriment ou un seul type de voix ?",
+    "Convergence anormale : un consensus trop parfait peut révéler un biais de visibilité ou de pression sociale",
+    "Volume absolu : les conclusions sur <30 commentaires doivent être des hypothèses, pas des certitudes"
+  ],
+  "warnings": [
+    "Ne jamais affirmer avec certitude ce que les données permettent seulement de suggérer",
+    "Les silencieux (non-commentateurs) peuvent être la majorité — leur opinion n'est pas capturée",
+    "Un fort engagement émotionnel dans les commentaires ne signifie pas que l'opinion est représentative"
+  ],
+  "output_guidance": "Systématiquement inclure un score de confiance et les facteurs qui le limitent. Distinguer 'signal fort et fiable' vs 'hypothèse plausible à vérifier'.",
+  "example_interpretation": "Cette analyse porte sur [N] commentaires représentant [X]% des vues — le biais d'auto-sélection est donc potentiellement fort. Les conclusions sur [mécanisme Y] sont des hypothèses plausibles à vérifier sur un volume plus important, pas des certitudes. Score de confiance : [score].",
+  "confidence_factors": [
+    "Volume absolu de commentaires analysés",
+    "Ratio commentaires/vues",
+    "Diversité des perspectives exprimées"
+  ],
+  "avoid": [
+    "Présenter des hypothèses comme des certitudes",
+    "Ignorer le biais d'auto-sélection des commentateurs",
+    "Généraliser à toute l'audience ce qui est vrai seulement des commentateurs actifs"
+  ]
+}

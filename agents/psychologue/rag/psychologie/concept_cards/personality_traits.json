@@ -1,0 +1,44 @@
+{
+  "id": "PSY-010",
+  "title": "Traits de personnalité",
+  "domain": "psychologie_personnalite",
+  "source_files": ["016_the_balance_of_personality.md", "017_theories_of_personality_open_course_text.md"],
+  "concept": "Traits de personnalité",
+  "definition": "Les traits de personnalité sont des dispositions stables qui influencent les pensées, émotions et comportements de façon cohérente à travers le temps et les situations. Le modèle Big Five (OCEAN) : Ouverture à l'expérience, Conscienciosité, Extraversion, Agréabilité, Névrosisme. Ces traits modulent la réponse au contenu : une audience haute en Ouverture sera réceptive à la nouveauté ; haute en Névrosisme sera plus sensible aux signaux de risque et de sécurité.",
+  "use_when": [
+    "Les patterns de réaction de l'audience sont cohérents et répétitifs",
+    "On détecte une disposition dominante dans les commentaires (curiosité, prudence, sociabilité...)",
+    "L'audience réagit de façon prévisible à certains types de stimuli",
+    "On cherche à personnaliser le message par profil psychographique"
+  ],
+  "dashboard_triggers": [
+    "clusters comportementaux distincts identifiés",
+    "patterns réactifs cohérents",
+    "signaux de personnalité dans les commentaires (prudence, curiosité, compétitivité)"
+  ],
+  "interpretation_rule": "Les traits de personnalité de l'audience conditionnent quelle communication 'atterrit'. Une audience haute en Conscienciosité répondra mieux à des contenus structurés, avec des plans et des étapes. Haute en Ouverture : des idées nouvelles et contre-intuitives. Haute en Névrosisme : des contenus rassurants qui adressent les risques. Identifier le trait dominant permet d'adapter le style, la structure et le ton du contenu.",
+  "what_to_observe": [
+    "Ouverture : curiosité pour le nouveau, mots comme 'fascinant', 'je n'avais jamais pensé à'",
+    "Conscienciosité : demandes de structure, plans, étapes, résultats mesurables",
+    "Extraversion : commentaires qui parlent d'expériences sociales, de partage, de visibilité",
+    "Agréabilité : commentaires de soutien, d'encouragement, peu de conflit",
+    "Névrosisme : sensibilité aux risques, questions sur ce qui peut mal tourner"
+  ],
+  "warnings": [
+    "Les traits sont des tendances, pas des cases — éviter les typologies rigides",
+    "Un commentaire isolé ne révèle pas un trait — chercher des patterns",
+    "Les traits peuvent varier selon le domaine (quelqu'un de consciencieux au travail peut être chaotique en créativité)"
+  ],
+  "output_guidance": "Identifier le ou les traits dominants dans l'audience et comment ils moduleraient la réception optimale du contenu.",
+  "example_interpretation": "L'audience montre une dominante de Conscienciosité élevée (demandes de structure, plans étape par étape, résultats mesurables) combinée à un Névrosisme modéré (sensibilité aux risques). Recommandation : contenu structuré avec roadmap claire ET identification explicite des risques et de comment les atténuer.",
+  "confidence_factors": [
+    "Cohérence du pattern sur plusieurs commentaires",
+    "Corrélation entre le trait identifié et les types de contenu les mieux reçus",
+    "Présence de marqueurs lexicaux spécifiques aux traits"
+  ],
+  "avoid": [
+    "Faire des typologies rigides sur un faible échantillon",
+    "Confondre trait situationnel et trait de personnalité stable",
+    "Prétendre que le profil de personnalité est 'la' clé sans autres données"
+  ]
+}

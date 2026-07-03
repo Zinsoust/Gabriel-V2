@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Gabriel{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/gabriel.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<div class="app-layout">
+
+  <aside class="app-sidebar">
+    <div class="sidebar-logo">
+      <a href="/psychologue" class="sidebar-logo-mark">
+        <img src="{{ url_for('static', filename='images/gabriel_logo.png') }}" alt="Gabriel" />
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="/psychologue" class="sidebar-item {% if active_page == 'psychologue' %}active{% endif %}" title="Analyse">
+        <svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44l-1.7-7.23A2 2 0 0 1 7.29 9.5H9.5V2Z"/><path d="M14.5 2v7.5h2.21a2 2 0 0 1 1.95 2.33l-1.7 7.23A2.5 2.5 0 0 1 12 19.5"/></svg>
+      </a>
+      <a href="/stratege" class="sidebar-item {% if active_page == 'stratege' %}active{% endif %}" title="Stratégie">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </a>
+      <a href="/createur" class="sidebar-item {% if active_page == 'createur' %}active{% endif %}" title="Créateur">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </a>
+      <a href="/mes-strategies" class="sidebar-item {% if active_page == 'strategies' %}active{% endif %}" title="Mes Stratégies">
+        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </a>
+      <a href="/mes-analyses" class="sidebar-item {% if active_page == 'history' %}active{% endif %}" title="Historique">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </a>
+    </nav>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-bottom">
+      <a href="/upgrade" class="sidebar-item {% if active_page == 'upgrade' %}active{% endif %}" title="Upgrade" id="sidebar-upgrade-btn" style="color:rgba(216,185,130,0.6);">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </a>
+      <a href="/profil" class="sidebar-item {% if active_page == 'profil' %}active{% endif %}" title="Profil">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </a>
+      {% if current_user %}
+      <a href="/logout" class="sidebar-item" title="Déconnexion">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </a>
+      {% endif %}
+    </div>
+  </aside>
+
+  <div class="app-main">
+
+    <header class="app-header">
+      <div class="header-title">
+        <img src="{{ url_for('static', filename='images/gabriel_logo.png') }}" alt="Gabriel" class="brand-logo" />
+        <span class="sep">/</span>
+        <span class="page">{% block page_name %}{% endblock %}</span>
+      </div>
+      <div class="header-actions">
+        {% block header_actions %}{% endblock %}
+        {% if current_user %}
+        <div class="header-user">
+          <div class="header-user-avatar">{{ (current_user.email or 'G')[0].upper() }}</div>
+          <span>{{ current_user.email or '' }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </header>
+
+    <main class="app-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Données privées et sécurisées
+    </footer>
+
+  </div>
+</div>
+
+{% block scripts %}{% endblock %}
+<script src="{{ url_for('static', filename='js/gabriel-survey.js') }}" defer></script>
+
+<script>
+/* ── Sidebar custom tooltip ──────────────────────────────────────────────── */
+(function() {
+  const tip = document.createElement('div');
+  tip.id = 'gb-sidebar-tip';
+  document.body.appendChild(tip);
+
+  document.querySelectorAll('.app-sidebar .sidebar-item[title]').forEach(item => {
+    const label = item.getAttribute('title');
+    if (!label) return;
+    item.removeAttribute('title'); // remove native tooltip
+
+    item.addEventListener('mouseenter', () => {
+      const rect = item.getBoundingClientRect();
+      tip.textContent = label;
+      tip.style.top = Math.round(rect.top + rect.height / 2 - 11) + 'px';
+      tip.classList.add('visible');
+    });
+    item.addEventListener('mouseleave', () => tip.classList.remove('visible'));
+  });
+})();
+
+/* ── Page navigation fade ────────────────────────────────────────────────── */
+(function() {
+  const content = document.querySelector('.app-content');
+  if (!content) return;
+
+  document.querySelectorAll('.app-sidebar a[href], .sidebar-bottom a[href]').forEach(a => {
+    const href = a.getAttribute('href');
+    if (!href || href === '#' || a.classList.contains('active')) return;
+    a.addEventListener('click', function(e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      content.classList.add('exiting');
+      setTimeout(() => { window.location.href = href; }, 160);
+    });
+  });
+})();
+</script>
+</body>
+</html>

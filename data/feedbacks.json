@@ -1,0 +1,335 @@
+[
+  {
+    "user_id": "test-uid-survey",
+    "analysis_id": "",
+    "strategy_id": "fake-strat-001",
+    "usefulness": "oui",
+    "resultat": "",
+    "comment": "Test régression.",
+    "created_at": "2026-07-01T23:34:34.841451"
+  },
+  {
+    "user_id": "test-uid-survey",
+    "analysis_id": "",
+    "strategy_id": "fake-strat-001",
+    "usefulness": "oui",
+    "resultat": "",
+    "comment": "Test régression.",
+    "created_at": "2026-07-01T23:34:11.599931"
+  },
+  {
+    "user_id": "869083e8-ee00-4ca0-9f05-fb798bf2e59c",
+    "analysis_id": "cd043eb9-aed",
+    "strategy_id": "9ea929e4-4e25-49",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "",
+    "created_at": "2026-07-01T22:56:42.009723"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-07-01T13:44:41.592393"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-07-01T13:44:41.590380"
+  },
+  {
+    "user_id": "test-uid-survey",
+    "analysis_id": "",
+    "strategy_id": "fake-strat-001",
+    "usefulness": "oui",
+    "resultat": "",
+    "comment": "Test régression.",
+    "created_at": "2026-07-01T13:44:34.807285"
+  },
+  {
+    "user_id": "test-uid-survey",
+    "analysis_id": "",
+    "strategy_id": "fake-strat-001",
+    "usefulness": "oui",
+    "resultat": "",
+    "comment": "Test régression.",
+    "created_at": "2026-07-01T13:42:19.564230"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-07-01T12:44:47.614584"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-07-01T12:44:47.611437"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-07-01T11:10:20.120322"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-07-01T11:10:20.114706"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-30T14:45:05.442548"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-30T14:45:05.439301"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-30T12:56:14.560760"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-30T12:56:14.559083"
+  },
+  {
+    "user_id": "03b25dff-e405-448c-972f-ccd71184765a",
+    "analysis_id": "e2e-16781569",
+    "strategy_id": "8575c2c1-1874-40",
+    "usefulness": "oui",
+    "resultat": "fonctionne",
+    "comment": "Très utile!",
+    "created_at": "2026-06-30T12:55:57.140231"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-30T12:21:38.117054"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-30T12:21:38.113795"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-29T22:39:49.371946"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-29T22:39:49.369652"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-29T22:03:57.015995"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-29T22:03:57.013626"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-29T21:55:49.352808"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-29T21:55:49.345136"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-29T21:39:33.819764"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-29T21:39:33.815766"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-29T20:56:20.366679"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-29T20:56:20.363081"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-29T20:55:42.358820"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-29T20:55:42.356729"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-28T15:42:46.313295"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-28T15:42:46.309562"
+  },
+  {
+    "user_id": "test-uid",
+    "analysis_id": "test-123",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "created_at": "2026-06-28T07:48:37.428740"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "test",
+    "created_at": "2026-06-28T07:47:53.238828"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-analysis-id",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "Très utile, j'ai appliqué la stratégie.",
+    "created_at": "2026-06-28T07:47:53.236596"
+  },
+  {
+    "user_id": "test-uid-001",
+    "analysis_id": "test-aid",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "created_at": "2026-06-28T07:47:53.195907"
+  },
+  {
+    "user_id": "test-uid",
+    "analysis_id": "test-123",
+    "strategy_id": "",
+    "usefulness": "",
+    "resultat": "",
+    "comment": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "created_at": "2026-06-28T07:47:53.095474"
+  }
+]

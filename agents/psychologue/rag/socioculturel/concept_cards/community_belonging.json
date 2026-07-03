@@ -1,0 +1,44 @@
+{
+  "id": "SOC-011",
+  "title": "Appartenance communautaire et besoin d'inclusion",
+  "domain": "psychologie_sociale",
+  "source_files": ["020_introduction_to_sociology_3e.md", "012_group_psychology_and_the_analysis_of_the_ego.md", "022_le_suicide_etude_de_sociologie.md"],
+  "concept": "Appartenance communautaire et besoin d'inclusion",
+  "definition": "Le besoin d'appartenance (Maslow 1943, Baumeister & Leary 1995 : 'Need to Belong') est un besoin humain fondamental aussi puissant que les besoins physiologiques. Durkheim (1897) a démontré empiriquement que la désintégration sociale (anomie) est un facteur de risque létal. Les communautés en ligne satisfont ce besoin pour des individus qui ne trouvent pas d'appartenance dans leurs réseaux physiques. Un créateur qui construit une communauté ne vend pas du contenu — il offre un sentiment d'appartenance.",
+  "use_when": [
+    "L'audience exprime un sentiment de communauté autour du créateur",
+    "Les commentaires montrent que les membres se reconnaissent entre eux",
+    "Des signaux de solitude ou d'isolement social sont présents",
+    "L'audience traite le créateur comme un 'chef de tribu' ou un 'ami'"
+  ],
+  "dashboard_triggers": [
+    "expressions d'appartenance communautaire ('notre communauté', 'la famille')",
+    "reconnaissance mutuelle entre commentateurs",
+    "signaux d'isolement social compensé par la communauté en ligne",
+    "relation parasociale forte avec le créateur"
+  ],
+  "interpretation_rule": "Pour les audiences à fort besoin d'appartenance, le contenu est secondaire — c'est l'espace communautaire qui est central. Ces audiences ont une fidélité très élevée mais aussi des attentes relationnelles fortes : le créateur doit maintenir des signaux de réciprocité (reconnaître les membres, répondre, montrer qu'il se souvient). Le risque principal : la scalabilité. À mesure que la communauté grandit, les membres fondateurs perçoivent une dilution de l'appartenance et peuvent devenir critiques envers les nouveaux membres ou le créateur.",
+  "what_to_observe": [
+    "Termes d'appartenance : 'famille', 'tribu', 'communauté', 'nos gens'",
+    "Solidarité interne : les membres se défendent-ils mutuellement ?",
+    "Attentes relationnelles : demandes de réponses personnelles, de reconnaissance",
+    "Tension anciens vs nouveaux membres visible"
+  ],
+  "warnings": [
+    "Les communautés à fort besoin d'appartenance peuvent devenir des chambres d'écho et résister à tout contenu qui 'dilue' l'identité",
+    "La relation parasociale intensive crée une dépendance qui peut virer à la toxicité si le créateur déçoit",
+    "La croissance rapide de la communauté est vécue comme une menace par les membres fondateurs"
+  ],
+  "output_guidance": "Évaluer l'intensité du besoin d'appartenance, les marqueurs de la relation parasociale, et les tensions éventuelles liées à la croissance ou à la dilution identitaire.",
+  "example_interpretation": "L'audience montre un besoin d'appartenance [intensité]. La communauté autour du créateur remplit une fonction d'[inclusion sociale / tribu identitaire / famille de substitution]. Des tensions [sont / ne sont pas] visibles entre membres anciens et nouveaux. Recommandation : [maintenir des signaux de réciprocité / créer des rites d'initiation pour les nouveaux / reconnaître publiquement les membres fondateurs].",
+  "confidence_factors": [
+    "Fréquence et intensité des termes d'appartenance dans les commentaires",
+    "Comportements de solidarité interne observable",
+    "Volume des demandes de reconnaissance personnelle au créateur"
+  ],
+  "avoid": [
+    "Traiter la fidélité communautaire comme acquise sans maintien des signaux de réciprocité",
+    "Ignorer les tensions entre sous-groupes au sein de la communauté",
+    "Recommander une croissance rapide sans analyse de l'impact sur la cohésion communautaire"
+  ]
+}

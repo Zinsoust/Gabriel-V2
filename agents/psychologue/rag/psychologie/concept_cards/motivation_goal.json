@@ -1,0 +1,44 @@
+{
+  "id": "PSY-005",
+  "title": "Motivation et objectifs",
+  "domain": "psychologie_motivationnelle",
+  "source_files": ["001_psychology_2e.md", "003_introduction_to_psychology_1st_canadian_edition.md"],
+  "concept": "Motivation et objectifs",
+  "definition": "La motivation est la force interne qui initie, dirige et maintient les comportements vers un but. Elle peut être intrinsèque (plaisir inhérent à l'activité, autodétermination) ou extrinsèque (récompense externe, évitement de punition). La théorie des objectifs (Locke & Latham) montre que des buts spécifiques, difficiles mais atteignables génèrent une performance supérieure. La SDT (Deci & Ryan) identifie trois besoins fondamentaux : autonomie, compétence, appartenance.",
+  "use_when": [
+    "L'audience exprime clairement ce qu'elle cherche à accomplir",
+    "Les commentaires mentionnent des objectifs personnels ou professionnels",
+    "On détecte un gap entre la situation actuelle et la situation désirée",
+    "Les signaux d'aspiration sont dominants dans l'analyse"
+  ],
+  "dashboard_triggers": [
+    "signal 'aspiration' dominant",
+    "désir_dominant détecté",
+    "commentaires avec marqueurs d'objectifs ('pour réussir à', 'mon but est', 'j'essaie de')",
+    "fort score d'opportunité"
+  ],
+  "interpretation_rule": "La motivation profonde de l'audience n'est pas toujours ce qui est exprimé en surface. Derrière 'je veux perdre du poids' se cache souvent 'je veux me sentir désirable et en contrôle'. Identifier le niveau de motivation (superficiel → profond → identitaire) permet de construire un message qui touche au cœur. Les motivations identitaires ('qui je veux être') sont 5x plus puissantes que les motivations fonctionnelles ('ce que je veux faire').",
+  "what_to_observe": [
+    "Verbes d'action exprimant un objectif : 'réussir', 'atteindre', 'devenir', 'changer'",
+    "Marqueurs temporels : 'enfin', 'depuis toujours', 'cette année' — révèlent l'urgence",
+    "Référentiels de comparaison : à qui se comparent-ils pour évaluer leurs progrès ?",
+    "Résistances : qu'est-ce qui a déjà été essayé et a échoué ?"
+  ],
+  "warnings": [
+    "La motivation déclarée n'est souvent pas la motivation réelle — chercher le niveau plus profond",
+    "L'excès de motivation extrinsèque (récompenses) peut saper la motivation intrinsèque (SDT)",
+    "Ne pas confondre aspiration et motivation active — l'aspiration sans plan est de la rêverie"
+  ],
+  "output_guidance": "Identifier la motivation de surface, puis la motivation profonde, puis la motivation identitaire. Préciser si la motivation est principalement intrinsèque ou extrinsèque.",
+  "example_interpretation": "L'audience exprime vouloir X (motivation de surface) mais les commentaires les plus engagés révèlent une aspiration à Y (motivation profonde : reconnaissance, appartenance). Un contenu adressant Y sera 3x plus efficace pour l'engagement que celui adressant X uniquement.",
+  "confidence_factors": [
+    "Récurrence des mêmes objectifs dans des commentaires indépendants",
+    "Présence de marqueurs temporels indiquant l'urgence",
+    "Cohérence entre désirs déclarés et comportements mesurables (likes, partages)"
+  ],
+  "avoid": [
+    "Rester au niveau de la motivation déclarée sans creuser",
+    "Supposer que tous les membres de l'audience partagent la même motivation",
+    "Confondre engagement (motivation à commenter) et intention d'achat"
+  ]
+}

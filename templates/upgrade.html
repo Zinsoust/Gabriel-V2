@@ -1,0 +1,541 @@
+{% extends "base.html" %}
+{% block title %}Gabriel — Plans & Tarifs{% endblock %}
+{% block page_name %}Plans & Tarifs{% endblock %}
+
+{% block head %}
+<style>
+.upgrade-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px 0 56px;
+}
+
+/* ── Usage bar ─────────────────────────────────────────────────────────── */
+.usage-bar-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.usage-bar-info { flex: 1; }
+.usage-bar-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 7px; }
+.usage-bar-track {
+  height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.usage-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #C8A96E, #E0C485);
+  transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
+}
+.usage-bar-num { font-size: 20px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+.usage-bar-num span { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+.upgrade-hero {
+  text-align: center;
+  padding: 16px 24px 28px;
+  margin-bottom: 4px;
+}
+.upgrade-hero h1 {
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+  letter-spacing: -.03em;
+}
+.upgrade-hero p {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.75;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ── Plan grid ─────────────────────────────────────────────────────────── */
+.plan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+@media (max-width: 700px) {
+  .plan-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) and (min-width: 701px) {
+  .plan-grid { grid-template-columns: 1fr 1fr; }
+}
+.plan-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 22px 18px 20px;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+.plan-card:hover { border-color: rgba(255,255,255,0.1); }
+.plan-card.featured {
+  border-color: rgba(216,185,130,0.35);
+  box-shadow: 0 0 0 1px rgba(216,185,130,0.08), 0 8px 28px rgba(0,0,0,0.25);
+}
+.plan-card.premium-card {
+  border-color: rgba(180,140,220,0.3);
+  background: linear-gradient(180deg, rgba(180,140,220,0.04) 0%, var(--bg-card) 40%);
+}
+.plan-badge {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 3px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.plan-badge.badge-standard {
+  background: linear-gradient(90deg, #C8A96E, #D4B483);
+  color: #1a1714;
+}
+.plan-badge.badge-premium {
+  background: linear-gradient(90deg, #9B6EC8, #B48ADE);
+  color: #fff;
+}
+.plan-tier {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.plan-card.featured .plan-tier { color: rgba(216,185,130,0.75); }
+.plan-card.premium-card .plan-tier { color: rgba(180,140,220,0.75); }
+.plan-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  letter-spacing: -.02em;
+}
+.plan-price {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.plan-price span {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.plan-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.plan-features li {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  line-height: 1.5;
+}
+.plan-features li .fi {
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 9px;
+}
+.fi-check { color: rgba(120,200,140,0.75); }
+.fi-off   { color: var(--text-disabled); }
+.fi-lock  { color: rgba(180,140,220,0.6); }
+.plan-features li.off { color: var(--text-disabled); }
+.plan-features li.soon { color: rgba(180,140,220,0.7); }
+.plan-features .feature-badge {
+  font-size: 8px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  margin-left: 4px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.badge-soon {
+  background: rgba(180,140,220,0.1);
+  color: rgba(180,140,220,0.8);
+  border: 1px solid rgba(180,140,220,0.2);
+}
+.badge-new {
+  background: rgba(90,200,125,0.08);
+  color: rgba(90,200,125,0.8);
+  border: 1px solid rgba(90,200,125,0.18);
+}
+.plan-cta { margin-top: auto; }
+.btn-plan-premium {
+  width: 100%;
+  justify-content: center;
+  background: rgba(180,140,220,0.1);
+  border-color: rgba(180,140,220,0.25);
+  color: rgba(180,140,220,0.9);
+}
+.btn-plan-premium:hover {
+  background: rgba(180,140,220,0.18);
+  border-color: rgba(180,140,220,0.4);
+}
+
+/* ── Séparateur ────────────────────────────────────────────────────────── */
+.plans-divider {
+  text-align: center;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--text-muted);
+  margin: 6px 0 28px;
+  position: relative;
+}
+.plans-divider::before, .plans-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 35%;
+  height: 1px;
+  background: rgba(255,255,255,.06);
+}
+.plans-divider::before { left: 0; }
+.plans-divider::after  { right: 0; }
+
+/* ── Premium features section ──────────────────────────────────────────── */
+.premium-features-section {
+  border: 1px solid rgba(180,140,220,0.18);
+  border-radius: 14px;
+  padding: 24px 22px;
+  background: linear-gradient(135deg, rgba(180,140,220,0.04) 0%, rgba(13,13,16,0) 60%);
+  margin-bottom: 28px;
+}
+.pf-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.pf-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(180,140,220,0.1);
+  border: 1px solid rgba(180,140,220,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pf-icon svg { width: 14px; height: 14px; stroke: rgba(180,140,220,0.8); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pf-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(180,140,220,0.8);
+}
+.pf-subtitle {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+.pf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media(max-width:580px) { .pf-grid { grid-template-columns: 1fr; } }
+.pf-card {
+  background: rgba(255,255,255,.018);
+  border: 1px solid rgba(180,140,220,0.12);
+  border-radius: 10px;
+  padding: 16px 16px;
+}
+.pf-card-ico {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: rgba(180,140,220,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.pf-card-ico svg { width: 13px; height: 13px; stroke: rgba(180,140,220,0.7); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pf-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+  letter-spacing: -.01em;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.pf-card-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+/* ── Note bas ──────────────────────────────────────────────────────────── */
+.upgrade-note {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-disabled);
+  line-height: 1.9;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upgrade-wrap">
+
+  <!-- Barre d'usage actuelle -->
+  <div class="usage-bar-wrap">
+    <div class="usage-bar-info">
+      <div class="usage-bar-label">Analyses utilisées sur votre plan actuel</div>
+      <div class="usage-bar-track">
+        <div class="usage-bar-fill" id="usage-fill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="usage-bar-num" id="usage-num">
+      {{ analyses_used }}<span> / {{ analyses_limit }} analyses</span>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="upgrade-hero">
+    <h1>Choisissez votre plan Gabriel</h1>
+    <p>Chaque plan débloque davantage de puissance analytique — de l'essentiel au premium exclusif.</p>
+  </div>
+
+  <!-- Plans -->
+  <div class="plan-grid">
+
+    <!-- Gabriel Standard -->
+    <div class="plan-card featured">
+      <div class="plan-badge badge-standard">POPULAIRE</div>
+      <div class="plan-tier">Gabriel</div>
+      <div class="plan-name">Standard</div>
+      <div class="plan-price">19 €<span> /mois</span></div>
+      <div class="plan-desc">Pour créateurs et entrepreneurs actifs</div>
+      <ul class="plan-features">
+        <li><span class="fi fi-check">✓</span> Analyses <strong>illimitées</strong></li>
+        <li><span class="fi fi-check">✓</span> Dashboard psychologique complet</li>
+        <li><span class="fi fi-check">✓</span> Personas détaillés (Jung · Frankl · Munroe)</li>
+        <li><span class="fi fi-check">✓</span> Agent Stratège complet</li>
+        <li><span class="fi fi-check">✓</span> Agent Créateur — scripts & posts</li>
+        <li><span class="fi fi-check">✓</span> Mémoire stratégique</li>
+        <li><span class="fi fi-check">✓</span> Export PDF professionnel</li>
+        <li><span class="fi fi-check">✓</span> Historique illimité</li>
+        <li class="off"><span class="fi fi-off">—</span> Multi-profils équipe</li>
+        <li class="off"><span class="fi fi-off">—</span> Cross-analyse</li>
+        <li class="off"><span class="fi fi-off">—</span> Search Intelligence</li>
+      </ul>
+      <div class="plan-cta">
+        <button class="btn btn-primary" onclick="startCheckout('standard')" style="width:100%;justify-content:center;">
+          Commencer — 19 €/mois
+        </button>
+      </div>
+    </div>
+
+    <!-- Gabriel Groupe -->
+    <div class="plan-card">
+      <div class="plan-tier">Gabriel</div>
+      <div class="plan-name">Groupe</div>
+      <div class="plan-price">49 €<span> /mois</span></div>
+      <div class="plan-desc">Pour agences et équipes créatives</div>
+      <ul class="plan-features">
+        <li><span class="fi fi-check">✓</span> Tout de Standard</li>
+        <li><span class="fi fi-check">✓</span> Jusqu'à 5 profils utilisateurs</li>
+        <li><span class="fi fi-check">✓</span> Partage d'analyses en équipe</li>
+        <li><span class="fi fi-check">✓</span> Tableau de bord centralisé</li>
+        <li><span class="fi fi-check">✓</span> Gestion multi-comptes</li>
+        <li><span class="fi fi-check">✓</span> Rapports collaboratifs</li>
+        <li><span class="fi fi-check">✓</span> Support prioritaire</li>
+        <li class="off"><span class="fi fi-off">—</span> Cross-analyse</li>
+        <li class="off"><span class="fi fi-off">—</span> Search Intelligence</li>
+      </ul>
+      <div class="plan-cta">
+        <button class="btn btn-ghost" onclick="contactForPlan('groupe')" style="width:100%;justify-content:center;">
+          Nous contacter
+        </button>
+      </div>
+    </div>
+
+    <!-- Gabriel Premium -->
+    <div class="plan-card premium-card">
+      <div class="plan-badge badge-premium">EXCLUSIF</div>
+      <div class="plan-tier">Gabriel</div>
+      <div class="plan-name">Premium</div>
+      <div class="plan-price">99 €<span> /mois</span></div>
+      <div class="plan-desc">Fonctionnalités inédites — accès anticipé</div>
+      <ul class="plan-features">
+        <li><span class="fi fi-check">✓</span> Tout de Groupe</li>
+        <li class="soon">
+          <span class="fi fi-lock">◈</span>
+          Cross-analyse
+          <span class="feature-badge badge-soon">BIENTÔT</span>
+        </li>
+        <li class="soon">
+          <span class="fi fi-lock">◈</span>
+          Search Intelligence
+          <span class="feature-badge badge-soon">BIENTÔT</span>
+        </li>
+        <li><span class="fi fi-check">✓</span> Accès bêta en avant-première</li>
+        <li><span class="fi fi-check">✓</span> Utilisateurs illimités</li>
+        <li><span class="fi fi-check">✓</span> Support dédié (SLA 24h)</li>
+        <li><span class="fi fi-check">✓</span> Onboarding personnalisé</li>
+      </ul>
+      <div class="plan-cta">
+        <button class="btn btn-plan-premium" onclick="contactForPlan('premium')" style="width:100%;justify-content:center;">
+          Rejoindre la liste d'attente
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Section fonctionnalités Premium -->
+  <div class="premium-features-section">
+    <div class="pf-header">
+      <div class="pf-icon">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div>
+        <div class="pf-title">Fonctionnalités Premium — En développement</div>
+        <div class="pf-subtitle">Ces capacités inédites arrivent exclusivement sur Gabriel Premium</div>
+      </div>
+    </div>
+
+    <div class="pf-grid">
+
+      <!-- Cross-analyse -->
+      <div class="pf-card">
+        <div class="pf-card-ico">
+          <svg viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg>
+        </div>
+        <div class="pf-card-name">
+          Cross-analyse
+          <span class="feature-badge badge-soon">BIENTÔT</span>
+        </div>
+        <div class="pf-card-desc">
+          Lancez plusieurs analyses en simultané sur des vidéos différentes, puis croisez les données pour générer des personas enrichis basés sur des audiences multiples. Idéal pour comprendre un marché entier, pas juste une vidéo.
+        </div>
+      </div>
+
+      <!-- Search Intelligence -->
+      <div class="pf-card">
+        <div class="pf-card-ico">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="pf-card-name">
+          Search Intelligence
+          <span class="feature-badge badge-soon">BIENTÔT</span>
+        </div>
+        <div class="pf-card-desc">
+          Tapez un mot-clé, Gabriel trouve automatiquement les vidéos et sujets qui correspondent à votre contexte business. Plus besoin de chercher manuellement — l'IA identifie les contenus à analyser pour vous.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="upgrade-note">
+    Paiement sécurisé par Stripe · Annulable à tout moment · Sans engagement<br>
+    Des questions ? <a href="mailto:outilsagencechretienne@gmail.com" style="color:var(--champagne-soft);">outilsagencechretienne@gmail.com</a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if stripe_public_key %}
+<script src="https://js.stripe.com/v3/"></script>
+{% endif %}
+<script>
+const STRIPE_PUBLIC_KEY = {{ stripe_public_key | tojson }};
+const STRIPE_READY      = {{ 'true' if stripe_ready else 'false' }};
+
+// Animer la barre d'usage
+const used  = {{ analyses_used }};
+const limit = {{ analyses_limit }};
+const pct   = limit > 0 ? Math.min(100, Math.round(used / limit * 100)) : 0;
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    const fill = document.getElementById('usage-fill');
+    if (fill) fill.style.width = pct + '%';
+  });
+});
+
+async function startCheckout(planName) {
+  const btn = event.currentTarget;
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Redirection…';
+  try {
+    const r = await fetch('/stripe/checkout', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ plan: planName }),
+    });
+    const d = await r.json();
+    if (d.url) {
+      window.location.href = d.url;
+    } else {
+      alert(d.error || 'Erreur lors du paiement. Contactez-nous à outilsagencechretienne@gmail.com');
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
+  } catch(e) {
+    alert('Erreur réseau. Réessayez ou contactez-nous.');
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+function contactForPlan(planName) {
+  const subject = encodeURIComponent(`Gabriel ${planName.charAt(0).toUpperCase() + planName.slice(1)} — Demande d'accès`);
+  const body    = encodeURIComponent(`Bonjour,\n\nJe suis intéressé par le plan Gabriel ${planName.charAt(0).toUpperCase() + planName.slice(1)}.\n\nMon email : \n\nDites-moi comment procéder.\n\nMerci`);
+  window.location.href = `mailto:outilsagencechretienne@gmail.com?subject=${subject}&body=${body}`;
+}
+
+// Succès upgrade
+if (new URLSearchParams(window.location.search).get('upgrade') === 'success') {
+  setTimeout(() => {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(30,28,26,0.98);border:1px solid rgba(120,200,140,0.35);border-radius:12px;padding:14px 24px;font-size:12px;color:rgba(120,200,140,0.85);z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+    banner.textContent = '✓ Bienvenue dans Gabriel — accès débloqué !';
+    document.body.appendChild(banner);
+    setTimeout(() => banner.remove(), 5000);
+  }, 500);
+}
+</script>
+{% endblock %}

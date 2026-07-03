@@ -1,0 +1,37 @@
+[
+  {
+    "id": "trust_before_transaction",
+    "principle": "La confiance précède toujours la transaction",
+    "sequence": ["visibilité → notoriété → confiance → achat → fidélité"],
+    "application": "Identifier où est l'audience dans ce séquence avant de choisir la stratégie. Si elle est en phase 'confiance' → prouver plutôt que promouvoir.",
+    "levers": {
+      "notoriété": "contenu utile régulier, présence sur un canal",
+      "confiance": "preuves sociales, témoignages, transparence, régularité",
+      "achat": "offre claire, CTA direct, levée d'objections, urgence réelle",
+      "fidélité": "expérience client exceptionnelle, suivi, communauté"
+    }
+  },
+  {
+    "id": "conversation_beats_funnel",
+    "principle": "La conversation directe convertit mieux que le funnel automatisé",
+    "rule": "Pour les 100 premiers clients : vente directe en DM ou appel téléphonique > page de vente > publicité",
+    "why": "La vente conversationnelle révèle les objections réelles et permet de les lever en temps réel",
+    "application": "Avant de construire un funnel : appeler ou écrire à 20 prospects chauds et proposer directement l'offre",
+    "scripts": {
+      "dm_ouverture": "J'ai vu que tu t'intéressais à [sujet]. J'ai quelque chose qui pourrait t'aider. Tu as 5 minutes pour qu'on en parle ?",
+      "qualification": "Dis-moi : quel est le principal blocage qui t'empêche d'avancer sur [problème] en ce moment ?"
+    }
+  },
+  {
+    "id": "objection_handling",
+    "principle": "Chaque objection est une demande de réassurance",
+    "common_objections": {
+      "trop_cher": "Montrer le coût de l'inaction. 'Combien te coûte ce problème non résolu chaque mois ?'",
+      "pas_le_temps": "Montrer que l'offre réduit le temps perdu. 'Combien de temps tu perds à chercher une solution par toi-même ?'",
+      "deja_essaye": "Montrer ce qui est différent cette fois. 'Voici exactement ce qui rend notre approche différente'",
+      "pas_sure_que_ca_marche_pour_moi": "Cas client similaire. 'Voici quelqu'un qui avait exactement ta situation...'",
+      "je_vais_y_reflechir": "Créer l'urgence réelle. 'Il n'y a que X places disponibles ce mois-ci'"
+    },
+    "rule": "Traiter les objections dans le contenu avant que le prospect les pose"
+  }
+]

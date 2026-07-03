@@ -1,0 +1,44 @@
+{
+  "id": "SOC-002",
+  "title": "Conformisme et pression sociale",
+  "domain": "psychologie_sociale",
+  "source_files": ["009_principles_of_social_psychology.md", "012_group_psychology_and_the_analysis_of_the_ego.md"],
+  "concept": "Conformisme et pression sociale",
+  "definition": "Le conformisme est la tendance à modifier ses opinions, jugements ou comportements pour s'aligner sur la norme du groupe, même en l'absence de pression explicite. Asch (1951) a démontré que 75% des individus se conforment au groupe au moins une fois, même quand la réponse collective est objectivement fausse. Le conformisme est maximal quand le groupe est unanime, l'individu est incertain, et le sujet est ambigu. La présence d'un seul dissident suffit à réduire drastiquement le conformisme.",
+  "use_when": [
+    "L'audience semble adopter une position consensuelle qui ne correspond pas à ses vrais ressentis",
+    "Les commentaires expriment un consensus apparent mais la diversité des positions réelles est visible dans des signaux indirects",
+    "On détecte un effet de 'bandwagon' dans les réactions",
+    "Les premiers commentaires semblent orienter tous les suivants"
+  ],
+  "dashboard_triggers": [
+    "diversité sémantique très faible avec fort consensus apparent",
+    "effet cascade dans les commentaires (tous dans le même sens)",
+    "polarisation faible mais consensus très élevé sur un sujet controversé",
+    "likes concentrés sur quelques commentaires"
+  ],
+  "interpretation_rule": "Un consensus apparent dans les commentaires peut être un artefact du conformisme social plutôt qu'un reflet de l'opinion réelle. Les commentaires les plus visibles (likés, mis en avant) orientent les suivants vers la conformité. Pour révéler les vrais ressentis, analyser les commentaires les moins likés, les réponses en fil, et les commentaires contradictoires minoritaires. Un créateur qui crée un espace de permission explicite ('il n'y a pas de bonne réponse ici') réduit le conformisme et obtient des données plus authentiques.",
+  "what_to_observe": [
+    "Effets de cascade : les premiers commentaires ont-ils le même ton que les suivants ?",
+    "Dissidence minoritaire : y a-t-il des commentaires contre-courant malgré la pression ?",
+    "Discordance entre likes et commentaires : parfois l'audience like sans commenter pour éviter de se positionner",
+    "Commentaires 'défensifs' : justificatifs d'une position qui devrait être naturelle"
+  ],
+  "warnings": [
+    "Ne pas confondre vrai consensus et conformisme social — la distinction est méthodologiquement difficile",
+    "Le conformisme est plus fort sur les sujets identitaires que factuels",
+    "Les audiences anonymes sont moins conformistes que les audiences qui s'exposent nominalement"
+  ],
+  "output_guidance": "Évaluer si le consensus observé est probablement authentique ou potentiellement un artefact de conformisme. Préciser les signaux qui permettent cette distinction.",
+  "example_interpretation": "Le consensus apparent sur [X] est probablement partiellement artefactuel : les premiers commentaires très likés ont orienté les suivants dans la même direction (effet de cascade). La diversité sémantique faible confirme cette hypothèse. Les commentaires minoritaires en dissidence révèlent une réalité plus nuancée.",
+  "confidence_factors": [
+    "Comparaison entre premiers et derniers commentaires dans la temporalité",
+    "Proportion de commentaires en dissidence visible",
+    "Diversité sémantique globale"
+  ],
+  "avoid": [
+    "Traiter un consensus apparent comme la vérité de l'audience sans questionner le conformisme",
+    "Ignorer les dissidents minoritaires comme anecdotiques",
+    "Généraliser les conclusions à toute l'audience sur la base d'un consensus possiblement artificiel"
+  ]
+}

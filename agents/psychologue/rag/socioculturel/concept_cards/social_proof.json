@@ -1,0 +1,44 @@
+{
+  "id": "SOC-004",
+  "title": "Preuve sociale",
+  "domain": "psychologie_sociale",
+  "source_files": ["009_principles_of_social_psychology.md", "013_extraordinary_popular_delusions_and_the_madness_of_crowds.md"],
+  "concept": "Preuve sociale",
+  "definition": "La preuve sociale (Cialdini 1984) est le phénomène par lequel les individus, dans l'incertitude, se fient aux comportements et opinions d'autrui pour guider les leurs. Elle est d'autant plus puissante que : 1) l'incertitude est grande, 2) les personnes de référence ressemblent à l'observateur (principe de similarité), 3) le nombre de personnes concernées est élevé. La preuve sociale peut déclencher des dynamiques de foule irrationnelles (MacKay 1841 : délires populaires extraordinaires).",
+  "use_when": [
+    "L'audience fait référence à ce que 'les autres font' pour justifier sa position",
+    "Les commentaires demandent des témoignages ou des chiffres de résultats",
+    "On détecte une incertitude forte (nouveau domaine, sujet risqué)",
+    "L'audience cherche une validation par les pairs"
+  ],
+  "dashboard_triggers": [
+    "questions de validation sociale ('est-ce que d'autres ont eu...?')",
+    "mentions de résultats d'autres personnes",
+    "demandes de témoignages ou d'exemples concrets",
+    "incertitude élevée dans les signaux détectés"
+  ],
+  "interpretation_rule": "Plus l'audience est incertaine (nouveau domaine, décision risquée, sujet tabou), plus elle cherche la preuve sociale. Les témoignages de personnes similaires (même situation de départ) ont 5x plus d'impact que les témoignages de résultats extrêmes. La preuve sociale quantitative ('1000 personnes ont...') active un mécanisme différent de la preuve sociale qualitative ('Marie qui était exactement comme vous a...'). Les deux sont nécessaires mais dans des contextes différents.",
+  "what_to_observe": [
+    "Demandes de témoignages : 'est-ce que quelqu'un a vraiment réussi grâce à ça ?'",
+    "Appels au nombre : 'combien de personnes ont fait ça ?'",
+    "Recherche de similarité : 'est-ce que ça marche pour quelqu'un comme moi ?'",
+    "Méfiance de la preuve sociale trop parfaite : 'c'est trop beau pour être vrai'"
+  ],
+  "warnings": [
+    "La preuve sociale extrême ('j'ai gagné 1M€') est souvent contre-productive par manque de similarité perçue",
+    "En présence d'information négative dominante, la preuve sociale amplifie la méfiance",
+    "La preuve sociale fabriquée est détectée par les audiences informées et détruit la confiance"
+  ],
+  "output_guidance": "Identifier le type de preuve sociale que cette audience cherche (quantitative / qualitative / similarité) et le niveau d'incertitude qui la motive.",
+  "example_interpretation": "L'audience montre une forte demande de preuve sociale par similarité ('est-ce que ça marche pour quelqu'un qui part de rien comme moi ?') — signe d'une incertitude élevée sur sa propre légitimité à être concernée. Recommandation : témoignages de personnes au profil de 'départ' similaire au profil moyen de l'audience, pas des success stories exceptionnelles.",
+  "confidence_factors": [
+    "Volume et nature des demandes de témoignages",
+    "Niveau d'incertitude détecté dans les commentaires",
+    "Type de preuve sociale demandée (qui/combien/avec quel résultat)"
+  ],
+  "avoid": [
+    "Utiliser des preuves sociales avec des résultats exceptionnels pour une audience qui cherche la similarité",
+    "Ignorer les signaux de méfiance envers la preuve sociale",
+    "Confondre engagement fort avec validation de la preuve sociale existante"
+  ]
+}

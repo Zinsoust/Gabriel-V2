@@ -1,0 +1,44 @@
+{
+  "id": "PSY-011",
+  "title": "Attention et mémoire",
+  "domain": "psychologie_cognitive",
+  "source_files": ["001_psychology_2e.md", "018_how_we_think.md", "019_talks_to_teachers_on_psychology.md"],
+  "concept": "Attention et mémoire",
+  "definition": "L'attention est une ressource limitée qui filtre ce qui entre dans la conscience. La mémoire de travail (Baddeley) peut traiter 7±2 éléments simultanément. La mémoire à long terme est reconstructive — on ne se souvient pas de ce qui s'est passé, mais d'une reconstruction influencée par les connaissances actuelles (Bartlett 1932). Les événements émotionnellement chargés (positifs ou négatifs) sont mieux mémorisés (effet de l'amygdale sur l'encodage).",
+  "use_when": [
+    "On cherche à comprendre quels éléments du contenu ont le plus marqué l'audience",
+    "Les commentaires citent des moments précis du contenu",
+    "L'audience semble n'avoir retenu qu'une partie du message",
+    "On analyse pourquoi certains messages ne 'restent' pas"
+  ],
+  "dashboard_triggers": [
+    "commentaires qui citent précisément des extraits du contenu",
+    "mentions de moments spécifiques",
+    "questions sur des détails précis révélant un souvenir sélectif",
+    "fort taux de citations partielles"
+  ],
+  "interpretation_rule": "Les commentaires qui citent précisément un moment du contenu signalent un pic émotionnel ou attentionnel à cet instant. Ce qui est cité est ce qui a été retenu — et ce qui a été retenu n'est pas nécessairement le message intentionnel. L'analyse des citations révèle l'écart entre le message voulu et le message reçu. La règle du pic-fin (Kahneman) : la mémorisation d'une expérience dépend du moment le plus intense et de la fin — pas de la moyenne.",
+  "what_to_observe": [
+    "Que cite l'audience précisément ? (révèle ce qui a capté l'attention)",
+    "Ce qui est cité correspond-il au message central voulu par le créateur ?",
+    "L'émotion associée au moment cité : positif ou négatif ?",
+    "La fin du contenu : est-elle citée ? Comment est-elle évaluée ?"
+  ],
+  "warnings": [
+    "Ne pas conclure que l'audience a compris l'intégralité du message parce qu'elle réagit fortement à une partie",
+    "La mémoire reconstructive déforme les souvenirs — les commentaires sur un contenu ancien peuvent différer de la réception originale",
+    "L'attention est limitée : trop d'information tue l'information"
+  ],
+  "output_guidance": "Identifier ce que l'audience a retenu (vs ce que le créateur voulait qu'elle retienne) et l'écart éventuel entre les deux.",
+  "example_interpretation": "Les commentaires citent massivement [moment X] du contenu, qui n'est pas le point central voulu par le créateur. Ce pic d'attention révèle que [moment X] a eu une charge émotionnelle plus forte que le message principal. Recommandation : structurer les prochains contenus pour que le moment à forte charge émotionnelle coïncide avec le message central.",
+  "confidence_factors": [
+    "Volume de citations précises dans les commentaires",
+    "Cohérence de ce qui est retenu entre commentateurs différents",
+    "Présence de marqueurs de mémorisation ('je n'oublierai jamais', 'cette phrase m'a marqué')"
+  ],
+  "avoid": [
+    "Supposer que l'audience a retenu le message principal sans analyse des citations",
+    "Ignorer l'écart entre message voulu et message retenu",
+    "Surcharger le contenu en voulant maximiser la mémorisation de tous les points"
+  ]
+}

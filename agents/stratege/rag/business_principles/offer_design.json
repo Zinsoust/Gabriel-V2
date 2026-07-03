@@ -1,0 +1,39 @@
+[
+  {
+    "id": "irresistible_offer_formula",
+    "principle": "L'offre irrésistible (Alex Hormozi)",
+    "formula": "Valeur irrésistible = (Rêve × Probabilité de succès) / (Délai × Effort)",
+    "components": {
+      "augmenter": ["résultat plus grand", "délai plus court", "probabilité de succès plus haute"],
+      "réduire": ["effort perçu", "délai d'obtention", "risque perçu"]
+    },
+    "application": "Pour chaque offre : augmenter la promesse de résultat, montrer que le succès est probable, réduire l'effort et le temps nécessaires.",
+    "garantie_recommandée": "Offrir une garantie qui réduit le risque perçu sans mettre en danger la rentabilité"
+  },
+  {
+    "id": "minimum_viable_offer",
+    "principle": "L'Offre Minimum Viable (MVO) — vendre avant de créer",
+    "steps": [
+      "Identifier le problème le plus douloureux de l'audience",
+      "Décrire la solution en 3 phrases",
+      "Fixer un prix et un délai de livraison",
+      "Proposer à 5-10 personnes avant de construire quoi que ce soit",
+      "Si 2-3 disent oui → construire. Sinon → itérer."
+    ],
+    "rule": "Ne jamais créer plus que ce que le marché a payé à l'avance",
+    "formats_rapides": ["session de consulting live", "audit enregistré", "template personnalisé", "workbook + revue", "retour détaillé sur leur travail"]
+  },
+  {
+    "id": "offer_ladder",
+    "principle": "L'échelle d'offres — guider le client vers le haut",
+    "structure": {
+      "niveau_0": "Contenu gratuit → construit la confiance et la liste",
+      "niveau_1": "Lead magnet ou micro-offre (7-47€) → prouve la valeur",
+      "niveau_2": "Offre d'entrée (97-497€) → premier achat, premier résultat",
+      "niveau_3": "Offre principale (500-3000€) → transformation complète",
+      "niveau_4": "Offre premium (3000€+) → accompagnement intensif ou résultat garanti"
+    },
+    "rule": "Chaque niveau doit naturellement préparer et désirer le niveau suivant",
+    "priority": "Construire d'abord le niveau 3 (offre principale), puis le niveau 2, puis les niveaux 1 et 4"
+  }
+]

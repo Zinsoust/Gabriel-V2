@@ -1,0 +1,44 @@
+{
+  "id": "SOC-010",
+  "title": "Confiance institutionnelle et autorité perçue",
+  "domain": "sociologie_politique",
+  "source_files": ["020_introduction_to_sociology_3e.md", "013_extraordinary_popular_delusions_and_the_madness_of_crowds.md", "008_human_nature_and_conduct.md"],
+  "concept": "Confiance institutionnelle et autorité perçue",
+  "definition": "La confiance institutionnelle est la disposition d'un groupe à accepter l'autorité d'institutions (État, médias, experts, Église, science) comme source de légitimité. Elle varie fortement par génération, milieu social, et contexte culturel. Le Bon (1895) note que les foules se soumettent à une autorité charismatique mais rejettent les institutions abstraites quand la légitimité est en crise. La 'crise de confiance institutionnelle' documentée depuis les années 1990 (Putnam 2000 : 'Bowling Alone') crée un vacuum où les 'influenceurs' et créateurs de contenu deviennent des sources d'autorité alternatives.",
+  "use_when": [
+    "Des expressions de méfiance envers les institutions (médias, experts, gouvernement) sont présentes",
+    "Le créateur est comparé à une source institutionnelle (favorablement ou défavorablement)",
+    "L'audience cite le créateur comme source d'autorité sur un sujet",
+    "Des signaux d'autorité alternative (complots, contre-expertises) sont présents"
+  ],
+  "dashboard_triggers": [
+    "mentions d'institutions avec valence négative",
+    "comparaisons créateur vs médias/experts",
+    "positionnement du créateur comme 'alternative aux médias mainstream'",
+    "méfiance envers les sources officielles d'information"
+  ],
+  "interpretation_rule": "Quand la confiance institutionnelle est basse dans une audience, le créateur de contenu qui se positionne comme 'alternative authentique' bénéficie d'un transfert d'autorité massif. Ce positionnement est puissant mais crée une responsabilité : l'audience qui fait confiance contre les institutions est aussi plus sensible aux trahisons perçues. Les audiences à basse confiance institutionnelle ont des standards d'authenticité très élevés et des mécanismes de détection de la manipulation très sensibles.",
+  "what_to_observe": [
+    "Références négatives aux institutions : 'les médias mentent', 'les experts sont achetés'",
+    "Transfert de confiance vers le créateur : 'toi au moins tu dis la vérité'",
+    "Citations du créateur comme autorité sur des sujets institutionnels",
+    "Niveau de méfiance générale ou ciblée (méfiance de toutes les institutions vs certaines seulement)"
+  ],
+  "warnings": [
+    "Capitaliser sur la méfiance institutionnelle crée une audience très engagée mais aussi très volatile",
+    "La position 'anti-système' peut exclure des audiences qui maintiennent une confiance institutionnelle",
+    "La responsabilité informative est amplifiée quand on remplace des institutions comme source d'autorité"
+  ],
+  "output_guidance": "Évaluer le niveau de confiance institutionnelle de l'audience (haute/moyenne/basse/très basse), les institutions spécifiquement rejetées, et la position du créateur comme autorité alternative.",
+  "example_interpretation": "L'audience montre une confiance institutionnelle [niveau] avec un rejet particulier de [institutions X, Y]. Le créateur est positionné comme autorité alternative dans [domaine Z]. Ce positionnement crée un capital de confiance fort mais fragile — tout signal d'alignement avec les institutions rejetées serait perçu comme une trahison.",
+  "confidence_factors": [
+    "Volume et intensité des expressions de méfiance institutionnelle",
+    "Références au créateur comme source d'autorité alternative",
+    "Cohérence des institutions spécifiquement rejetées"
+  ],
+  "avoid": [
+    "Recommander de s'aligner sur des institutions spécifiquement rejetées par l'audience sans analyse stratégique",
+    "Ignorer le niveau de confiance institutionnelle comme contexte neutre",
+    "Supposer que la confiance institutionnelle est uniformément basse sans segmentation"
+  ]
+}

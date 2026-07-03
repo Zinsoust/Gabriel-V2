@@ -1,0 +1,58 @@
+{
+  "rag_name": "psychologie",
+  "description": "Base de connaissances en psychologie cognitive, émotionnelle et comportementale pour l'interprétation des mécanismes profonds d'audience",
+  "query_triggers": [
+    "biais cognitif", "schéma mental", "mécanisme de défense", "dissonance cognitive",
+    "émotion dominante", "régulation émotionnelle", "frustration", "anxiété",
+    "croyance", "comportement irrationnel", "projection", "déni", "rationalisation",
+    "peur", "désir", "tension émotionnelle", "résistance", "motivation",
+    "identité personnelle", "estime de soi", "personnalité", "attention", "mémoire"
+  ],
+  "focus_question": "Quel mécanisme psychologique individuel (cognitif, émotionnel, défensif) explique les comportements observés dans cette audience ?",
+  "max_chunks": 5,
+  "priority_cards": ["PSY-001", "PSY-002", "PSY-003", "PSY-004"],
+  "dashboard_signal_mapping": {
+    "frustration_elevee": ["PSY-006", "PSY-003", "PSY-001"],
+    "emotion_forte_negative": ["PSY-003", "PSY-004", "PSY-006"],
+    "consensus_douteux": ["PSY-002", "PSY-001", "PSY-010"],
+    "resistance_au_message": ["PSY-001", "PSY-002", "PSY-007"],
+    "forte_diversite_semantique": ["PSY-010", "PSY-009", "PSY-008"],
+    "signaux_identitaires": ["PSY-009", "PSY-007", "PSY-005"],
+    "faible_engagement_raisonne": ["PSY-011", "PSY-010", "PSY-012"],
+    "incertitude_elevee": ["PSY-005", "PSY-008", "PSY-012"]
+  },
+  "concept_cards": [
+    {"id": "PSY-001", "file": "cognitive_dissonance.json", "triggers": ["résistance", "contradiction", "incohérence", "inconfort", "rationalisation"]},
+    {"id": "PSY-002", "file": "confirmation_bias.json", "triggers": ["biais", "confirmation", "chambre echo", "sélection", "croyance préexistante"]},
+    {"id": "PSY-003", "file": "emotional_trigger.json", "triggers": ["déclencheur", "émotion forte", "réaction viscérale", "colère", "joie", "peur", "honte"]},
+    {"id": "PSY-004", "file": "fear_desire_tension.json", "triggers": ["peur", "désir", "tension", "aspiration", "risque", "sécurité"]},
+    {"id": "PSY-005", "file": "motivation_goal.json", "triggers": ["motivation", "objectif", "but", "aspiration", "progrès", "récompense"]},
+    {"id": "PSY-006", "file": "frustration_objection.json", "triggers": ["frustration", "objection", "blocage", "obstacle", "plainte", "critique"]},
+    {"id": "PSY-007", "file": "belief_perception.json", "triggers": ["croyance", "perception", "représentation", "vision du monde", "convictions"]},
+    {"id": "PSY-008", "file": "decision_drivers.json", "triggers": ["décision", "choix", "critère", "priorité", "facteur déclenchant"]},
+    {"id": "PSY-009", "file": "self_identity.json", "triggers": ["identité", "estime de soi", "image de soi", "qui je suis", "valeur personnelle"]},
+    {"id": "PSY-010", "file": "personality_traits.json", "triggers": ["personnalité", "trait de caractère", "profil", "tempérament", "style cognitif"]},
+    {"id": "PSY-011", "file": "attention_memory.json", "triggers": ["attention", "mémoire", "rétention", "saillance", "mémorisation", "oubli"]},
+    {"id": "PSY-012", "file": "methodological_caution.json", "triggers": ["incertitude", "données insuffisantes", "biais d'analyse", "précaution méthodologique"]}
+  ],
+  "sources": {
+    "raw_sources": ["001_biais_cognitifs", "002_mecanismes_emotionnels", "003_schemas_mentaux"],
+    "concept_cards_dir": "concept_cards/"
+  },
+  "output_schema": {
+    "main_insight": "Insight psychologique principal résumé en une phrase percutante",
+    "detected_mechanisms": "Liste des mécanismes psychologiques détectés avec niveau de confiance",
+    "fears": "Peurs identifiées chez l'audience",
+    "desires": "Désirs et aspirations identifiés",
+    "frustrations": "Frustrations spécifiques exprimées ou latentes",
+    "beliefs": "Croyances profondes actives",
+    "decision_drivers": "Facteurs clés qui déterminent les décisions de cette audience",
+    "confidence_score": "Score de confiance global entre 0.0 et 1.0",
+    "rules_used": "IDs des cartes de concept appliquées"
+  },
+  "performance": {
+    "max_response_time_ms": 3000,
+    "fallback_on_empty_rag": true,
+    "fallback_message": "RAG psychologie indisponible — interprétation basée sur les données du dashboard uniquement"
+  }
+}

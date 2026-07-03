@@ -1,0 +1,44 @@
+{
+  "id": "SOC-007",
+  "title": "Croyances collectives et mythes partagés",
+  "domain": "psychologie_sociale",
+  "source_files": ["013_extraordinary_popular_delusions_and_the_madness_of_crowds.md", "010_the_crowd_a_study_of_the_popular_mind.md", "020_introduction_to_sociology_3e.md"],
+  "concept": "Croyances collectives et mythes partagés",
+  "definition": "Les croyances collectives (Durkheim 1912 : 'représentations collectives') sont des systèmes de signification partagés qui structurent la réalité sociale d'un groupe. Elles incluent les mythes fondateurs, les stéréotypes positifs et négatifs, les théories du complot, les croyances sur 'comment les choses marchent vraiment'. MacKay (1841) documente comment des croyances collectives irrationnelles (tulipes, alchimie, croisades) peuvent se propager à des millions de personnes et résister à toute réfutation factuelle. La force d'une croyance collective est proportionnelle à sa valeur identitaire pour le groupe.",
+  "use_when": [
+    "Les commentaires révèlent une vision du monde partagée non-factuelle mais très cohérente",
+    "Un mythe ou un stéréotype collectif est actif dans les réponses à la vidéo",
+    "L'audience rejette des faits contradictoires comme 'mensonges' ou 'manipulation'",
+    "Une théorie non-vérifiable est citée comme certitude par plusieurs commentateurs"
+  ],
+  "dashboard_triggers": [
+    "clusters de significations partagées cohérentes mais non-factuelles",
+    "rejet d'informations contradictoires comme attaques ou manipulations",
+    "formulations en 'on sait tous que', 'c'est évident que'",
+    "convergence sur une explication simplifiée à un problème complexe"
+  ],
+  "interpretation_rule": "Les croyances collectives ne sont pas des erreurs cognitives individuelles mais des vérités sociales — elles sont vraies POUR le groupe parce qu'elles remplissent une fonction identitaire, sécurisante ou explicative. Contredire une croyance collective frontalement renforce son adhésion (backfire effect). La stratégie efficace : valider le sentiment qui sous-tend la croyance ('votre inquiétude sur X est légitime') avant de proposer un cadre alternatif. Les créateurs qui partagent les croyances de leur audience bénéficient d'un bonus de confiance massif ; ceux qui les contredisent sont perçus comme des ennemis.",
+  "what_to_observe": [
+    "Certitudes collectives : 'tout le monde sait que', 'c'est bien connu'",
+    "Résistance aux preuves : la réfutation factuelle renforce-t-elle la croyance ?",
+    "Fonctions identitaires : la croyance sert-elle à définir le groupe ? ('nous savons ce que les autres ignorent')",
+    "Mythes fondateurs : quelles histoires le groupe raconte-t-il sur ses origines ou ses valeurs ?"
+  ],
+  "warnings": [
+    "Contredire une croyance collective frontalement crée un backfire effect — éviter",
+    "Les croyances collectives sont des données culturelles à analyser, pas des erreurs à corriger dans le message",
+    "Une croyance collective très répandue peut rendre une offre perçue comme inutile même si elle est objectivement utile"
+  ],
+  "output_guidance": "Identifier les croyances collectives actives, leur fonction identitaire, et si le contenu actuel les valide, les contredit ou les ignore.",
+  "example_interpretation": "Une croyance collective forte est détectée : '[formulation de la croyance]'. Cette croyance remplit une fonction de [sécurité identitaire / explication causale / cohésion de groupe]. Elle est résistante aux preuves contraires car sa valeur est identitaire, pas factuelle. Recommandation : le prochain contenu devrait [valider le sentiment sous-jacent / s'appuyer sur la croyance comme point d'entrée / éviter de la contredire frontalement].",
+  "confidence_factors": [
+    "Convergence de multiples commentateurs sur la même croyance sans coordination apparente",
+    "Résistance à la réfutation observable dans les threads",
+    "Valeur identitaire apparente de la croyance"
+  ],
+  "avoid": [
+    "Recommander de corriger frontalement une croyance collective populaire dans le contenu",
+    "Ignorer les croyances collectives comme bruit de fond sans analyse",
+    "Confondre croyance collective et opinion individuelle forte"
+  ]
+}

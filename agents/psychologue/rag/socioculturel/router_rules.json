@@ -1,0 +1,59 @@
+{
+  "rag_name": "socioculturel",
+  "description": "Base de connaissances en sociologie, anthropologie culturelle et dynamiques de groupe pour l'interprétation du contexte socio-culturel de l'audience",
+  "query_triggers": [
+    "culture", "génération", "communauté", "code social", "valeurs", "tribu",
+    "appartenance", "identité collective", "groupe", "norme sociale", "polarisation",
+    "capital culturel", "ingroup", "outgroup", "contagion", "conformisme",
+    "pression sociale", "croyance collective", "mythe", "institutions", "autorité",
+    "socialisation", "transmission culturelle", "appartenance", "inclusion"
+  ],
+  "focus_question": "Quelle dynamique socio-culturelle (codes de groupe, valeurs générationnelles, polarisation, pression normative) structure les réactions de cette audience ?",
+  "max_chunks": 5,
+  "priority_cards": ["SOC-001", "SOC-003", "SOC-004", "SOC-008"],
+  "dashboard_signal_mapping": {
+    "polarisation_elevee": ["SOC-005", "SOC-003", "SOC-002"],
+    "contagion_emotionnelle": ["SOC-006", "SOC-005", "SOC-001"],
+    "demandes_de_temoignages": ["SOC-004", "SOC-010", "SOC-011"],
+    "conflits_ingroup_outgroup": ["SOC-003", "SOC-009", "SOC-001"],
+    "consensus_normatif_fort": ["SOC-002", "SOC-001", "SOC-007"],
+    "mefiance_institutionnelle": ["SOC-010", "SOC-007", "SOC-003"],
+    "forte_appartenance_communautaire": ["SOC-011", "SOC-003", "SOC-008"],
+    "conflits_generationnels": ["SOC-012", "SOC-008", "SOC-001"],
+    "croyances_collectives_actives": ["SOC-007", "SOC-010", "SOC-002"]
+  },
+  "concept_cards": [
+    {"id": "SOC-001", "file": "social_norms.json", "triggers": ["norme", "règle implicite", "ce qui se fait", "ce qui ne se fait pas", "attentes sociales"]},
+    {"id": "SOC-002", "file": "conformity.json", "triggers": ["conformisme", "consensus", "pression", "tous les autres", "effet bandwagon"]},
+    {"id": "SOC-003", "file": "group_identity.json", "triggers": ["identité de groupe", "nous", "eux", "appartenir", "tribu", "ingroup", "outgroup"]},
+    {"id": "SOC-004", "file": "social_proof.json", "triggers": ["preuve sociale", "témoignage", "combien de personnes", "ce que font les autres", "validation"]},
+    {"id": "SOC-005", "file": "group_polarization.json", "triggers": ["polarisation", "extrémisme", "camps", "escalade", "radicalisation des positions"]},
+    {"id": "SOC-006", "file": "emotional_contagion.json", "triggers": ["contagion", "vague émotionnelle", "propagation", "foule", "cascade"]},
+    {"id": "SOC-007", "file": "collective_belief.json", "triggers": ["mythe", "croyance collective", "tout le monde sait", "représentation collective", "complot"]},
+    {"id": "SOC-008", "file": "cultural_codes.json", "triggers": ["code culturel", "registre", "argot", "références culturelles", "dialecte", "sous-culture"]},
+    {"id": "SOC-009", "file": "social_pressure.json", "triggers": ["pression sociale", "exclusion", "honte", "policing", "normes imposées", "sanction"]},
+    {"id": "SOC-010", "file": "institutional_trust.json", "triggers": ["confiance", "institution", "médias", "experts", "gouvernement", "autorité alternative"]},
+    {"id": "SOC-011", "file": "community_belonging.json", "triggers": ["appartenance", "famille", "communauté soudée", "tribu", "besoin d'inclusion", "relation parasociale"]},
+    {"id": "SOC-012", "file": "socialization.json", "triggers": ["socialisation", "valeurs héritées", "génération", "éducation", "transmission", "normes intériorisées"]}
+  ],
+  "sources": {
+    "raw_sources": ["001_codes_culturels", "002_dynamiques_groupes", "003_valeurs_generationnelles"],
+    "concept_cards_dir": "concept_cards/"
+  },
+  "output_schema": {
+    "main_insight": "Insight socio-culturel principal résumé en une phrase percutante",
+    "detected_mechanisms": "Liste des dynamiques socio-culturelles détectées avec niveau de confiance",
+    "group_dynamics": "Dynamiques de groupe actives (polarisation, conformisme, contagion...)",
+    "cultural_codes": "Codes culturels et registres linguistiques identifiés",
+    "social_tensions": "Tensions sociales actives (ingroup/outgroup, pression normative...)",
+    "collective_beliefs": "Croyances ou mythes collectifs actifs",
+    "community_markers": "Marqueurs d'appartenance communautaire détectés",
+    "confidence_score": "Score de confiance global entre 0.0 et 1.0",
+    "rules_used": "IDs des cartes de concept appliquées"
+  },
+  "performance": {
+    "max_response_time_ms": 3000,
+    "fallback_on_empty_rag": true,
+    "fallback_message": "RAG socio-culturel indisponible — interprétation basée sur les données du dashboard uniquement"
+  }
+}

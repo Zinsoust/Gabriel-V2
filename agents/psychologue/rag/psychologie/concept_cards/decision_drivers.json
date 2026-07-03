@@ -1,0 +1,44 @@
+{
+  "id": "PSY-008",
+  "title": "Moteurs de décision",
+  "domain": "psychologie_decision",
+  "source_files": ["001_psychology_2e.md", "002_introduction_to_psychology_the_full_noba_collection.md"],
+  "concept": "Moteurs de décision",
+  "definition": "Les décisions humaines sont guidées par une combinaison de facteurs rationnels et irrationnels. Kahneman (2011) distingue le Système 1 (rapide, automatique, émotionnel, heuristique) et le Système 2 (lent, délibéré, analytique). La majorité des décisions quotidiennes utilisent le Système 1. Les principaux moteurs de décision : douleur à éviter, plaisir à obtenir, appartenance sociale, peur de la perte (aversion à la perte : perdre 100€ fait 2x plus de mal que gagner 100€), besoin de cohérence, autorité perçue.",
+  "use_when": [
+    "L'objectif est de comprendre pourquoi l'audience agit ou n'agit pas",
+    "On cherche les leviers de conversion spécifiques à cette audience",
+    "Les commentaires contiennent des rationalisations de décisions déjà prises",
+    "On détecte des patterns de décision récurrents dans les commentaires"
+  ],
+  "dashboard_triggers": [
+    "signal 'intention d'achat' ou 'conversion' détecté",
+    "objections multiples présentes (signe de délibération active)",
+    "mentions de prix ou de valeur",
+    "comparaisons avec des alternatives"
+  ],
+  "interpretation_rule": "L'audience rationalise ses décisions mais les prend souvent émotionnellement. Identifier quel Système (1 ou 2) domine permet d'adapter le message. Pour une décision Système 1 : activer l'émotion, créer l'urgence, simplifier. Pour une décision Système 2 : fournir des preuves, des comparaisons, rassurer sur la légitimité. L'aversion à la perte (Kahneman) est le levier le plus puissant : formuler en termes de ce qu'on perd à ne pas agir plutôt que de ce qu'on gagne en agissant.",
+  "what_to_observe": [
+    "Rationalisations post-décision : 'de toute façon j'allais...' — révèlent une décision déjà émotionnelle",
+    "Demandes de validation sociale : 'est-ce que quelqu'un d'autre a...?' — décision sociale",
+    "Focus sur le prix : révèle une décision Système 2 ou une aversion à la perte forte",
+    "Urgence exprimée : 'avant que...' — aversion à la perte active"
+  ],
+  "warnings": [
+    "Ne pas supposer que l'audience décide rationnellement — même les audiences 'intellectuelles' utilisent le Système 1",
+    "L'aversion à la perte mal utilisée crée de l'anxiété sans conversion",
+    "La rationalisation post-décision ne révèle pas les vrais moteurs — elle les cache"
+  ],
+  "output_guidance": "Identifier les 3 principaux moteurs de décision de cette audience spécifique, préciser si la décision est davantage pilotée par le Système 1 (émotion) ou Système 2 (raison), et lister les leviers activables.",
+  "example_interpretation": "L'audience présente une forte aversion à la perte (tokens 'risque', 'perdre', 'sécurité') associée à une décision majoritairement Système 2 (questions analytiques, demandes de preuves). Levier prioritaire : mettre en avant ce que l'inaction coûte plutôt que ce que l'action apporte, avec validation sociale chiffrée.",
+  "confidence_factors": [
+    "Récurrence de mentions de prix, valeur ou risque",
+    "Présence de demandes de preuve ou de comparaison",
+    "Pattern de rationalisations détectable"
+  ],
+  "avoid": [
+    "Supposer que tous les commentaires sur le prix révèlent un problème de budget",
+    "Recommander des techniques de manipulation sans éthique de fond",
+    "Ignorer le Système 1 pour une audience qui semble 'rationnelle'"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "SOC-001",
+  "title": "Normes sociales",
+  "domain": "sociologie_normes",
+  "source_files": ["020_introduction_to_sociology_3e.md", "009_principles_of_social_psychology.md"],
+  "concept": "Normes sociales",
+  "definition": "Les normes sociales sont des règles implicites ou explicites qui définissent ce qui est acceptable, désirable ou obligatoire dans un groupe social donné. Elles sont maintenues par des sanctions sociales (approbation/désapprobation) et sont souvent non conscientes. Les normes descriptives (ce que les gens font) et les normes injonctives (ce que les gens approuvent) peuvent être contradictoires. La transgression d'une norme génère une sanction sociale (commentaires négatifs, ostracisme).",
+  "use_when": [
+    "L'audience réagit négativement à quelque chose que le créateur perçoit comme anodin",
+    "Les commentaires font référence à des règles implicites ('tu n'aurais pas dû...')",
+    "On détecte des signaux de transgression normative dans les commentaires",
+    "L'audience exprime ce qui 'se fait' ou 'ne se fait pas' dans leur contexte"
+  ],
+  "dashboard_triggers": [
+    "commentaires prescriptifs ('on devrait', 'il faut', 'c'est inacceptable')",
+    "signaux de rejet ou d'indignation sur un comportement précis",
+    "références à des règles de groupe ou des standards communautaires",
+    "polarisation autour d'un comportement du créateur"
+  ],
+  "interpretation_rule": "Quand un commentaire exprime 'tu n'aurais pas dû X', il révèle une norme active dans ce groupe. Cette norme définit les frontières du comportement acceptable pour le créateur. Identifier les normes dominantes permet d'anticiper les futures réactions et de calibrer les transgressions délibérées (pour créer du buzz) vs les transgressions involontaires (qui aliènent la communauté). La norme transgressive volontairement peut générer de l'engagement — mais seulement si l'audience perçoit la transgression comme un signal de statut, pas d'incompétence.",
+  "what_to_observe": [
+    "Formulations prescriptives : 'on devrait', 'ce n'est pas normal', 'on n'a pas le droit'",
+    "Appel à la règle : 'tout le monde sait que', 'c'est la règle de base'",
+    "Sanction sociale exprimée : 'je ne peux plus vous suivre', 'c'est décevant'",
+    "Norme spécifique au groupe vs norme générale : distinction importante"
+  ],
+  "warnings": [
+    "Les normes varient selon les communautés — ce qui est normal dans une niche peut être transgressif dans une autre",
+    "Ne pas confondre une norme exprimée par quelques commentateurs actifs avec la norme réelle du groupe",
+    "La transgression normative génère de l'engagement mais pas forcément de la fidélité"
+  ],
+  "output_guidance": "Identifier les 2-3 normes sociales les plus saillantes dans cette communauté et comment elles contraignent ou orientent la stratégie du créateur.",
+  "example_interpretation": "La norme dominante dans cette communauté est [X]. Le contenu analysé transgresse cette norme en [Y], ce qui explique le volume de commentaires négatifs. Cette transgression est perçue comme [involontaire/délibérée]. Recommandation : [adresser la transgression directement / calibrer la prochaine transgression comme signal de statut].",
+  "confidence_factors": [
+    "Récurrence des mêmes prescriptions normatives dans des commentaires indépendants",
+    "Cohérence de la sanction sociale exprimée",
+    "Volume de réactions normatives vs volume total"
+  ],
+  "avoid": [
+    "Généraliser une norme exprimée par une minorité vocale à tout le groupe",
+    "Confondre norme exprimée et norme réellement appliquée",
+    "Recommander des transgressions normatives sans analyse du niveau de confiance préalable"
+  ]
+}

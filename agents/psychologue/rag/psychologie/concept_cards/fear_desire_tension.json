@@ -1,0 +1,44 @@
+{
+  "id": "PSY-004",
+  "title": "Tension peur-désir",
+  "domain": "psychologie_motivationnelle",
+  "source_files": ["002_introduction_to_psychology_the_full_noba_collection.md", "016_the_balance_of_personality.md"],
+  "concept": "Tension peur-désir",
+  "definition": "État motivationnel d'approche-évitement (approach-avoidance conflict, Lewin 1935) où l'individu est simultanément attiré par un objectif désirable ET repoussé par les risques, coûts ou pertes associés. Cette tension crée une ambivalence comportementale et une charge anxieuse. Elle est au cœur de la plupart des blocages décisionnels et des objections d'audience.",
+  "use_when": [
+    "L'audience exprime simultanément de l'intérêt et de la réticence pour le sujet",
+    "Les commentaires contiennent des marqueurs d'aspiration accompagnés de raisons de ne pas agir",
+    "On détecte des désirs clairs ET des peurs implicites sur le même objet",
+    "L'audience hésite de façon visible (nombreuses questions, commentaires conditionnels)"
+  ],
+  "dashboard_triggers": [
+    "désir dominant + peur implicite simultanés",
+    "signal 'aspiration' + signal 'objection' dans les mêmes clusters",
+    "questions conditionnelles élevées ('si seulement...', 'à condition que...')",
+    "tension_internes détectée dans l'analyse"
+  ],
+  "interpretation_rule": "La tension peur-désir est le moteur psychologique central de la décision d'achat, d'abonnement ou d'engagement. L'audience qui ne convertit pas n'est pas indifférente — elle est bloquée entre son désir et sa peur. Identifier QUELLE peur spécifique bloque QUEL désir précis est la clé. Le contenu qui neutralise la peur sans minimiser le désir débloque la conversion.",
+  "what_to_observe": [
+    "Marqueurs d'aspiration : 'j'aimerais', 'si j'avais', 'un jour'",
+    "Marqueurs de peur : 'j'ai peur que', 'et si', 'ça ne marchera pas pour moi'",
+    "Objections classiques : temps, argent, légitimité personnelle, peur du regard des autres",
+    "Questions conditionnelles : révèlent souvent la peur bloquante cachée"
+  ],
+  "warnings": [
+    "Ne pas réduire à une opposition simple désir/peur — la tension peut être multi-dimensionnelle",
+    "Ne pas supposer que l'élimination de la peur suffit : le désir doit aussi être validé et amplifié",
+    "Certaines peurs sont inconscientes et non exprimées directement — chercher les signaux indirects"
+  ],
+  "output_guidance": "Formuler : 'Ce que l'audience désire profondément : X. Ce qui la bloque : la peur de Y. Point de levier : Z.'",
+  "example_interpretation": "Les commentaires révèlent un désir fort de [transformation X] couplé à une peur récurrente de [conséquence Y]. Cette tension approche-évitement explique le taux d'engagement élevé sans conversion. Recommandation : un contenu qui adresse directement la peur Y tout en amplifiant le désir X créera un déplacement de la balance vers l'action.",
+  "confidence_factors": [
+    "Co-présence mesurable de signaux d'aspiration ET d'objection",
+    "Récurrence de la même peur dans plusieurs commentaires indépendants",
+    "Questions conditionnelles exprimées"
+  ],
+  "avoid": [
+    "Recommander de simplement 'amplifier la douleur' — sans validation du désir, ça renforce la résistance",
+    "Ignorer les peurs non exprimées directement",
+    "Confondre manque d'intérêt et tension peur-désir — ce sont des situations différentes"
+  ]
+}

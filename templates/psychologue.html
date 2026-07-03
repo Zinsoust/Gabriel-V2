@@ -1,0 +1,1976 @@
+{% extends "base.html" %}
+{% block title %}Gabriel — Analyse{% endblock %}
+{% block page_name %}Analyse audience{% endblock %}
+
+{% block head %}
+<style>
+/* ─── Input zone ─────────────────────────────────────────────────────── */
+.input-zone{max-width:640px;margin:0 auto;padding-top:40px;}
+.page-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);font-weight:500;margin-bottom:6px;}
+.page-heading{font-size:20px;font-weight:500;letter-spacing:-.02em;color:var(--text-primary);margin-bottom:28px;}
+.input-card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;}
+.src-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06);padding:0 4px;}
+.src-tab{flex:1;padding:10px 8px;background:none;border:none;cursor:pointer;font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:rgba(255,255,255,.28);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;}
+.src-tab.active{color:#D8B982;border-bottom-color:#D8B982;}
+.src-tab:hover:not(.active){color:rgba(255,255,255,.5);}
+.card-body{padding:14px;}
+#manualComments{width:100%;box-sizing:border-box;min-height:140px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:11px 13px;font-size:12px;color:rgba(255,255,255,.65);line-height:1.7;font-family:inherit;resize:none;outline:none;transition:border-color .2s;}
+#manualComments::placeholder{color:rgba(255,255,255,.18);}
+#manualComments:focus{border-color:rgba(216,185,130,.28);}
+.url-hint{font-size:10px;color:rgba(255,255,255,.2);margin-top:7px;}
+.input{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px 13px;font-size:12px;color:rgba(255,255,255,.65);outline:none;transition:border-color .2s;font-family:inherit;}
+.input:focus{border-color:rgba(216,185,130,.28);}
+.comment-meta{display:flex;align-items:center;justify-content:space-between;margin-top:7px;}
+.comment-meta-left{font-size:10px;color:rgba(255,255,255,.2);}
+.comment-count{font-size:10px;font-weight:500;color:rgba(255,255,255,.25);padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid rgba(255,255,255,.05);}
+.status-msg{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:.03em;}
+.analyse-btn{display:flex;align-items:center;gap:7px;padding:8px 20px;border-radius:7px;background:rgba(216,185,130,.1);border:1px solid rgba(216,185,130,.22);color:#D8B982;font-size:11px;font-weight:500;letter-spacing:.05em;cursor:pointer;transition:all 0.2s cubic-bezier(0.22,1,.36,1);position:relative;overflow:hidden;}
+.analyse-btn::after{content:'';position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(216,185,130,.18),transparent);transform:skewX(-20deg);pointer-events:none;}
+.analyse-btn:hover{background:rgba(216,185,130,.16);border-color:rgba(216,185,130,.35);box-shadow:0 2px 14px rgba(216,185,130,.12);transform:translateY(-1px);}
+.analyse-btn:hover::after{animation:gb-shimmer .5s ease;}
+.analyse-btn:active{transform:scale(.97) translateY(0);}
+.analyse-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ─── Result header ──────────────────────────────────────────────────── */
+.dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.dash-id{font-size:10px;color:var(--text-disabled);font-family:monospace;margin-top:3px;}
+.dash-actions{display:flex;gap:8px;}
+.complete-msg{font-size:12px;color:rgba(255,255,255,.32);margin-bottom:16px;padding:9px 14px;border-left:2px solid rgba(216,185,130,.18);background:rgba(216,185,130,.025);border-radius:0 8px 8px 0;}
+
+/* ─── Result tabs ────────────────────────────────────────────────────── */
+.result-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:24px;position:relative;}
+.result-tab{padding:10px 22px;background:none;border:none;cursor:pointer;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.28);position:relative;margin-bottom:-1px;transition:color .2s ease;transform:scale(1);transition:color .2s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);}
+.result-tab::after{content:'';position:absolute;bottom:-1px;left:50%;right:50%;height:2px;background:#D8B982;transition:left .24s cubic-bezier(0.22,1,.36,1),right .24s cubic-bezier(0.22,1,.36,1);}
+.result-tab.active{color:#D8B982;}
+.result-tab.active::after{left:0;right:0;}
+.result-tab:hover:not(.active){color:rgba(255,255,255,.5);transform:scale(1.04);}
+
+/* ─── Section header ─────────────────────────────────────────────────── */
+.sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.sec-ico{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.03);border:1px solid var(--border-soft);font-size:11px;flex-shrink:0;}
+.sec-title{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;}
+.dashboard{display:flex;flex-direction:column;gap:22px;}
+
+/* ─── Executive snapshot ─────────────────────────────────────────────── */
+.snap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.snap-card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:14px 16px;}
+.snap-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);font-weight:500;margin-bottom:7px;}
+.snap-value{font-size:18px;font-weight:500;color:#F1D7A8;letter-spacing:-.03em;text-transform:capitalize;line-height:1.2;}
+.snap-sub{font-size:10px;color:rgba(255,255,255,.22);margin-top:4px;}
+.snap-bar{height:2px;background:rgba(255,255,255,.05);border-radius:1px;margin-top:10px;}
+.snap-fill{height:100%;background:rgba(216,185,130,.45);border-radius:1px;}
+
+/* ─── Dashboard sections ────────────────────────────────────────────── */
+.db-section{margin-bottom:24px;}
+.db-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.db-ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(216,185,130,.5);flex-shrink:0;}
+.db-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:600;}
+
+/* ─── Métriques pondérées ───────────────────────────────────────────── */
+.weighted-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.weighted-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px;}
+.wc-label{font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
+.wc-val{font-size:20px;font-weight:500;letter-spacing:-.02em;line-height:1;}
+.wc-sub{font-size:10px;color:var(--text-muted);margin-top:5px;}
+.wc-pos{color:#86D296;}.wc-neg{color:#DC6464;}.wc-neu{color:rgba(216,185,130,.75);}
+
+/* ─── Résonance par camp ─────────────────────────────────────────────── */
+.resonance-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.resonance-row:last-child{border-bottom:none;margin-bottom:0;}
+.res-stance{font-size:11px;color:var(--text-secondary);width:88px;flex-shrink:0;text-transform:capitalize;}
+.res-bar-wrap{flex:1;display:flex;align-items:center;gap:8px;}
+.res-track{flex:1;height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;}
+.res-fill{height:100%;border-radius:2px;transition:width .8s ease;}
+.res-pct{font-size:10px;font-weight:500;color:var(--text-secondary);width:34px;text-align:right;flex-shrink:0;}
+.res-likes{font-size:10px;color:var(--text-muted);width:55px;flex-shrink:0;}
+.res-words{font-size:10px;color:rgba(216,185,130,.6);width:70px;flex-shrink:0;text-align:right;}
+
+/* ─── Moquerie & Ironie ─────────────────────────────────────────────── */
+.mi-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px;flex:1;}
+.mi-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.mi-title{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:600;}
+.mi-badge{font-size:10px;padding:2px 7px;border-radius:999px;font-weight:500;}
+.mi-absent{background:rgba(255,255,255,.05);color:var(--text-muted);}
+.mi-faible{background:rgba(216,185,130,.1);color:rgba(216,185,130,.7);}
+.mi-modere{background:rgba(220,180,80,.12);color:rgba(220,180,80,.85);}
+.mi-fort{background:rgba(220,100,100,.12);color:rgba(220,100,100,.85);}
+.mi-count{font-size:18px;font-weight:500;color:var(--text-primary);margin-bottom:4px;}
+.mi-ex{font-size:10px;color:var(--text-muted);font-style:italic;line-height:1.4;margin-top:6px;border-left:2px solid rgba(255,255,255,.07);padding-left:8px;}
+
+/* ─── Champs lexicaux ────────────────────────────────────────────────── */
+.lex-fields-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.lex-field-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:13px 15px;}
+.lf-field{font-size:12px;font-weight:600;color:#F1D7A8;margin-bottom:7px;text-transform:capitalize;}
+.lf-words{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
+.lf-pct{font-size:10px;color:var(--text-muted);margin-bottom:6px;}
+.lf-ex{font-size:10px;color:var(--text-muted);font-style:italic;line-height:1.4;border-left:2px solid rgba(216,185,130,.15);padding-left:8px;}
+
+/* ─── Tendances ─────────────────────────────────────────────────────── */
+.tendance-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.tendance-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px;}
+.tendance-label{font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:8px;}
+.tendance-value{font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.45;text-transform:capitalize;}
+
+/* ─── Positions ─────────────────────────────────────────────────────── */
+.pos-row{display:flex;align-items:center;gap:12px;margin-bottom:9px;}
+.pos-label{font-size:11px;color:var(--text-secondary);width:90px;flex-shrink:0;text-transform:capitalize;}
+.pos-bar-wrap{display:flex;align-items:center;gap:8px;flex:1;}
+.pos-track{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+.pos-fill{height:100%;border-radius:3px;transition:width .9s ease;}
+.pos-pct{font-size:11px;font-weight:500;color:var(--text-secondary);width:38px;text-align:right;flex-shrink:0;}
+.pos-count{font-size:10px;color:var(--text-muted);width:62px;flex-shrink:0;}
+
+/* ─── Groupes ────────────────────────────────────────────────────────── */
+.groupes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.groupe-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px;}
+.groupe-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.groupe-pct{font-size:22px;font-weight:500;color:#F1D7A8;letter-spacing:-.03em;flex-shrink:0;}
+.groupe-size{font-size:10px;color:var(--text-muted);flex:1;}
+.groupe-mots{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+
+/* ─── Sujets récurrents ─────────────────────────────────────────────── */
+.sujet-row{display:flex;align-items:flex-start;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.sujet-row:last-child{border-bottom:none;}
+.sujet-left{display:flex;flex-direction:column;gap:2px;min-width:140px;}
+.sujet-mot{font-size:13px;font-weight:500;color:var(--text-primary);text-transform:capitalize;}
+.sujet-freq{font-size:10px;color:var(--champagne-soft);}
+.sujet-exemple{font-size:11px;color:var(--text-muted);font-style:italic;padding-left:10px;border-left:2px solid rgba(216,185,130,.15);line-height:1.5;flex:1;}
+
+/* ─── Signaux ────────────────────────────────────────────────────────── */
+.signal-item{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.signal-item:last-child{border-bottom:none;}
+.signal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.signal-name{font-size:11px;font-weight:500;color:var(--text-secondary);text-transform:capitalize;}
+.signal-pct{font-size:10px;color:var(--text-muted);}
+.signal-ex{font-size:10px;color:var(--text-muted);font-style:italic;line-height:1.4;padding-left:6px;border-left:2px solid rgba(255,255,255,.07);}
+
+/* ─── Polarisation ───────────────────────────────────────────────────── */
+.pol-statement{font-size:14px;font-weight:400;color:var(--text-primary);line-height:1.7;padding:16px 18px;background:rgba(216,185,130,.04);border:1px solid rgba(216,185,130,.13);border-radius:10px;margin-bottom:12px;}
+.pol-bars-wrap{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px;}
+
+/* ─── Charts ─────────────────────────────────────────────────────────── */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.chart-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px;}
+.chart-label{font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:12px;}
+.donut-inner{display:flex;align-items:center;gap:16px;}
+.legend{display:flex;flex-direction:column;gap:7px;flex:1;}
+.leg-row{display:flex;align-items:center;gap:6px;}
+.leg-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.leg-name{font-size:10px;color:var(--text-secondary);flex:1;text-transform:capitalize;}
+.leg-bar{width:40px;height:2px;background:rgba(255,255,255,.05);border-radius:1px;}
+.leg-fill{height:100%;border-radius:1px;}
+.leg-pct{font-size:10px;font-weight:500;color:var(--text-muted);width:30px;text-align:right;}
+
+/* ─── Horizontal bars ────────────────────────────────────────────────── */
+.hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.hbar-label{font-size:11px;color:var(--text-secondary);width:110px;flex-shrink:0;text-transform:capitalize;}
+.hbar-track{flex:1;height:4px;background:rgba(255,255,255,.05);border-radius:2px;}
+.hbar-fill{height:100%;border-radius:2px;background:rgba(216,185,130,.4);}
+.hbar-pct{font-size:10px;font-weight:500;color:rgba(255,255,255,.3);width:35px;text-align:right;}
+
+/* ─── Camembert / Donuts SVG ─────────────────────────────────────── */
+.pie-section{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.pie-legend{flex:1;min-width:110px;}
+.pie-leg-item{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.pie-leg-swatch{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.pie-leg-label{font-size:11px;color:var(--text-secondary);flex:1;text-transform:capitalize;}
+.pie-leg-pct{font-size:10px;font-weight:500;color:var(--text-muted);min-width:30px;text-align:right;}
+.pie-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pie-row .chart-card .pie-section{gap:12px;}
+
+/* ─── NLP ────────────────────────────────────────────────────────────── */
+.nlp-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
+.nlp-num-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:10px 12px;text-align:center;}
+.nlp-val{font-size:20px;font-weight:500;letter-spacing:-.04em;color:#F1D7A8;}
+.nlp-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-top:2px;}
+.word-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.word-tag{font-size:10px;padding:3px 8px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--border-soft);color:var(--text-muted);}
+.word-tag.strong{background:rgba(216,185,130,.05);border-color:rgba(216,185,130,.15);color:var(--champagne-soft);}
+
+/* ─── Brief ──────────────────────────────────────────────────────────── */
+.brief-wrap{padding:18px 20px;background:rgba(216,185,130,.04);border:1px solid rgba(216,185,130,.13);border-radius:12px;}
+.brief-kw{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(216,185,130,.45);font-weight:600;margin-bottom:4px;}
+.brief-val{font-size:13px;color:var(--text-primary);line-height:1.75;margin-bottom:14px;}
+.brief-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:14px;border-top:1px solid rgba(216,185,130,.09);}
+
+/* ─── Synthèse globale (dashboard) ──────────────────────────────────── */
+.psycho-summary{padding:20px 22px;background:rgba(216,185,130,.035);border:1px solid rgba(216,185,130,.18);border-radius:12px;position:relative;overflow:hidden;}
+.psycho-summary::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,rgba(216,185,130,.55),rgba(216,185,130,.06));}
+.psycho-summary-label{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(216,185,130,.6);font-weight:600;margin-bottom:10px;}
+.psycho-summary-text{font-size:14px;color:var(--text-primary);line-height:1.8;font-weight:400;}
+.psycho-summary-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid rgba(216,185,130,.08);}
+.psycho-summary-pill{font-size:10px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.03);border:1px solid var(--border-soft);color:var(--text-muted);line-height:1.4;}
+.psycho-summary-pill strong{color:var(--text-secondary);font-weight:500;}
+
+/* ─── Livrable cards ─────────────────────────────────────────────────── */
+.livrable-card{border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px 18px;margin-bottom:10px;}
+.livrable-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(216,185,130,.6);font-weight:600;margin-bottom:10px;}
+.livrable-conclusion{font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.65;margin-bottom:12px;}
+.livrable-tripartite{display:grid;grid-template-columns:80px 1fr;gap:6px 12px;}
+.tripartite-key{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:600;padding-top:2px;}
+.tripartite-val{font-size:11px;color:var(--text-secondary);line-height:1.6;}
+.conf-row{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.04);}
+.conf-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);flex-shrink:0;}
+.conf-track{flex:1;height:2px;background:rgba(255,255,255,.05);border-radius:1px;}
+.conf-fill-bar{height:100%;background:#C7A66B;border-radius:1px;}
+.conf-num{font-size:10px;color:#D8B982;font-weight:500;flex-shrink:0;}
+
+/* ─── Grille psychologique ───────────────────────────────────────────── */
+.grille-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grille-item{padding:14px 16px;border-radius:10px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.06);}
+.grille-question{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(216,185,130,.55);font-weight:600;margin-bottom:10px;}
+.grille-tri{display:grid;grid-template-columns:60px 1fr;gap:5px 10px;}
+.grille-key{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.2);font-weight:600;padding-top:1px;}
+.grille-val{font-size:11px;color:var(--text-secondary);line-height:1.5;}
+
+/* ─── Psycho pills ───────────────────────────────────────────────────── */
+.psycho-pills{display:flex;flex-direction:column;gap:5px;}
+.psycho-pill{padding:7px 10px;border-radius:7px;background:rgba(255,255,255,.015);border:1px solid var(--border-soft);font-size:11px;color:var(--text-secondary);line-height:1.5;}
+
+/* ─── Action items ───────────────────────────────────────────────────── */
+.action-item{display:flex;gap:10px;padding:10px 12px;border-radius:var(--radius-md);background:rgba(255,255,255,.015);border:1px solid var(--border-soft);margin-bottom:6px;}
+.action-num{width:20px;height:20px;border-radius:50%;background:rgba(216,185,130,.07);border:1px solid rgba(216,185,130,.15);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--champagne-soft);flex-shrink:0;}
+.action-text{font-size:11px;color:var(--text-secondary);line-height:1.6;}
+
+/* ─── Persona cards v2 ───────────────────────────────────────────────── */
+.persona-card-v2{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:18px;margin-bottom:12px;}
+.persona-header-v2{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.05);}
+.persona-avatar-v2{width:38px;height:38px;border-radius:50%;background:rgba(216,185,130,.07);border:1px solid rgba(216,185,130,.16);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;color:rgba(216,185,130,.6);font-weight:600;}
+.persona-name-v2{font-size:14px;font-weight:500;color:var(--text-primary);margin-bottom:5px;}
+.persona-meta-v2{display:flex;gap:6px;flex-wrap:wrap;}
+.p-tag{font-size:9px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;}
+.p-tag.emo{background:rgba(216,185,130,.05);border-color:rgba(216,185,130,.15);color:rgba(216,185,130,.7);}
+.p-tag.cluster{background:rgba(130,160,220,.05);border-color:rgba(130,160,220,.15);color:rgba(130,160,220,.7);}
+.persona-data-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.pf-label{font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:3px;}
+.pf-val{font-size:11px;color:var(--text-secondary);line-height:1.55;}
+.persona-quote{padding:10px 14px;border-left:2px solid rgba(216,185,130,.28);background:rgba(216,185,130,.03);border-radius:0 8px 8px 0;font-size:12px;color:var(--text-secondary);line-height:1.65;font-style:italic;margin-bottom:10px;}
+.comment-quote{padding:10px 14px;border-left:2px solid rgba(216,185,130,.18);background:rgba(255,255,255,.015);border-radius:0 6px 6px 0;font-size:11px;color:var(--text-secondary);line-height:1.65;font-style:italic;margin-bottom:5px;}
+
+/* ─── Persona card v3 ────────────────────────────────────────────── */
+.persona-card-v3{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:16px;display:grid;grid-template-columns:210px 1fr 215px;overflow:hidden;margin-bottom:20px;}
+.pc3-left{background:linear-gradient(160deg,rgba(216,185,130,.08) 0%,rgba(13,13,16,1) 65%);border-right:1px solid rgba(255,255,255,.05);padding:26px 18px;display:flex;flex-direction:column;align-items:center;}
+.pc3-avatar{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,rgba(216,185,130,.2) 0%,rgba(216,185,130,.04) 100%);border:2px solid rgba(216,185,130,.28);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:600;color:#F1D7A8;letter-spacing:-.02em;margin-bottom:14px;flex-shrink:0;}
+.pc3-avatar-img{width:90px;height:90px;border-radius:50%;border:2px solid rgba(216,185,130,.28);object-fit:cover;object-position:top center;margin-bottom:14px;flex-shrink:0;background:rgba(216,185,130,.04);}
+.pc3-name-l{font-size:12px;font-weight:600;color:var(--text-primary);text-align:center;margin-bottom:3px;line-height:1.35;}
+.pc3-meta-l{font-size:10px;color:var(--text-muted);text-align:center;line-height:1.6;margin-bottom:14px;}
+.pc3-sigs{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:12px;}
+.pc3-sig{font-size:9px;padding:2px 8px;border-radius:999px;background:rgba(100,170,235,.06);border:1px solid rgba(100,170,235,.17);color:rgba(110,170,235,.75);font-weight:500;}
+.pc3-div{width:100%;height:1px;background:rgba(255,255,255,.05);margin:4px 0 14px;}
+.pc3-quote{font-size:10px;color:rgba(216,185,130,.48);font-style:italic;line-height:1.65;text-align:center;flex:1;}
+.pc3-center{padding:22px 24px;}
+.pc3-head{display:flex;gap:10px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.04);}
+.pc3-name{font-size:19px;font-weight:600;color:var(--text-primary);letter-spacing:-.03em;line-height:1.15;margin-bottom:4px;}
+.pc3-arch{font-size:9px;text-transform:uppercase;letter-spacing:.13em;color:rgba(216,185,130,.55);font-weight:600;margin-bottom:8px;}
+.pc3-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.pc3-chip{font-size:9px;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text-muted);font-weight:500;text-transform:capitalize;}
+.pc3-chip.emo{background:rgba(216,185,130,.07);border-color:rgba(216,185,130,.2);color:rgba(216,185,130,.82);}
+.pc3-vision{font-size:12px;font-style:italic;color:var(--text-secondary);line-height:1.7;padding:11px 14px;background:rgba(216,185,130,.03);border:1px solid rgba(216,185,130,.09);border-radius:8px;margin-bottom:16px;}
+.pc3-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.pc3-ttl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:600;margin-bottom:8px;}
+.pc3-li{font-size:11px;color:var(--text-secondary);line-height:1.5;padding-left:13px;position:relative;margin-bottom:5px;}
+.pc3-li::before{content:'→';position:absolute;left:0;color:rgba(216,185,130,.35);font-size:9px;top:2px;}
+.pc3-msg{background:rgba(90,200,125,.04);border:1px solid rgba(90,200,125,.12);border-radius:8px;padding:12px 15px;margin-top:6px;}
+.pc3-msg-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.13em;color:rgba(90,200,125,.6);font-weight:600;margin-bottom:5px;}
+.pc3-msg-txt{font-size:12px;color:var(--text-secondary);line-height:1.65;font-style:italic;}
+.pc3-right{border-left:1px solid rgba(255,255,255,.04);background:rgba(255,255,255,.01);padding:22px 18px;overflow:hidden;}
+.pc3-stat{margin-bottom:16px;}
+.pc3-stat-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:600;margin-bottom:4px;}
+.pc3-stat-val{font-size:11px;color:var(--text-secondary);line-height:1.55;}
+.pc3-conf-num{font-size:20px;font-weight:500;color:#F1D7A8;letter-spacing:-.03em;line-height:1.1;}
+.pc3-conf-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden;}
+.pc3-conf-fill{height:100%;background:linear-gradient(90deg,rgba(216,185,130,.35),rgba(216,185,130,.65));border-radius:2px;}
+
+@media(max-width:860px){
+  .persona-card-v3{grid-template-columns:1fr;}
+  .pc3-left{border-right:none;border-bottom:1px solid rgba(255,255,255,.05);flex-direction:row;flex-wrap:wrap;gap:16px;align-items:flex-start;padding:18px;}
+  .pc3-avatar{margin-bottom:0;flex-shrink:0;}
+  .pc3-right{border-left:none;border-top:1px solid rgba(255,255,255,.04);}
+  .pc3-2col{grid-template-columns:1fr;}
+}
+@media(max-width:768px){
+  .snap-grid,.charts-row,.grille-grid,.persona-data-grid,.brief-cols,
+  .tendance-cards,.groupes-grid{grid-template-columns:1fr;}
+  .nlp-nums{grid-template-columns:repeat(2,1fr);}
+  .sujet-row{flex-direction:column;gap:6px;}
+}
+
+/* ─── Carte contexte vidéo (champagne) ──────────────────────────────────── */
+.video-ctx-card{background:linear-gradient(135deg,#D8B982 0%,#C4A05C 100%);border-radius:14px;padding:20px 22px;margin-bottom:0;}
+.vcx-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.vcx-source{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(13,13,16,.5);font-weight:600;padding:2px 8px;border-radius:6px;background:rgba(13,13,16,.08);}
+.vcx-title{font-size:16px;font-weight:600;color:#0D0D10;line-height:1.35;margin-bottom:8px;letter-spacing:-.02em;}
+.vcx-desc{font-size:11px;color:rgba(13,13,16,.68);line-height:1.65;}
+.vcx-meta{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.vcx-tag{font-size:9px;padding:2px 8px;border-radius:6px;background:rgba(13,13,16,.1);color:rgba(13,13,16,.6);font-weight:500;}
+
+/* ─── Stat chips (audience overview) ────────────────────────────────────── */
+.stat-chips-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+@media(max-width:860px){.stat-chips-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:520px){.stat-chips-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-chip{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 10px;text-align:center;}
+.stat-chip-val{font-size:20px;font-weight:500;letter-spacing:-.03em;line-height:1.1;}
+.stat-chip-count{font-size:10px;color:rgba(255,255,255,.3);margin-top:1px;}
+.stat-chip-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-top:5px;font-weight:500;}
+.chip-pos{color:#86D296;}.chip-neg{color:#DC6464;}.chip-neu{color:rgba(167,167,170,.75);}
+.chip-bruit{color:rgba(255,255,255,.28);}.chip-total{color:#F1D7A8;}.chip-nuance{color:rgba(216,185,130,.7);}
+
+/* ─── Top commentaires ───────────────────────────────────────────────────── */
+.top-comment-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:8px;background:rgba(255,255,255,.018);border:1px solid rgba(255,255,255,.05);margin-bottom:6px;}
+.top-comment-rank{width:20px;height:20px;border-radius:50%;background:rgba(216,185,130,.07);border:1px solid rgba(216,185,130,.18);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:rgba(216,185,130,.7);flex-shrink:0;margin-top:1px;}
+.top-comment-body{flex:1;min-width:0;}
+.top-comment-text{font-size:11px;color:var(--text-secondary);line-height:1.55;}
+.top-comment-author{font-size:9px;color:var(--text-muted);margin-top:3px;}
+.top-comment-likes{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:500;color:rgba(216,185,130,.65);flex-shrink:0;white-space:nowrap;}
+.top-comment-likes svg{width:10px;height:10px;fill:rgba(216,185,130,.5);flex-shrink:0;}
+
+/* ─── Démographie ────────────────────────────────────────────────────────── */
+.demog-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+@media(max-width:768px){.demog-row{grid-template-columns:1fr 1fr;}}
+.demog-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px;}
+.demog-card-title{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:600;margin-bottom:10px;}
+.demog-age-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.demog-age-lbl{font-size:10px;color:var(--text-secondary);width:44px;flex-shrink:0;}
+.demog-age-track{flex:1;height:4px;background:rgba(255,255,255,.05);border-radius:2px;}
+.demog-age-fill{height:100%;border-radius:2px;background:rgba(216,185,130,.45);}
+.demog-age-pct{font-size:10px;font-weight:500;color:var(--text-muted);width:30px;text-align:right;}
+.demog-gender-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.demog-gender-bar{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.04);position:relative;overflow:hidden;}
+.demog-gender-h{position:absolute;left:0;top:0;height:100%;background:rgba(100,170,235,.55);border-radius:4px;}
+.demog-gender-f{position:absolute;right:0;top:0;height:100%;background:rgba(235,130,165,.55);border-radius:4px;}
+.demog-gender-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);}
+.demog-avg-age{font-size:28px;font-weight:500;color:#F1D7A8;letter-spacing:-.04em;line-height:1;}
+.demog-avg-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-top:4px;}
+/* Localisation — nouvelle carte */
+.demog-loc-globe{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.demog-loc-globe-icon{width:28px;height:28px;border-radius:50%;background:rgba(90,160,220,.08);border:1px solid rgba(90,160,220,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.demog-loc-globe-lbl{font-size:11px;color:rgba(255,255,255,.35);line-height:1.4;}
+.demog-loc-globe-lbl strong{display:block;font-size:13px;font-weight:500;color:rgba(255,255,255,.6);letter-spacing:-.01em;}
+.demog-loc-section-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.18);font-weight:600;margin-bottom:6px;}
+.demog-loc-pays{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.demog-loc-pays-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;background:rgba(90,160,220,.07);border:1px solid rgba(90,160,220,.14);font-size:10px;color:rgba(90,160,220,.75);font-weight:500;}
+.demog-loc-pays-dot{width:5px;height:5px;border-radius:50%;background:rgba(90,160,220,.6);flex-shrink:0;}
+.demog-loc-villes{display:flex;flex-direction:column;gap:4px;}
+.demog-loc-ville{display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(255,255,255,.38);padding:3px 0;}
+.demog-loc-ville::before{content:'';width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.18);flex-shrink:0;}
+.demog-loc-note{font-size:9px;color:rgba(255,255,255,.2);font-style:italic;margin-top:10px;line-height:1.5;padding-top:8px;border-top:1px solid rgba(255,255,255,.04);}
+.demog-loc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:80px;gap:6px;}
+.demog-loc-empty-icon{opacity:.15;}
+.demog-loc-empty-txt{font-size:10px;color:rgba(255,255,255,.18);text-align:center;}
+
+/* Modal upgrade */
+#upgrade-modal.visible { opacity:1; }
+#upgrade-modal.visible #upgrade-modal-inner { transform:translateY(0); }
+
+/* ── Cartes d'interprétation RAG ─────────────────────────────────────────── */
+.rag-interp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.rag-card{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden;}
+.rag-card-header{padding:10px 14px 0;display:flex;align-items:center;gap:8px;}
+.rag-card-ico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.rag-card-ico.psycho{background:rgba(100,120,255,.1);border:1px solid rgba(100,120,255,.2);}
+.rag-card-ico.socio{background:rgba(80,200,160,.1);border:1px solid rgba(80,200,160,.2);}
+.rag-card-title{font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:600;}
+.rag-card-title.psycho{color:rgba(130,150,255,.9);}
+.rag-card-title.socio{color:rgba(80,200,160,.9);}
+.rag-card-body{padding:10px 14px 14px;}
+.rag-mecanisme{font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:6px;letter-spacing:-.01em;}
+.rag-lecture{font-size:11px;color:var(--text-secondary);line-height:1.65;margin-bottom:10px;}
+.rag-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.rag-tag{font-size:9px;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.45);letter-spacing:.03em;}
+.rag-concept{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);font-weight:500;margin-bottom:3px;}
+.rag-concept-val{font-size:10px;color:rgba(255,255,255,.45);font-style:italic;margin-bottom:10px;}
+.rag-implication{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:8px 10px;}
+.rag-impl-label{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:600;margin-bottom:3px;}
+.rag-impl-text{font-size:10px;color:var(--text-secondary);line-height:1.55;}
+.rag-confiance{font-size:8px;color:rgba(255,255,255,.2);margin-top:8px;letter-spacing:.04em;}
+.rag-mechanisms{margin-bottom:10px;}
+.rag-mechanism-item{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px;margin-bottom:5px;padding:5px 8px;background:rgba(255,255,255,.03);border-radius:5px;border:1px solid rgba(255,255,255,.05);}
+.rag-mech-name{font-size:10px;color:var(--text-secondary);font-weight:500;}
+.rag-mech-conf{font-size:8px;color:rgba(255,255,255,.25);margin-left:4px;}
+.rag-evidence{width:100%;font-size:9px;color:rgba(255,255,255,.3);line-height:1.5;font-style:italic;}
+.rag-group-label{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:600;margin-bottom:4px;margin-top:8px;}
+.rag-rules{margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:8px;color:rgba(255,255,255,.25);}
+.rag-rule-tag{padding:1px 6px;border-radius:3px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:8px;color:rgba(255,255,255,.3);font-family:monospace;}
+@media(max-width:680px){.rag-interp-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block header_actions %}
+<a href="/historique" class="btn btn-ghost btn-sm">Historique</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Input ──────────────────────────────────────────────────────────── -->
+<div id="input-section" class="input-zone">
+  <div class="page-label">Psychologue</div>
+  <div class="page-heading">Analyse factuelle des commentaires</div>
+
+  <div class="input-card">
+    <div class="src-tabs">
+      <button class="src-tab active" data-tab="manual"    onclick="switchTab('manual')">Commentaires</button>
+      <button class="src-tab" data-tab="youtube"   onclick="switchTab('youtube')">YouTube</button>
+      <button class="src-tab" data-tab="instagram" onclick="switchTab('instagram')">Instagram</button>
+      <button class="src-tab" data-tab="tiktok"    onclick="switchTab('tiktok')">TikTok</button>
+    </div>
+    <div class="card-body">
+      <div id="tab-manual">
+        <textarea id="manualComments" placeholder="Collez vos commentaires ici, un par ligne…" rows="7" oninput="updateCount()"></textarea>
+        <div class="comment-meta">
+          <span class="comment-meta-left">Un commentaire par ligne · Min. 3</span>
+          <span class="comment-count" id="commentCount">0</span>
+        </div>
+      </div>
+      <div id="tab-youtube" class="hidden">
+        <input type="url" id="youtubeUrl" class="input" placeholder="https://youtube.com/watch?v=…" style="width:100%;box-sizing:border-box;" onchange="scrapeYoutube()">
+        <div id="yt-status" class="url-hint"></div>
+      </div>
+      <div id="tab-instagram" class="hidden">
+        <input type="text" id="instagramUrl" class="input" placeholder="https://instagram.com/p/…" style="width:100%;box-sizing:border-box;" onchange="scrapeInstagram()">
+        <div id="ig-status" class="url-hint"></div>
+      </div>
+      <div id="tab-tiktok" class="hidden">
+        <input type="url" id="tiktokUrl" class="input" placeholder="https://tiktok.com/@…/video/…" style="width:100%;box-sizing:border-box;" onchange="scrapeTiktok()">
+        <div id="tt-status" class="url-hint"></div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <span class="status-msg" id="analyzeHint">Minimum 3 commentaires</span>
+      <span id="usage-counter" style="display:none;font-size:10px;align-items:center;gap:4px;padding:3px 9px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid var(--border-soft);"></span>
+      <button class="analyse-btn" onclick="startAnalysis()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Lancer l'analyse
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Upgrade ─────────────────────────────────────────────────────── -->
+<div id="upgrade-modal" style="
+  display:none; position:fixed; inset:0; z-index:9000;
+  align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
+  opacity:0; transition:opacity 0.25s;
+">
+  <div style="
+    background:var(--bg-card); border:1px solid rgba(216,185,130,0.18);
+    border-radius:var(--radius-xl); padding:36px 32px; max-width:420px; width:90%;
+    box-shadow:0 24px 60px rgba(0,0,0,0.5);
+    transform:translateY(12px); transition:transform 0.3s cubic-bezier(0.22,1,0.36,1);
+  " id="upgrade-modal-inner">
+    <div style="font-size:22px;margin-bottom:4px;">◈</div>
+    <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Limite atteinte</div>
+    <div style="font-size:12px;color:var(--text-secondary);line-height:1.7;margin-bottom:20px;">
+      Vous avez utilisé <strong id="upgrade-used">3</strong> analyses sur <strong id="upgrade-limit">3</strong> du plan gratuit.<br>
+      Passez au plan <strong style="color:var(--champagne-soft);">Starter</strong> pour continuer — analyses illimitées, export PDF, mémoire stratégique.
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-primary" onclick="window.location.href='/upgrade'" style="width:100%;justify-content:center;">
+        Passer à Starter — 19 €/mois
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="closeUpgradeModal()" style="width:100%;justify-content:center;">
+        Pas maintenant
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Loading ─────────────────────────────────────────────────────────── -->
+<div id="loading-section" class="hidden">
+  <div class="loading-overlay active">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">Analyse en cours…</div>
+    <div class="loading-steps">
+      <div class="loading-step active" id="step-nlp"><div class="loading-step-dot"></div>Traitement NLP · Embeddings sémantiques</div>
+      <div class="loading-step" id="step-emo"><div class="loading-step-dot"></div>Analyse émotionnelle</div>
+      <div class="loading-step" id="step-psy"><div class="loading-step-dot"></div>Psychologie · Personas</div>
+      <div class="loading-step" id="step-brief"><div class="loading-step-dot"></div>Synthèse</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Error ───────────────────────────────────────────────────────────── -->
+<div id="error-section" class="hidden">
+  <div class="alert alert-error" id="error-msg"></div>
+  <button class="btn btn-ghost btn-sm" onclick="resetToInput()" style="margin-top:12px;">← Réessayer</button>
+</div>
+
+<!-- ── Résultats (3 onglets) ───────────────────────────────────────────── -->
+<div id="dashboard-section" class="hidden">
+
+  <div class="dash-header">
+    <div>
+      <div style="font-size:15px;font-weight:500;color:var(--text-primary);">Résultats</div>
+      <div class="dash-id" id="dash-id"></div>
+    </div>
+    <div class="dash-actions">
+      <button class="btn btn-ghost btn-sm" onclick="resetToInput()">← Nouvelle analyse</button>
+      <button class="btn btn-ghost btn-sm" id="export-pdf-btn" onclick="exportCurrentPdf()" title="Exporter en PDF">
+        <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        PDF
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="goToStratege()">Stratège →</button>
+    </div>
+  </div>
+
+  <div class="complete-msg">Analyse terminée. Gabriel a détecté les principaux signaux de votre audience.</div>
+
+  <!-- Navigation onglets -->
+  <div class="result-tabs">
+    <button class="result-tab active" data-rtab="dashboard"      onclick="switchResultTab('dashboard')">Dashboard</button>
+    <button class="result-tab"        data-rtab="interpretation" onclick="switchResultTab('interpretation')">Interprétation</button>
+    <button class="result-tab"        data-rtab="personas"       onclick="switchResultTab('personas')">Personas</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ONGLET 1 — DASHBOARD                                               -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div id="tab-dashboard-content" class="dashboard">
+
+    <!-- 0. Contexte vidéo -->
+    <div class="db-section hidden" id="video-context-section">
+      <div id="video-context-card"></div>
+    </div>
+
+    <!-- Synthèse psychologique globale -->
+    <div class="db-section hidden" id="psycho-summary-section">
+      <div class="psycho-summary" id="psycho-summary-card"></div>
+    </div>
+
+    <!-- NEW-STATS: Statistiques rapides de l'audience -->
+    <div class="db-section" id="stat-overview-section">
+      <div class="db-header"><div class="db-ico">◉</div><div class="db-title">Statistiques de l'audience</div></div>
+      <div class="stat-chips-grid" id="stat-chips-grid"></div>
+    </div>
+
+    <!-- NEW-TOP: Top 10 commentaires les plus likés -->
+    <div class="db-section hidden" id="top-comments-section">
+      <div class="db-header"><div class="db-ico">♥</div><div class="db-title">Top 10 commentaires les plus likés</div></div>
+      <div id="top-comments-list"></div>
+    </div>
+
+    <!-- NEW-DEMOG: Données démographiques -->
+    <div class="db-section hidden" id="demographics-section">
+      <div class="db-header"><div class="db-ico">◎</div><div class="db-title">Données démographiques</div></div>
+      <div class="demog-row" id="demographics-grid"></div>
+    </div>
+
+    <!-- 1. Résumé des tendances -->
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">◎</div><div class="db-title">Résumé des tendances</div></div>
+      <div class="tendance-cards" id="tendances-grid"></div>
+    </div>
+
+    <!-- 2. Émotions détectées -->
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">◐</div><div class="db-title">Émotions détectées</div></div>
+      <div class="card" style="padding:16px 18px;" id="emotions-chart"></div>
+    </div>
+
+    <!-- 3. Répartition des positions -->
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">◑</div><div class="db-title">Répartition des positions</div></div>
+      <div class="card" style="padding:16px 18px;" id="positions-bars"></div>
+    </div>
+
+    <!-- NEW-A: Métriques pondérées par engagement -->
+    <div class="db-section" id="weighted-metrics-section">
+      <div class="db-header"><div class="db-ico">◐</div><div class="db-title">Métriques pondérées par engagement (likes)</div></div>
+      <div class="weighted-grid" id="weighted-grid"></div>
+    </div>
+
+    <!-- NEW-B: Résonance par camp + densité argumentative -->
+    <div class="db-section" id="resonance-section">
+      <div class="db-header"><div class="db-ico">◉</div><div class="db-title">Résonance par camp & densité argumentative</div></div>
+      <div class="card" style="padding:14px 18px;" id="resonance-grid"></div>
+    </div>
+
+    <!-- 3. Groupes détectés -->
+    <div class="db-section" id="groupes-section">
+      <div class="db-header"><div class="db-ico">⊙</div><div class="db-title">Groupes détectés dans l'audience</div></div>
+      <div class="groupes-grid" id="groupes-grid"></div>
+    </div>
+
+    <!-- 4. Sujets récurrents -->
+    <div class="db-section" id="sujets-section">
+      <div class="db-header"><div class="db-ico">∿</div><div class="db-title">Sujets récurrents</div></div>
+      <div class="card" style="padding:14px 18px;" id="sujets-list"></div>
+    </div>
+
+    <!-- 5. Frustrations · Attentes · Objections -->
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">◈</div><div class="db-title">Frustrations · Attentes · Objections</div></div>
+      <div class="charts-row" id="fao-grid"></div>
+    </div>
+
+    <!-- NEW-C: Signaux de moquerie & ironie -->
+    <div class="db-section" id="mockery-irony-section">
+      <div class="db-header"><div class="db-ico">◍</div><div class="db-title">Signaux de moquerie & ironie</div></div>
+      <div class="charts-row" id="mockery-irony-grid" style="gap:10px;"></div>
+    </div>
+
+    <!-- 6. Mots et expressions fréquents -->
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">❖</div><div class="db-title">Mots et expressions fréquents</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;" id="lexique-grid"></div>
+    </div>
+
+    <!-- NEW-D: Champs lexicaux -->
+    <div class="db-section" id="lexical-fields-section">
+      <div class="db-header"><div class="db-ico">◫</div><div class="db-title">Champs lexicaux détectés</div></div>
+      <div class="lex-fields-grid" id="lexical-fields-grid"></div>
+    </div>
+
+    <!-- 7. Polarisation -->
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">◆</div><div class="db-title">Polarisation de l'audience</div></div>
+      <div id="polarisation-block"></div>
+      <div class="pie-row" style="margin-top:12px;" id="sentiments-donuts"></div>
+    </div>
+
+    <!-- 8. Fiabilité -->
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">◇</div><div class="db-title">Fiabilité de l'analyse</div></div>
+      <div class="nlp-nums" id="fiabilite-grid"></div>
+    </div>
+
+  </div><!-- /tab-dashboard-content -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ONGLET 2 — INTERPRÉTATION                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div id="tab-interpretation-content" class="dashboard hidden">
+
+    <!-- Brief Gabriel -->
+    <div>
+      <div class="sec-hdr"><div class="sec-ico">💡</div><div class="sec-title">Lecture instantanée</div></div>
+      <div class="brief-wrap" id="brief-block"></div>
+    </div>
+
+    <!-- 5 livrables data-driven -->
+    <div>
+      <div class="sec-hdr"><div class="sec-ico">⊹</div><div class="sec-title">Insights fondés sur données</div></div>
+      <div id="livrables-list"></div>
+    </div>
+
+    <!-- Grille psychologique 10 questions -->
+    <div id="grille-section">
+      <div class="sec-hdr"><div class="sec-ico">🧠</div><div class="sec-title">Grille psychologique</div></div>
+      <div class="grille-grid" id="grille-grid"></div>
+    </div>
+
+    <!-- Psychologie -->
+    <div>
+      <div class="sec-hdr"><div class="sec-ico">◈</div><div class="sec-title">Psychologie de l'audience</div></div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;" id="psycho-cols"></div>
+    </div>
+
+    <!-- ── Interprétations RAG spécialisées ─────────────────────────────── -->
+    <div id="rag-interp-section" class="hidden">
+      <div class="sec-hdr"><div class="sec-ico">◉</div><div class="sec-title">Interprétations approfondies</div></div>
+      <div class="rag-interp-grid">
+        <div class="rag-card" id="rag-psycho-card"></div>
+        <div class="rag-card" id="rag-socio-card"></div>
+      </div>
+    </div>
+
+    <!-- Recommandations -->
+    <div>
+      <div class="sec-hdr"><div class="sec-ico">→</div><div class="sec-title">Recommandations stratégiques</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="card">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:8px;">Vérité de l'audience</div>
+          <p style="font-size:12px;color:var(--text-secondary);line-height:1.7;" id="reco-verite"></p>
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-soft);">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:7px;">Message central</div>
+            <p class="comment-quote" id="reco-message"></p>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:8px;">Actions prioritaires</div>
+          <div id="reco-actions"></div>
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-soft);">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:7px;">Prochaines étapes</div>
+            <ul class="items-list" id="reco-etapes"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-interpretation-content -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- ONGLET 3 — PERSONAS                                                -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div id="tab-personas-content" class="dashboard hidden">
+    <div>
+      <div class="sec-hdr"><div class="sec-ico">◈</div><div class="sec-title">Segments d'audience</div></div>
+      <div id="personas-list"></div>
+    </div>
+  </div>
+
+</div><!-- /dashboard-section -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ── Tab switching (input) ───────────────────────────────────────────── */
+function switchTab(tab) {
+  document.querySelectorAll('.src-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  ['manual','youtube','instagram','tiktok'].forEach(t =>
+    document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab)
+  );
+}
+
+/* ── Tab switching (résultats) ───────────────────────────────────────── */
+function switchResultTab(tab) {
+  document.querySelectorAll('.result-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.rtab === tab)
+  );
+  ['dashboard','interpretation','personas'].forEach(t => {
+    const el = document.getElementById('tab-'+t+'-content');
+    if (el) el.classList.toggle('hidden', t !== tab);
+  });
+}
+
+function updateCount() {
+  const n = document.getElementById('manualComments').value.split('\n').filter(l=>l.trim()).length;
+  const el = document.getElementById('commentCount');
+  el.textContent = n + (n===1?' commentaire':' commentaires');
+  el.style.color = n>=3 ? 'var(--champagne-soft)' : 'var(--text-disabled)';
+  document.getElementById('analyzeHint').textContent = n>=3 ? 'Prêt à analyser' : 'Minimum 3 commentaires';
+}
+
+/* ── Scrapers ─────────────────────────────────────────────────────────── */
+function setStatus(id, html) { const el=document.getElementById(id); if(el) el.innerHTML=html; }
+
+async function doScrapePreview(url, source, statusId) {
+  if (!url) return;
+  setStatus(statusId, '<span style="font-size:10px;color:var(--text-muted);">Récupération…</span>');
+  try {
+    const r = await fetch('/analyze', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({source, content:url, preview_only:true})
+    });
+    const d = await r.json();
+    if (d.comments_preview) {
+      document.getElementById('manualComments').value = d.comments_preview.join('\n');
+      updateCount(); switchTab('manual'); setStatus(statusId, '');
+    } else if (d.error) {
+      setStatus(statusId, `<span style="font-size:10px;color:rgba(220,100,100,.7);">${d.error}</span>`);
+    } else {
+      setStatus(statusId, '<span style="font-size:10px;color:var(--champagne-soft);">URL enregistrée — cliquez sur Analyser.</span>');
+    }
+  } catch(e) { setStatus(statusId, '<span style="font-size:10px;color:rgba(220,100,100,.7);">Erreur réseau</span>'); }
+}
+const scrapeYoutube   = () => doScrapePreview(document.getElementById('youtubeUrl').value.trim(),   'youtube',   'yt-status');
+const scrapeInstagram = () => doScrapePreview(document.getElementById('instagramUrl').value.trim(), 'instagram', 'ig-status');
+const scrapeTiktok    = () => doScrapePreview(document.getElementById('tiktokUrl').value.trim(),    'tiktok',    'tt-status');
+
+function hydrateFromLanding() {
+  const source = sessionStorage.getItem('gabriel_source');
+  const content = sessionStorage.getItem('gabriel_content');
+  if (!source || !content) return;
+  sessionStorage.removeItem('gabriel_source');
+  sessionStorage.removeItem('gabriel_content');
+  if (source === 'text' || source === 'manual') {
+    switchTab('manual');
+    document.getElementById('manualComments').value = content;
+    updateCount(); return;
+  }
+  const tabMap   = {youtube:'youtube', instagram:'instagram', tiktok:'tiktok'};
+  const inputMap = {youtube:'youtubeUrl', instagram:'instagramUrl', tiktok:'tiktokUrl'};
+  const scrapeMap= {youtube:scrapeYoutube, instagram:scrapeInstagram, tiktok:scrapeTiktok};
+  const tab = tabMap[source]; const inputId = inputMap[source];
+  if (!tab || !inputId) return;
+  switchTab(tab);
+  document.getElementById(inputId).value = content;
+  scrapeMap[source]?.();
+}
+
+function getActiveSource() {
+  const tab = document.querySelector('.src-tab.active')?.dataset.tab || 'manual';
+  if (tab === 'manual') {
+    const text = document.getElementById('manualComments').value.trim();
+    return {source:'text', content:text, count:text.split('\n').filter(l=>l.trim()).length};
+  }
+  if (tab === 'youtube')   return {source:'youtube',   content:document.getElementById('youtubeUrl').value.trim(),   count:999};
+  if (tab === 'instagram') return {source:'instagram', content:document.getElementById('instagramUrl').value.trim(), count:999};
+  if (tab === 'tiktok')    return {source:'tiktok',    content:document.getElementById('tiktokUrl').value.trim(),    count:999};
+  return {source:'text', content:'', count:0};
+}
+
+/* ── Loading ──────────────────────────────────────────────────────────── */
+function animateSteps() {
+  const steps=['step-nlp','step-emo','step-psy','step-brief']; let i=0;
+  return setInterval(()=>{
+    if(i>0){const p=document.getElementById(steps[i-1]);if(p){p.classList.remove('active');p.classList.add('done');}}
+    if(i<steps.length){const c=document.getElementById(steps[i]);if(c)c.classList.add('active');i++;}
+  }, 1800);
+}
+
+/* ── Analyse ──────────────────────────────────────────────────────────── */
+async function startAnalysis() {
+  const {source, content, count} = getActiveSource();
+  if (!content) { alert('Ajoutez du contenu à analyser.'); return; }
+  if (source==='text' && count<3) { alert('Ajoutez au moins 3 commentaires.'); return; }
+  show('loading-section'); hide('input-section'); hide('error-section'); hide('dashboard-section');
+  const timer = animateSteps();
+
+  // ── Phase 1 : lancer le job (scraping + démarrage LLM) ───────────────────
+  let jobId;
+  try {
+    const r = await fetch('/analyze', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({source, content}),
+    });
+    let d;
+    try { d = await r.json(); } catch(_) {
+      clearInterval(timer); showError(`Erreur serveur (${r.status})`); return;
+    }
+    if (r.status === 401 || d.redirect) { window.location.href = d.redirect||'/login'; return; }
+    if (r.status === 403 && d.error === 'limit_reached') {
+      clearInterval(timer); hide('loading-section'); show('input-section');
+      showUpgradeModal(d.analyses_used, d.analyses_limit); return;
+    }
+    if (d.error) { clearInterval(timer); showError(d.error); return; }
+    jobId = d.job_id;
+  } catch(e) {
+    clearInterval(timer); showError('Impossible de joindre le serveur.'); return;
+  }
+
+  // ── Phase 2 : polling jusqu'à 'done' (max 5 min) ─────────────────────────
+  const MAX_POLLS = 100;  // 100 × 3s = 5 min
+  for (let i = 0; i < MAX_POLLS; i++) {
+    await new Promise(res => setTimeout(res, 3000));
+    let poll;
+    try {
+      const pr = await fetch(`/status/${jobId}`);
+      if (pr.status === 401) {
+        clearInterval(timer);
+        showError('Votre session a expiré. Veuillez vous reconnecter.');
+        setTimeout(() => { window.location.href = '/login'; }, 2000);
+        return;
+      }
+      if (pr.status === 429) {
+        clearInterval(timer);
+        showError('Trop de requêtes — attendez quelques instants et réessayez.');
+        return;
+      }
+      poll = await pr.json();
+    } catch(_) { continue; }
+
+    if (poll.status === 'done') {
+      clearInterval(timer);
+      try { renderDashboard(poll.data || {}); loadUsageCounter(); }
+      catch(e) { showError("Analyse terminée mais affichage échoué. Rechargez."); }
+      if (typeof GabrielSurvey !== 'undefined') {
+        GabrielSurvey.trigger({
+          eventType:  'after_analysis',
+          targetType: 'analysis',
+          targetId:   (poll.data || {}).analysis_id || '',
+          agent:      'psychologue',
+          question:   'Cette analyse psychologique vous paraît-elle pertinente ?',
+          delay:      4000,
+        });
+      }
+      return;
+    }
+    if (poll.status === 'error') {
+      clearInterval(timer); showError(poll.error || "Erreur d'analyse."); return;
+    }
+    // 'running' → continuer à poller
+  }
+  clearInterval(timer);
+  showError("L'analyse prend trop de temps. Vérifiez votre connexion et réessayez.");
+}
+
+// ── Compteur d'usage & modal upgrade ─────────────────────────────────────────
+async function loadUsageCounter() {
+  try {
+    const r = await fetch('/usage');
+    if (!r.ok) return;
+    const d = await r.json();
+    const el = document.getElementById('usage-counter');
+    if (!el) return;
+    if (d.plan === 'free') {
+      const rem = Math.max(0, (d.limit || 3) - (d.used || 0));
+      el.textContent = `${rem} analyse${rem!==1?'s':''} restante${rem!==1?'s':''}`;
+      el.style.display = 'inline-flex';
+      el.style.color = rem <= 1 ? 'rgba(220,120,80,0.85)' : 'var(--text-muted)';
+    } else {
+      el.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+function showUpgradeModal(used, limit) {
+  const modal = document.getElementById('upgrade-modal');
+  if (modal) {
+    document.getElementById('upgrade-used').textContent  = used  || 0;
+    document.getElementById('upgrade-limit').textContent = limit || 3;
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => { requestAnimationFrame(() => { modal.classList.add('visible'); }); });
+  }
+}
+
+function closeUpgradeModal() {
+  const modal = document.getElementById('upgrade-modal');
+  if (modal) {
+    modal.classList.remove('visible');
+    setTimeout(() => { modal.style.display = 'none'; }, 250);
+  }
+}
+
+loadUsageCounter();
+
+/* ── SVG Charts ───────────────────────────────────────────────────────── */
+function buildDonut(segments, cx, cy, r) {
+  const circ = 2*Math.PI*r; let offset = circ/4;
+  const bg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="10"/>`;
+  const segs = segments.map(s => {
+    const len = (s.pct/100)*circ;
+    const el = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="10" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${offset}"/>`;
+    offset -= len; return el;
+  }).join('');
+  const lbl = segments[0] ? `
+    <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="14" font-weight="500" fill="#F1D7A8" font-family="Inter,system-ui,sans-serif">${segments[0].pct}%</text>
+    <text x="${cx}" y="${cy+9}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.28)" font-family="Inter,system-ui,sans-serif" letter-spacing=".8">${(segments[0].label||'').toUpperCase().substring(0,8)}</text>` : '';
+  return `<svg width="96" height="96" viewBox="0 0 96 96">${bg}${segs}${lbl}</svg>`;
+}
+
+function buildRadar(scores, labels) {
+  const n=scores.length, cx=75, cy=75, maxR=55;
+  const angles=scores.map((_,i)=>-Math.PI/2+i*2*Math.PI/n);
+  const grid=[.25,.5,.75,1].map(f=>{
+    const pts=angles.map(a=>`${cx+maxR*f*Math.cos(a)},${cy+maxR*f*Math.sin(a)}`).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width=".5"/>`;
+  }).join('');
+  const axes=angles.map(a=>`<line x1="${cx}" y1="${cy}" x2="${cx+maxR*Math.cos(a)}" y2="${cy+maxR*Math.sin(a)}" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>`).join('');
+  const dp=scores.map((s,i)=>[cx+maxR*(s/100)*Math.cos(angles[i]),cy+maxR*(s/100)*Math.sin(angles[i])]);
+  const poly=`<polygon points="${dp.map(p=>p.join(',')).join(' ')}" fill="rgba(199,166,107,.10)" stroke="#C7A66B" stroke-width="1.5"/>`;
+  const dots=dp.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.5" fill="#C7A66B"/>`).join('');
+  const lbls=labels.map((l,i)=>{
+    const x=cx+(maxR+14)*Math.cos(angles[i]),y=cy+(maxR+14)*Math.sin(angles[i]);
+    return `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="7" fill="rgba(255,255,255,.25)" font-family="Inter,system-ui,sans-serif" letter-spacing=".5">${l.toUpperCase().substring(0,4)}</text>`;
+  }).join('');
+  return `<svg width="150" height="150" viewBox="0 0 150 150">${grid}${axes}${poly}${dots}${lbls}</svg>`;
+}
+
+/* ── Helpers ──────────────────────────────────────────────────────────── */
+function asArray(v) {
+  if (Array.isArray(v)) return v;
+  if (v===null||v===undefined||v==='') return [];
+  return [v];
+}
+function itemText(v) {
+  if (v===null||v===undefined) return '';
+  if (typeof v==='string'||typeof v==='number') return String(v);
+  if (Array.isArray(v)) return v.map(itemText).filter(Boolean).join(' · ');
+  return v.token||v.bigram||v.emotion||v.label||v.nom||v.name||JSON.stringify(v);
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function buildHBars(dict, maxItems=8) {
+  const entries = Object.entries(dict||{}).slice(0, maxItems);
+  if (!entries.length) return '<span style="font-size:11px;color:var(--text-muted);">—</span>';
+  const maxVal = Math.max(...entries.map(([,v])=>v), 1);
+  return entries.map(([k,v])=>`<div class="hbar-row">
+    <span class="hbar-label">${esc(k)}</span>
+    <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round(v/maxVal*100)}%"></div></div>
+    <span class="hbar-pct">${v}%</span>
+  </div>`).join('');
+}
+function confBar(score) {
+  const pct = Math.round((score||0)*100);
+  return `<div class="conf-row">
+    <span class="conf-lbl">Confiance</span>
+    <div class="conf-track"><div class="conf-fill-bar" style="width:${pct}%"></div></div>
+    <span class="conf-num">${(score||0).toFixed(2)}</span>
+  </div>`;
+}
+
+/* ── Render principal ────────────────────────────────────────────────── */
+function renderDashboard(d) {
+  document.getElementById('dash-id').textContent =
+    `ID ${d.analysis_id||'—'} · ${(d.meta||{}).commentaires_analyses||0} commentaires analysés`;
+
+  renderTabDashboard(d);
+  renderTabInterpretation(d);
+  renderTabPersonas(d);
+
+  hide('loading-section');
+  show('dashboard-section');
+  switchResultTab('dashboard');
+
+  // Stagger entrance for dashboard cards
+  requestAnimationFrame(() => {
+    document.querySelectorAll('#dashboard-section .card').forEach((card, i) => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(10px)';
+      card.style.transition = 'none';
+      requestAnimationFrame(() => {
+        const delay = i * 0.045;
+        card.style.transition = `opacity 0.32s ease ${delay}s, transform 0.32s cubic-bezier(0.22, 1, 0.36, 1) ${delay}s, border-color 0.22s ease, box-shadow 0.22s ease`;
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      });
+    });
+  });
+}
+
+/* ── ONGLET 1 : Dashboard ─────────────────────────────────────────────── */
+/* ── Donut SVG ───────────────────────────────────────────────────── */
+function buildDonut(slices, size=160, innerRatio=0.54) {
+  const total = slices.reduce((a,b)=>a+b.value,0)||1;
+  const cx=size/2, cy=size/2, R=size/2-6, ri=R*innerRatio;
+  let angle=-Math.PI/2;
+  const paths=[], lbls=[];
+  const f=n=>n.toFixed(2);
+  [...slices].filter(s=>s.value>0).sort((a,b)=>b.value-a.value).forEach(s=>{
+    const pct=s.value/total, sw=pct*2*Math.PI, ea=angle+sw, lrg=sw>Math.PI?1:0;
+    const [x1,y1]=[cx+R*Math.cos(angle),cy+R*Math.sin(angle)];
+    const [x2,y2]=[cx+R*Math.cos(ea),   cy+R*Math.sin(ea)];
+    const [x3,y3]=[cx+ri*Math.cos(ea),  cy+ri*Math.sin(ea)];
+    const [x4,y4]=[cx+ri*Math.cos(angle),cy+ri*Math.sin(angle)];
+    paths.push(`<path d="M${f(x1)},${f(y1)} A${R},${R} 0 ${lrg},1 ${f(x2)},${f(y2)} L${f(x3)},${f(y3)} A${ri},${ri} 0 ${lrg},0 ${f(x4)},${f(y4)} Z" fill="${s.color}" opacity=".9"/>`);
+    if (pct>0.07) {
+      const ma=angle+sw/2;
+      lbls.push(`<text x="${f(cx+(R+ri)/2*Math.cos(ma))}" y="${f(cy+(R+ri)/2*Math.sin(ma))}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="rgba(255,255,255,.95)" font-weight="700">${Math.round(pct*100)}%</text>`);
+    }
+    angle=ea;
+  });
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><circle cx="${cx}" cy="${cy}" r="${ri-1}" fill="rgb(13,13,16)" stroke="rgba(255,255,255,.05)" stroke-width="1"/>${paths.join('')}${lbls.join('')}</svg>`;
+}
+function buildPieLegend(slices) {
+  const total=slices.reduce((a,b)=>a+b.value,0)||1;
+  return [...slices].filter(s=>s.value>0).sort((a,b)=>b.value-a.value).map(s=>`<div class="pie-leg-item"><div class="pie-leg-swatch" style="background:${s.color}"></div><span class="pie-leg-label">${esc(s.label)}</span><span class="pie-leg-pct">${Math.round(s.value/total*100)}%</span></div>`).join('');
+}
+
+function renderTabDashboard(d) {
+  const db   = d.dashboard || {};
+  const meta = d.meta || {};
+  const rt   = db.resume_tendances    || {};
+  const pos  = db.positions           || {};
+  const sf   = db.signaux_frequents   || {};
+  const sr   = db.sujets_recurrents   || [];
+  const grp  = db.groupes             || [];
+  const lex  = db.lexique             || {};
+  const pol  = db.polarisation_detail || {};
+  const fib  = db.fiabilite           || {};
+  // ── Méthodes data science ──
+  const ws   = db.weighted_sentiment    || {};
+  const wp   = db.weighted_polarization || {};
+  const res  = db.resonance_by_stance   || {};
+  const ard  = db.argument_density      || {};
+  const mok  = db.mockery_signals       || {};
+  const iry  = db.irony_signals         || {};
+  const lxf  = db.lexical_fields        || [];
+
+  // ── 0. Contexte vidéo ─────────────────────────────────────────────────
+  {
+    const vcSec = document.getElementById('video-context-section');
+    const vcCard = document.getElementById('video-context-card');
+    if (vcCard && (d.video_context || d.video_description)) {
+      const src = esc(d.source_label || 'Vidéo');
+      const title = esc(d.video_context || '');
+      const desc  = esc((d.video_description || '').substring(0, 380) + (d.video_description && d.video_description.length > 380 ? '…' : ''));
+      const totalC = (d.meta || {}).total_commentaires || 0;
+      vcCard.innerHTML = `<div class="video-ctx-card">
+        <div class="vcx-top">
+          <span class="vcx-source">${src}</span>
+        </div>
+        ${title ? `<div class="vcx-title">${title}</div>` : ''}
+        ${desc  ? `<div class="vcx-desc">${desc}</div>` : ''}
+        <div class="vcx-meta">
+          ${totalC ? `<span class="vcx-tag">${totalC} commentaires collectés</span>` : ''}
+          <span class="vcx-tag">${new Date().toLocaleDateString('fr-FR')}</span>
+        </div>
+      </div>`;
+      if (vcSec) vcSec.classList.remove('hidden');
+    }
+  }
+
+  // ── Synthèse psychologique globale ────────────────────────────────────
+  {
+    const brief = d.brief || {};
+    const synthese = brief.qui || brief.synthese || '';
+    const insight  = brief.insight || brief.insight_cle || '';
+    const action   = brief.action || brief.action_prioritaire || '';
+    const summaryEl = document.getElementById('psycho-summary-card');
+    const summarySec = document.getElementById('psycho-summary-section');
+    if (summaryEl && synthese) {
+      const pills = [
+        insight ? `<span class="psycho-summary-pill"><strong>Insight ·</strong> ${esc(insight.substring(0, 80))}${insight.length > 80 ? '…' : ''}</span>` : '',
+        action  ? `<span class="psycho-summary-pill"><strong>Action ·</strong> ${esc(action.substring(0, 80))}${action.length > 80 ? '…' : ''}</span>`  : '',
+      ].filter(Boolean).join('');
+      summaryEl.innerHTML = `
+        <div class="psycho-summary-label">Interprétation psychologique</div>
+        <div class="psycho-summary-text">${esc(synthese)}</div>
+        ${pills ? `<div class="psycho-summary-pills">${pills}</div>` : ''}`;
+      if (summarySec) summarySec.classList.remove('hidden');
+    }
+  }
+
+  // ── STATS: Statistiques rapides ───────────────────────────────────────
+  {
+    const posData = db.positions || {};
+    const totalC  = (d.meta || {}).total_commentaires || 0;
+    const analysed= (d.meta || {}).commentaires_analyses || 0;
+    const noise   = (d.meta || {}).noise_ratio || 0;
+    const favD    = posData.favorable  || {pct:0, count:0};
+    const oppD    = posData.oppose     || {pct:0, count:0};
+    const neuD    = posData.neutre     || {pct:0, count:0};
+    const nuaD    = posData.nuance     || {pct:0, count:0};
+    const bruitD  = posData.hors_sujet || {pct:0, count:0};
+    document.getElementById('stat-chips-grid').innerHTML = `
+      <div class="stat-chip">
+        <div class="stat-chip-val chip-total">${analysed}</div>
+        <div class="stat-chip-count">/ ${totalC}</div>
+        <div class="stat-chip-lbl">Analysés</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-val chip-pos">${favD.pct}%</div>
+        <div class="stat-chip-count">${favD.count} cmnt</div>
+        <div class="stat-chip-lbl">Favorables</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-val chip-neg">${oppD.pct}%</div>
+        <div class="stat-chip-count">${oppD.count} cmnt</div>
+        <div class="stat-chip-lbl">Négatifs</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-val chip-neu">${neuD.pct}%</div>
+        <div class="stat-chip-count">${neuD.count} cmnt</div>
+        <div class="stat-chip-lbl">Neutres</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-val chip-nuance">${nuaD.pct}%</div>
+        <div class="stat-chip-count">${nuaD.count} cmnt</div>
+        <div class="stat-chip-lbl">Nuancés</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-chip-val chip-bruit">${bruitD.pct || noise}%</div>
+        <div class="stat-chip-count">${bruitD.count} cmnt</div>
+        <div class="stat-chip-lbl">Bruit</div>
+      </div>`;
+  }
+
+  // ── TOP COMMENTS ──────────────────────────────────────────────────────
+  {
+    const tc = d.top_comments || [];
+    const tcSec  = document.getElementById('top-comments-section');
+    const tcList = document.getElementById('top-comments-list');
+    if (tc.length && tcList) {
+      tcList.innerHTML = tc.map((c, i) => `
+        <div class="top-comment-item">
+          <div class="top-comment-rank">${i + 1}</div>
+          <div class="top-comment-body">
+            <div class="top-comment-text">"${esc(c.text || '')}"</div>
+            ${c.author ? `<div class="top-comment-author">@${esc(c.author)}</div>` : ''}
+          </div>
+          ${(c.likes || 0) > 0 ? `<div class="top-comment-likes">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            ${(c.likes).toLocaleString('fr-FR')}
+          </div>` : ''}
+        </div>`).join('');
+      if (tcSec) tcSec.classList.remove('hidden');
+    }
+  }
+
+  // ── DÉMOGRAPHIE ───────────────────────────────────────────────────────
+  {
+    const demog = d.demographique || {};
+    const demSec  = document.getElementById('demographics-section');
+    const demGrid = document.getElementById('demographics-grid');
+    if (demGrid && (demog.genre || demog.tranches_age || demog.localisation || demog)) {
+      let cards = '';
+
+      // Carte 1 : Âge moyen + tranches
+      if (demog.tranches_age && demog.tranches_age.length) {
+        const midpoints = {'18-24':21,'25-34':29.5,'35-44':39.5,'45-54':49.5,'55+':60};
+        let sumP = 0, sumW = 0;
+        demog.tranches_age.forEach(t => {
+          const m = midpoints[t.tranche] || 35;
+          sumW += m * (t.pourcentage || 0);
+          sumP += (t.pourcentage || 0);
+        });
+        const avgAge = sumP > 0 ? Math.round(sumW / sumP) : '—';
+        const maxPct = Math.max(...demog.tranches_age.map(t => t.pourcentage || 0), 1);
+        const bars = demog.tranches_age.map(t => `
+          <div class="demog-age-bar">
+            <span class="demog-age-lbl">${esc(t.tranche)}</span>
+            <div class="demog-age-track"><div class="demog-age-fill" style="width:${Math.round((t.pourcentage||0)/maxPct*100)}%"></div></div>
+            <span class="demog-age-pct">${t.pourcentage}%</span>
+          </div>`).join('');
+        cards += `<div class="demog-card">
+          <div class="demog-card-title">Âge estimé</div>
+          <div style="margin-bottom:10px;">
+            <div class="demog-avg-age">${avgAge} <span style="font-size:13px;color:var(--text-muted);font-weight:400;">ans</span></div>
+            <div class="demog-avg-lbl">Moyenne pondérée</div>
+          </div>
+          ${bars}
+        </div>`;
+      }
+
+      // Carte 2 : Genre
+      if (demog.genre) {
+        const h = demog.genre.hommes || 0;
+        const f = demog.genre.femmes || 0;
+        const total = Math.max(h + f, 1);
+        const hPct = Math.round(h / total * 100);
+        const fPct = 100 - hPct;
+        cards += `<div class="demog-card">
+          <div class="demog-card-title">Genre estimé</div>
+          <div class="demog-gender-row">
+            <span style="font-size:10px;color:rgba(100,170,235,.8);">H</span>
+            <div class="demog-gender-bar">
+              <div class="demog-gender-h" style="width:${hPct}%"></div>
+            </div>
+            <span style="font-size:10px;color:rgba(235,130,165,.8);">F</span>
+          </div>
+          <div class="demog-gender-labels">
+            <span style="color:rgba(100,170,235,.7);">${hPct}% hommes</span>
+            <span style="color:rgba(235,130,165,.7);">${fPct}% femmes</span>
+          </div>
+          ${demog.metiers_probables && demog.metiers_probables.length ? `
+          <div style="margin-top:12px;">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:600;margin-bottom:6px;">Métiers probables</div>
+            <div class="word-tags">${demog.metiers_probables.slice(0,4).map(m=>`<span class="word-tag">${esc(m)}</span>`).join('')}</div>
+          </div>` : ''}
+        </div>`;
+      }
+
+      // Carte 3 : Localisation — toujours rendue
+      {
+        const loc   = demog.localisation || {};
+        const pays  = loc.pays  || [];
+        const villes = loc.villes_regions || [];
+
+        // Résumé court pour le globe (1er pays ou "Monde")
+        const paysLabel  = pays.length  ? esc(pays[0])  : '';
+        const villeLabel = villes.length ? esc(villes[0]) : '';
+        const resume = paysLabel || villeLabel || 'Non déterminé';
+
+        const hasData = pays.length || villes.length;
+
+        const paysHtml = pays.length ? `
+          <div class="demog-loc-section-lbl">Pays</div>
+          <div class="demog-loc-pays">
+            ${pays.map(p => `<span class="demog-loc-pays-tag"><span class="demog-loc-pays-dot"></span>${esc(p)}</span>`).join('')}
+          </div>` : '';
+
+        const villesHtml = villes.length ? `
+          <div class="demog-loc-section-lbl">Villes / Régions</div>
+          <div class="demog-loc-villes">
+            ${villes.map(v => `<div class="demog-loc-ville">${esc(v)}</div>`).join('')}
+          </div>` : '';
+
+        const noteHtml = loc.note ? `<div class="demog-loc-note">${esc(loc.note)}</div>` : '';
+
+        const emptyHtml = !hasData ? `
+          <div class="demog-loc-empty">
+            <svg class="demog-loc-empty-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <span class="demog-loc-empty-txt">Données géographiques<br>non disponibles</span>
+          </div>` : '';
+
+        cards += `<div class="demog-card">
+          <div class="demog-card-title">Localisation estimée</div>
+          <div class="demog-loc-globe">
+            <div class="demog-loc-globe-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(90,160,220,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </div>
+            <div class="demog-loc-globe-lbl">
+              <strong>${resume}</strong>
+              ${pays.length > 1 ? '+' + (pays.length - 1) + ' pays · ' : ''}${villes.length ? villes.length + (villes.length > 1 ? ' zones' : ' zone') : ''}
+            </div>
+          </div>
+          ${paysHtml}
+          ${villesHtml}
+          ${noteHtml}
+          ${emptyHtml}
+        </div>`;
+      }
+
+      if (cards) {
+        demGrid.innerHTML = cards;
+        if (demSec) demSec.classList.remove('hidden');
+      }
+    }
+  }
+
+  // Sujet analysé — affiché comme référence dans les sections de position
+  const sujet = rt.sujet || d.video_context || '';
+
+  /* 1. Résumé des tendances */
+  const TENDANCES = [
+    {label:'Tendance dominante',  value: rt.tendance_dominante || '—'},
+    {label:'Émotion dominante',   value: rt.emotion_dominante  || '—'},
+    {label:'Signal dominant',     value: rt.signal_dominant    || '—'},
+    {label:'Tension principale',  value: rt.tension_principale || '—'},
+  ];
+  const sujetBadge = sujet
+    ? `<div style="margin-bottom:12px;padding:8px 12px;background:rgba(216,185,130,.05);border:1px solid rgba(216,185,130,.15);border-radius:8px;font-size:10px;color:rgba(216,185,130,.7);">
+        <span style="text-transform:uppercase;letter-spacing:.08em;opacity:.6;">Sujet analysé · </span>${esc(sujet)}</div>`
+    : '';
+  document.getElementById('tendances-grid').innerHTML = sujetBadge + TENDANCES.map(t=>`
+    <div class="tendance-card">
+      <div class="tendance-label">${esc(t.label)}</div>
+      <div class="tendance-value">${esc(t.value)}</div>
+    </div>`).join('');
+
+  /* 2. Émotions — donut camembert */
+  const EMO_COLORS = {
+    'joie':        'rgba(255,210,75,.9)',
+    'espoir':      'rgba(90,200,125,.9)',
+    'admiration':  'rgba(100,170,235,.9)',
+    'frustration': 'rgba(235,130,65,.9)',
+    'colere':      'rgba(225,70,70,.9)',
+    'tristesse':   'rgba(150,120,205,.9)',
+    'confusion':   'rgba(165,165,170,.7)',
+    'méfiance':    'rgba(230,165,50,.9)',
+    'mefiance':    'rgba(230,165,50,.9)',
+    'surprise':    'rgba(240,185,110,.9)',
+    'degout':      'rgba(135,185,75,.85)',
+    'enthousiasme':'rgba(255,185,55,.9)',
+  };
+  const emod = db.emotion_distribution || {};
+  const emoSlices = Object.entries(emod).map(([k,v])=>({label:k, value:v, color:EMO_COLORS[k]||'rgba(180,180,200,.6)'}));
+  const emoEl = document.getElementById('emotions-chart');
+  if (emoEl) {
+    if (emoSlices.some(s=>s.value>0)) {
+      emoEl.innerHTML = `<div class="pie-section">${buildDonut(emoSlices,168,0.52)}<div class="pie-legend">${buildPieLegend(emoSlices)}</div></div>`;
+    } else {
+      emoEl.innerHTML = '<div style="color:var(--text-muted);font-size:11px;padding:4px 0;">Données insuffisantes.</div>';
+    }
+  }
+
+  /* 3. Répartition des positions (ancrées au sujet) */
+  const sujetShort = sujet ? ` "${sujet.length > 40 ? sujet.slice(0,40)+'…' : sujet}"` : '';
+  const POS_DEF = [
+    {key:'favorable',  label:`Favorable${sujetShort}`,  color:'rgba(134,210,150,.6)'},
+    {key:'oppose',     label:`Opposé${sujetShort}`,     color:'rgba(220,100,100,.6)'},
+    {key:'neutre',     label:'Neutre / réservé',         color:'rgba(167,167,170,.35)'},
+    {key:'nuance',     label:'Nuancé',                   color:'rgba(216,185,130,.5)'},
+    {key:'ironique',   label:'Ironique',                 color:'rgba(130,160,220,.5)'},
+    {key:'hors_sujet', label:'Hors sujet',               color:'rgba(255,255,255,.12)'},
+  ];
+  const maxPct = Math.max(...POS_DEF.map(p=>(pos[p.key]||{}).pct||0), 1);
+  document.getElementById('positions-bars').innerHTML = POS_DEF.map(p=>{
+    const d_ = pos[p.key] || {pct:0, count:0};
+    const w  = Math.round(d_.pct / maxPct * 100);
+    return `<div class="pos-row">
+      <div class="pos-label">${p.label}</div>
+      <div class="pos-bar-wrap">
+        <div class="pos-track"><div class="pos-fill" style="width:${w}%;background:${p.color}"></div></div>
+        <span class="pos-pct">${d_.pct}%</span>
+        <span class="pos-count">${d_.count} cmnt</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  /* NEW-A. Métriques pondérées */
+  {
+    const sentColor = (ws.score||0) > 0.1 ? 'wc-pos' : (ws.score||0) < -0.1 ? 'wc-neg' : 'wc-neu';
+    const polColor  = (wp.score||0) >= 40  ? 'wc-neg' : (wp.score||0) >= 25 ? 'wc-neu' : 'wc-pos';
+    document.getElementById('weighted-grid').innerHTML = `
+      <div class="weighted-card">
+        <div class="wc-label">Sentiment pondéré</div>
+        <div class="wc-val ${sentColor}">${ws.score||0}</div>
+        <div class="wc-sub">${esc(ws.interpretation||'—')}</div>
+      </div>
+      <div class="weighted-card">
+        <div class="wc-label">Sentiment brut</div>
+        <div class="wc-val">${ws.score_raw||0}</div>
+        <div class="wc-sub">non pondéré (moyenne)</div>
+      </div>
+      <div class="weighted-card">
+        <div class="wc-label">Polarisation pondérée</div>
+        <div class="wc-val ${polColor}">${wp.score||0}</div>
+        <div class="wc-sub">${esc(wp.label||'—')}</div>
+      </div>
+      <div class="weighted-card">
+        <div class="wc-label">Likes analysés</div>
+        <div class="wc-val">${(ws.total_likes||0).toLocaleString()}</div>
+        <div class="wc-sub">engagement total mesuré</div>
+      </div>`;
+  }
+
+  /* NEW-B. Résonance par camp + densité argumentative */
+  {
+    const stanceColors = {
+      favorable:'rgba(134,210,150,.6)', oppose:'rgba(220,100,100,.6)',
+      neutre:'rgba(167,167,170,.4)',    nuance:'rgba(216,185,130,.55)',
+      ironique:'rgba(130,160,220,.5)',
+    };
+    const stanceOrder = ['favorable','oppose','neutre','nuance','ironique'];
+    const maxLk = Math.max(...stanceOrder.map(s=>(res[s]||{}).likes||0), 1);
+    document.getElementById('resonance-grid').innerHTML =
+      `<div style="display:grid;grid-template-columns:90px 1fr 36px 58px 80px;gap:0;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:4px;">
+        <span>Camp</span><span>Résonance (likes)</span><span style="text-align:right;">%</span><span>Likes</span><span style="text-align:right;">Mots moy.</span>
+       </div>` +
+      stanceOrder.map(st=>{
+        const r   = res[st] || {likes:0, pct:0, count:0};
+        const a   = ard[st] || {avg_words:0, label:'—'};
+        const w   = Math.round((r.likes||0) / maxLk * 100);
+        const col = stanceColors[st]||'rgba(255,255,255,.18)';
+        return `<div class="resonance-row">
+          <div class="res-stance">${st}</div>
+          <div class="res-bar-wrap">
+            <div class="res-track"><div class="res-fill" style="width:${w}%;background:${col}"></div></div>
+          </div>
+          <span class="res-pct">${r.pct}%</span>
+          <span class="res-likes">${(r.likes||0).toLocaleString()}</span>
+          <span class="res-words">${a.avg_words||0} · ${esc(a.label||'')}</span>
+        </div>`;
+      }).join('');
+  }
+
+  /* 3. Groupes / clans */
+  const gs = document.getElementById('groupes-section');
+  if (grp.length) {
+    document.getElementById('groupes-grid').innerHTML = grp.map(g=>`
+      <div class="groupe-card">
+        <div class="groupe-header">
+          <span class="groupe-pct">${g.pct}%</span>
+          <span class="groupe-size">${g.taille} commentaires</span>
+          ${g.likes_pct ? `<span class="p-tag" title="Part des likes du groupe">♥ ${g.likes_pct}%</span>` : ''}
+          ${g.stance_dominante  ? `<span class="p-tag emo">${esc(g.stance_dominante)}</span>`  : ''}
+          ${g.emotion_dominante ? `<span class="p-tag">${esc(g.emotion_dominante)}</span>`     : ''}
+        </div>
+        <div class="groupe-mots">${(g.mots_cles||[]).map(m=>`<span class="word-tag strong">${esc(m)}</span>`).join('')}</div>
+        ${(g.exemples||[]).map(e=>`<div class="comment-quote">"${esc(e)}"</div>`).join('')}
+      </div>`).join('');
+  } else { gs.classList.add('hidden'); }
+
+  /* 4. Sujets récurrents */
+  const ss = document.getElementById('sujets-section');
+  if (sr.length) {
+    document.getElementById('sujets-list').innerHTML = sr.map(s=>`
+      <div class="sujet-row">
+        <div class="sujet-left">
+          <span class="sujet-mot">${esc(s.mot)}</span>
+          <span class="sujet-freq">${s.pct}% · ${s.count} occurrences</span>
+        </div>
+        ${s.exemple ? `<div class="sujet-exemple">${esc(s.exemple)}</div>` : ''}
+      </div>`).join('');
+  } else { ss.classList.add('hidden'); }
+
+  /* NEW-C. Moquerie & Ironie (après FAO) */
+  function miCard(title, count, pct, level, examples, avgInc) {
+    const lvl = (level||'absent');
+    const badgeCls = lvl==='fort' ? 'mi-fort' : lvl==='modéré'||lvl==='modere' ? 'mi-modere' : lvl==='faible' ? 'mi-faible' : 'mi-absent';
+    const exHtml = (examples||[]).slice(0,1).map(e=>`<div class="mi-ex">"${esc(e)}"</div>`).join('');
+    const extra = avgInc != null && count > 0 ? `<div class="wc-sub" style="margin-top:4px;font-size:10px;color:var(--text-muted);">Incongruence moy. : ${avgInc}</div>` : '';
+    return `<div class="mi-card">
+      <div class="mi-header">
+        <span class="mi-title">${esc(title)}</span>
+        <span class="mi-badge ${badgeCls}">${lvl}</span>
+      </div>
+      <div class="mi-count">${count} <span style="font-size:12px;font-weight:400;color:var(--text-muted);">(${pct}%)</span></div>
+      ${exHtml}${extra}
+    </div>`;
+  }
+  document.getElementById('mockery-irony-grid').innerHTML =
+    miCard('Moquerie', mok.count||0, mok.pct||0, mok.level, mok.examples, null) +
+    miCard('Ironie', iry.count||0, iry.pct||0,
+      (iry.count||0)===0 ? 'absent' : (iry.pct||0)>=10 ? 'fort' : 'faible',
+      iry.examples, iry.avg_incongruence);
+
+  /* NEW-D. Champs lexicaux */
+  {
+    const lfEl = document.getElementById('lexical-fields-section');
+    if (lxf && lxf.length) {
+      document.getElementById('lexical-fields-grid').innerHTML = lxf.map(f=>`
+        <div class="lex-field-card">
+          <div class="lf-field">${esc(f.field||'')}</div>
+          <div class="lf-pct">${f.pct||0}% des commentaires · ${f.count||0} occurrences</div>
+          <div class="lf-words">${(f.words||[]).map(w=>`<span class="word-tag">${esc(w)}</span>`).join('')}</div>
+          ${(f.examples||[]).slice(0,1).map(e=>`<div class="lf-ex">${esc(e)}</div>`).join('')}
+        </div>`).join('');
+    } else if(lfEl) { lfEl.classList.add('hidden'); }
+  }
+
+  /* 5. Frustrations · Attentes · Objections */
+  function sigGroup(items, title, accentColor) {
+    const rows = (items||[]).map(it=>`
+      <div class="signal-item">
+        <div class="signal-header">
+          <span class="signal-name">${esc(it.signal)}</span>
+          <span class="signal-pct">${it.pct}% · ${it.count} cmnt</span>
+        </div>
+        ${(it.examples||[]).slice(0,1).map(e=>`<div class="signal-ex">${esc(e)}</div>`).join('')}
+      </div>`).join('');
+    return `<div class="chart-card">
+      <div class="chart-label" style="color:${accentColor}">${title}</div>
+      ${rows || '<div style="color:var(--text-muted);font-size:11px;padding-top:6px;">Aucun signal détecté</div>'}
+    </div>`;
+  }
+  document.getElementById('fao-grid').innerHTML =
+    sigGroup(sf.frustrations, 'Frustrations',   'rgba(220,100,100,.75)') +
+    sigGroup(sf.attentes,     'Attentes & désirs','rgba(134,210,150,.75)') +
+    sigGroup(sf.objections,   'Objections',      'rgba(216,185,130,.75)');
+
+  /* 6. Mots et expressions */
+  const topMots    = (lex.top_mots    || []).slice(0, 14);
+  const topBigrams = (lex.top_bigrams || []).slice(0, 8);
+  document.getElementById('lexique-grid').innerHTML = `
+    <div class="card">
+      <div class="chart-label">Mots les plus significatifs</div>
+      <div class="word-tags">${topMots.map((m,i)=>{
+        const w = Array.isArray(m) ? m[0] : String(m.mot||m);
+        return `<span class="word-tag ${i<5?'strong':''}">${esc(w)}</span>`;
+      }).join('')}</div>
+    </div>
+    <div class="card">
+      <div class="chart-label">Expressions fréquentes</div>
+      <div class="word-tags">${topBigrams.map((b,i)=>{
+        const bg = (b && b.bigram !== undefined) ? b.bigram : (Array.isArray(b) ? b[0] : String(b));
+        const fr = (b && b.freq  !== undefined) ? b.freq   : (Array.isArray(b) ? b[1] : '');
+        return `<span class="word-tag ${i<3?'strong':''}">${esc(bg)}${fr ? ' · '+fr : ''}</span>`;
+      }).join('')}</div>
+    </div>`;
+
+  /* 7. Polarisation */
+  document.getElementById('polarisation-block').innerHTML = pol.phrase ? `
+    <div class="pol-statement">${esc(pol.phrase)}</div>
+    <div class="pol-bars-wrap">
+      ${buildHBars({'Favorable': pol.fav_pct||0, 'Opposé': pol.opp_pct||0, 'Neutre': pol.neutre_pct||0}, 3)}
+    </div>` : '<div style="color:var(--text-muted);font-size:11px;">Données insuffisantes.</div>';
+
+  /* Donuts sentiments & stances dans polarisation */
+  const SENT_COL = {'positive':'rgba(90,200,125,.88)','neutral':'rgba(160,160,165,.6)','negative':'rgba(225,75,75,.88)'};
+  const SENT_LBL = {'positive':'Positif','neutral':'Neutre','negative':'Négatif'};
+  const STCOL = {'favorable':'rgba(90,200,125,.8)','oppose':'rgba(225,75,75,.8)','neutre':'rgba(160,160,165,.55)','nuance':'rgba(216,185,130,.8)','ironique':'rgba(110,155,225,.8)','hors_sujet':'rgba(255,255,255,.18)'};
+  const sentSlices  = Object.entries(db.sentiment_distribution||{}).map(([k,v])=>({label:SENT_LBL[k]||k,value:v,color:SENT_COL[k]||'rgba(180,180,200,.5)'}));
+  const stanceSlices= Object.entries(db.stance_distribution||{}).filter(([k])=>k!=='hors_sujet').map(([k,v])=>({label:k,value:v,color:STCOL[k]||'rgba(180,180,200,.5)'}));
+  const sdEl = document.getElementById('sentiments-donuts');
+  if (sdEl) {
+    const mkCard=(title,sl)=>sl.some(s=>s.value>0)
+      ?`<div class="chart-card"><div class="chart-label">${title}</div><div class="pie-section">${buildDonut(sl,130,0.52)}<div class="pie-legend">${buildPieLegend(sl)}</div></div></div>`:'';
+    sdEl.innerHTML = mkCard('Sentiments',sentSlices) + mkCard('Positions',stanceSlices);
+  }
+
+  /* 8. Fiabilité */
+  document.getElementById('fiabilite-grid').innerHTML = `
+    <div class="nlp-num-card">
+      <div class="nlp-val">${fib.total_commentaires||meta.total_commentaires||0}</div>
+      <div class="nlp-lbl">Commentaires reçus</div>
+    </div>
+    <div class="nlp-num-card">
+      <div class="nlp-val">${fib.commentaires_analyses||meta.commentaires_analyses||0}</div>
+      <div class="nlp-lbl">Analysés</div>
+    </div>
+    <div class="nlp-num-card">
+      <div class="nlp-val">${fib.pct_hors_sujet||meta.noise_ratio||0}%</div>
+      <div class="nlp-lbl">Hors sujet / bruit</div>
+    </div>
+    <div class="nlp-num-card" title="${esc(fib.label_confiance||'')}">
+      <div class="nlp-val">${Math.round((fib.niveau_confiance||0)*100)}%</div>
+      <div class="nlp-lbl">${esc(fib.label_confiance||'Confiance')}</div>
+    </div>`;
+}
+
+/* ── ONGLET 2 : Interprétation ────────────────────────────────────────── */
+function renderTabInterpretation(d) {
+  const brief  = d.brief || {};
+  const livr   = d.livrables_statistiques || {};
+  const grille = d.grille_psychologique || (d.interpretation||{}).grille || {};
+  const psycho = d.psychologie || {};
+  const recos  = d.recommandations || {};
+
+  /* Brief */
+  document.getElementById('brief-block').innerHTML=`
+    <div class="brief-kw">Qui</div>
+    <div class="brief-val">${esc(brief.qui||brief.synthese||'—')}</div>
+    <div class="brief-cols">
+      <div>
+        <div class="brief-kw">Insight clé</div>
+        <div class="brief-val" style="font-size:12px;">${esc(brief.insight||brief.insight_cle||'—')}</div>
+      </div>
+      <div>
+        <div class="brief-kw">Action prioritaire</div>
+        <div class="brief-val" style="font-size:12px;">${esc(brief.action||brief.action_prioritaire||'—')}</div>
+      </div>
+    </div>`;
+
+  /* 5 livrables */
+  const LIVRABLES=[
+    {key:'lecture_sujet',          title:'Lecture du sujet'},
+    {key:'ce_qui_rassemble',       title:'Ce qui rassemble'},
+    {key:'ce_qui_divise',          title:'Ce qui divise'},
+    {key:'tension_centrale',       title:'Tension centrale'},
+    {key:'synthese_psychologique', title:'Synthèse psychologique'},
+  ];
+  const ll=document.getElementById('livrables-list'); ll.innerHTML='';
+  LIVRABLES.forEach(def=>{
+    const l=livr[def.key]||{};
+    if (!l.conclusion) return;
+    const signaux=asArray(l.signaux).map(s=>`<span class="word-tag">${esc(itemText(s))}</span>`).join('');
+    ll.innerHTML+=`<div class="livrable-card">
+      <div class="livrable-title">${esc(def.title)}</div>
+      <div class="livrable-conclusion">${esc(l.conclusion)}</div>
+      <div class="livrable-tripartite">
+        <div class="tripartite-key">Données</div><div class="tripartite-val">${esc(l.indicateur_statistique||'—')}</div>
+        <div class="tripartite-key">Signaux</div><div class="tripartite-val"><div class="word-tags">${signaux||'—'}</div></div>
+        <div class="tripartite-key">Sens</div><div class="tripartite-val">${esc(l.interpretation||'—')}</div>
+      </div>
+      ${confBar(l.score_confiance)}
+    </div>`;
+  });
+
+  /* Grille 10 questions */
+  const GRILLE=[
+    {key:'ce_qu_ils_ressentent',               label:"Ce qu'ils ressentent"},
+    {key:'ce_qu_ils_veulent',                  label:"Ce qu'ils veulent"},
+    {key:'ce_qu_ils_refusent',                 label:"Ce qu'ils refusent"},
+    {key:'ce_qui_les_bloque',                  label:"Ce qui les bloque"},
+    {key:'ce_qui_les_rassure',                 label:"Ce qui les rassure"},
+    {key:'ce_qui_les_divise',                  label:"Ce qui les divise"},
+    {key:'ce_qui_les_unit',                    label:"Ce qui les unit"},
+    {key:'ce_qu_ils_valorisent',               label:"Ce qu'ils valorisent"},
+    {key:'ce_qu_ils_attendent_comme_preuve',   label:"Preuve attendue"},
+    {key:'quelle_opportunite_emerge',          label:"Opportunité émergente"},
+  ];
+  const gg=document.getElementById('grille-grid'); gg.innerHTML='';
+  let hasG=false;
+  GRILLE.forEach(def=>{
+    const g=grille[def.key]||{};
+    if (!g.observation && !g.interpretation && !g.implication) return;
+    hasG=true;
+    gg.innerHTML+=`<div class="grille-item">
+      <div class="grille-question">${esc(def.label)}</div>
+      <div class="grille-tri">
+        <div class="grille-key">Obs.</div><div class="grille-val">${esc(g.observation||'—')}</div>
+        <div class="grille-key">Sens</div><div class="grille-val">${esc(g.interpretation||'—')}</div>
+        <div class="grille-key">Action</div><div class="grille-val">${esc(g.implication||'—')}</div>
+      </div>
+    </div>`;
+  });
+  if (!hasG) document.getElementById('grille-section').classList.add('hidden');
+
+  /* Psychologie */
+  const pc=document.getElementById('psycho-cols'); pc.innerHTML='';
+  [
+    {key:'motivations_profondes', label:'Motivations'},
+    {key:'frustrations',          label:'Frustrations'},
+    {key:'desirs_caches',         label:'Désirs cachés'},
+    {key:'peurs_implicites',      label:'Peurs implicites'},
+  ].forEach(col=>{
+    const items=asArray(psycho[col.key]).slice(0,4);
+    if (!items.length) return;
+    pc.innerHTML+=`<div class="card">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:10px;">${col.label}</div>
+      <div class="psycho-pills">${items.map(it=>`<div class="psycho-pill">${esc(itemText(it))}</div>`).join('')}</div>
+    </div>`;
+  });
+
+  /* ── Interprétations RAG spécialisées (format enrichi) ──────────────── */
+  const interp   = d.interpretation || {};
+  const ipPsycho = interp.psychologique    || interp.interpretation_psychologique    || {};
+  const ipSocio  = interp.socio_culturelle || interp.interpretation_socioculturelle  || {};
+
+  function renderRagMechanisms(items) {
+    if (!items || !items.length) return '';
+    return items.slice(0, 3).map(m => {
+      const name = typeof m === 'string' ? m : (m.mechanism || JSON.stringify(m));
+      const conf = m.confidence ? Math.round(m.confidence * 100) : null;
+      const ev   = m.evidence   ? `<div class="rag-evidence">${esc(m.evidence)}</div>` : '';
+      return `<div class="rag-mechanism-item">
+        <span class="rag-mech-name">${esc(name)}</span>${conf !== null ? `<span class="rag-mech-conf">${conf}%</span>` : ''}
+        ${ev}
+      </div>`;
+    }).join('');
+  }
+
+  function renderRagPills(label, items) {
+    if (!items || !items.length) return '';
+    const pills = asArray(items).slice(0, 4).map(t =>
+      `<span class="rag-tag">${esc(typeof t === 'string' ? t : JSON.stringify(t))}</span>`
+    ).join('');
+    return `<div class="rag-group-label">${label}</div><div class="rag-tags">${pills}</div>`;
+  }
+
+  function renderRagCard(el, data, type) {
+    if (!el || !data || !data.main_insight) return;
+    const isPsycho  = type === 'psycho';
+    const icoChar   = isPsycho ? '◈' : '◉';
+    const confScore = data.confidence_score ? Math.round(data.confidence_score * 100) : null;
+    const rulesUsed = asArray(data.rules_used);
+
+    const mechanismsHTML = renderRagMechanisms(data.detected_mechanisms);
+
+    let pillsHTML = '';
+    if (isPsycho) {
+      pillsHTML  = renderRagPills('Peurs', data.fears);
+      pillsHTML += renderRagPills('Désirs', data.desires);
+      pillsHTML += renderRagPills('Frustrations', data.frustrations);
+      pillsHTML += renderRagPills('Croyances', data.beliefs);
+      pillsHTML += renderRagPills('Facteurs de décision', data.decision_drivers);
+    } else {
+      pillsHTML  = renderRagPills('Dynamiques de groupe', data.group_dynamics);
+      pillsHTML += renderRagPills('Codes culturels', data.cultural_codes);
+      pillsHTML += renderRagPills('Tensions sociales', data.social_tensions);
+      pillsHTML += renderRagPills('Croyances collectives', data.collective_beliefs);
+      pillsHTML += renderRagPills('Marqueurs communautaires', data.community_markers);
+    }
+
+    const rulesHTML = rulesUsed.length
+      ? `<div class="rag-rules">Cartes appliquées : ${rulesUsed.map(r => `<span class="rag-rule-tag">${esc(r)}</span>`).join('')}</div>`
+      : '';
+
+    el.innerHTML = `
+      <div class="rag-card-header">
+        <div class="rag-card-ico ${type}">${icoChar}</div>
+        <div class="rag-card-title ${type}">${isPsycho ? 'Interprétation psychologique' : 'Interprétation socio-culturelle'}</div>
+      </div>
+      <div class="rag-card-body">
+        <div class="rag-mecanisme">${esc(data.main_insight || '—')}</div>
+        ${mechanismsHTML ? `<div class="rag-mechanisms">${mechanismsHTML}</div>` : ''}
+        ${pillsHTML}
+        ${rulesHTML}
+        ${confScore !== null ? `<div class="rag-confiance">Confiance : ${confScore}%</div>` : ''}
+      </div>`;
+  }
+
+  const ragSection = document.getElementById('rag-interp-section');
+  const hasPsycho = !!(ipPsycho.main_insight);
+  const hasSocio  = !!(ipSocio.main_insight);
+  if (hasPsycho || hasSocio) {
+    ragSection && ragSection.classList.remove('hidden');
+    renderRagCard(document.getElementById('rag-psycho-card'), ipPsycho, 'psycho');
+    renderRagCard(document.getElementById('rag-socio-card'),  ipSocio,  'socio');
+  } else {
+    ragSection && ragSection.classList.add('hidden');
+  }
+
+  /* Recos */
+  const rv=document.getElementById('reco-verite');   if(rv) rv.textContent=recos.verite_de_l_audience||'—';
+  const rm=document.getElementById('reco-message');  if(rm) rm.textContent=recos.message_central||'—';
+  const ra=document.getElementById('reco-actions');  ra.innerHTML='';
+  asArray(recos.actions_prioritaires).forEach((a,i)=>{
+    ra.innerHTML+=`<div class="action-item"><div class="action-num">${i+1}</div><div class="action-text">${esc(itemText(a))}</div></div>`;
+  });
+  const re=document.getElementById('reco-etapes'); re.innerHTML='';
+  asArray(recos.prochaines_etapes).forEach(e=>{re.innerHTML+=`<li>${esc(itemText(e))}</li>`;});
+}
+
+/* ── ONGLET 3 : Personas ──────────────────────────────────────────────── */
+function personaPhotoUrl(p, i) {
+  let h = 5381;
+  const seed = (p.nom || '') + i;
+  for (let c = 0; c < seed.length; c++) h = ((h << 5) + h) ^ seed.charCodeAt(c);
+  const idx = Math.abs(h) % 70;
+  const genre = (p.genre || '').toLowerCase();
+  const isFemme = /femme|woman/.test(genre);
+  return `https://randomuser.me/api/portraits/${isFemme ? 'women' : 'men'}/${idx}.jpg`;
+}
+
+function renderTabPersonas(d) {
+  const personas = asArray(d.personas);
+  const pl = document.getElementById('personas-list');
+  pl.innerHTML = '';
+
+  if (!personas.length) {
+    pl.innerHTML = '<p style="font-size:12px;color:var(--text-muted);padding:20px 0;">Aucun persona disponible pour cette analyse.</p>';
+    return;
+  }
+
+  personas.forEach((p, i) => {
+    const initials = (p.nom||'P').replace(/^Les\s+/i,'').split(/[\s\-—]+/).map(w=>w[0]||'').join('').substring(0,2).toUpperCase() || String(i+1);
+    const frusts   = asArray(p.frustrations).slice(0,3);
+    const aspirs   = asArray(p.aspirations).slice(0,3);
+    const peurs    = asArray(p.peurs).slice(0,2);
+    const desirs   = asArray(p.desirs).slice(0,2);
+    const signals  = asArray(p.signaux_mesures).slice(0,5);
+    const confPct  = typeof p.confiance === 'number' ? Math.round(p.confiance * 100) : null;
+    const declencheurs = asArray(p.declencheurs_emotionnels).slice(0,3);
+    const habitudes    = asArray(p.habitudes_digitales).slice(0,2);
+    const li = items => items.map(it=>`<div class="pc3-li">${esc(itemText(it))}</div>`).join('');
+
+    /* ── Col gauche : avatar + métadonnées + monologue ── */
+    const left = `<div class="pc3-left">
+      <img src="${personaPhotoUrl(p, i)}" class="pc3-avatar-img" alt=""
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <div class="pc3-avatar" style="display:none;">${esc(initials)}</div>
+      <div class="pc3-name-l">${esc(p.nom||'Persona '+(i+1))}</div>
+      <div class="pc3-meta-l">${[p.age?p.age+' ans':'', p.genre?esc(p.genre):'', p.metier?esc(p.metier):''].filter(Boolean).join(' · ')}</div>
+      ${signals.length ? `<div class="pc3-sigs">${signals.map(s=>`<span class="pc3-sig">${esc(s)}</span>`).join('')}</div>` : ''}
+      <div class="pc3-div"></div>
+      ${p.histoire_interieure ? `<div class="pc3-quote">"${esc(p.histoire_interieure)}"</div>` : ''}
+    </div>`;
+
+    /* ── Col centre : données principales ── */
+    const center = `<div class="pc3-center">
+      <div class="pc3-head">
+        <div>
+          <div class="pc3-name">${esc(p.nom||'Persona '+(i+1))}</div>
+          <div class="pc3-arch">${esc(p.archetype_jungien||p.emotion_dominante_mesuree||'')}</div>
+          <div class="pc3-chips">
+            ${p.emotion_dominante_mesuree?`<span class="pc3-chip emo">${esc(p.emotion_dominante_mesuree)}</span>`:''}
+            ${p.poids?`<span class="pc3-chip">${esc(p.poids)}</span>`:''}
+            ${p.etat_esprit?`<span class="pc3-chip">${esc((p.etat_esprit||'').substring(0,52)+(p.etat_esprit.length>52?'…':''))}</span>`:''}
+          </div>
+        </div>
+      </div>
+      ${p.vision_monde?`<div class="pc3-vision">"${esc(p.vision_monde)}"</div>`:''}
+      ${(frusts.length||aspirs.length)?`<div class="pc3-2col">
+        ${frusts.length?`<div><div class="pc3-ttl">Frustrations</div>${li(frusts)}</div>`:''}
+        ${aspirs.length?`<div><div class="pc3-ttl">Aspirations</div>${li(aspirs)}</div>`:''}
+      </div>`:''}
+      ${(peurs.length||desirs.length)?`<div class="pc3-2col">
+        ${peurs.length?`<div><div class="pc3-ttl">Pain points</div>${li(peurs)}</div>`:''}
+        ${desirs.length?`<div><div class="pc3-ttl">Désirs cachés</div>${li(desirs)}</div>`:''}
+      </div>`:''}
+      ${(declencheurs.length||p.rapport_autorite)?`<div class="pc3-2col">
+        ${declencheurs.length?`<div><div class="pc3-ttl">Déclencheurs émotionnels</div>${li(declencheurs)}</div>`:''}
+        ${p.rapport_autorite?`<div><div class="pc3-ttl">Rapport à l'autorité</div><div class="pc3-li">${esc(p.rapport_autorite)}</div></div>`:''}
+      </div>`:''}
+      ${habitudes.length?`<div style="margin-bottom:14px;"><div class="pc3-ttl">Habitudes digitales</div>${li(habitudes)}</div>`:''}
+      ${p.message_a_lui_dire?`<div class="pc3-msg"><div class="pc3-msg-lbl">Message à lui dire</div><div class="pc3-msg-txt">"${esc(p.message_a_lui_dire)}"</div></div>`:''}
+    </div>`;
+
+    /* ── Col droite : profondeur psychologique ── */
+    const right = `<div class="pc3-right">
+      ${confPct!==null?`<div class="pc3-stat">
+        <div class="pc3-stat-lbl">Fiabilité du persona</div>
+        <div class="pc3-conf-num">${confPct}%</div>
+        <div class="pc3-conf-bar"><div class="pc3-conf-fill" style="width:${confPct}%"></div></div>
+      </div>`:''}
+      ${p.cluster_source?`<div class="pc3-stat"><div class="pc3-stat-lbl">Cluster source</div><div class="pc3-stat-val">${esc(p.cluster_source)}</div></div>`:''}
+      ${p.tension_existentielle?`<div class="pc3-stat"><div class="pc3-stat-lbl">Tension existentielle</div><div class="pc3-stat-val">${esc(p.tension_existentielle)}</div></div>`:''}
+      ${p.quete_de_sens?`<div class="pc3-stat"><div class="pc3-stat-lbl">Quête · Frankl</div><div class="pc3-stat-val">${esc(p.quete_de_sens)}</div></div>`:''}
+      ${p.biais_cognitifs?`<div class="pc3-stat"><div class="pc3-stat-lbl">Biais · Kahneman</div><div class="pc3-stat-val">${esc(p.biais_cognitifs)}</div></div>`:''}
+      ${p.ombre_jungienne?`<div class="pc3-stat"><div class="pc3-stat-lbl">Ombre · Jung</div><div class="pc3-stat-val">${esc(p.ombre_jungienne)}</div></div>`:''}
+      ${p.objection_principale?`<div class="pc3-stat"><div class="pc3-stat-lbl">Objection principale</div><div class="pc3-stat-val">${esc(p.objection_principale)}</div></div>`:''}
+      ${p.ce_qui_le_ferait_acheter||p.ce_qui_la_ferait_acheter?`<div class="pc3-stat"><div class="pc3-stat-lbl">Déclencheur d'achat</div><div class="pc3-stat-val">${esc(p.ce_qui_le_ferait_acheter||p.ce_qui_la_ferait_acheter)}</div></div>`:''}
+      ${p.mission_cachee?`<div class="pc3-stat"><div class="pc3-stat-lbl">Mission cachée · Munroe</div><div class="pc3-stat-val">${esc(p.mission_cachee)}</div></div>`:''}
+      ${p.potentiel_non_exprime?`<div class="pc3-stat"><div class="pc3-stat-lbl">Potentiel bloqué · Munroe</div><div class="pc3-stat-val">${esc(p.potentiel_non_exprime)}</div></div>`:''}
+      ${p.besoin_d_appartenance?`<div class="pc3-stat"><div class="pc3-stat-lbl">Tribu aspirée</div><div class="pc3-stat-val">${esc(p.besoin_d_appartenance)}</div></div>`:''}
+      ${p.desir_de_legacy?`<div class="pc3-stat"><div class="pc3-stat-lbl">Désir de legacy</div><div class="pc3-stat-val">${esc(p.desir_de_legacy)}</div></div>`:''}
+      ${p.rapport_argent?`<div class="pc3-stat"><div class="pc3-stat-lbl">Rapport à l'argent</div><div class="pc3-stat-val">${esc(p.rapport_argent)}</div></div>`:''}
+      ${p.ce_qui_le_ferait_fuir||p.ce_qui_la_ferait_fuir?`<div class="pc3-stat"><div class="pc3-stat-lbl">Repoussoir principal</div><div class="pc3-stat-val">${esc(p.ce_qui_le_ferait_fuir||p.ce_qui_la_ferait_fuir)}</div></div>`:''}
+    </div>`;
+
+    pl.innerHTML += `<div class="persona-card-v3">${left}${center}${right}</div>`;
+  });
+}
+
+/* ── Utils ────────────────────────────────────────────────────────────── */
+function show(id){document.getElementById(id).classList.remove('hidden');}
+function hide(id){document.getElementById(id).classList.add('hidden');}
+function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function showError(msg){hide('loading-section');show('error-section');show('input-section');document.getElementById('error-msg').textContent=msg;}
+function resetToInput(){hide('dashboard-section');hide('loading-section');hide('error-section');show('input-section');}
+
+// ── State courant ────────────────────────────────────────────────────────
+let _currentAnalysisId = null;
+let _lastAnalysisData  = null;
+
+const _origRenderDashboard = renderDashboard;
+renderDashboard = function(d) {
+  _currentAnalysisId = d.analysis_id || null;
+  _lastAnalysisData  = d;
+  _origRenderDashboard(d);
+};
+
+// ── Bridge vers Le Stratège ──────────────────────────────────────────────
+function goToStratege() {
+  if (_currentAnalysisId && _lastAnalysisData) {
+    const brief    = _lastAnalysisData.brief    || {};
+    const psycho   = _lastAnalysisData.psychologie || {};
+    const marketing= _lastAnalysisData.marketing  || {};
+    const lines = [];
+    if (brief.synthese)          lines.push('Audience : ' + brief.synthese);
+    if (brief.insight_cle)       lines.push('Insight clé : ' + brief.insight_cle);
+    if (brief.action_prioritaire)lines.push('Action : ' + brief.action_prioritaire);
+    const motiv  = (psycho.motivations_profondes || []).slice(0, 2).map(m => typeof m === 'string' ? m : JSON.stringify(m));
+    if (motiv.length)  lines.push('Motivations : ' + motiv.join(', '));
+    const frustr = (psycho.frustrations || []).slice(0, 2).map(f => typeof f === 'string' ? f : JSON.stringify(f));
+    if (frustr.length) lines.push('Frustrations : ' + frustr.join(', '));
+    const hooks  = (marketing.hooks_performants || []).slice(0, 2);
+    if (hooks.length)  lines.push('Hooks : ' + hooks.join(' | '));
+
+    sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({
+      analysis_id:  _currentAnalysisId,
+      psycho_brief: lines.join('\n'),
+      psycho_data:  {
+        brief:        brief,
+        psychologie:  psycho,
+        emotions:     _lastAnalysisData.emotions     || {},
+        marketing:    marketing,
+        kpis:         _lastAnalysisData.kpis         || {},
+        aspirations:  _lastAnalysisData.aspirations  || {},
+        personas:     _lastAnalysisData.personas     || [],
+        distribution: _lastAnalysisData.distribution || {},
+      },
+    }));
+  }
+  window.location.href = '/stratege';
+}
+
+async function exportCurrentPdf() {
+  if (!_currentAnalysisId) { alert('Lancez une analyse avant d\'exporter.'); return; }
+  const btn = document.getElementById('export-pdf-btn');
+  const orig = btn.innerHTML;
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const r = await fetch(`/export/pdf/${_currentAnalysisId}`);
+    if (!r.ok) { alert('Erreur lors de la génération du PDF.'); return; }
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `gabriel_${_currentAnalysisId}.pdf`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Erreur PDF : ' + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = orig;
+  }
+}
+
+// ── Restauration depuis l'historique ─────────────────────────────────────
+function tryRestoreFromHistory() {
+  const params = new URLSearchParams(window.location.search);
+  const restoreId = params.get('restore');
+  if (!restoreId) return;
+
+  const raw = sessionStorage.getItem('gabriel_restore');
+  if (!raw) return;
+  try {
+    const stored = JSON.parse(raw);
+    if (stored.analysis_id !== restoreId) return;
+    sessionStorage.removeItem('gabriel_restore');
+    history.replaceState({}, '', '/psychologue');
+    const d = stored.full_result;
+    if (d) renderDashboard(d);
+
+    // Si une stratégie existe déjà, préparer sessionStorage pour aller directement au Stratège
+    if (stored.strategie_result && stored.analysis_id) {
+      sessionStorage.setItem('gabriel_restore_stratege', JSON.stringify({
+        analysis_id:      stored.analysis_id,
+        full_result:      stored.full_result  || {},
+        strategie_result: stored.strategie_result,
+      }));
+    }
+  } catch(e) {}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  updateCount();
+  hydrateFromLanding();
+  tryRestoreFromHistory();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1679 @@
+{% extends "base.html" %}
+{% block title %}Gabriel — Stratège{% endblock %}
+{% block page_name %}Stratège{% endblock %}
+
+{% block head %}
+<style>
+  /* ─── Layout ─────────────────────────────────────────── */
+  .pipeline-bar { display:flex; align-items:center; gap:0; margin-bottom:22px; }
+  .pipeline-step { display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; font-size:10px; font-weight:500; letter-spacing:0.05em; }
+  .pipeline-step.done  { color:var(--text-muted); }
+  .pipeline-step.active{ background:rgba(216,185,130,0.08); border:1px solid rgba(216,185,130,0.2); color:rgba(216,185,130,0.9); }
+  .pipeline-step.next  { color:var(--text-disabled); }
+  .pipeline-step-num { width:15px; height:15px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:600; }
+  .pipeline-step.done  .pipeline-step-num { background:rgba(120,200,140,0.14); color:rgba(120,200,140,0.75); }
+  .pipeline-step.active .pipeline-step-num { background:rgba(216,185,130,0.15); color:rgba(216,185,130,0.9); }
+  .pipeline-step.next  .pipeline-step-num { background:rgba(255,255,255,0.04); color:var(--text-disabled); }
+  .pipeline-arrow { font-size:11px; color:var(--border-soft); margin:0 2px; flex-shrink:0; }
+
+  .strat-layout { display:grid; grid-template-columns:310px 1fr; gap:18px; align-items:start; }
+
+  /* ─── Left panel ─────────────────────────────────────── */
+  .ctx-panel { position:sticky; top:20px; display:flex; flex-direction:column; gap:10px; }
+
+  .ctx-header { padding:14px 16px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); }
+  .ctx-header-label { font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-muted); font-weight:500; margin-bottom:5px; }
+  .ctx-header-title { font-size:13px; font-weight:500; color:var(--text-primary); margin-bottom:10px; }
+  .ctx-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:500; letter-spacing:0.04em; }
+  .ctx-badge.ready   { background:rgba(120,200,140,0.08); border:1px solid rgba(120,200,140,0.22); color:rgba(120,200,140,0.8); }
+  .ctx-badge.partial { background:rgba(216,185,130,0.07); border:1px solid rgba(216,185,130,0.18); color:var(--champagne-soft); }
+  .ctx-badge.empty   { background:rgba(255,255,255,0.03); border:1px solid var(--border-soft); color:var(--text-muted); }
+  .ctx-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .ctx-progress { margin:10px 0 0; }
+  .ctx-progress-bar { height:2px; background:rgba(255,255,255,0.05); border-radius:1px; overflow:hidden; }
+  .ctx-progress-fill { height:100%; background:linear-gradient(90deg,rgba(199,166,107,0.5),#C7A66B); border-radius:1px; transition:width 0.6s cubic-bezier(0.22,1,.36,1); }
+  .ctx-progress-label { font-size:10px; color:var(--text-muted); margin-top:5px; }
+
+  .chat-window { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); overflow:hidden; display:flex; flex-direction:column; height:400px; }
+  .chat-messages { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:9px; scroll-behavior:smooth; }
+  .chat-messages::-webkit-scrollbar { width:3px; }
+  .chat-messages::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.07); border-radius:2px; }
+  .msg { max-width:90%; display:flex; flex-direction:column; gap:2px; animation:gb-slide-up 0.25s cubic-bezier(0.22,1,.36,1) both; }
+  .msg.agent { align-self:flex-start; }
+  .msg.user  { align-self:flex-end; }
+  .msg-bubble { padding:8px 11px; border-radius:10px; font-size:12px; line-height:1.65; }
+  .msg.agent .msg-bubble { background:rgba(255,255,255,0.032); border:1px solid var(--border-soft); color:var(--text-secondary); border-radius:4px 10px 10px 10px; }
+  .msg.user  .msg-bubble { background:rgba(216,185,130,0.09); border:1px solid rgba(216,185,130,0.15); color:rgba(216,185,130,0.85); border-radius:10px 4px 10px 10px; }
+  .msg-time { font-size:9px; color:var(--text-disabled); padding:0 2px; }
+  .msg.user .msg-time { align-self:flex-end; }
+  .typing-dots { display:flex; gap:3px; padding:5px 2px; }
+  .typing-dots span { width:4px; height:4px; border-radius:50%; background:var(--text-muted); animation:blink 1.2s ease-in-out infinite; }
+  .typing-dots span:nth-child(2) { animation-delay:.2s; }
+  .typing-dots span:nth-child(3) { animation-delay:.4s; }
+  @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+  .chat-input-row { display:flex; gap:8px; padding:9px 11px; border-top:1px solid var(--border-soft); background:rgba(255,255,255,0.012); }
+  .chat-input { flex:1; background:transparent; border:none; outline:none; font-size:12px; color:var(--text-primary); font-family:inherit; resize:none; line-height:1.5; max-height:80px; }
+  .chat-input::placeholder { color:var(--text-disabled); }
+  .chat-send { width:28px; height:28px; border:none; background:rgba(216,185,130,0.1); border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; align-self:flex-end; transition:background 0.15s; }
+  .chat-send:hover { background:rgba(216,185,130,0.2); }
+  .chat-send svg { width:12px; height:12px; stroke:var(--champagne-soft); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .chat-send:disabled { opacity:0.3; cursor:default; }
+
+  .ctx-fields-panel { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:12px 14px; }
+  .ctx-fields { display:flex; flex-direction:column; gap:4px; }
+  .ctx-field { display:flex; align-items:flex-start; gap:7px; padding:5px 6px; border-radius:5px; }
+  .ctx-field.filled { background:rgba(255,255,255,0.012); }
+  .ctx-field-icon { width:14px; height:14px; border-radius:50%; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:600; }
+  .ctx-field-icon.ok   { background:rgba(120,200,140,0.15); color:rgba(120,200,140,0.7); }
+  .ctx-field-icon.miss { background:rgba(255,255,255,0.04); color:var(--text-disabled); }
+  .ctx-field-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:500; line-height:1.3; }
+  .ctx-field-val { font-size:10px; color:var(--text-secondary); line-height:1.5; margin-top:1px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+  .strat-cta { display:flex; flex-direction:column; gap:6px; }
+  .strat-cta-btn { width:100%; padding:11px; font-size:12px; font-weight:500; letter-spacing:0.03em; border:none; border-radius:var(--radius-md); cursor:pointer; transition:all 0.2s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .strat-cta-btn.ready  { background:rgba(216,185,130,0.1); color:#D8B982; border:1px solid rgba(216,185,130,0.25); }
+  .strat-cta-btn.ready:hover { background:rgba(216,185,130,0.17); transform:translateY(-1px); box-shadow:0 4px 16px rgba(216,185,130,0.1); }
+  .strat-cta-btn.locked { background:rgba(255,255,255,0.03); color:var(--text-disabled); border:1px solid var(--border-soft); cursor:not-allowed; }
+  .strat-cta-hint { font-size:10px; color:var(--text-disabled); text-align:center; }
+
+  /* ─── Right panel ─────────────────────────────────────── */
+  .strat-idle { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:340px; gap:12px; padding:36px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); }
+  .strat-idle-glyph { width:52px; height:52px; border-radius:14px; background:rgba(216,185,130,0.06); border:1px solid rgba(216,185,130,0.15); display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:4px; }
+  .strat-idle-title { font-size:15px; font-weight:500; color:var(--text-primary); }
+  .strat-idle-desc { font-size:12px; color:var(--text-muted); max-width:300px; line-height:1.75; }
+
+  /* ─── Mémoire stratégique ─────────────────────────────── */
+  .strat-memory { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:18px 20px; margin-bottom:14px; animation:gb-slide-up 0.3s cubic-bezier(0.22,1,.36,1) both; }
+  .strat-memory-head { margin-bottom:14px; }
+  .strat-memory-title { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:var(--text-primary); margin-bottom:4px; }
+  .strat-memory-title svg { width:15px; height:15px; stroke:rgba(216,185,130,0.7); }
+  .strat-memory-sub { font-size:11px; color:var(--text-muted); }
+  .strat-memory-list { display:flex; flex-direction:column; gap:7px; }
+  .strat-memory-item { display:flex; align-items:center; gap:12px; padding:12px 14px; background:rgba(255,255,255,0.018); border:1px solid var(--border-soft); border-radius:var(--radius-md); cursor:pointer; transition:all 0.18s; text-align:left; }
+  .strat-memory-item:hover { border-color:rgba(216,185,130,0.28); background:rgba(216,185,130,0.04); transform:translateX(2px); }
+  .strat-memory-item-body { flex:1; min-width:0; }
+  .strat-memory-item-title { font-size:12px; color:var(--text-primary); line-height:1.45; margin-bottom:3px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .strat-memory-item-date { font-size:10px; color:var(--text-muted); }
+  .strat-memory-item-arrow { color:rgba(216,185,130,0.5); font-size:14px; flex-shrink:0; transition:transform 0.18s; }
+  .strat-memory-item:hover .strat-memory-item-arrow { transform:translateX(3px); color:rgba(216,185,130,0.8); }
+  .strat-memory-del { width:24px; height:24px; flex-shrink:0; border:none; background:transparent; color:var(--text-disabled); cursor:pointer; border-radius:5px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+  .strat-memory-del:hover { background:rgba(255,100,100,0.08); color:rgba(255,130,130,0.7); }
+  .strat-memory-del svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ─── Psycho banner (NEW) ─────────────────────────────── */
+  .psycho-banner { background:var(--bg-card); border:1px solid rgba(216,185,130,0.22); border-radius:var(--radius-lg); padding:22px; display:flex; flex-direction:column; gap:16px; animation:gb-slide-up 0.3s cubic-bezier(0.22,1,.36,1) both; }
+  .psycho-banner-top { display:flex; align-items:flex-start; gap:14px; }
+  .psycho-banner-icon { width:42px; height:42px; border-radius:11px; background:rgba(216,185,130,0.08); border:1px solid rgba(216,185,130,0.2); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .psycho-banner-meta { flex:1; min-width:0; }
+  .psycho-banner-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:20px; background:rgba(120,200,140,0.08); border:1px solid rgba(120,200,140,0.2); font-size:10px; font-weight:500; color:rgba(120,200,140,0.85); margin-bottom:7px; }
+  .psycho-banner-badge-dot { width:5px; height:5px; border-radius:50%; background:rgba(120,200,140,0.9); animation:gb-dot-beat 2.5s ease-in-out infinite; }
+  .psycho-banner-title { font-size:14px; font-weight:500; color:var(--text-primary); margin-bottom:4px; }
+  .psycho-banner-sub { font-size:11px; color:var(--text-muted); line-height:1.6; }
+  .psycho-banner-preview { padding:12px 14px; background:rgba(216,185,130,0.03); border:1px solid rgba(216,185,130,0.1); border-radius:8px; font-size:11px; color:var(--text-secondary); line-height:1.75; white-space:pre-line; max-height:110px; overflow:hidden; position:relative; }
+  .psycho-banner-preview::after { content:''; position:absolute; bottom:0; left:0; right:0; height:30px; background:linear-gradient(transparent, var(--bg-card)); border-radius:0 0 8px 8px; }
+  .psycho-banner-actions { display:flex; gap:10px; align-items:center; padding-top:2px; }
+  .psycho-receive-btn { flex:1; padding:11px 18px; background:rgba(216,185,130,0.1); border:1px solid rgba(216,185,130,0.3); border-radius:var(--radius-md); color:#D8B982; font-size:12px; font-weight:500; cursor:pointer; transition:all 0.22s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:8px; letter-spacing:0.02em; }
+  .psycho-receive-btn:hover { background:rgba(216,185,130,0.18); transform:translateY(-1px); box-shadow:0 6px 20px rgba(216,185,130,0.12); }
+  .psycho-receive-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+  .psycho-skip-btn { padding:11px 14px; border:1px solid var(--border-soft); border-radius:var(--radius-md); color:var(--text-muted); font-size:11px; cursor:pointer; transition:all 0.15s; font-family:inherit; background:transparent; white-space:nowrap; }
+  .psycho-skip-btn:hover { color:var(--text-secondary); border-color:rgba(255,255,255,0.1); }
+
+  /* ─── Analyze section ────────────────────────────────── */
+  .strat-analyze-section { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:20px; display:flex; flex-direction:column; gap:14px; }
+  .strat-analyze-header { display:flex; align-items:center; gap:10px; }
+  .strat-analyze-dot { width:7px; height:7px; border-radius:50%; background:rgba(216,185,130,0.8); animation:gb-dot-beat 2.5s ease-in-out infinite; flex-shrink:0; }
+  .strat-analyze-title { font-size:12px; font-weight:500; color:var(--text-secondary); }
+  .psycho-input label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:500; display:block; margin-bottom:7px; }
+  .strat-generate-btn { width:100%; padding:12px 20px; background:linear-gradient(135deg,rgba(216,185,130,0.12),rgba(216,185,130,0.07)); border:1px solid rgba(216,185,130,0.3); border-radius:var(--radius-md); color:#D8B982; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.22s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:9px; letter-spacing:0.02em; }
+  .strat-generate-btn:hover { background:linear-gradient(135deg,rgba(216,185,130,0.19),rgba(216,185,130,0.12)); transform:translateY(-1px); box-shadow:0 6px 24px rgba(216,185,130,0.12); }
+  .strat-generate-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+
+  /* ─── Dashboard ──────────────────────────────────────── */
+  .strat-dashboard { display:flex; flex-direction:column; gap:16px; }
+
+  /* Décision centrale — carte héro */
+  .decision-card { padding:24px 26px; background:rgba(216,185,130,0.05); border:1px solid rgba(216,185,130,0.18); border-radius:var(--radius-lg); }
+  .decision-label { font-size:10px; text-transform:uppercase; letter-spacing:0.14em; color:rgba(216,185,130,0.5); font-weight:600; margin-bottom:10px; }
+  .decision-text { font-size:18px; font-weight:500; color:var(--text-primary); line-height:1.55; letter-spacing:-0.02em; }
+
+  /* Section headers avec icône SVG */
+  .dash-sec-head { display:flex; align-items:center; gap:10px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.05); }
+  .dash-sec-ico { width:30px; height:30px; border-radius:8px; background:rgba(216,185,130,0.07); border:1px solid rgba(216,185,130,0.13); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .dash-sec-ico svg { width:15px; height:15px; stroke:rgba(216,185,130,0.65); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+  .dash-sec-title { font-size:12px; font-weight:600; color:var(--text-secondary); letter-spacing:0.01em; }
+
+  .strat-action-bar { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-bottom:6px; }
+  .export-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 14px; border-radius:var(--radius-md); border:1px solid var(--border-soft); background:transparent; color:var(--text-muted); font-size:11px; cursor:pointer; transition:all 0.15s; font-family:inherit; }
+  .export-btn:hover { border-color:rgba(216,185,130,0.3); color:var(--champagne-soft); }
+  .export-btn svg { width:11px; height:11px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .export-btn.loading { opacity:0.5; pointer-events:none; }
+  .regen-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:var(--radius-md); border:1px solid var(--border-soft); background:transparent; color:var(--text-muted); font-size:11px; cursor:pointer; transition:all 0.15s; font-family:inherit; }
+  .regen-btn:hover { border-color:rgba(216,185,130,0.25); color:var(--champagne-soft); }
+  .regen-btn svg { width:11px; height:11px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  .obj-card { padding:14px 18px; background:rgba(255,255,255,0.02); border:1px solid var(--border-soft); border-radius:var(--radius-md); border-left:2px solid rgba(216,185,130,0.4); }
+  .obj-label { font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(216,185,130,0.5); font-weight:600; margin-bottom:6px; }
+  .obj-text { font-size:13px; color:var(--text-secondary); line-height:1.7; }
+
+  .opp-list { display:flex; flex-direction:column; gap:10px; }
+  .opp-card { padding:16px 18px; background:rgba(255,255,255,0.018); border:1px solid var(--border-soft); border-radius:var(--radius-md); transition:border-color 0.2s; }
+  .opp-card:hover { border-color:rgba(216,185,130,0.2); }
+  .opp-flow { display:grid; grid-template-columns:1fr auto 1fr; align-items:start; gap:8px; margin-bottom:10px; }
+  .opp-signal-box { padding:10px 12px; background:rgba(216,185,130,0.04); border:1px solid rgba(216,185,130,0.1); border-radius:6px; }
+  .opp-signal-label { font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(216,185,130,0.45); font-weight:600; margin-bottom:4px; }
+  .opp-signal-text { font-size:12px; color:var(--text-secondary); line-height:1.6; }
+  .opp-arrow { font-size:14px; color:rgba(216,185,130,0.35); padding-top:12px; text-align:center; }
+  .opp-decision-box { padding:10px 12px; background:rgba(120,200,140,0.03); border:1px solid rgba(120,200,140,0.1); border-radius:6px; }
+  .opp-decision-label { font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(120,200,140,0.45); font-weight:600; margin-bottom:4px; }
+  .opp-decision-text { font-size:12px; color:var(--text-secondary); line-height:1.6; }
+  .opp-action-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .opp-action { padding:8px 10px; border-radius:5px; background:rgba(255,255,255,0.012); border:1px solid rgba(255,255,255,0.05); }
+  .opp-sub-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:500; margin-bottom:4px; }
+  .opp-sub-text { font-size:11px; color:var(--text-secondary); line-height:1.55; }
+
+  .offer-card { padding:20px 22px; background:rgba(216,185,130,0.03); border:1px solid rgba(216,185,130,0.12); border-radius:var(--radius-lg); }
+  .offer-name { font-size:17px; font-weight:600; color:var(--text-primary); letter-spacing:-0.02em; margin-bottom:5px; }
+  .offer-cible { font-size:12px; color:rgba(216,185,130,0.65); margin-bottom:16px; }
+  .offer-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .offer-block { padding:11px 13px; background:rgba(255,255,255,0.015); border-radius:7px; }
+  .offer-block-full { grid-column:span 2; }
+  .offer-block-label { font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); font-weight:600; margin-bottom:5px; }
+  .offer-block-val { font-size:12px; color:var(--text-secondary); line-height:1.65; }
+  .offer-price-row { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:rgba(216,185,130,0.06); border-radius:9px; border:1px solid rgba(216,185,130,0.2); }
+  .offer-price { font-size:22px; font-weight:600; color:#D8B982; letter-spacing:-0.02em; }
+  .offer-price-just { font-size:11px; color:var(--text-muted); max-width:55%; line-height:1.5; text-align:right; }
+  .offer-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; }
+  .offer-tag { padding:4px 10px; border-radius:20px; font-size:10px; border:1px solid var(--border-soft); color:var(--text-muted); }
+  .offer-tag.objection { border-color:rgba(255,100,100,0.12); color:rgba(255,130,130,0.6); }
+
+  .price-card { padding:18px 20px; background:rgba(255,255,255,0.018); border:1px solid var(--border-soft); border-radius:var(--radius-lg); }
+  .price-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px; }
+  .price-item { text-align:center; padding:12px 8px; background:rgba(255,255,255,0.02); border-radius:7px; }
+  .price-val { font-size:12px; font-weight:500; color:var(--text-secondary); margin-bottom:4px; }
+  .price-lbl { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.07em; }
+  .price-position-badge { display:inline-flex; padding:4px 11px; border-radius:20px; font-size:11px; font-weight:500; background:rgba(216,185,130,0.08); border:1px solid rgba(216,185,130,0.2); color:rgba(216,185,130,0.8); }
+
+  .plan-tabs { display:flex; gap:2px; background:rgba(255,255,255,0.03); border-radius:9px; padding:3px; margin-bottom:16px; }
+  .plan-tab { flex:1; padding:8px 10px; text-align:center; font-size:11px; font-weight:500; border-radius:7px; cursor:pointer; transition:all 0.15s; color:var(--text-muted); border:none; background:transparent; font-family:inherit; }
+  .plan-tab.active { background:rgba(216,185,130,0.1); color:#D8B982; border:1px solid rgba(216,185,130,0.2); }
+  .plan-phase { display:none; }
+  .plan-phase.active { display:block; }
+  .plan-phase-header { margin-bottom:14px; }
+  .plan-phase-period { font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); font-weight:600; margin-bottom:4px; }
+  .plan-phase-title { font-size:14px; font-weight:500; color:var(--text-primary); }
+  .plan-section-title { font-size:10px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:600; margin:12px 0 6px; }
+  .plan-items { display:flex; flex-direction:column; gap:5px; }
+  .plan-item { display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-secondary); line-height:1.65; padding:4px 0; }
+  .plan-item::before { content:'—'; color:rgba(216,185,130,0.4); font-size:11px; flex-shrink:0; margin-top:2px; }
+  .plan-kpi { display:inline-flex; padding:3px 9px; background:rgba(120,200,140,0.06); border:1px solid rgba(120,200,140,0.14); border-radius:20px; font-size:10px; color:rgba(120,200,140,0.75); margin:2px; }
+  .plan-decision { display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-secondary); padding:7px 11px; background:rgba(216,185,130,0.03); border-radius:6px; border-left:2px solid rgba(216,185,130,0.3); margin:3px 0; line-height:1.6; }
+  .plan-decision::before { content:'→'; color:rgba(216,185,130,0.55); flex-shrink:0; }
+
+  /* Strategy chatbot */
+  .sc-window { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); overflow:hidden; display:flex; flex-direction:column; transition:border-color 0.22s,box-shadow 0.22s; }
+  .sc-window:focus-within { border-color:rgba(216,185,130,0.18); box-shadow:0 4px 24px rgba(0,0,0,0.2); }
+  .sc-header { padding:12px 16px; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.012); }
+  .sc-dot { width:6px; height:6px; border-radius:50%; background:rgba(120,200,140,0.85); flex-shrink:0; box-shadow:0 0 6px rgba(120,200,140,0.4); animation:gb-dot-beat 2.5s ease-in-out infinite; }
+  .sc-title { font-size:11px; font-weight:500; color:var(--text-secondary); }
+  .sc-badge { margin-left:auto; font-size:9px; padding:2px 7px; border-radius:20px; background:rgba(216,185,130,0.06); border:1px solid rgba(216,185,130,0.15); color:rgba(216,185,130,0.6); letter-spacing:0.06em; }
+  .sc-messages { padding:14px 16px; display:flex; flex-direction:column; gap:10px; min-height:80px; max-height:380px; overflow-y:auto; scroll-behavior:smooth; }
+  .sc-messages::-webkit-scrollbar { width:3px; }
+  .sc-messages::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.07); }
+  .sc-msg { display:flex; flex-direction:column; gap:3px; animation:gb-slide-up 0.28s cubic-bezier(0.22,1,.36,1) both; }
+  .sc-msg.user { align-items:flex-end; }
+  .sc-msg.agent { align-items:flex-start; }
+  .sc-bubble { padding:9px 13px; border-radius:12px; font-size:12px; line-height:1.65; max-width:88%; white-space:pre-wrap; }
+  .sc-msg.user .sc-bubble  { background:rgba(216,185,130,0.09); border:1px solid rgba(216,185,130,0.18); color:var(--text-primary); border-radius:12px 3px 12px 12px; }
+  .sc-msg.agent .sc-bubble { background:rgba(255,255,255,0.028); border:1px solid var(--border-soft); color:var(--text-secondary); border-radius:3px 12px 12px 12px; }
+  .sc-time { font-size:9px; color:var(--text-disabled); padding:0 3px; }
+  .sc-typing { display:flex; align-items:center; gap:3px; padding:10px 13px; background:rgba(255,255,255,0.025); border:1px solid var(--border-soft); border-radius:3px 12px 12px 12px; width:fit-content; }
+  .sc-typing span { width:4px; height:4px; border-radius:50%; background:var(--text-muted); animation:sc-bounce 1.2s ease-in-out infinite; }
+  .sc-typing span:nth-child(2) { animation-delay:.16s; }
+  .sc-typing span:nth-child(3) { animation-delay:.32s; }
+  @keyframes sc-bounce { 0%,60%,100%{transform:translateY(0);opacity:.4} 30%{transform:translateY(-4px);opacity:1} }
+  .sc-suggestions { padding:10px 14px; display:flex; flex-wrap:wrap; gap:6px; border-top:1px solid var(--border-soft); }
+  .sc-chip { padding:5px 11px; border-radius:20px; font-size:10px; font-weight:500; background:rgba(255,255,255,0.025); border:1px solid var(--border-soft); color:var(--text-muted); cursor:pointer; transition:all 0.18s; white-space:nowrap; }
+  .sc-chip:hover { background:rgba(216,185,130,0.07); border-color:rgba(216,185,130,0.22); color:rgba(216,185,130,0.85); transform:scale(1.03); }
+  .sc-input-row { display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--border-soft); background:rgba(255,255,255,0.012); }
+  .sc-input { flex:1; background:transparent; border:none; outline:none; font-size:12px; color:var(--text-primary); font-family:inherit; resize:none; line-height:1.5; max-height:80px; }
+  .sc-input::placeholder { color:var(--text-disabled); }
+  .sc-send { width:30px; height:30px; border:none; background:rgba(216,185,130,0.1); border-radius:7px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; align-self:flex-end; transition:all 0.18s; }
+  .sc-send:hover { background:rgba(216,185,130,0.2); transform:scale(1.08); }
+  .sc-send:active { transform:scale(0.95); }
+  .sc-send svg { width:12px; height:12px; stroke:var(--champagne-soft); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .sc-send.loading,.sc-send:disabled { opacity:0.3; cursor:default; transform:none; }
+
+  /* Feedback */
+  .fb-card { padding:18px 20px; border-top:1px solid var(--border-soft); margin-top:6px; }
+  .fb-title { font-size:11px; font-weight:500; color:var(--text-secondary); margin-bottom:12px; }
+  .fb-options { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .fb-btn { padding:7px 16px; border-radius:20px; border:1px solid var(--border-soft); background:transparent; color:var(--text-muted); font-size:11px; cursor:pointer; transition:all 0.15s; }
+  .fb-btn:hover { border-color:rgba(216,185,130,0.3); color:var(--champagne-soft); }
+  .fb-btn.selected { background:rgba(216,185,130,0.1); border-color:rgba(216,185,130,0.35); color:#D8B982; }
+  .fb-comment { width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--border-soft); border-radius:var(--radius-md); color:var(--text-secondary); font-family:inherit; font-size:11px; padding:8px 10px; resize:none; outline:none; transition:border-color 0.15s; box-sizing:border-box; }
+  .fb-comment:focus { border-color:rgba(216,185,130,0.25); }
+  .fb-submit { margin-top:8px; padding:7px 18px; font-size:11px; }
+  .fb-done { font-size:11px; color:rgba(120,200,140,0.75); display:none; align-items:center; gap:6px; }
+
+  /* ─── Créateur Bridge (redesigned) ───────────────────── */
+  .createur-bridge { margin-top:4px; background:rgba(216,185,130,0.04); border:1px solid rgba(216,185,130,0.2); border-radius:var(--radius-lg); overflow:hidden; }
+  .createur-bridge-inner { padding:22px; display:flex; flex-direction:column; gap:16px; }
+  .createur-bridge-header { display:flex; align-items:flex-start; gap:14px; }
+  .createur-bridge-icon { width:42px; height:42px; border-radius:11px; background:rgba(216,185,130,0.1); border:1px solid rgba(216,185,130,0.22); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .createur-bridge-meta { flex:1; }
+  .createur-bridge-title { font-size:13px; font-weight:500; color:var(--text-primary); margin-bottom:4px; }
+  .createur-bridge-sub { font-size:11px; color:var(--text-muted); line-height:1.65; }
+  .createur-features { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+  .createur-feat { padding:9px 10px; background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.06); border-radius:7px; text-align:center; }
+  .createur-feat-ico { font-size:13px; margin-bottom:3px; }
+  .createur-feat-lbl { font-size:9px; color:var(--text-muted); line-height:1.4; }
+  .createur-send-btn { width:100%; padding:13px 20px; background:linear-gradient(135deg,rgba(216,185,130,0.14),rgba(216,185,130,0.08)); border:1px solid rgba(216,185,130,0.35); border-radius:var(--radius-md); color:#D8B982; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.22s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:9px; letter-spacing:0.02em; }
+  .createur-send-btn:hover { background:linear-gradient(135deg,rgba(216,185,130,0.22),rgba(216,185,130,0.13)); transform:translateY(-1px); box-shadow:0 8px 28px rgba(216,185,130,0.15); }
+  .createur-send-btn svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+  /* Confirm step */
+  .createur-confirm { display:none; padding:18px 22px; background:rgba(216,185,130,0.06); border-top:1px solid rgba(216,185,130,0.18); }
+  .createur-confirm.visible { display:block; }
+  .createur-confirm-title { font-size:11px; font-weight:500; color:var(--text-secondary); margin-bottom:8px; }
+  .createur-confirm-summary { font-size:11px; color:var(--text-muted); line-height:1.65; padding:10px 12px; background:rgba(255,255,255,0.02); border:1px solid var(--border-soft); border-radius:6px; margin-bottom:12px; }
+  .createur-confirm-actions { display:flex; gap:8px; }
+  .createur-confirm-yes { flex:1; padding:10px 16px; background:rgba(216,185,130,0.14); border:1px solid rgba(216,185,130,0.35); border-radius:var(--radius-md); color:#D8B982; font-size:12px; font-weight:500; cursor:pointer; font-family:inherit; transition:all 0.18s; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .createur-confirm-yes:hover { background:rgba(216,185,130,0.22); }
+  .createur-confirm-no { padding:10px 16px; border:1px solid var(--border-soft); border-radius:var(--radius-md); color:var(--text-muted); font-size:12px; cursor:pointer; font-family:inherit; background:transparent; transition:all 0.15s; }
+  .createur-confirm-no:hover { color:var(--text-secondary); }
+
+  /* Clarify */
+  .clarify-card { padding:14px 16px; background:rgba(255,180,0,0.03); border:1px solid rgba(255,180,0,0.1); border-radius:var(--radius-md); }
+  .clarify-item { display:flex; gap:8px; font-size:11px; color:var(--text-secondary); padding:4px 0; line-height:1.6; }
+  .clarify-item::before { content:'?'; color:rgba(255,180,0,0.4); font-weight:600; flex-shrink:0; }
+
+  /* ─── Executive Decision (héro) ─────────────────────── */
+  .exec-hero { padding:26px 28px; background:linear-gradient(135deg,rgba(216,185,130,0.08),rgba(216,185,130,0.03)); border:1px solid rgba(216,185,130,0.28); border-radius:var(--radius-lg); position:relative; overflow:hidden; }
+  .exec-hero::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,rgba(216,185,130,0.65),rgba(216,185,130,0.08)); }
+  .exec-hero-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; background:rgba(216,185,130,0.1); border:1px solid rgba(216,185,130,0.25); font-size:10px; font-weight:600; color:rgba(216,185,130,0.85); letter-spacing:0.06em; margin-bottom:14px; }
+  .exec-question { font-size:9px; text-transform:uppercase; letter-spacing:0.14em; color:rgba(216,185,130,0.5); font-weight:600; margin-bottom:8px; }
+  .exec-decision { font-size:19px; font-weight:600; color:var(--text-primary); line-height:1.5; letter-spacing:-0.02em; margin-bottom:18px; }
+  .exec-week { padding:14px 16px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.07); margin-bottom:14px; }
+  .exec-week-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:600; margin-bottom:6px; }
+  .exec-week-text { font-size:13px; color:var(--text-secondary); line-height:1.7; }
+  .exec-meta { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .exec-meta-item { padding:10px 12px; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid rgba(255,255,255,0.05); }
+  .exec-meta-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:600; margin-bottom:3px; }
+  .exec-meta-val { font-size:11px; color:var(--text-secondary); line-height:1.55; }
+  .exec-conf { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:20px; background:rgba(120,200,140,0.07); border:1px solid rgba(120,200,140,0.18); font-size:10px; color:rgba(120,200,140,0.75); margin-top:12px; }
+
+  /* ─── Psychologie audience active ───────────────────── */
+  .psycho-used-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .psycho-used-item { padding:11px 13px; border-radius:8px; background:rgba(255,255,255,0.018); border:1px solid rgba(255,255,255,0.05); }
+  .psycho-used-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:600; margin-bottom:4px; }
+  .psycho-used-val { font-size:12px; color:var(--text-secondary); line-height:1.6; }
+  .psycho-used-drivers { display:flex; flex-wrap:wrap; gap:5px; margin-top:10px; }
+  .psycho-used-driver { padding:3px 9px; border-radius:20px; font-size:10px; background:rgba(216,185,130,0.06); border:1px solid rgba(216,185,130,0.14); color:rgba(216,185,130,0.65); }
+
+  /* ─── Valeur à créer ────────────────────────────────── */
+  .value-core { font-size:15px; font-weight:500; color:var(--text-primary); margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.05); line-height:1.55; }
+  .value-rows { display:flex; flex-direction:column; gap:8px; }
+  .value-row { display:flex; gap:10px; align-items:flex-start; }
+  .value-row-dot { width:5px; height:5px; border-radius:50%; background:rgba(216,185,130,0.5); flex-shrink:0; margin-top:6px; }
+  .value-row-body { flex:1; }
+  .value-row-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:600; margin-bottom:3px; }
+  .value-row-text { font-size:12px; color:var(--text-secondary); line-height:1.6; }
+  .value-gap { margin-top:12px; padding:10px 14px; background:rgba(255,180,0,0.03); border:1px solid rgba(255,180,0,0.1); border-radius:7px; border-left:2px solid rgba(255,180,0,0.25); }
+  .value-gap-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,180,0,0.45); font-weight:600; margin-bottom:4px; }
+  .value-gap-text { font-size:12px; color:var(--text-secondary); line-height:1.6; }
+
+  /* ─── Décision réseau social ────────────────────────── */
+  .social-platform { display:flex; align-items:center; gap:12px; padding:14px 16px; background:rgba(216,185,130,0.05); border-radius:10px; border:1px solid rgba(216,185,130,0.15); margin-bottom:12px; }
+  .social-platform-badge { padding:5px 14px; border-radius:20px; background:rgba(216,185,130,0.12); border:1px solid rgba(216,185,130,0.28); font-size:13px; font-weight:600; color:#D8B982; letter-spacing:0.02em; white-space:nowrap; }
+  .social-platform-meta { flex:1; }
+  .social-format { font-size:11px; color:var(--text-muted); margin-bottom:3px; }
+  .social-angle { font-size:12px; color:var(--text-secondary); line-height:1.55; }
+  .social-first-post { padding:12px 14px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; margin-bottom:8px; }
+  .social-first-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:600; margin-bottom:5px; }
+  .social-first-text { font-size:12px; color:var(--text-secondary); line-height:1.65; }
+  .social-priority { display:inline-flex; padding:4px 11px; border-radius:20px; font-size:10px; background:rgba(120,200,140,0.06); border:1px solid rgba(120,200,140,0.14); color:rgba(120,200,140,0.7); }
+
+  /* ─── Plan monétisation immédiate ───────────────────── */
+  .mono-timeline { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .mono-block { padding:14px 16px; background:rgba(255,255,255,0.018); border-radius:8px; border:1px solid rgba(255,255,255,0.05); }
+  .mono-block.urgent { border-color:rgba(216,185,130,0.2); background:rgba(216,185,130,0.04); }
+  .mono-block-time { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:rgba(216,185,130,0.6); display:block; margin-bottom:5px; }
+  .mono-block.urgent .mono-block-time { color:rgba(216,185,130,0.85); }
+  .mono-block-text { font-size:12px; color:var(--text-secondary); line-height:1.65; }
+  .mono-offer { padding:10px 13px; background:rgba(216,185,130,0.05); border-radius:7px; border:1px solid rgba(216,185,130,0.12); margin-bottom:8px; }
+  .mono-offer-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:rgba(216,185,130,0.45); font-weight:600; margin-bottom:4px; }
+  .mono-offer-val { font-size:12px; color:#D8B982; font-weight:500; }
+  .mono-cta { padding:9px 13px; background:rgba(120,200,140,0.04); border:1px solid rgba(120,200,140,0.12); border-radius:7px; margin-bottom:8px; }
+  .mono-cta-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:rgba(120,200,140,0.45); font-weight:600; margin-bottom:4px; }
+  .mono-cta-val { font-size:12px; color:rgba(120,200,140,0.75); }
+  .mono-metric { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:20px; font-size:10px; background:rgba(255,255,255,0.025); border:1px solid var(--border-soft); color:var(--text-muted); }
+
+  /* ─── Trace de raisonnement (collapsible) ───────────── */
+  .trace-toggle { display:flex; align-items:center; justify-content:space-between; cursor:pointer; padding:2px 0; user-select:none; }
+  .trace-toggle-label { font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:7px; }
+  .trace-toggle-icon { font-size:13px; color:var(--text-disabled); transition:transform 0.2s; display:inline-block; }
+  .trace-toggle.open .trace-toggle-icon { transform:rotate(90deg); }
+  .trace-body { margin-top:14px; border-top:1px solid rgba(255,255,255,0.05); padding-top:14px; display:flex; flex-direction:column; gap:10px; }
+  .trace-body.hidden { display:none; }
+  .trace-section-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:600; margin-bottom:5px; }
+  .trace-items { display:flex; flex-wrap:wrap; gap:4px; }
+  .trace-item { padding:3px 8px; border-radius:20px; font-size:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); color:var(--text-muted); }
+  .trace-assumption { font-size:11px; color:var(--text-muted); padding:3px 0; line-height:1.55; display:flex; gap:6px; }
+  .trace-assumption::before { content:'~'; color:rgba(255,180,0,0.35); flex-shrink:0; }
+
+  @media (max-width:900px) {
+    .strat-layout { grid-template-columns:1fr; }
+    .ctx-panel { position:static; }
+    .createur-features { grid-template-columns:1fr 1fr; }
+    .exec-meta { grid-template-columns:1fr; }
+    .psycho-used-grid { grid-template-columns:1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-ghost btn-sm" onclick="resetContext()">Réinitialiser</button>
+{% endblock %}
+
+{% block content %}
+
+<!-- Pipeline breadcrumb -->
+<div class="pipeline-bar">
+  <div class="pipeline-step done">
+    <div class="pipeline-step-num">✓</div>
+    Psychologue
+  </div>
+  <span class="pipeline-arrow">›</span>
+  <div class="pipeline-step active">
+    <div class="pipeline-step-num">2</div>
+    Stratège
+  </div>
+  <span class="pipeline-arrow">›</span>
+  <div class="pipeline-step next">
+    <div class="pipeline-step-num">3</div>
+    Créateur
+  </div>
+</div>
+
+<div class="strat-layout">
+
+  <!-- ── Left: Context Builder ─────────────────────────── -->
+  <div class="ctx-panel">
+
+    <div class="ctx-header">
+      <div class="ctx-header-label">Context Builder</div>
+      <div class="ctx-header-title">Contexte business</div>
+      <div class="ctx-badge empty" id="ctx-badge">
+        <div class="ctx-dot"></div>
+        <span id="ctx-badge-text">Contextualisation requise</span>
+      </div>
+      <div class="ctx-progress">
+        <div class="ctx-progress-bar"><div class="ctx-progress-fill" id="ctx-bar" style="width:0%"></div></div>
+        <div class="ctx-progress-label" id="ctx-label">0 / 7 informations collectées</div>
+      </div>
+    </div>
+
+    <div class="chat-window">
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="chat-input" placeholder="Répondez ici…" rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="chat-send" id="chat-send" onclick="sendMessage()" title="Envoyer">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="ctx-fields-panel">
+      <div class="ctx-fields" id="ctx-fields"></div>
+    </div>
+
+    <div class="strat-cta">
+      <button class="strat-cta-btn locked" id="strat-launch-btn" onclick="launchStratege()" disabled>
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Générer la stratégie
+      </button>
+      <div class="strat-cta-hint" id="strat-cta-hint">Complétez le contexte pour débloquer le Stratège</div>
+    </div>
+
+  </div>
+
+  <!-- ── Right: States ─────────────────────────────────── -->
+  <div id="strat-right">
+
+    <!-- Psycho banner — shown when analysis is available -->
+    <div class="psycho-banner hidden" id="strat-psycho-banner">
+      <div class="psycho-banner-top">
+        <div class="psycho-banner-icon">🧠</div>
+        <div class="psycho-banner-meta">
+          <div class="psycho-banner-badge">
+            <span class="psycho-banner-badge-dot"></span>
+            Analyse disponible
+          </div>
+          <div class="psycho-banner-title">Analyse psychologique reçue</div>
+          <div class="psycho-banner-sub" id="psycho-banner-id-sub">Le Psychologue a transmis les insights d'audience. Importez-les pour enrichir votre stratégie.</div>
+        </div>
+      </div>
+      <div class="psycho-banner-preview hidden" id="psycho-banner-preview"></div>
+      <div class="psycho-banner-actions">
+        <button class="psycho-receive-btn" onclick="acceptPsychoAnalysis()">
+          <svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+          Recevoir l'analyse du Psychologue
+        </button>
+        <button class="psycho-skip-btn" onclick="skipPsychoImport()">Ignorer</button>
+      </div>
+    </div>
+
+    <!-- Mémoire stratégique : stratégies sauvegardées -->
+    <div class="strat-memory hidden" id="strat-memory">
+      <div class="strat-memory-head">
+        <div class="strat-memory-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+          Reprendre une stratégie
+        </div>
+        <div class="strat-memory-sub">Vos stratégies passées, accessibles à tout moment.</div>
+      </div>
+      <div class="strat-memory-list" id="strat-memory-list"></div>
+    </div>
+
+    <!-- Idle -->
+    <div class="strat-idle" id="strat-idle">
+      <div class="strat-idle-glyph">◈</div>
+      <div class="strat-idle-title">Le Stratège attend</div>
+      <div class="strat-idle-desc">Répondez aux questions à gauche pour construire votre contexte business. La stratégie se débloque dès que le contexte est complet.</div>
+    </div>
+
+    <!-- Analyze section -->
+    <div class="strat-analyze-section hidden" id="strat-analyze-section">
+      <div class="strat-analyze-header">
+        <div class="strat-analyze-dot"></div>
+        <div class="strat-analyze-title">Prêt à générer votre stratégie</div>
+      </div>
+      <div class="psycho-input" id="psycho-input-wrap">
+        <label>Résultats du Psychologue (optionnel)</label>
+        <textarea class="input" id="psycho-summary" placeholder="Collez ici les insights du Psychologue pour une stratégie plus précise…" rows="4"></textarea>
+      </div>
+      <button class="strat-generate-btn" onclick="submitStrategie()">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Générer la stratégie
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="hidden" id="strat-loading">
+      <div class="loading-overlay active" style="position:relative;min-height:300px;background:transparent;">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">Stratégie en cours…</div>
+        <div class="loading-steps">
+          <div class="loading-step active"><div class="loading-step-dot"></div>Lecture du contexte business</div>
+          <div class="loading-step" id="sl2"><div class="loading-step-dot"></div>Analyse des insights audience</div>
+          <div class="loading-step" id="sl3"><div class="loading-step-dot"></div>Formulation de la décision</div>
+          <div class="loading-step" id="sl4"><div class="loading-step-dot"></div>Plan d'action 90 jours</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="hidden strat-dashboard" id="strat-dashboard"></div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const REQUIRED_KEYS = ['user_role','activity','priority_offer','target_audience','business_model','current_results','main_objectives'];
+const FIELD_LABELS = {
+  user_role:        'Rôle',
+  activity:         'Activité',
+  priority_offer:   'Offre prioritaire',
+  target_audience:  'Cible',
+  business_model:   'Modèle économique',
+  current_results:  'Résultats actuels',
+  main_objectives:  'Objectif principal',
+  strategic_vision: 'Vision stratégique',
+  constraints:      'Contraintes',
+  resources:        'Ressources',
+};
+
+let ctx = {};
+let isReady = false;
+let isWaiting = false;
+let _strategyId      = null;
+let _analysisId      = null;
+let _linkedAnalysisId = null;
+let _linkedPsychoData = {};
+let _lastStratData    = {};
+let _pendingPsychoRaw = null;
+
+const FIRST_QUESTIONS = {
+  user_role:       'Quel est votre rôle dans ce projet ?',
+  activity:        'Quelle est votre activité principale ?',
+  priority_offer:  'Quelle offre voulez-vous développer ou vendre en priorité ?',
+  target_audience: "À qui s'adresse principalement votre offre ?",
+  business_model:  "Comment gagnez-vous de l'argent aujourd'hui ?",
+  current_results: 'Quels sont vos résultats actuels ?',
+  main_objectives: 'Quel est votre objectif prioritaire maintenant ?',
+};
+
+/* ── Restauration depuis l'historique ───────────────── */
+async function tryRestoreStratege() {
+  const params    = new URLSearchParams(window.location.search);
+  const restoreId = params.get('restore');
+  if (!restoreId) return false;
+
+  const raw = sessionStorage.getItem('gabriel_restore_stratege');
+  if (!raw) return false;
+  try {
+    const stored = JSON.parse(raw);
+    if (stored.analysis_id !== restoreId) return false;
+    sessionStorage.removeItem('gabriel_restore_stratege');
+    history.replaceState({}, '', '/stratege');
+
+    try { const r = await fetch('/business-context'); if (r.ok) ctx = await r.json(); } catch(e) {}
+    const filled = countFilled(ctx);
+    updateUI(ctx, filled);
+
+    const full = stored.full_result || {};
+    _linkedAnalysisId = restoreId;
+    _linkedPsychoData = {
+      brief: full.brief || {}, psychologie: full.psychologie || {},
+      emotions: full.emotions || {}, marketing: full.marketing || {},
+      kpis: full.kpis || {}, distribution: full.distribution || {},
+      personas: full.personas || [], aspirations: full.aspirations || {},
+    };
+
+    const brief = full.brief || {};
+    const briefLines = [];
+    if (brief.synthese)          briefLines.push('Audience : ' + brief.synthese);
+    if (brief.insight_cle)       briefLines.push('Insight clé : ' + brief.insight_cle);
+    if (brief.action_prioritaire)briefLines.push('Action : ' + brief.action_prioritaire);
+    _showPsychoLinked(briefLines.join('\n'), restoreId);
+
+    const strat = stored.strategie_result;
+    if (strat && typeof strat === 'object') {
+      const stratData = strat.strategie || strat;
+      if (stratData && stratData.decision_centrale) {
+        _analysisId = restoreId;
+        addMsg('agent', "Stratégie chargée depuis l'historique ✓\n\nVous pouvez relancer le Stratège ou consulter les résultats ci-dessous.");
+        renderStrat(stratData);
+        return true;
+      }
+    }
+
+    addMsg('agent', filled >= REQUIRED_KEYS.length
+      ? "Analyse du Psychologue chargée ✓\n\nContexte complet — cliquez sur « Générer la stratégie »."
+      : `Analyse du Psychologue chargée ✓\n\nComplétez votre contexte business.\n\n${nextLocalQ() || ''}`);
+    return true;
+  } catch(e) { return false; }
+}
+
+/* ── Init ───────────────────────────────────────────── */
+async function init() {
+  // Ouverture directe d'une stratégie sauvegardée (depuis Mes Stratégies)
+  const directStrat = new URLSearchParams(window.location.search).get('strategy');
+  if (directStrat) {
+    history.replaceState({}, '', '/stratege');
+    // Charger le contexte business en arrière-plan pour le panneau gauche
+    try { const r = await fetch('/business-context'); if (r.ok) ctx = await r.json(); } catch(e) {}
+    updateUI(ctx, countFilled(ctx));
+    openStrategy(directStrat);
+    return;
+  }
+
+  if (await tryRestoreStratege()) return;
+
+  // Check for incoming psycho analysis — show banner instead of auto-processing
+  const raw = sessionStorage.getItem('gabriel_for_stratege');
+  if (raw) {
+    try {
+      const stored = JSON.parse(raw);
+      if (stored.analysis_id) {
+        _pendingPsychoRaw = stored;
+        _showPsychoBanner(stored);
+      }
+    } catch(e) {}
+  }
+
+  try {
+    const r = await fetch('/business-context');
+    if (r.ok) ctx = await r.json();
+  } catch(e) {}
+
+  const filled = countFilled(ctx);
+  updateUI(ctx, filled);
+
+  if (!_pendingPsychoRaw) {
+    if (filled === 0) {
+      addMsg('agent', "Bonjour — je suis l'agent Context Builder de Gabriel.\n\nAvant de générer votre stratégie, j'ai besoin de comprendre votre contexte business.\n\nCommençons : Quel est votre rôle dans ce projet ?");
+    } else if (filled >= REQUIRED_KEYS.length) {
+      addMsg('agent', "Votre contexte business est complet. Vous pouvez lancer le Stratège directement, ou préciser certains points.");
+    } else {
+      const q = nextLocalQ();
+      addMsg('agent', `Contexte partiellement renseigné (${filled}/${REQUIRED_KEYS.length}). Continuons.\n\n${q}`);
+    }
+  } else {
+    addMsg('agent', "Analyse du Psychologue détectée ✓\n\nCliquez sur « Recevoir l'analyse » à droite pour importer les insights d'audience, puis complétez le contexte business ici.");
+  }
+
+  loadRecentStrategies();
+}
+
+/* ── Mémoire stratégique ────────────────────────────── */
+async function loadRecentStrategies() {
+  // Ne pas afficher si on est déjà sur une analyse liée ou un dashboard
+  if (_pendingPsychoRaw) return;
+  try {
+    const r = await fetch('/strategies');
+    if (!r.ok) return;
+    const list = await r.json();
+    if (!Array.isArray(list) || !list.length) return;
+    renderRecentStrategies(list.slice(0, 6));
+  } catch(e) {}
+}
+
+function renderRecentStrategies(list) {
+  const wrap = document.getElementById('strat-memory-list');
+  if (!wrap) return;
+  wrap.innerHTML = list.map(s => {
+    const date = _fmtDate(s.created_at);
+    const title = _esc(s.title || 'Stratégie');
+    return `<div class="strat-memory-item" onclick="openStrategy('${s.strategy_id}')">
+      <div class="strat-memory-item-body">
+        <div class="strat-memory-item-title">${title}</div>
+        <div class="strat-memory-item-date">${date}</div>
+      </div>
+      <button class="strat-memory-del" title="Supprimer" onclick="deleteStrategy(event,'${s.strategy_id}')">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </button>
+      <span class="strat-memory-item-arrow">→</span>
+    </div>`;
+  }).join('');
+  show('strat-memory');
+}
+
+async function openStrategy(strategyId) {
+  hide('strat-memory'); hide('strat-idle'); hide('strat-analyze-section');
+  show('strat-loading');
+  try {
+    const r = await fetch('/strategies/' + strategyId);
+    const d = await r.json();
+    hide('strat-loading');
+    if (!d.success || !d.strategy_result) { showStratErr('Stratégie introuvable.'); return; }
+    _strategyId = strategyId;
+    _analysisId = d.analysis_id || null;
+    _lastStratData = d.strategy_result;
+    renderStrat(d.strategy_result);
+  } catch(e) {
+    hide('strat-loading'); showStratErr('Erreur de chargement.');
+  }
+}
+
+async function deleteStrategy(ev, strategyId) {
+  ev.stopPropagation();
+  if (!confirm('Supprimer cette stratégie de votre mémoire ?')) return;
+  try { await fetch('/strategies/' + strategyId, {method:'DELETE'}); } catch(e) {}
+  loadRecentStrategies_refresh();
+}
+
+async function loadRecentStrategies_refresh() {
+  try {
+    const r = await fetch('/strategies');
+    const list = r.ok ? await r.json() : [];
+    if (Array.isArray(list) && list.length) {
+      renderRecentStrategies(list.slice(0, 6));
+    } else {
+      hide('strat-memory');
+    }
+  } catch(e) {}
+}
+
+function _fmtDate(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('fr-FR', {day:'numeric', month:'short', year:'numeric'}) +
+           ' · ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  } catch(e) { return ''; }
+}
+
+/* ── Psycho banner helpers ──────────────────────────── */
+function _showPsychoBanner(stored) {
+  hide('strat-idle');
+  const banner = document.getElementById('strat-psycho-banner');
+  banner.classList.remove('hidden');
+
+  const sub = document.getElementById('psycho-banner-id-sub');
+  if (stored.analysis_id && sub) {
+    sub.textContent = `ID ${stored.analysis_id} — insights d'audience prêts à enrichir votre stratégie.`;
+  }
+
+  const brief = (stored.psycho_brief || '').trim();
+  if (brief) {
+    const prev = document.getElementById('psycho-banner-preview');
+    prev.textContent = brief;
+    prev.classList.remove('hidden');
+  }
+}
+
+function acceptPsychoAnalysis() {
+  if (!_pendingPsychoRaw) return;
+  const stored = _pendingPsychoRaw;
+  _pendingPsychoRaw = null;
+  sessionStorage.removeItem('gabriel_for_stratege');
+
+  _linkedAnalysisId = stored.analysis_id || null;
+  _linkedPsychoData = stored.psycho_data || {};
+
+  hide('strat-psycho-banner');
+  _showPsychoLinked(stored.psycho_brief || '', stored.analysis_id);
+  showAnalyzeSection();
+
+  addMsg('agent', "Analyse du Psychologue importée ✓\n\nLes insights d'audience sont transmis au Stratège. Cliquez sur « Générer la stratégie » pour lancer l'analyse.");
+}
+
+function skipPsychoImport() {
+  _pendingPsychoRaw = null;
+  sessionStorage.removeItem('gabriel_for_stratege');
+  hide('strat-psycho-banner');
+  show('strat-idle');
+  addMsg('agent', "Analyse ignorée. Quel est votre rôle dans ce projet ?");
+}
+
+function _showPsychoLinked(brief, aid) {
+  const idle = document.getElementById('strat-idle');
+  if (!idle) return;
+  idle.innerHTML = `
+    <div style="width:100%;text-align:left;">
+      <div style="display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;
+        background:rgba(216,185,130,0.07);border:1px solid rgba(216,185,130,0.2);
+        font-size:10px;font-weight:500;letter-spacing:0.06em;color:rgba(216,185,130,0.85);margin-bottom:14px;">
+        <span style="width:5px;height:5px;border-radius:50%;background:rgba(120,200,140,0.9);display:inline-block;"></span>
+        Analyse Psychologue liée · ${aid}
+      </div>
+      <div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:10px;">Insights chargés</div>
+      <div style="font-size:11px;color:var(--text-secondary);line-height:1.8;padding:12px 14px;
+        background:rgba(216,185,130,0.03);border:1px solid rgba(216,185,130,0.1);border-radius:8px;
+        white-space:pre-line;">${brief || '—'}</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:10px;">
+        Complétez votre contexte business à gauche pour générer la stratégie.
+      </div>
+    </div>`;
+}
+
+function showPsychoLink(brief, aid) { _showPsychoLinked(brief, aid); }
+
+function countFilled(c) {
+  return REQUIRED_KEYS.filter(k => (c[k]||'').trim()).length;
+}
+
+function nextLocalQ() {
+  for (const k of REQUIRED_KEYS) {
+    if (!(ctx[k]||'').trim()) return FIRST_QUESTIONS[k] || '';
+  }
+  return '';
+}
+
+/* ── Chat ───────────────────────────────────────────── */
+function addMsg(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  const el = document.createElement('div');
+  el.className = `msg ${role}`;
+  el.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${now}</div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('chat-messages');
+  const el = document.createElement('div');
+  el.className = 'msg agent'; el.id = 'typing';
+  el.innerHTML = `<div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(el); msgs.scrollTop = msgs.scrollHeight;
+}
+function hideTyping() { document.getElementById('typing')?.remove(); }
+
+async function sendMessage() {
+  if (isWaiting) return;
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  addMsg('user', msg);
+  input.value = ''; input.style.height = 'auto';
+  setWaiting(true); showTyping();
+
+  try {
+    const r = await fetch('/context-chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({message: msg, current_context: ctx})
+    });
+    const d = await r.json();
+    hideTyping();
+
+    if (d.error) {
+      addMsg('agent', "Une erreur est survenue. Réessayez dans un instant.");
+    } else {
+      ctx = d.updated_context || ctx;
+      updateUI(ctx, d.filled_count, d.completion_score, d.is_ready);
+      if (d.is_ready) {
+        addMsg('agent', "Parfait — contexte complet. Cliquez sur « Générer la stratégie ».");
+      } else if (d.next_question) {
+        addMsg('agent', d.next_question);
+      }
+    }
+  } catch(e) {
+    hideTyping(); addMsg('agent', "Erreur de connexion. Réessayez.");
+  }
+  setWaiting(false);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+}
+function setWaiting(v) {
+  isWaiting = v;
+  document.getElementById('chat-send').disabled = v;
+  document.getElementById('chat-input').disabled = v;
+}
+
+/* ── UI update ──────────────────────────────────────── */
+function updateUI(context, filled, score, ready) {
+  const total = REQUIRED_KEYS.length;
+  filled = filled !== undefined ? filled : countFilled(context);
+  score  = score  !== undefined ? score  : filled / total;
+  ready  = ready  !== undefined ? ready  : (filled >= total);
+  isReady = ready;
+
+  const pct = Math.round((filled / total) * 100);
+  document.getElementById('ctx-bar').style.width = pct + '%';
+  document.getElementById('ctx-label').textContent = `${filled} / ${total} informations collectées`;
+
+  const badge = document.getElementById('ctx-badge');
+  badge.className = 'ctx-badge ' + (ready ? 'ready' : filled > 0 ? 'partial' : 'empty');
+  document.getElementById('ctx-badge-text').textContent =
+    ready ? 'Contexte prêt — le Stratège peut travailler' :
+    filled > 0 ? `Contexte incomplet — ${filled}/${total}` : 'Contextualisation requise';
+
+  renderFields(context);
+
+  const btn  = document.getElementById('strat-launch-btn');
+  const hint = document.getElementById('strat-cta-hint');
+  if (ready) {
+    btn.className = 'strat-cta-btn ready'; btn.disabled = false;
+    hint.textContent = 'Contexte complet — prêt à générer la stratégie';
+    showAnalyzeSection();
+  } else {
+    btn.className = 'strat-cta-btn locked'; btn.disabled = true;
+    const miss = total - filled;
+    hint.textContent = `${miss} information${miss>1?'s':''} manquante${miss>1?'s':''}`;
+  }
+}
+
+function renderFields(context) {
+  document.getElementById('ctx-fields').innerHTML =
+    Object.entries(FIELD_LABELS).map(([key, label]) => {
+      const val = (context[key]||'').trim();
+      return `<div class="ctx-field ${val?'filled':''}">
+        <div class="ctx-field-icon ${val?'ok':'miss'}">${val?'✓':'·'}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="ctx-field-label">${label}</div>
+          ${val?`<div class="ctx-field-val">${val}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+/* ── Analyze section ────────────────────────────────── */
+function showAnalyzeSection() {
+  hide('strat-idle'); hide('strat-psycho-banner'); hide('strat-memory');
+  show('strat-analyze-section');
+  const wrap = document.getElementById('psycho-input-wrap');
+  if (wrap && _linkedAnalysisId) {
+    wrap.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;
+        background:rgba(120,200,140,0.05);border:1px solid rgba(120,200,140,0.2);border-radius:var(--radius-md);">
+        <span style="width:7px;height:7px;border-radius:50%;background:rgba(120,200,140,0.85);flex-shrink:0;"></span>
+        <div>
+          <div style="font-size:11px;font-weight:500;color:rgba(120,200,140,0.85);">Analyse Psychologue liée</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:1px;">ID ${_linkedAnalysisId} — insights transmis automatiquement.</div>
+        </div>
+      </div>`;
+  }
+}
+
+function launchStratege() {
+  if (!isReady && !_linkedAnalysisId) return;
+  showAnalyzeSection();
+  document.getElementById('strat-analyze-section').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function submitStrategie() {
+  const psychoSum = (document.getElementById('psycho-summary')?.value||'').trim();
+  hide('strat-analyze-section'); hide('strat-dashboard'); hide('strat-memory');
+  show('strat-loading');
+  const timer = animSteps();
+
+  const payload = _linkedAnalysisId
+    ? {analysis_id: _linkedAnalysisId, brain_profile: ctx, psycho_data: _linkedPsychoData}
+    : {context: ctx, psycho_summary: psychoSum};
+
+  try {
+    const r = await fetch('/strategize', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const raw = await r.json();
+    clearInterval(timer); hide('strat-loading');
+
+    if (raw.error) { showStratErr(raw.error); return; }
+
+    const stratData = raw.data?.strategie || raw;
+    _strategyId = raw.strategy_id || null;
+    _analysisId = raw.analysis_id || _linkedAnalysisId || null;
+    renderStrat(stratData);
+    if (typeof GabrielSurvey !== 'undefined') {
+      GabrielSurvey.trigger({
+        eventType:  'after_strategy',
+        targetType: 'strategy',
+        targetId:   _strategyId || _analysisId || '',
+        agent:      'stratege',
+        question:   'Cette décision stratégique vous aide-t-elle à savoir quoi faire maintenant ?',
+        delay:      5000,
+      });
+    }
+  } catch(e) {
+    clearInterval(timer); hide('strat-loading'); showStratErr('Erreur de connexion.');
+  }
+}
+
+function animSteps() {
+  const ids = ['sl2','sl3','sl4']; let i = 0;
+  return setInterval(() => {
+    if (i < ids.length) { document.getElementById(ids[i])?.classList.add('active'); i++; }
+  }, 2200);
+}
+
+function showStratErr(msg) {
+  show('strat-analyze-section');
+  const dash = document.getElementById('strat-dashboard');
+  dash.innerHTML = `<div class="alert alert-error">${msg}</div>`;
+  show('strat-dashboard');
+}
+
+function renderStrat(d) {
+  _lastStratData = d;
+  const dash = document.getElementById('strat-dashboard');
+  dash.innerHTML = '';
+
+  const add = el => dash.appendChild(el);
+  const div = (cls, html) => { const e = document.createElement('div'); e.className = cls; e.innerHTML = html; return e; };
+  const card = (html) => div('card', html);
+  const SVG = {
+    lightbulb: `<path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26A7 7 0 0 1 12 2z"/>`,
+    diamond:   `<polygon points="12 2 19 9 12 16 5 9"/><line x1="12" y1="16" x2="12" y2="22"/>`,
+    arrow:     `<line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>`,
+    package:   `<line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>`,
+    dollar:    `<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>`,
+    edit:      `<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>`,
+    calendar:  `<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+    alert:     `<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+    chart:     `<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>`,
+    help:      `<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+  };
+  const secHead = (key, label) =>
+    `<div class="dash-sec-head">
+       <div class="dash-sec-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${SVG[key]||''}</svg></div>
+       <div class="dash-sec-title">${label}</div>
+     </div>`;
+
+  // ── 0. Action bar ──────────────────────────────────────
+  hide('strat-analyze-section'); hide('strat-memory'); hide('strat-idle');
+  const bar = document.createElement('div');
+  bar.className = 'strat-action-bar';
+  bar.innerHTML = `
+    <button class="regen-btn" onclick="regenStrategie()">
+      <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.45"/></svg>
+      Régénérer
+    </button>
+    <button class="export-btn" id="export-pdf-btn" onclick="exportPDF()">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Exporter PDF
+    </button>`;
+  add(bar);
+
+  // ── NEW-A. Executive Decision (héro) ──────────────────
+  const ed = d.executive_decision;
+  if (ed && typeof ed === 'object' && ed.one_sentence_decision) {
+    const conf = typeof ed.confidence_score === 'number' ? Math.round(ed.confidence_score * 100) : null;
+    let html = `<div class="exec-hero">
+      <div class="exec-hero-badge">⚡ Décision Prioritaire</div>
+      <div class="exec-question">Qu'est-ce que je dois faire maintenant ?</div>
+      <div class="exec-decision">${_esc(ed.one_sentence_decision)}</div>`;
+    if (ed.what_to_do_this_week) {
+      html += `<div class="exec-week"><div class="exec-week-label">Cette semaine</div><div class="exec-week-text">${_esc(ed.what_to_do_this_week)}</div></div>`;
+    }
+    if (ed.why_now || ed.expected_business_impact) {
+      html += `<div class="exec-meta">`;
+      if (ed.why_now)                  html += `<div class="exec-meta-item"><div class="exec-meta-label">Pourquoi maintenant</div><div class="exec-meta-val">${_esc(ed.why_now)}</div></div>`;
+      if (ed.expected_business_impact) html += `<div class="exec-meta-item"><div class="exec-meta-label">Impact attendu</div><div class="exec-meta-val">${_esc(ed.expected_business_impact)}</div></div>`;
+      html += `</div>`;
+    }
+    if (conf !== null) html += `<div class="exec-conf">Confiance ${conf}%</div>`;
+    html += `</div>`;
+    add(div('', html));
+  }
+
+  // ── NEW-B. Psychologie audience active ─────────────────
+  const ap = d.audience_psychology_used;
+  if (ap && typeof ap === 'object') {
+    const fields = [
+      ['Problème principal', ap.main_problem],
+      ['Désir principal',    ap.main_desire],
+      ['Peur principale',    ap.main_fear],
+      ['Frustration clé',    ap.main_frustration],
+      ['Objection principale', ap.main_objection],
+      ['Valeurs recherchées', ap.values_sought],
+    ].filter(([, v]) => v);
+    if (fields.length) {
+      let html = secHead('lightbulb', 'Psychologie audience — signaux actifs');
+      html += `<div class="psycho-used-grid">`;
+      fields.forEach(([lbl, val]) => {
+        html += `<div class="psycho-used-item"><div class="psycho-used-label">${lbl}</div><div class="psycho-used-val">${_esc(val)}</div></div>`;
+      });
+      html += `</div>`;
+      if (Array.isArray(ap.decision_drivers) && ap.decision_drivers.length) {
+        html += `<div class="psycho-used-drivers">`;
+        ap.decision_drivers.forEach(dd => { html += `<span class="psycho-used-driver">${_esc(dd)}</span>`; });
+        html += `</div>`;
+      }
+      add(card(html));
+    }
+  }
+
+  // ── NEW-C. Valeur à créer ──────────────────────────────
+  const vtc = d.value_to_create;
+  if (vtc && typeof vtc === 'object' && (vtc.core_value || vtc.why_this_value_matters)) {
+    let html = secHead('diamond', 'Valeur à créer');
+    if (vtc.core_value) html += `<div class="value-core">${_esc(vtc.core_value)}</div>`;
+    html += `<div class="value-rows">`;
+    if (vtc.why_this_value_matters)            html += `<div class="value-row"><div class="value-row-dot"></div><div class="value-row-body"><div class="value-row-label">Pourquoi cette valeur compte</div><div class="value-row-text">${_esc(vtc.why_this_value_matters)}</div></div></div>`;
+    if (vtc.what_the_audience_is_really_buying) html += `<div class="value-row"><div class="value-row-dot"></div><div class="value-row-body"><div class="value-row-label">Ce que l'audience achète vraiment</div><div class="value-row-text">${_esc(vtc.what_the_audience_is_really_buying)}</div></div></div>`;
+    html += `</div>`;
+    if (vtc.value_gap_in_current_business) {
+      html += `<div class="value-gap"><div class="value-gap-label">Écart à combler</div><div class="value-gap-text">${_esc(vtc.value_gap_in_current_business)}</div></div>`;
+    }
+    add(card(html));
+  }
+
+  // ── NEW-D. Décision réseau social ─────────────────────
+  const sm = d.social_media_decision;
+  if (sm && typeof sm === 'object' && sm.best_platform) {
+    let html = secHead('edit', 'Décision réseau social');
+    html += `<div class="social-platform">
+      <div class="social-platform-badge">${_esc(sm.best_platform)}</div>
+      <div class="social-platform-meta">
+        ${sm.best_content_format ? `<div class="social-format">${_esc(sm.best_content_format)}</div>` : ''}
+        ${sm.main_content_angle  ? `<div class="social-angle">${_esc(sm.main_content_angle)}</div>`  : ''}
+      </div>
+    </div>`;
+    if (sm.first_post_or_video_to_create) {
+      html += `<div class="social-first-post"><div class="social-first-label">Premier contenu à créer</div><div class="social-first-text">${_esc(sm.first_post_or_video_to_create)}</div></div>`;
+    }
+    if (sm.posting_priority_this_week) {
+      html += `<span class="social-priority">Priorité cette semaine : ${_esc(sm.posting_priority_this_week)}</span>`;
+    }
+    add(card(html));
+  }
+
+  // ── NEW-E. Plan monétisation immédiate ────────────────
+  const imon = d.immediate_monetization_plan;
+  if (imon && typeof imon === 'object' && (imon.next_24h_action || imon.next_7_days_action)) {
+    let html = secHead('dollar', 'Plan de monétisation immédiate');
+    html += `<div class="mono-timeline">`;
+    if (imon.next_24h_action)    html += `<div class="mono-block urgent"><span class="mono-block-time">24 h</span><div class="mono-block-text">${_esc(imon.next_24h_action)}</div></div>`;
+    if (imon.next_7_days_action) html += `<div class="mono-block"><span class="mono-block-time">7 jours</span><div class="mono-block-text">${_esc(imon.next_7_days_action)}</div></div>`;
+    html += `</div>`;
+    if (imon.first_offer_to_test)    html += `<div class="mono-offer"><div class="mono-offer-label">Offre à tester</div><div class="mono-offer-val">${_esc(imon.first_offer_to_test)}</div></div>`;
+    if (imon.first_call_to_action)   html += `<div class="mono-cta"><div class="mono-cta-label">Call to Action</div><div class="mono-cta-val">${_esc(imon.first_call_to_action)}</div></div>`;
+    if (imon.metric_to_watch)        html += `<div class="mono-metric">Métrique clé : ${_esc(imon.metric_to_watch)}</div>`;
+    add(card(html));
+  }
+
+  // ── 1. Décision centrale ───────────────────────────────
+  if (d.decision_centrale) {
+    add(div('decision-card', `
+      <div class="decision-label">Décision centrale</div>
+      <div class="decision-text">${_esc(d.decision_centrale)}</div>`));
+  }
+
+  // ── 2. Objectif reformulé ──────────────────────────────
+  if (d.objectif_utilisateur_reformule) {
+    add(div('obj-card', `
+      <div class="obj-label">Objectif — tel que compris</div>
+      <div class="obj-text">${_esc(d.objectif_utilisateur_reformule)}</div>`));
+  }
+
+  // ── 3. Message central + angle ─────────────────────────
+  if (d.message_central || d.angle_positionnel) {
+    let html = secHead('lightbulb', 'Positionnement & message');
+    if (d.angle_positionnel) html += `
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--text-muted);font-weight:600;margin-bottom:3px;">Angle positionnel</div>
+      <p style="font-size:12px;color:var(--text-secondary);line-height:1.7;margin:0 0 12px;">${_esc(d.angle_positionnel)}</p>`;
+    if (d.message_central) html += `
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:rgba(216,185,130,0.45);font-weight:600;margin-bottom:5px;">Message central</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.6;padding:10px 14px;background:rgba(216,185,130,0.05);border-left:2px solid rgba(216,185,130,0.4);border-radius:0 6px 6px 0;">${_esc(d.message_central)}</div>`;
+    add(card(html));
+  }
+
+  // ── 4. Opportunités ────────────────────────────────────
+  if (Array.isArray(d.opportunites_marche) && d.opportunites_marche.length) {
+    let html = secHead('diamond', 'Opportunités de marché détectées');
+    html += '<div class="opp-list">';
+    d.opportunites_marche.forEach((o) => {
+      if (!o || typeof o !== 'object') return;
+      html += `
+        <div class="opp-card">
+          <div class="opp-flow">
+            <div class="opp-signal-box">
+              <div class="opp-signal-label">Signal détecté</div>
+              <div class="opp-signal-text">${_esc(o.signal || '')}</div>
+            </div>
+            <div class="opp-arrow">→</div>
+            <div class="opp-decision-box">
+              <div class="opp-decision-label">Décision recommandée</div>
+              <div class="opp-decision-text">${_esc(o.recommandation || '')}</div>
+            </div>
+          </div>
+          <div class="opp-action-row">
+            <div class="opp-action"><div class="opp-sub-label">Action concrète</div><div class="opp-sub-text">${_esc(o.action_concrete || '')}</div></div>
+            <div class="opp-action"><div class="opp-sub-label">Mesure de succès</div><div class="opp-sub-text">${_esc(o.mesure_succes || '')}</div></div>
+          </div>
+          ${o.lecture_strategique ? `<div style="margin-top:8px;padding:6px 9px;background:rgba(255,255,255,0.012);border-radius:4px;font-size:10px;color:var(--text-muted);line-height:1.6;">Lecture : ${_esc(o.lecture_strategique)}</div>` : ''}
+        </div>`;
+    });
+    html += '</div>';
+    add(card(html));
+  }
+
+  // ── 5. Recommandations ─────────────────────────────────
+  if (Array.isArray(d.recommandations_prioritaires) && d.recommandations_prioritaires.length) {
+    let html = secHead('arrow', 'Recommandations prioritaires');
+    html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+    d.recommandations_prioritaires.forEach((r, i) => {
+      const action = typeof r === 'string' ? r : (r.action || '');
+      const signal = typeof r === 'object' ? (r.signal_source || '') : '';
+      const impact = typeof r === 'object' ? (r.impact || '') : '';
+      const delai  = typeof r === 'object' ? (r.delai || '') : '';
+      html += `
+        <div style="display:flex;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.018);border-radius:6px;border:1px solid var(--border-soft);">
+          <div style="width:18px;height:18px;border-radius:50%;background:rgba(216,185,130,0.1);border:1px solid rgba(216,185,130,0.2);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:rgba(216,185,130,0.7);flex-shrink:0;margin-top:1px;">${i+1}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;color:var(--text-primary);line-height:1.6;margin-bottom:4px;">${_esc(action)}</div>
+            ${signal ? `<div style="font-size:10px;color:var(--text-muted);font-style:italic;">Signal : ${_esc(signal)}</div>` : ''}
+            ${(impact||delai) ? `<div style="display:flex;gap:6px;margin-top:5px;">${impact?`<span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(120,200,140,0.06);border:1px solid rgba(120,200,140,0.12);color:rgba(120,200,140,0.65);">${_esc(impact)}</span>`:''}${delai?`<span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(216,185,130,0.05);border:1px solid rgba(216,185,130,0.15);color:rgba(216,185,130,0.6);">${_esc(delai)}</span>`:''}</div>` : ''}
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+    add(card(html));
+  }
+
+  // ── 6. Offre recommandée ───────────────────────────────
+  const offre = d.offre_recommandee;
+  if (offre && typeof offre === 'object') {
+    const livrables = Array.isArray(offre.livrables) ? offre.livrables : [];
+    const canaux    = Array.isArray(offre.canaux_acquisition) ? offre.canaux_acquisition : [];
+    const objecs    = Array.isArray(offre.objections_a_traiter) ? offre.objections_a_traiter : [];
+    let html = secHead('package', 'Offre recommandée');
+    html += `<div class="offer-card">`;
+    if (offre.nom)          html += `<div class="offer-name">${_esc(offre.nom)}</div>`;
+    if (offre.cible_precise)html += `<div class="offer-cible">→ ${_esc(offre.cible_precise)}</div>`;
+    html += `<div class="offer-grid">`;
+    if (offre.probleme_traite)  html += `<div class="offer-block"><div class="offer-block-label">Problème traité</div><div class="offer-block-val">${_esc(offre.probleme_traite)}</div></div>`;
+    if (offre.promesse)         html += `<div class="offer-block"><div class="offer-block-label">Promesse</div><div class="offer-block-val">${_esc(offre.promesse)}</div></div>`;
+    if (offre.resultat_attendu) html += `<div class="offer-block"><div class="offer-block-label">Résultat attendu</div><div class="offer-block-val">${_esc(offre.resultat_attendu)}</div></div>`;
+    if (offre.format)           html += `<div class="offer-block"><div class="offer-block-label">Format</div><div class="offer-block-val">${_esc(offre.format)}</div></div>`;
+    if (livrables.length)       html += `<div class="offer-block offer-block-full"><div class="offer-block-label">Livrables</div><div class="offer-block-val">${livrables.map(l=>`• ${_esc(l)}`).join('<br>')}</div></div>`;
+    if (offre.message_de_vente) html += `<div class="offer-block offer-block-full"><div class="offer-block-label">Message de vente</div><div class="offer-block-val" style="font-style:italic;">"${_esc(offre.message_de_vente)}"</div></div>`;
+    html += `</div>`;
+    if (offre.prix_recommande) {
+      html += `<div class="offer-price-row">
+        <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:rgba(216,185,130,0.4);font-weight:600;margin-bottom:3px;">Prix recommandé</div><div class="offer-price">${_esc(offre.prix_recommande)}</div></div>
+        ${offre.justification_prix?`<div class="offer-price-just">${_esc(offre.justification_prix)}</div>`:''}
+      </div>`;
+    }
+    if (canaux.length || objecs.length) {
+      html += `<div class="offer-tags">`;
+      canaux.forEach(c => html += `<span class="offer-tag">${_esc(c)}</span>`);
+      objecs.forEach(o => html += `<span class="offer-tag objection">⚠ ${_esc(o)}</span>`);
+      html += `</div>`;
+    }
+    html += `</div>`;
+    add(card(html));
+  }
+
+  // ── 7. Pricing ─────────────────────────────────────────
+  const pricing = d.pricing_logic;
+  if (pricing && typeof pricing === 'object') {
+    let html = secHead('dollar', 'Logique de prix');
+    html += `<div class="price-card">`;
+    if (pricing.fourchette) {
+      html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--text-muted);font-weight:600;margin-bottom:3px;">Fourchette</div><div style="font-size:15px;font-weight:600;color:var(--text-primary);">${_esc(pricing.fourchette)}</div></div>
+        ${pricing.positionnement?`<span class="price-position-badge">${_esc(pricing.positionnement)}</span>`:''}
+      </div>`;
+    }
+    html += `<div class="price-grid">`;
+    if (pricing.valeur_percue)     html += `<div class="price-item"><div class="price-val">${_esc(pricing.valeur_percue)}</div><div class="price-lbl">Valeur perçue</div></div>`;
+    if (pricing.niveau_douleur)    html += `<div class="price-item"><div class="price-val">${_esc(pricing.niveau_douleur)}</div><div class="price-lbl">Douleur marché</div></div>`;
+    if (pricing.capacite_paiement) html += `<div class="price-item"><div class="price-val">${_esc(pricing.capacite_paiement)}</div><div class="price-lbl">Budget cible</div></div>`;
+    html += `</div>`;
+    if (pricing.justification) html += `<div style="margin-top:10px;font-size:11px;color:var(--text-muted);line-height:1.65;border-top:1px solid var(--border-soft);padding-top:10px;">${_esc(pricing.justification)}</div>`;
+    html += `</div>`;
+    add(card(html));
+  }
+
+  // ── 8. Stratégie contenu ───────────────────────────────
+  const contenu = d.strategie_contenu;
+  if (contenu && typeof contenu === 'object') {
+    let html = secHead('edit', 'Stratégie de contenu');
+    [['Format prioritaire', contenu.format_prioritaire],['Fréquence', contenu.frequence],['Tonalité', contenu.tonalite]].forEach(([l,v]) => {
+      if (v) html += `<div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);font-weight:600;min-width:130px;padding-top:2px;">${l}</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.65;">${_esc(v)}</div>
+      </div>`;
+    });
+    const eviter = Array.isArray(contenu.sujets_a_eviter) ? contenu.sujets_a_eviter : [];
+    if (eviter.length) html += `<div style="margin-top:10px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:600;margin-bottom:5px;">À éviter</div>${eviter.map(s=>`<span style="display:inline-flex;padding:2px 8px;margin:2px;border-radius:20px;border:1px solid rgba(255,100,100,0.12);font-size:10px;color:rgba(255,130,130,0.55);">✕ ${_esc(s)}</span>`).join('')}</div>`;
+    add(card(html));
+  }
+
+  // ── 9. Plan 90 jours ───────────────────────────────────
+  const plan = d.plan_90_jours;
+  if (plan && typeof plan === 'object') {
+    const phases = [
+      {key:'phase_1',label:'Phase 1',sub:'Clarifier'},
+      {key:'phase_2',label:'Phase 2',sub:'Tester'},
+      {key:'phase_3',label:'Phase 3',sub:'Scaler'},
+    ];
+    let html = secHead('calendar', "Plan d'action 90 jours");
+    html += `<div class="plan-tabs">`;
+    phases.forEach((p, i) => html += `<button class="plan-tab ${i===0?'active':''}" onclick="switchPhase(${i})">${p.label} — ${p.sub}</button>`);
+    html += `</div>`;
+    phases.forEach((p, i) => {
+      const ph = plan[p.key] || {};
+      const objList = Array.isArray(ph.objectifs)      ? ph.objectifs      : [];
+      const taches  = Array.isArray(ph.taches)         ? ph.taches         : [];
+      const livr    = Array.isArray(ph.livrables)      ? ph.livrables      : [];
+      const kpis    = Array.isArray(ph.kpis)           ? ph.kpis           : [];
+      const decs    = Array.isArray(ph.decisions_cles) ? ph.decisions_cles : [];
+      html += `<div class="plan-phase ${i===0?'active':''}" id="plan-phase-${i}">
+        <div class="plan-phase-header">
+          <div class="plan-phase-period">${_esc(ph.periode || '')}</div>
+          <div class="plan-phase-title">${_esc(ph.titre || p.label)}</div>
+        </div>`;
+      if (objList.length) html += `<div class="plan-section-title">Objectifs</div><div class="plan-items">${objList.map(o=>`<div class="plan-item">${_esc(o)}</div>`).join('')}</div>`;
+      if (taches.length)  html += `<div class="plan-section-title">Tâches</div><div class="plan-items">${taches.map(t=>`<div class="plan-item">${_esc(t)}</div>`).join('')}</div>`;
+      if (livr.length)    html += `<div class="plan-section-title">Livrables</div><div class="plan-items">${livr.map(l=>`<div class="plan-item">${_esc(l)}</div>`).join('')}</div>`;
+      if (kpis.length)    html += `<div class="plan-section-title">KPIs</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;">${kpis.map(k=>`<span class="plan-kpi">${_esc(k)}</span>`).join('')}</div>`;
+      if (decs.length)    html += `<div class="plan-section-title">Décisions clés</div>${decs.map(dec=>`<div class="plan-decision">${_esc(dec)}</div>`).join('')}`;
+      html += `</div>`;
+    });
+    add(card(html));
+  }
+
+  // ── 10. Risques ────────────────────────────────────────
+  if (Array.isArray(d.risques) && d.risques.length) {
+    let html = secHead('alert', 'Risques à surveiller');
+    html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+    d.risques.forEach(r => {
+      const risque = typeof r === 'string' ? r : (r.risque || '');
+      const mit    = typeof r === 'object' ? (r.mitigation || '') : '';
+      html += `<div style="padding:10px 12px;border-radius:6px;background:rgba(255,100,100,0.03);border:1px solid rgba(255,100,100,0.1);">
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:${mit?'5':'0'}px;">${_esc(risque)}</div>
+        ${mit?`<div style="font-size:10px;color:var(--text-muted);font-style:italic;">→ ${_esc(mit)}</div>`:''}
+      </div>`;
+    });
+    html += '</div>';
+    add(card(html));
+  }
+
+  // ── 11. Indicateurs de succès ──────────────────────────
+  if (Array.isArray(d.indicateurs_succes) && d.indicateurs_succes.length) {
+    let html = secHead('chart', 'Indicateurs de succès');
+    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;">${d.indicateurs_succes.map(k=>`<span class="plan-kpi" style="font-size:11px;">${_esc(k)}</span>`).join('')}</div>`;
+    add(card(html));
+  }
+
+  // ── 12. Questions à clarifier ──────────────────────────
+  if (Array.isArray(d.questions_a_clarifier) && d.questions_a_clarifier.length) {
+    let html = secHead('help', 'Points à clarifier');
+    html += '<div class="clarify-card">';
+    d.questions_a_clarifier.forEach(q => { html += `<div class="clarify-item">${_esc(q)}</div>`; });
+    html += '</div>';
+    add(card(html));
+  }
+
+  // ── NEW-F. Trace de raisonnement (collapsible) ────────
+  const rt = d.reasoning_trace;
+  if (rt && typeof rt === 'object') {
+    const signals   = Array.isArray(rt.signals_used)             && rt.signals_used.length;
+    const patterns  = Array.isArray(rt.strategic_patterns_used)  && rt.strategic_patterns_used.length;
+    const assmpts   = Array.isArray(rt.assumptions)              && rt.assumptions.length;
+    if (signals || patterns || assmpts) {
+      const tId = 'trace-' + Math.random().toString(36).slice(2, 8);
+      let html = `
+        <div class="trace-toggle" onclick="this.classList.toggle('open');const b=document.getElementById('${tId}');b.classList.toggle('hidden');">
+          <div class="trace-toggle-label">
+            <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--text-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Signaux et raisonnement utilisés
+          </div>
+          <span class="trace-toggle-icon">›</span>
+        </div>
+        <div class="trace-body hidden" id="${tId}">`;
+      if (signals) {
+        html += `<div><div class="trace-section-label">Signaux audience</div><div class="trace-items">${rt.signals_used.map(s=>`<span class="trace-item">${_esc(s)}</span>`).join('')}</div></div>`;
+      }
+      if (patterns) {
+        html += `<div><div class="trace-section-label">Patterns stratégiques</div><div class="trace-items">${rt.strategic_patterns_used.map(s=>`<span class="trace-item">${_esc(s)}</span>`).join('')}</div></div>`;
+      }
+      if (assmpts) {
+        html += `<div><div class="trace-section-label">Hypothèses</div>${rt.assumptions.map(a=>`<div class="trace-assumption">${_esc(a)}</div>`).join('')}</div>`;
+      }
+      html += `</div>`;
+      add(card(html));
+    }
+  }
+
+  // ── 13. Consultant Stratégique ─────────────────────────
+  const sc = document.createElement('div');
+  sc.className = 'card no-lift';
+  sc.innerHTML = `
+    <div class="sc-window">
+      <div class="sc-header">
+        <div class="sc-dot"></div>
+        <div class="sc-title">Consultant Stratégique</div>
+        <span class="sc-badge">McKinsey · Deloitte · BCG</span>
+      </div>
+      <div class="sc-messages" id="sc-messages">
+        <div class="sc-msg agent">
+          <div class="sc-bubble">J'ai accès à votre analyse d'audience complète et à votre stratégie. Posez-moi vos questions — offre, pricing, exécution, priorités, objections, canaux.</div>
+        </div>
+      </div>
+      <div class="sc-suggestions" id="sc-suggestions">
+        <button class="sc-chip" onclick="scChip(this)">Pourquoi cette décision est la priorité maintenant ?</button>
+        <button class="sc-chip" onclick="scChip(this)">Comment exécuter le plan de cette semaine ?</button>
+        <button class="sc-chip" onclick="scChip(this)">Comment optimiser l'offre pour cette audience ?</button>
+        <button class="sc-chip" onclick="scChip(this)">Comment fixer mon prix ?</button>
+        <button class="sc-chip" onclick="scChip(this)">Quel contenu créer en premier sur ce réseau ?</button>
+        <button class="sc-chip" onclick="scChip(this)">Quels sont les vrais risques à surveiller ?</button>
+      </div>
+      <div class="sc-input-row">
+        <textarea class="sc-input" id="sc-input" placeholder="Posez votre question stratégique…" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();scSend();}"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+        <button class="sc-send" id="sc-send" onclick="scSend()">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>`;
+  add(sc);
+
+  // ── 14. Feedback ───────────────────────────────────────
+  const fb = document.createElement('div');
+  fb.className = 'card fb-card'; fb.id = 'fb-card';
+  fb.innerHTML = `
+    <div class="fb-title">Cette stratégie vous semble-t-elle utile pour votre business ?</div>
+    <div class="fb-options">
+      <button class="fb-btn" onclick="selectFb(this,'oui')">Oui</button>
+      <button class="fb-btn" onclick="selectFb(this,'partiellement')">Partiellement</button>
+      <button class="fb-btn" onclick="selectFb(this,'non')">Non</button>
+    </div>
+    <textarea class="fb-comment" id="fb-comment" rows="2" placeholder="Pourquoi ? (optionnel)"></textarea>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="btn btn-ghost btn-sm fb-submit" onclick="submitFeedback()">Envoyer</button>
+      <div class="fb-done" id="fb-done">✓ Merci pour votre retour</div>
+    </div>`;
+  add(fb);
+
+  // ── 15. Bridge Créateur (redesigned) ───────────────────
+  const bridge = document.createElement('div');
+  bridge.className = 'createur-bridge';
+  bridge.innerHTML = `
+    <div class="createur-bridge-inner">
+      <div class="createur-bridge-header">
+        <div class="createur-bridge-icon">✍</div>
+        <div class="createur-bridge-meta">
+          <div class="createur-bridge-title">Passer au Créateur</div>
+          <div class="createur-bridge-sub">Générez scripts, hooks, emails et posts basés sur cette stratégie. L'agent Créateur reçoit votre décision centrale, votre message et votre offre.</div>
+        </div>
+      </div>
+      <div class="createur-features">
+        <div class="createur-feat"><div class="createur-feat-ico">📝</div><div class="createur-feat-lbl">Scripts & hooks</div></div>
+        <div class="createur-feat"><div class="createur-feat-ico">📧</div><div class="createur-feat-lbl">Emails & séquences</div></div>
+        <div class="createur-feat"><div class="createur-feat-ico">📱</div><div class="createur-feat-lbl">Posts réseaux sociaux</div></div>
+      </div>
+      <button class="createur-send-btn" onclick="confirmGoToCreateur()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Envoyer au Créateur
+      </button>
+    </div>
+    <div class="createur-confirm" id="createur-confirm">
+      <div class="createur-confirm-title">Confirmer l'envoi au Créateur</div>
+      <div class="createur-confirm-summary" id="createur-confirm-summary">Chargement…</div>
+      <div class="createur-confirm-actions">
+        <button class="createur-confirm-yes" onclick="goToCreateur()">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirmer et continuer
+        </button>
+        <button class="createur-confirm-no" onclick="cancelGoToCreateur()">Annuler</button>
+      </div>
+    </div>`;
+  add(bridge);
+
+  show('strat-dashboard');
+}
+
+function regenStrategie() {
+  hide('strat-dashboard');
+  showAnalyzeSection();
+  document.getElementById('strat-analyze-section').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ── Plan tabs ──────────────────────────────────────── */
+function switchPhase(idx) {
+  document.querySelectorAll('.plan-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.plan-phase').forEach((p, i) => p.classList.toggle('active', i === idx));
+}
+
+/* ── Export PDF ─────────────────────────────────────── */
+async function exportPDF() {
+  const btn = document.getElementById('export-pdf-btn');
+  if (!btn || !_lastStratData || !Object.keys(_lastStratData).length) return;
+  btn.classList.add('loading'); btn.textContent = 'Génération…';
+  try {
+    const r = await fetch('/export/strategy_pdf', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({strategy_data: _lastStratData})
+    });
+    if (!r.ok) { alert('Erreur lors de la génération PDF'); return; }
+    const blob = await r.blob();
+    const url  = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'gabriel_strategie.pdf';
+    a.click(); URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  } finally {
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Exporter PDF`;
+  }
+}
+
+/* ── Consultant Stratégique chatbot ─────────────────── */
+let _scHistory = [];
+let _scWaiting = false;
+
+function scChip(btn) {
+  const input = document.getElementById('sc-input');
+  if (!input) return;
+  input.value = btn.textContent;
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 80) + 'px';
+  const sug = document.getElementById('sc-suggestions');
+  if (sug) { sug.style.transition = 'opacity 0.2s'; sug.style.opacity = '0'; setTimeout(() => sug.remove(), 200); }
+  scSend();
+}
+
+async function scSend() {
+  if (_scWaiting) return;
+  const input = document.getElementById('sc-input');
+  const msg   = (input.value || '').trim();
+  if (!msg) return;
+  const sug = document.getElementById('sc-suggestions');
+  if (sug) { sug.style.transition = 'opacity 0.2s'; sug.style.opacity = '0'; setTimeout(() => sug.remove(), 200); }
+  _scAddMsg('user', msg);
+  input.value = ''; input.style.height = 'auto';
+  _scWaiting = true;
+  const btn = document.getElementById('sc-send');
+  if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+  _scShowTyping();
+  _scHistory.push({role:'user', content:msg});
+  try {
+    const r = await fetch('/strategy_chat', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message: msg, analysis_id: _analysisId || '',
+        strategy_data: _lastStratData || {}, psycho_data: _linkedPsychoData || {},
+        history: _scHistory.slice(-10),
+      })
+    });
+    const d = await r.json();
+    _scHideTyping();
+    const reply = d.reply || d.error || 'Erreur de réponse.';
+    _scAddMsg('agent', reply);
+    _scHistory.push({role:'assistant', content:reply});
+    // Déclencher enquête après 4 échanges significatifs
+    const exchanges = _scHistory.filter(m => m.role === 'assistant').length;
+    if (exchanges === 4 && typeof GabrielSurvey !== 'undefined') {
+      GabrielSurvey.trigger({
+        eventType:  'after_chat',
+        targetType: 'chat',
+        targetId:   'stratege_chat_' + (_strategyId || _analysisId || 'session'),
+        agent:      'stratege',
+        question:   'Les réponses du consultant stratégique vous aident-elles à avancer ?',
+        delay:      2000,
+      });
+    }
+  } catch(e) {
+    _scHideTyping(); _scAddMsg('agent', 'Erreur de connexion — réessayez.');
+  } finally {
+    _scWaiting = false;
+    if (btn) { btn.disabled = false; btn.classList.remove('loading'); }
+  }
+}
+
+function _scAddMsg(role, text) {
+  const msgs = document.getElementById('sc-messages');
+  if (!msgs) return;
+  const now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+  const el  = document.createElement('div');
+  el.className = `sc-msg ${role}`;
+  el.innerHTML = `<div class="sc-bubble">${_esc(text).replace(/\n/g,'<br>')}</div><div class="sc-time">${now}</div>`;
+  msgs.appendChild(el);
+  requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
+}
+
+function _scShowTyping() {
+  const msgs = document.getElementById('sc-messages');
+  if (!msgs) return;
+  const el = document.createElement('div');
+  el.className = 'sc-msg agent'; el.id = 'sc-typing';
+  el.innerHTML = `<div class="sc-typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(el);
+  requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
+}
+function _scHideTyping() { document.getElementById('sc-typing')?.remove(); }
+
+/* ── Envoyer au Créateur ────────────────────────────── */
+function confirmGoToCreateur() {
+  const confirm = document.getElementById('createur-confirm');
+  if (!confirm) return;
+  const summary = document.getElementById('createur-confirm-summary');
+  if (summary && _lastStratData) {
+    const decision = _lastStratData.decision_centrale || '—';
+    const message  = _lastStratData.message_central   || '—';
+    const offre    = _lastStratData.offre_recommandee?.nom || '—';
+    summary.innerHTML =
+      `<strong style="color:var(--text-secondary);">Décision :</strong> ${_esc(decision)}<br>` +
+      `<strong style="color:var(--text-secondary);">Message :</strong> ${_esc(message)}<br>` +
+      `<strong style="color:var(--text-secondary);">Offre :</strong> ${_esc(offre)}`;
+  }
+  confirm.classList.add('visible');
+  confirm.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function cancelGoToCreateur() {
+  document.getElementById('createur-confirm')?.classList.remove('visible');
+}
+
+function goToCreateur() {
+  sessionStorage.setItem('gabriel_for_createur', JSON.stringify({
+    analysis_id:    _analysisId  || '',
+    strategy_id:    _strategyId  || '',
+    strategie_data: _lastStratData,
+    psycho_data:    _linkedPsychoData || {},
+    decision:       _lastStratData.decision_centrale || '',
+    message:        _lastStratData.message_central   || '',
+  }));
+  window.location.href = '/createur';
+}
+
+/* ── Feedback ───────────────────────────────────────── */
+let _fbChoice = null;
+function selectFb(el, choice) {
+  _fbChoice = choice;
+  document.querySelectorAll('.fb-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function submitFeedback() {
+  if (!_fbChoice) return;
+  const comment = (document.getElementById('fb-comment').value || '').trim();
+  const payload = { usefulness: _fbChoice, comment, strategy_id: _strategyId || '', analysis_id: _analysisId || '' };
+  try { await fetch('/feedback', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}); } catch(e) {}
+  document.getElementById('fb-done').style.display = 'flex';
+  document.querySelector('.fb-submit').disabled = true;
+  document.querySelectorAll('.fb-btn').forEach(b => b.disabled = true);
+}
+
+/* ── Utils ──────────────────────────────────────────── */
+const show = id => document.getElementById(id)?.classList.remove('hidden');
+const hide = id => document.getElementById(id)?.classList.add('hidden');
+
+function _esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function resetContext() {
+  if (!confirm('Réinitialiser le contexte business ?')) return;
+  ctx = {};
+  await fetch('/business-context', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+  document.getElementById('chat-messages').innerHTML = '';
+  updateUI({}, 0, 0, false);
+  hide('strat-analyze-section'); hide('strat-dashboard'); hide('strat-loading'); hide('strat-psycho-banner');
+  show('strat-idle');
+  addMsg('agent', "Contexte réinitialisé. Quel est votre rôle dans ce projet ?");
+  loadRecentStrategies_refresh();
+}
+
+init();
+</script>
+{% endblock %}

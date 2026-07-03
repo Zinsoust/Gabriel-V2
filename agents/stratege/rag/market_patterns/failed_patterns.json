@@ -1,0 +1,44 @@
+[
+  {
+    "id": "selling_to_everyone",
+    "pattern": "Vendre à tout le monde",
+    "why_it_fails": "Une offre pour tout le monde résonne pour personne. L'argent est dans les niches — pas dans les marchés de masse pour un créateur indépendant.",
+    "symptoms": ["landing page qui dit 'pour les entrepreneurs, les salariés et les étudiants'", "contenu qui essaie de plaire à tous", "pas de persona clair"],
+    "fix": "Choisir le segment le plus engagé et pénétrant et créer pour lui seulement"
+  },
+  {
+    "id": "launching_without_audience",
+    "pattern": "Créer l'offre avant de construire l'audience",
+    "why_it_fails": "Le produit le plus parfait échoue sans distribution. L'audience vient avant l'offre.",
+    "symptoms": ["6 mois à construire une formation, 0 clients", "page de vente prête mais pas de trafic", "offre trop complète pour un marché qui ne la connaît pas encore"],
+    "fix": "Construire l'audience en publiant du contenu sur le problème AVANT de créer l'offre. La vendre en pré-vente avant de la produire."
+  },
+  {
+    "id": "perfectionism_over_speed",
+    "pattern": "Attendre que tout soit parfait pour lancer",
+    "why_it_fails": "Le marché ne paye pas pour la perfection — il paye pour la solution à un problème maintenant. Une offre imparfaite vendue génère plus d'apprentissage que 6 mois de polissage.",
+    "symptoms": ["formation pas encore terminée après 4 mois", "site web pas encore optimisé", "attendre d'avoir 10k abonnés pour vendre"],
+    "fix": "Lancer avec ce qui est suffisant (Minimum Viable Offer) et améliorer avec les retours clients"
+  },
+  {
+    "id": "passive_content_no_cta",
+    "pattern": "Publier du contenu sans jamais proposer une étape suivante claire",
+    "why_it_fails": "Le contenu seul ne vend pas. Sans CTA clair, les abonnés restent abonnés — pas clients.",
+    "symptoms": ["fort engagement, zéro vente", "des milliers de likes, pas de liste email", "audience qui admire mais n'achète pas"],
+    "fix": "Chaque pièce de contenu doit proposer une prochaine étape : DM, lien, inscription, diagnostic"
+  },
+  {
+    "id": "price_too_low",
+    "pattern": "Prix trop bas pour paraître accessible",
+    "why_it_fails": "Un prix bas ne garantit pas les ventes. Il signale une faible valeur et attire des clients qui négocient, se plaignent et ne s'investissent pas.",
+    "symptoms": ["formation à 27€ pour 40h de contenu", "coaching à 50€/h", "prix inférieur au marché 'pour avoir plus de clients'"],
+    "fix": "Augmenter le prix et ajouter de la valeur. Tester des prix 2-3x supérieurs avec les prochains prospects."
+  },
+  {
+    "id": "ignoring_objections",
+    "pattern": "Ignorer les objections de l'audience au lieu de les traiter",
+    "why_it_fails": "Les commentaires négatifs, les questions sceptiques et les hésitations sont de l'or — ils révèlent exactement ce qui bloque les ventes.",
+    "symptoms": ["ne jamais répondre aux questions difficiles dans le contenu", "éviter de parler du prix ou du ROI", "ignorer les 'je n'ai pas le temps' ou 'c'est trop cher'"],
+    "fix": "Créer du contenu qui répond directement aux 3 objections les plus fréquentes. Transformer chaque objection en pièce de contenu."
+  }
+]

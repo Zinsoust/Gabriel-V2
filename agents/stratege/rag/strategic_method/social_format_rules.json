@@ -1,0 +1,68 @@
+[
+  {
+    "id": "tiktok_short_video",
+    "platform": "TikTok",
+    "format": "Vidéo courte 30-90 secondes",
+    "best_for": ["audience 18-35 ans", "contenu éducatif rapide", "révélation surprise", "transformation visible", "tendances"],
+    "hook_formula": "Commence par la conclusion choquante ou la question que l'audience se pose déjà",
+    "structure": "Hook (3 sec) → Problème reconnaissable (10 sec) → Solution rapide (20-40 sec) → CTA simple",
+    "angles_qui_performent": ["erreur que tout le monde fait", "secret que personne ne dit", "je vais te montrer en 60 secondes", "avant/après rapide", "réponds à une objection fréquente"],
+    "ce_qui_tue_la_portée": ["intro lente", "pas de hook visuel dans les 3 premières secondes", "trop de texte à lire", "CTA sans urgence"],
+    "conversion_strategy": "Rediriger vers lien bio pour lead magnet ou diagnostic gratuit. Ne pas vendre directement dans la vidéo."
+  },
+  {
+    "id": "instagram_carousel",
+    "platform": "Instagram",
+    "format": "Carrousel 5-10 slides",
+    "best_for": ["audience 25-45 ans", "contenu éducatif approfondi", "étapes d'un processus", "comparaison erreur/solution", "listes actionables"],
+    "hook_formula": "Slide 1 = promesse forte. Slide 2 = preuve que tu comprends le problème.",
+    "structure": "Slide 1 (promesse) → Slides 2-3 (problème nommé) → Slides 4-8 (solution étape par étape) → Slide finale (CTA)",
+    "angles_qui_performent": ["X erreurs que tu fais sans le savoir", "guide pas à pas", "comparison avant/après", "checklist actionnable", "vérité inconfortable"],
+    "ce_qui_tue_la_portée": ["texte trop dense", "design générique", "trop de contenu sur une slide", "CTA timide"],
+    "conversion_strategy": "CTA pour sauvegarder la publication, puis rediriger vers lien bio ou DM pour plus d'infos."
+  },
+  {
+    "id": "youtube_educational",
+    "platform": "YouTube",
+    "format": "Vidéo éducative 10-20 minutes",
+    "best_for": ["audience 30-55 ans", "sujets complexes qui nécessitent explication", "construction d'autorité", "audience premium", "contenu evergreen"],
+    "hook_formula": "Commencer par nommer le problème exact et annoncer ce que l'audience va apprendre",
+    "structure": "Hook 30 sec → Intro courte (1 min) → Corps (7-15 min méthode) → Récap → CTA",
+    "angles_qui_performent": ["comment j'ai fait X en Y temps", "la méthode exacte que j'utilise", "tout ce que tu dois savoir sur X", "étude de cas détaillée"],
+    "ce_qui_tue_la_portée": ["intro trop longue", "thumbnails génériques", "pas d'appel à l'action clair", "contenu sans structure"],
+    "conversion_strategy": "Mentionner l'offre dans la vidéo de manière naturelle. Lien dans description. Pinned comment."
+  },
+  {
+    "id": "linkedin_text_post",
+    "platform": "LinkedIn",
+    "format": "Post texte long ou medium",
+    "best_for": ["audience B2B", "décideurs", "professionnels 30-55 ans", "secteurs sérieux", "autorité professionnelle"],
+    "hook_formula": "Première ligne = observation surprenante ou vérité contre-intuitive sur leur secteur",
+    "structure": "Hook (1 phrase) → Histoire ou observation (3-5 lignes) → Insight (3-5 lignes) → Leçon actionnable (2-3 lignes) → Question ou CTA",
+    "angles_qui_performent": ["ce que j'ai appris de X clients en X années", "erreur que même les pros font", "voici ce qui change vraiment les résultats", "opinion non consensuelle sur le secteur"],
+    "ce_qui_tue_la_portée": ["contenu trop générique", "pas de point de vue personnel", "trop long sans structure", "pas d'engagement dans les 60 premières minutes"],
+    "conversion_strategy": "Inviter à commenter, puis contacter en DM les commentateurs qualifiés pour proposer un diagnostic."
+  },
+  {
+    "id": "instagram_reel",
+    "platform": "Instagram",
+    "format": "Reel 30-60 secondes",
+    "best_for": ["audience 20-40 ans", "contenu divertissant + éducatif", "viralité", "découvrabilité", "tendances"],
+    "hook_formula": "Première seconde = mouvement ou texte qui interrompt le scroll",
+    "structure": "Hook visuel (1-2 sec) → Promesse (5 sec) → Contenu (20-40 sec) → CTA",
+    "angles_qui_performent": ["tip rapide qui change tout", "réaction à une idée reçue", "before/after", "journée dans ma vie professionnelle"],
+    "ce_qui_tue_la_portée": ["son désynchronisé", "pas de sous-titres", "texte trop petit", "pas de CTA"],
+    "conversion_strategy": "CTA pour sauvegarder, commenter ou aller sur le lien bio."
+  },
+  {
+    "id": "newsletter_email",
+    "platform": "Email / Newsletter",
+    "format": "Email hebdomadaire ou bimonthly",
+    "best_for": ["audience fidèle", "conversion", "vente directe", "audience premium", "relation long terme"],
+    "hook_formula": "Sujet d'email = promesse d'une valeur spécifique ou question qui crée la curiosité",
+    "structure": "Accroche personnelle → Observation utile → Application concrète → Offre ou CTA",
+    "angles_qui_performent": ["ce que j'ai observé cette semaine", "la stratégie que peu de gens connaissent", "résultat d'un client + leçon"],
+    "ce_qui_tue_la_portée": ["objet générique", "contenu promotionnel sans valeur", "email trop long", "envois trop fréquents sans valeur"],
+    "conversion_strategy": "1 seul CTA par email. Segmenter selon comportement d'ouverture pour les offres payantes."
+  }
+]

@@ -1,0 +1,44 @@
+{
+  "id": "SOC-009",
+  "title": "Pression sociale et contrôle normatif",
+  "domain": "psychologie_sociale",
+  "source_files": ["020_introduction_to_sociology_3e.md", "022_le_suicide_etude_de_sociologie.md", "008_human_nature_and_conduct.md"],
+  "concept": "Pression sociale et contrôle normatif",
+  "definition": "La pression sociale est le mécanisme par lequel le groupe maintient la conformité à ses normes via des récompenses (inclusion, validation) et des punitions (exclusion, honte, stigmatisation). Durkheim (1897) analyse comment la déviance par rapport aux normes sociales est sanctionnée pour maintenir la cohésion du groupe. Le contrôle social peut être formel (règles explicites) ou informel (regards, jugements, moqueries). En ligne, la pression sociale se manifeste par des raids de commentaires négatifs, des 'call-outs', des downvotes massifs, ou au contraire des vagues d'approbation.",
+  "use_when": [
+    "Des commentateurs semblent chercher la validation du groupe avant d'exprimer une opinion",
+    "Des comportements de policing normatif sont visibles (corriger les autres commentateurs)",
+    "Des signaux de honte ou de culpabilité sociale sont présents",
+    "L'audience cherche à forcer le créateur à se conformer à une norme du groupe"
+  ],
+  "dashboard_triggers": [
+    "signaux de honte ou d'exclusion dans les commentaires",
+    "comportements de policing entre commentateurs",
+    "pression sur le créateur pour prendre position",
+    "crainte de jugement détectable dans les formulations"
+  ],
+  "interpretation_rule": "La pression sociale dans les commentaires est une forme de gouvernance collective des normes du groupe. Elle indique que des normes importantes du groupe sont en jeu dans le contenu. Le créateur qui viole (même involontairement) une norme centrale du groupe sera la cible de pression normative. Le créateur qui renforce les normes du groupe bénéficie d'une solidarité active. La clé : identifier quelle norme est en jeu et si le contenu la respecte ou la challenge.",
+  "what_to_observe": [
+    "Policing normatif : 'tu n'as pas le droit de dire ça ici', 'respecte les règles'",
+    "Honte sociale : 'tu devrais avoir honte', 'comment tu peux...'",
+    "Exclusion : 'si tu penses ça tu n'es pas [membre du groupe]'",
+    "Pression sur le créateur : 'tu dois prendre position sur X'"
+  ],
+  "warnings": [
+    "La pression sociale en ligne est asymétrique — un groupe organisé peut créer une fausse impression de majorité",
+    "Céder à la pression sociale d'un sous-groupe peut aliéner le reste de l'audience silencieuse",
+    "La pression normative intense signale que le sujet touche à l'identité centrale du groupe — territoire miné"
+  ],
+  "output_guidance": "Identifier quelle norme est sous pression, qui exerce la pression (groupe organisé ou dispersion), et si le créateur en est la cible ou le bénéficiaire.",
+  "example_interpretation": "Une pression sociale normative est active autour de [norme X]. Le créateur est perçu comme [en conformité / en déviance] par rapport à cette norme. La pression émane de [sous-groupe identifiable / distribution large]. Recommandation : [respecter explicitement la norme en question dans le prochain contenu / éviter de répondre à la pression sans analyse stratégique].",
+  "confidence_factors": [
+    "Présence de formulations de policing et d'exclusion",
+    "Cohérence et organisation apparente de la pression",
+    "Réaction de l'audience aux commentaires normativement déviants"
+  ],
+  "avoid": [
+    "Recommander de céder à toute pression sociale sans analyser sa représentativité",
+    "Traiter la pression sociale comme représentative de l'ensemble de l'audience",
+    "Ignorer la pression sociale comme simple bruit négatif sans analyse normative"
+  ]
+}

@@ -1,0 +1,1484 @@
+[
+  {
+    "user_id": "869083e8-ee00-4ca0-9f05-fb798bf2e59c",
+    "strategy_id": "9ea929e4-4e25-49",
+    "analysis_id": "cd043eb9-aed",
+    "title": "Transformer la confusion technique de l'audience en opportunité de vente en proposant un d",
+    "business_context": {
+      "activite": "accompagnement des entreprises dans l'implémentation de solutions d'IA personnalisées",
+      "modele_economique": "prestation de services d'accompagnement",
+      "resultats_actuels": "CA de 20K par mois avec des entrepreneurs",
+      "objectif_principal": "constituer une équipe de 10 personnes",
+      "offre": "logiciel nécessitant un investissement de 20K",
+      "vision_strategique": "devenir leader du marché",
+      "cible": "clients capables d'investir 20K dans un logiciel",
+      "role_utilisateur": "coach de vie spécialisé en intégration de l'IA"
+    },
+    "strategy_result": {
+      "executive_decision": {
+        "one_sentence_decision": "Lancer un diagnostic 'Autonomie Technique Durable' pour valider la faisabilité d'un projet IA/tech sans dépendre de développeurs, avec un livrable clair et actionnable en 60 minutes.",
+        "what_to_do_this_week": "Créer et publier une vidéo LinkedIn/TikTok intitulée 'Pourquoi ton projet tech échoue (et comment le sauver en 17 min)' + proposer 5 créneaux de diagnostic gratuit (limités) via un CTA direct dans la bio et les commentaires.",
+        "why_now": "L'audience est en confusion technique (signal : 'confusion' dans le dashboard émotionnel) et cherche une structure claire (pattern [confused_audience] : valeur = clarté). La frustration des limites techniques (signal : 'Limites techniques non résolues') crée une urgence à agir maintenant, avant qu'ils ne perdent confiance dans leur capacité à créer.",
+        "expected_business_impact": "5-10 diagnostics gratuits convertis en 2-3 ventes d'accompagnement à 5K-10K (CA additionnel de 10K-30K en 30 jours) + validation du besoin pour le logiciel à 20K (pré-commandes ou liste d'attente).",
+        "confidence_score": 0.85
+      },
+      "audience_psychology_used": {
+        "main_problem": "L'audience veut créer des projets techniques durables sans dépendre de développeurs, mais craint que la simplicité des outils IA ne sacrifie la robustesse (dissonance cognitive entre autonomie et qualité).",
+        "main_desire": "Devenir un 'créateur autonome' capable de lancer des projets techniques fiables sans compétences en codage, tout en étant perçu comme compétent.",
+        "main_fear": "Investir du temps/money dans un outil ou une solution qui les rendra obsolètes ou dont les limites apparaîtront trop tard (peur de l'échec technique et de la perte de statut).",
+        "main_frustration": "Les outils promettent une simplicité 'magique' mais échouent sur des détails critiques (synchro, robustesse), laissant l'utilisateur bloqué et frustré.",
+        "main_objection": "« Si c'est si simple, pourquoi ça ne marche pas comme prévu ? » (méfiance envers les promesses de simplicité).",
+        "values_sought": [
+          "Clarté (comprendre les limites réelles des outils)",
+          "Preuve (voir des résultats concrets avant d'investir)",
+          "Structure (une méthode pas à pas pour éviter les pièges)",
+          "Sécurité (un filet technique pour ne pas tout casser)",
+          "Statut (être vu comme compétent, pas comme un 'débutant' dépendant)"
+        ],
+        "decision_drivers": [
+          "Un diagnostic personnalisé qui révèle leurs blocages spécifiques (preuve de valeur immédiate)",
+          "Un livrable écrit avec des étapes actionnables (réduction de la confusion)"
+        ]
+      },
+      "value_to_create": {
+        "core_value": "Clarté + Preuve",
+        "why_this_value_matters": "L'audience est submergée par des promesses contradictoires (simplicité vs. robustesse) et a besoin d'un tiers de confiance pour évaluer objectivement leur situation. Un diagnostic personnalisé répond à ce besoin en : 1) identifiant leurs blocages réels (clarté), 2) fournissant des solutions testées (preuve), 3) réduisant leur anxiété de 'faire le mauvais choix'.",
+        "what_the_audience_is_really_buying": "La certitude qu'ils ne vont pas gaspiller 6 mois et 20K€ dans une solution inadaptée (soulagement psychologique) + un plan pour avancer sans dépendre de développeurs (autonomie).",
+        "value_gap_in_current_business": "Gabriel propose un logiciel à 20K sans d'abord valider que le client a les compétences/besoins pour l'utiliser. L'audience a besoin d'un 'filet de sécurité' (diagnostic) avant d'investir dans une solution technique coûteuse."
+      },
+      "offer_recommendation": {
+        "recommended_offer_name": "Diagnostic Autonomie Technique Durable",
+        "offer_type": "Diagnostic personnalisé (60 min) + roadmap écrite",
+        "promise": "Identifier en 60 min les 3 blocages techniques qui sabotent ton projet ET un plan pour les résoudre sans dépendre de développeurs.",
+        "target_persona": "Les 'Créateurs Autonomes en Éveil' — entrepreneurs ou intrapreneurs qui ont déjà tenté de lancer un projet tech (site, app, automatisation) mais sont bloqués par des détails techniques (ex : synchronisation, hébergement, maintenance).",
+        "deliverables": [
+          "Audit technique personnalisé (points forts/faibles du projet actuel)",
+          "Roadmap en 3 étapes pour atteindre l'autonomie technique (outils + compétences à acquérir)",
+          "Liste des 'pièges invisibles' à éviter (basée sur leur contexte spécifique)"
+        ],
+        "transformation": "Avant : Confus, frustré, dépendant de développeurs ou d'outils limités → Après : Clair sur les prochaines étapes, confiant dans leur capacité à avancer seul, avec un plan pour éviter les erreurs coûteuses.",
+        "why_this_offer_fits_the_psychology": "1) Répond à la confusion (valeur = clarté) en structurant leur problème. 2) Donne une preuve immédiate de valeur (livrable écrit). 3) Traite la peur de l'échec en identifiant les risques avant qu'ils ne deviennent critiques. 4) Positionne Gabriel comme un 'filet technique' (sécurité) plutôt qu'un vendeur de logiciel.",
+        "minimum_viable_offer": "Un appel de 30 min avec un template de roadmap pré-rempli (à personnaliser pendant l'appel) + envoi d'un PDF générique avec les pièges courants (à adapter ensuite).",
+        "risks": [
+          "L'audience pourrait voir le diagnostic comme une 'vente déguisée' pour le logiciel à 20K (mitigation : insister sur l'indépendance du diagnostic vs. la solution).",
+          "Difficulté à remplir les créneaux si le CTA n'est pas assez polarisant (mitigation : utiliser un hook du type 'Pourquoi 90% des projets tech échouent (et comment éviter ça)')."
+        ]
+      },
+      "social_media_decision": {
+        "best_platform": "LinkedIn (pour les entrepreneurs B2B) + TikTok (pour les créateurs autonomes en éveil).",
+        "best_content_format": "Vidéo courte (60-90 sec) avec un hook choc + témoignage client (ou étude de cas anonyme).",
+        "main_content_angle": "« Voici pourquoi ton projet tech échoue (même si tu utilises l'IA) » — révéler les pièges invisibles des outils 'simples' et comment les éviter.",
+        "first_post_or_video_to_create": {
+          "titre": "Pourquoi ton projet tech échoue (et comment le sauver en 17 min)",
+          "structure": [
+            "Hook : 'Tu as passé des mois à construire ton site/app avec des outils 'no-code'... mais il ne marche toujours pas. Voici pourquoi.'",
+            "Problème : 'Les outils IA promettent la simplicité, mais cachent 3 pièges qui sabotent 90% des projets.'",
+            "Solution : 'J'ai aidé [X] entrepreneurs à identifier ces pièges en 60 min. Voici comment.'",
+            "Preuve : Capture d'écran d'un livrable de roadmap (anonymisé) + témoignage audio.",
+            "CTA : 'Tu veux un diagnostic gratuit de ton projet ? Réponds 'DIAG' en commentaire (5 places disponibles).'"
+          ],
+          "format": "Vidéo verticale (TikTok/Reels) avec sous-titres et visuels de 'pièges' (ex : icônes de bugs, captures d'écran d'erreurs)."
+        },
+        "posting_priority_this_week": [
+          "1. Vidéo 'Pourquoi ton projet tech échoue' (LinkedIn + TikTok)",
+          "2. Post LinkedIn : 'Le mythe de la simplicité technique (et comment construire durablement)' — avec un extrait de la vidéo + CTA 'DM pour un diagnostic'.",
+          "3. Story Instagram/TikTok : '3 signes que ton projet tech va échouer' (sondage interactif : 'Lequel de ces problèmes tu as déjà rencontré ?')."
+        ],
+        "why_this_format_fits_the_audience": "1) La vidéo courte capte l'attention des 'confus' (format adapté à leur état émotionnel). 2) Le hook 'pièges invisibles' active leur peur de l'échec (émotion dominante). 3) Le CTA 'DIAG' en commentaire filtre les prospects chauds (seuls ceux qui ont vraiment un problème répondront). 4) Les témoignages/proofs réduisent la méfiance envers les promesses de simplicité."
+      },
+      "pricing_logic": {
+        "recommended_price_range": "Diagnostic gratuit (pour générer des leads) → Accompagnement à 5K-10K (pour ceux qui veulent une solution clé en main) → Logiciel à 20K (pour les entreprises validées).",
+        "pricing_reasoning": "1) Le diagnostic gratuit réduit la friction pour les 'confus' (pattern [confused_audience]). 2) L'accompagnement à 5K-10K est justifié par : a) la valeur perçue (éviter 6 mois de perte de temps = 50K+ de CA potentiel), b) la capacité de paiement des entrepreneurs (CA actuel de 20K/mois), c) la preuve de valeur créée pendant le diagnostic. 3) Le logiciel à 20K est positionné comme une solution premium pour ceux qui ont validé leur besoin (après le diagnostic).",
+        "entry_offer_if_needed": "Atelier en groupe 'Autonomie Technique en 90 min' à 497€ (pour les prospects hésitants).",
+        "proof_needed_to_support_price": "1) Témoignages vidéo de clients ayant évité des erreurs coûteuses grâce au diagnostic. 2) Étude de cas chiffrée (ex : 'Client X a économisé 15K€ en évitant un mauvais choix d'outil'). 3) Démonstration en direct (live ou replay) d'un diagnostic type.",
+        "comfort_level_for_audience": "Acceptable (pour l'accompagnement) — l'audience est prête à payer pour éviter la douleur de l'échec technique, mais a besoin de preuves avant d'investir 20K."
+      },
+      "immediate_monetization_plan": {
+        "next_24h_action": "1) Enregistrer la vidéo 'Pourquoi ton projet tech échoue' (script prêt). 2) Créer un Calendly pour les diagnostics gratuits (5 créneaux cette semaine). 3) Mettre à jour la bio LinkedIn/TikTok avec le CTA 'DM pour un diagnostic gratuit'.",
+        "next_7_days_action": "1) Publier la vidéo + poster LinkedIn. 2) Contacter 10 prospects chauds (anciens clients ou leads engagés) pour leur proposer un diagnostic. 3) Lancer une story '3 signes que ton projet va échouer' avec un sondage. 4) Préparer un template de roadmap pour les diagnostics. 5) Suivre les commentaires 'DIAG' et convertir en rendez-vous.",
+        "first_offer_to_test": "Diagnostic gratuit (pour valider le besoin) → Proposition d'accompagnement à 5K-10K pendant l'appel (si le problème est critique).",
+        "first_call_to_action": "« Tu veux un diagnostic gratuit de ton projet ? Réponds 'DIAG' en commentaire (5 places disponibles cette semaine). »",
+        "metric_to_watch": "1) Taux de réponse au CTA 'DIAG' (objectif : 10+ réponses). 2) Taux de conversion diagnostic → accompagnement (objectif : 30-50%). 3) Nombre de vues de la vidéo (objectif : 5K+ vues en 7 jours)."
+      },
+      "decision_centrale": "Transformer la confusion technique de l'audience en opportunité de vente en proposant un diagnostic gratuit qui révèle leurs blocages spécifiques, puis en convertissant les plus engagés en accompagnements à 5K-10K (avec le logiciel à 20K comme solution premium en aval).",
+      "objectif_utilisateur_reformule": "Gabriel veut constituer une équipe de 10 personnes pour scaler son activité, mais a besoin de : 1) un flux constant de clients prêts à investir 20K dans son logiciel, 2) une preuve de valeur claire pour justifier ce prix, 3) une offre d'entrée qui filtre les prospects sérieux. Le diagnostic 'Autonomie Technique Durable' répond à ces besoins en validant le problème avant de proposer la solution.",
+      "raisonnement": "1) **Signal psychologique** : L'audience est en confusion technique (dashboard émotionnel) et cherche une structure (pattern [confused_audience]). 2) **Problème réel** : Ils veulent l'autonomie technique mais craignent que la simplicité ne sacrifie la robustesse. 3) **Valeur à créer** : Clarté (diagnostic) + Preuve (livrable écrit) pour réduire leur anxiété. 4) **Offre** : Diagnostic gratuit → Accompagnement à 5K-10K → Logiciel à 20K (entonnoir de vente progressif). 5) **Format** : Vidéo courte avec hook 'pièges invisibles' pour capter l'attention des 'confus'. 6) **Action immédiate** : Lancer le diagnostic cette semaine pour générer des revenus rapides et valider le besoin pour le logiciel.",
+      "angle_positionnel": "« Le filet technique des créateurs autonomes » — Gabriel ne vend pas un outil ou une formation, mais la sécurité de ne pas tout casser en voulant créer seul. Cet angle répond à leur peur de l'échec et à leur désir de statut (être vu comme compétent).",
+      "message_central": "« Tu peux créer des projets techniques durables sans dépendre de développeurs — mais seulement si tu évites ces 3 pièges invisibles. Voici comment. »",
+      "opportunites_marche": [
+        {
+          "signal": "L'audience oscille entre désir d'autonomie et peur de l'échec technique (insight psychologique).",
+          "lecture_strategique": "Ce conflit interne crée une opportunité pour une offre qui réduit l'incertitude (diagnostic) avant de proposer une solution (accompagnement/logiciel).",
+          "recommandation": "Lancer un diagnostic gratuit pour identifier les blocages spécifiques de chaque prospect.",
+          "action_concrete": "Créer une vidéo 'Pourquoi ton projet tech échoue' avec un CTA 'DIAG' en commentaire.",
+          "mesure_succes": "Nombre de réponses 'DIAG' (objectif : 10+) et taux de conversion en diagnostic (objectif : 50%)."
+        },
+        {
+          "signal": "Les 'Créateurs Autonomes en Éveil' dépendent de développeurs pour des tâches simples (persona identifié).",
+          "lecture_strategique": "Ils sont prêts à payer pour une solution qui leur donne l'autonomie, mais ont besoin de preuves que ça marche pour eux.",
+          "recommandation": "Proposer un accompagnement à 5K-10K avec un livrable clair (roadmap) pour ceux qui veulent une solution clé en main.",
+          "action_concrete": "Préparer un template de roadmap pour les diagnostics et un script de vente pour l'accompagnement.",
+          "mesure_succes": "Taux de conversion diagnostic → accompagnement (objectif : 30-50%)."
+        },
+        {
+          "signal": "L'engagement est faible (21/100) mais l'opportunité est moyenne (35/100).",
+          "lecture_strategique": "L'audience a besoin d'un déclencheur émotionnel fort (peur de l'échec) pour agir. Un hook polarisant peut augmenter l'engagement.",
+          "recommandation": "Utiliser des hooks du type 'Pourquoi 90% des projets tech échouent' pour capter l'attention.",
+          "action_concrete": "Lancer une story interactive '3 signes que ton projet va échouer' avec un sondage.",
+          "mesure_succes": "Taux d'engagement sur la story (objectif : 20%+ de réponses au sondage)."
+        }
+      ],
+      "recommandations_prioritaires": [
+        {
+          "action": "Lancer la vidéo 'Pourquoi ton projet tech échoue' avec CTA 'DIAG' cette semaine.",
+          "signal_source": "Confusion technique de l'audience + pattern [confused_audience].",
+          "impact": "Générer 5-10 leads qualifiés pour des diagnostics gratuits.",
+          "delai": "cette semaine"
+        },
+        {
+          "action": "Convertir les diagnostics gratuits en accompagnements à 5K-10K (script de vente prêt).",
+          "signal_source": "Désir d'autonomie + peur de l'échec (insight psychologique).",
+          "impact": "CA additionnel de 10K-30K en 30 jours.",
+          "delai": "ce mois"
+        },
+        {
+          "action": "Créer un atelier en groupe 'Autonomie Technique en 90 min' à 497€ pour les prospects hésitants.",
+          "signal_source": "Objection 'Si c'est si simple, pourquoi ça ne marche pas ?'.",
+          "impact": "Monétiser les leads moins chauds et valider la demande pour une offre scalable.",
+          "delai": "ce mois"
+        },
+        {
+          "action": "Préparer une étude de cas chiffrée (ex : 'Client X a économisé 15K€') pour justifier le prix du logiciel à 20K.",
+          "signal_source": "Peur de l'investissement dans le mauvais outil (signal audience).",
+          "impact": "Augmenter la conversion des accompagnements vers le logiciel.",
+          "delai": "dans 30-60 jours"
+        }
+      ],
+      "offre_recommandee": {
+        "nom": "Diagnostic Autonomie Technique Durable",
+        "cible_precise": "Entrepreneurs ou intrapreneurs ayant tenté de lancer un projet tech (site, app, automatisation) mais bloqués par des détails techniques (ex : synchronisation, hébergement).",
+        "probleme_traite": "Confusion technique + peur de l'échec (investir dans une solution inadaptée).",
+        "promesse": "Identifier en 60 min les 3 blocages qui sabotent ton projet ET un plan pour les résoudre sans dépendre de développeurs.",
+        "resultat_attendu": "Clarté sur les prochaines étapes + confiance pour avancer seul + évitement des erreurs coûteuses.",
+        "format": "Appel de 60 min + livrable écrit (roadmap + liste de pièges).",
+        "livrables": [
+          "Audit technique personnalisé (points forts/faibles du projet)",
+          "Roadmap en 3 étapes pour atteindre l'autonomie technique",
+          "Liste des 'pièges invisibles' à éviter (basée sur leur contexte)"
+        ],
+        "prix_recommande": "Gratuit (pour générer des leads) → Accompagnement à 5K-10K (si besoin critique).",
+        "justification_prix": "Le diagnostic gratuit réduit la friction pour les 'confus'. L'accompagnement à 5K-10K est justifié par la valeur perçue (éviter 6 mois de perte de temps = 50K+ de CA potentiel) et la capacité de paiement des entrepreneurs (CA actuel de 20K/mois).",
+        "message_de_vente": "« Ton projet tech est bloqué parce que tu ne vois pas les pièges invisibles. En 60 min, je t'aide à les identifier et à construire un plan pour avancer sans dépendre de développeurs. »",
+        "canaux_acquisition": [
+          "LinkedIn (vidéos + posts)",
+          "TikTok (vidéos courtes)",
+          "Prospection directe (anciens clients/leads engagés)"
+        ],
+        "objections_a_traiter": [
+          "« C'est une vente déguisée pour ton logiciel à 20K » → Insister sur l'indépendance du diagnostic vs. la solution.",
+          "« Je n'ai pas le temps pour un appel » → Proposer un formulaire de diagnostic écrit (alternative rapide)."
+        ]
+      },
+      "strategie_contenu": {
+        "format_prioritaire": "Vidéo courte (60-90 sec) avec hook choc + témoignage/proof.",
+        "frequence": "3x/semaine (2 vidéos + 1 post LinkedIn).",
+        "tonalite": "Direct, empathique, expert (éviter le jargon technique).",
+        "sujets_a_eviter": [
+          "Promesses de 'simplicité magique' (active la méfiance de l'audience).",
+          "Comparaisons d'outils (risque de polarisation inutile)."
+        ]
+      }
+    },
+    "created_at": "2026-07-01T19:00:06.163344"
+  },
+  {
+    "user_id": "03b25dff-e405-448c-972f-ccd71184765a",
+    "strategy_id": "8575c2c1-1874-40",
+    "analysis_id": "e2e-16781569",
+    "title": "Stratégie",
+    "business_context": {
+      "secteur": "coaching"
+    },
+    "strategy_result": {
+      "axes": [
+        "contenu",
+        "ads"
+      ],
+      "budget": 3000
+    },
+    "created_at": "2026-06-30T12:55:56.785850"
+  },
+  {
+    "user_id": "local",
+    "strategy_id": "224a0f7f-fea5-42",
+    "analysis_id": "",
+    "title": "Passer d'une offre générique (programme 3 mois) à une offre de diagnostic ultra-ciblée pou",
+    "business_context": {
+      "role_utilisateur": "Coach de vie",
+      "activite": "Coaching perso",
+      "offre": "Programme 3 mois",
+      "cible": "Femmes 30-45",
+      "modele_economique": "En ligne",
+      "resultats_actuels": "5 clients",
+      "objectif_principal": "5000 euros/mois"
+    },
+    "strategy_result": {
+      "executive_decision": {
+        "one_sentence_decision": "Lancer immédiatement une offre de diagnostic personnalisé en 60 minutes pour valider le problème réel des femmes 30-45 et générer les premiers revenus cette semaine.",
+        "what_to_do_this_week": "Contacter 20 femmes correspondant au persona cible pour leur proposer un diagnostic gratuit en échange d'un témoignage, puis convertir 3 d'entre elles en clients payants pour la même offre à 200€.",
+        "why_now": "L'absence totale d'engagement et de distribution signale une méconnaissance du problème réel de l'audience. Sans validation terrain, toute offre restera générique et peu attractive. Cette semaine est critique pour créer un premier signal de valeur.",
+        "expected_business_impact": "3 à 5 clients payants d'ici 30 jours (600-1000€ de revenus), validation du problème réel, et création de 3 témoignages pour alimenter la preuve sociale.",
+        "confidence_score": 0.85
+      },
+      "audience_psychology_used": {
+        "main_problem": "Manque de clarté sur leur direction de vie et peur de gaspiller leur temps dans des solutions inefficaces (cause racine : absence de structure personnalisée).",
+        "main_desire": "Avoir une feuille de route claire et actionnable pour reprendre le contrôle de leur vie sans se sentir submergées.",
+        "main_fear": "Investir dans une solution qui ne résoudra pas leur problème spécifique et les fera perdre encore plus de temps.",
+        "main_frustration": "Les conseils génériques qu'elles trouvent en ligne ne s'appliquent pas à leur situation unique et les laissent dans l'incertitude.",
+        "main_objection": "« Je ne suis pas sûre que ça marche pour moi » ou « J’ai déjà essayé plein de choses, pourquoi ça serait différent ? »",
+        "values_sought": [
+          "Clarté sur leur situation actuelle",
+          "Preuve que la solution fonctionne pour des femmes comme elles",
+          "Structure pour avancer sans se sentir perdues",
+          "Soulagement immédiat de la pression mentale"
+        ],
+        "decision_drivers": [
+          "Un diagnostic précis de leur problème en 60 minutes",
+          "Un livrable écrit qu'elles peuvent appliquer immédiatement",
+          "Témoignages de femmes ayant obtenu des résultats similaires"
+        ]
+      },
+      "value_to_create": {
+        "core_value": "Clarté et structure personnalisée",
+        "why_this_value_matters": "Les femmes 30-45 sont submergées par les attentes sociales (carrière, famille, épanouissement) et ont besoin d'une méthode sur mesure pour prioriser leurs actions. La clarté réduit leur anxiété et leur donne un sentiment de contrôle.",
+        "what_the_audience_is_really_buying": "La certitude qu'elles ne gaspilleront plus leur temps et leur énergie dans des solutions inadaptées.",
+        "value_gap_in_current_business": "L'offre actuelle (programme 3 mois) est trop générique et ne répond pas au besoin immédiat de clarté. Le marché propose des solutions longues sans garantie de résultats, ce qui renforce la méfiance."
+      },
+      "offer_recommendation": {
+        "recommended_offer_name": "Diagnostic Éclair - Votre Feuille de Route en 60 Minutes",
+        "offer_type": "Diagnostic personnalisé",
+        "promise": "Identifier en 60 minutes le blocage principal qui vous empêche d'avancer, avec une feuille de route écrite pour les 30 prochains jours.",
+        "target_persona": "Femmes de 30-45 ans, en transition professionnelle ou personnelle, qui se sentent perdues et ont déjà essayé des solutions génériques sans succès.",
+        "deliverables": [
+          "Analyse écrite de leur situation actuelle (3 pages)",
+          "Feuille de route personnalisée pour les 30 prochains jours",
+          "Recommandation de 3 actions prioritaires à mettre en place immédiatement"
+        ],
+        "transformation": "De « Je ne sais pas par où commencer » à « J’ai une direction claire et des actions concrètes à appliquer dès aujourd’hui ».",
+        "why_this_offer_fits_the_psychology": "Cette offre répond directement à leur peur de gaspiller leur temps et leur argent, en leur donnant une preuve immédiate de la valeur du coaching. Le format court et concret réduit la barrière à l'entrée.",
+        "minimum_viable_offer": "Une session de 60 minutes en visio avec envoi d'un email récapitulatif des 3 actions prioritaires (sans livrable détaillé).",
+        "risks": [
+          "Le diagnostic peut être perçu comme trop superficiel si le livrable n'est pas suffisamment personnalisé.",
+          "Difficulté à convertir les diagnostics gratuits en clients payants si la valeur n'est pas clairement démontrée pendant la session."
+        ]
+      },
+      "social_media_decision": {
+        "best_platform": "Instagram (stories et Reels) et LinkedIn (pour les femmes en transition professionnelle).",
+        "best_content_format": "Vidéos courtes (Reels/Stories) montrant des extraits de diagnostics réels (anonymisés) avec des témoignages clients.",
+        "main_content_angle": "« L’erreur invisible que 90% des femmes font quand elles veulent changer de vie » ou « Pourquoi vos résolutions échouent (et comment les réussir cette fois) ».",
+        "first_post_or_video_to_create": {
+          "titre": "« J’ai aidé 3 femmes cette semaine à trouver leur direction en 60 minutes — voici comment »",
+          "angle": "Montrer un extrait d'un diagnostic réel (anonymisé) avec la réaction de la cliente et les 3 actions prioritaires identifiées.",
+          "structure": [
+            "Accroche : « Vous aussi vous vous sentez perdue ? »",
+            "Problème : « Voici ce qui bloque vraiment les femmes comme vous »",
+            "Solution : « En 60 minutes, on a identifié X et Y »",
+            "Preuve : « Voici ce qu’elle a dit après la session »",
+            "CTA : « Je propose 3 diagnostics gratuits cette semaine — DM « DIAG » pour postuler »"
+          ]
+        },
+        "posting_priority_this_week": [
+          "Créer 1 Reel montrant un extrait de diagnostic (anonymisé) avec témoignage client.",
+          "Publier 3 Stories avec des questions ciblées (« Vous reconnaissez-vous dans cette situation ? ») et un CTA pour le diagnostic gratuit.",
+          "Envoyer un message personnalisé à 20 femmes correspondant au persona pour leur proposer un diagnostic gratuit."
+        ],
+        "why_this_format_fits_the_audience": "Les femmes 30-45 consomment du contenu visuel et authentique sur Instagram. Les vidéos courtes captent leur attention et les témoignages réduisent leur méfiance. Les Stories permettent une interaction directe et personnalisée."
+      },
+      "pricing_logic": {
+        "recommended_price_range": "200-300€ pour le diagnostic payant (après la phase gratuite).",
+        "pricing_reasoning": "Le prix reflète la valeur perçue (clarté immédiate et feuille de route personnalisée) et évite d'attirer des clients « discount ». À 200€, c'est un investissement raisonnable pour une femme qui a déjà gaspillé de l'argent dans des solutions inefficaces. Le prix élevé renforce la crédibilité et filtre les clients sérieux.",
+        "entry_offer_if_needed": "Diagnostic gratuit en échange d'un témoignage (pour les 3 premières clientes).",
+        "proof_needed_to_support_price": "Témoignages vidéo ou écrits de clientes ayant obtenu des résultats concrets après le diagnostic (ex : « J’ai enfin su par où commencer »).",
+        "comfort_level_for_audience": "Effort (mais justifié par la valeur perçue)."
+      },
+      "immediate_monetization_plan": {
+        "next_24h_action": "Identifier 20 femmes correspondant au persona cible sur Instagram/LinkedIn et leur envoyer un message personnalisé : « Je vois que vous traversez peut-être une période de transition — je propose 3 diagnostics gratuits cette semaine pour vous aider à y voir plus clair. Intéressée ? »",
+        "next_7_days_action": [
+          "Publier 1 Reel et 3 Stories pour promouvoir le diagnostic gratuit.",
+          "Réaliser 3 diagnostics gratuits et obtenir des témoignages.",
+          "Convertir 2-3 clientes en diagnostics payants à 200€ en leur proposant une offre limitée (« Je réserve 2 places à 200€ cette semaine pour celles qui veulent aller plus loin »).",
+          "Créer un email récapitulatif des 3 actions prioritaires pour chaque cliente (même les gratuites) pour démontrer la valeur."
+        ],
+        "first_offer_to_test": "Diagnostic gratuit en échange d'un témoignage, suivi d'une offre payante à 200€ pour un diagnostic complet avec livrable écrit.",
+        "first_call_to_action": "« DM « DIAG » pour réserver l’un des 3 diagnostics gratuits de cette semaine » (dans les Stories/Reels).",
+        "metric_to_watch": "Nombre de messages reçus après le CTA, taux de conversion des diagnostics gratuits en payants, et revenus générés cette semaine."
+      },
+      "decision_centrale": "Passer d'une offre générique (programme 3 mois) à une offre de diagnostic ultra-ciblée pour valider le problème réel et générer des revenus immédiats, tout en créant des preuves sociales.",
+      "objectif_utilisateur_reformule": "Générer 5000€/mois en validant une offre qui répond précisément au besoin de clarté des femmes 30-45, avec un modèle scalable basé sur des témoignages et une preuve sociale forte.",
+      "raisonnement": "1. L'absence d'engagement et de distribution signale une méconnaissance du problème réel de l'audience. 2. Les femmes 30-45 en transition ont besoin de clarté avant de s'engager dans un programme long. 3. Un diagnostic court et concret réduit la barrière à l'entrée et permet de valider la valeur perçue. 4. Les témoignages obtenus serviront à alimenter les futures offres (programme 3 mois). 5. Cette approche suit le pattern [no_audience_no_offer] et [confused_audience] de la base de connaissances.",
+      "angle_positionnel": "« Je ne vous vends pas un programme, je vous aide à y voir clair en 60 minutes — et si ça vous convient, on peut aller plus loin. »",
+      "message_central": "« Vous n’avez pas besoin d’un autre programme générique. Vous avez besoin de clarté sur ce qui vous bloque vraiment — et c’est exactement ce que je vous offre en 60 minutes. »",
+      "opportunites_marche": [
+        {
+          "signal": "Aucun engagement ni distribution sur les réseaux sociaux.",
+          "lecture_strategique": "L'audience n'est pas encore identifiée ou engagée, ce qui rend toute offre prématurée.",
+          "recommandation": "Prioriser la validation terrain via des diagnostics gratuits pour créer une audience qualifiée.",
+          "action_concrete": "Contacter 20 femmes cette semaine pour proposer un diagnostic gratuit.",
+          "mesure_succes": "Nombre de diagnostics réalisés et témoignages obtenus."
+        },
+        {
+          "signal": "Offre actuelle (programme 3 mois) trop générique et peu attractive.",
+          "lecture_strategique": "Le marché est saturé de programmes longs sans garantie de résultats, ce qui renforce la méfiance.",
+          "recommandation": "Créer une offre courte et concrète (diagnostic) pour réduire la barrière à l'entrée et valider la valeur perçue.",
+          "action_concrete": "Lancer une offre de diagnostic à 200€ après la phase gratuite.",
+          "mesure_succes": "Taux de conversion des diagnostics gratuits en payants."
+        },
+        {
+          "signal": "Cible idéale : femmes 30-45 en transition, mais pas de persona précis.",
+          "lecture_strategique": "Le manque de précision sur le persona rend le message flou et peu impactant.",
+          "recommandation": "Affiner le persona en identifiant un sous-groupe spécifique (ex : femmes en reconversion professionnelle après un burn-out).",
+          "action_concrete": "Poser des questions ciblées pendant les diagnostics gratuits pour identifier les sous-groupes les plus réceptifs.",
+          "mesure_succes": "Nombre de sous-groupes identifiés et taux de conversion par sous-groupe."
+        }
+      ],
+      "recommandations_prioritaires": [
+        {
+          "action": "Contacter 20 femmes correspondant au persona pour proposer un diagnostic gratuit (cette semaine).",
+          "signal_source": "Aucun engagement ni distribution sur les réseaux sociaux.",
+          "impact": "Validation du problème réel et création des premiers témoignages.",
+          "delai": "cette semaine"
+        },
+        {
+          "action": "Créer 1 Reel et 3 Stories pour promouvoir le diagnostic gratuit (cette semaine).",
+          "signal_source": "Besoin de clarté et preuve sociale pour l'audience.",
+          "impact": "Génération de leads qualifiés et augmentation de la visibilité.",
+          "delai": "cette semaine"
+        },
+        {
+          "action": "Convertir 2-3 diagnostics gratuits en payants à 200€ (ce mois).",
+          "signal_source": "Pattern [failed_patterns] : prix trop bas attirent des clients peu investis.",
+          "impact": "Génération de revenus immédiats et validation de la valeur perçue.",
+          "delai": "ce mois"
+        },
+        {
+          "action": "Affiner le persona en identifiant un sous-groupe spécifique (dans 30-60 jours).",
+          "signal_source": "Cible idéale trop large et peu précise.",
+          "impact": "Message plus percutant et taux de conversion amélioré.",
+          "delai": "dans 30-60 jours"
+        }
+      ],
+      "offre_recommandee": {
+        "nom": "Diagnostic Éclair - Votre Feuille de Route en 60 Minutes",
+        "cible_precise": "Femmes de 30-45 ans en transition professionnelle ou personnelle, ayant déjà essayé des solutions génériques sans succès.",
+        "probleme_traite": "Manque de clarté sur leur direction de vie et peur de gaspiller leur temps dans des solutions inefficaces.",
+        "promesse": "Identifier en 60 minutes le blocage principal qui vous empêche d'avancer, avec une feuille de route écrite pour les 30 prochains jours.",
+        "resultat_attendu": "Une direction claire et 3 actions prioritaires à appliquer immédiatement.",
+        "format": "Session en visio de 60 minutes + livrable écrit (3 pages).",
+        "livrables": [
+          "Analyse écrite de leur situation actuelle",
+          "Feuille de route personnalisée pour les 30 prochains jours",
+          "Recommandation de 3 actions prioritaires"
+        ],
+        "prix_recommande": "200-300€ (après phase gratuite).",
+        "justification_prix": "Le prix reflète la valeur perçue (clarté immédiate et personnalisation) et évite d'attirer des clients « discount ». Il positionne l'offre comme premium sans être inaccessible.",
+        "message_de_vente": "« Vous en avez assez de tourner en rond ? En 60 minutes, je vous aide à identifier ce qui vous bloque vraiment et à créer une feuille de route sur mesure pour avancer. »",
+        "canaux_acquisition": [
+          "Instagram (Reels et Stories)",
+          "LinkedIn (pour les femmes en transition professionnelle)",
+          "Messages directs personnalisés"
+        ],
+        "objections_a_traiter": [
+          "« Je ne suis pas sûre que ça marche pour moi » → Montrer des témoignages de femmes similaires.",
+          "« J’ai déjà essayé plein de choses » → « C’est justement pour ça que cette approche est différente : on identifie ce qui n’a pas marché pour vous. »"
+        ]
+      },
+      "strategie_contenu": {
+        "format_prioritaire": "Vidéos courtes (Reels/Stories) montrant des extraits de diagnostics et témoignages clients.",
+        "frequence": "3 posts par semaine (1 Reel + 2 Stories).",
+        "tonalite": "Authentique, empathique et orientée résultats (éviter le ton « guru »).",
+        "sujets_a_eviter": [
+          "Conseils génériques (« 5 étapes pour réussir sa vie »).",
+          "Promesses trop larges (« Devenez épanouie en 30 jours »)."
+        ]
+      },
+      "plan_90_jours": {
+        "phase_1": {
+          "titre": "Valider et lancer",
+          "periode": "Jours 1-30",
+          "objectifs": [
+            "Réaliser 10 diagnostics gratuits et obtenir 5 témoignages.",
+            "Convertir 5 clients payants pour le diagnostic à 200€.",
+            "Générer 1000€ de revenus."
+          ],
+          "taches": [
+            "Contacter 50 femmes correspondant au persona pour proposer un diagnostic gratuit.",
+            "Créer 4 Reels et 12 Stories pour promouvoir l'offre.",
+            "Convertir les diagnostics gratuits en payants en proposant une offre limitée.",
+            "Créer un email récapitulatif pour chaque cliente (même gratuite) pour démontrer la valeur."
+          ],
+          "livrables": [
+            "5 témoignages clients (vidéo ou écrit).",
+            "10 diagnostics payants réalisés."
+          ],
+          "kpis": [
+            "Nombre de diagnostics réalisés (gratuit + payant).",
+            "Taux de conversion des diagnostics gratuits en payants.",
+            "Revenus générés."
+          ],
+          "decisions_cles": [
+            "Valider le problème réel de l'audience et affiner le persona."
+          ]
+        },
+        "phase_2": {
+          "titre": "Optimiser et convertir",
+          "periode": "Jours 31-60",
+          "objectifs": [
+            "Atteindre 3000€ de revenus mensuels avec le diagnostic payant.",
+            "Lancer une offre de suivi (ex : accompagnement 1 mois) pour les clientes du diagnostic.",
+            "Créer une liste d'attente pour le programme 3 mois."
+          ],
+          "taches": [
+            "Automatiser la promotion du diagnostic via des publicités ciblées (si budget disponible).",
+            "Proposer un accompagnement 1 mois à 800€ aux clientes du diagnostic.",
+            "Créer un webinaire gratuit pour générer des leads qualifiés.",
+            "Affiner le persona en identifiant un sous-groupe spécifique (ex : femmes en reconversion après un burn-out)."
+          ],
+          "livrables": [
+            "Offre d'accompagnement 1 mois lancée.",
+            "Liste d'attente pour le programme 3 mois créée."
+          ],
+          "kpis": [
+            "Revenus mensuels (objectif 3000€).",
+            "Taux de conversion des diagnostics en accompagnement 1 mois.",
+            "Nombre de leads générés via le webinaire."
+          ],
+          "decisions_cles": [
+            "Valider la rentabilité de l'accompagnement 1 mois avant de scaler."
+          ]
+        },
+        "phase_3": {
+          "titre": "Scaler ce qui fonctionne",
+          "periode": "Jours 61-90",
+          "objectifs": [
+            "Atteindre 5000€/mois avec un mix diagnostic + accompagnement 1 mois + programme 3 mois.",
+            "Automatiser l'acquisition de clients via des publicités et un funnel de vente.",
+            "Lancer une communauté payante pour les clientes ayant terminé le programme."
+          ],
+          "taches": [
+            "Créer un funnel de vente automatisé (lead magnet → webinaire → diagnostic → accompagnement/programme).",
+            "Lancer des publicités ciblées pour promouvoir le diagnostic.",
+            "Créer une communauté payante (ex : groupe privé à 50€/mois) pour les anciennes clientes.",
+            "Former un assistant pour gérer les diagnostics et le suivi client."
+          ],
+          "livrables": [
+            "Funnel de vente automatisé.",
+            "Communauté payante lancée."
+          ],
+          "kpis": [
+            "Revenus mensuels (objectif 5000€).",
+            "Coût d'acquisition client (CAC).",
+            "Taux de rétention des clientes dans la communauté."
+          ],
+          "decisions_cles": [
+            "Investir dans des publicités si le CAC est rentable.",
+            "Développer une offre de groupe si la communauté fonctionne."
+          ]
+        }
+      }
+    },
+    "created_at": "2026-06-26T21:35:38.053844"
+  },
+  {
+    "user_id": "local",
+    "strategy_id": "e399bbe3-35d5-44",
+    "analysis_id": "",
+    "title": "Passer d'une offre de formation générique à une offre de diagnostic personnalisé pour crée",
+    "business_context": {
+      "role_utilisateur": "Coach",
+      "activite": "Coaching",
+      "offre": "Programme",
+      "cible": "Femmes",
+      "modele_economique": "En ligne",
+      "resultats_actuels": "5 clients",
+      "objectif_principal": "Scaler"
+    },
+    "strategy_result": {
+      "executive_decision": {
+        "one_sentence_decision": "Lancer immédiatement une offre de diagnostic personnalisé en 60 minutes pour valider le problème réel des femmes cibles et générer les premiers revenus cette semaine.",
+        "what_to_do_this_week": "1. Identifier 20 femmes correspondant au persona idéal via LinkedIn/Instagram et engager des conversations privées pour comprendre leur problème principal. 2. Créer un post vidéo court (30-60s) intitulé 'L'erreur invisible que 90% des femmes font dans [problème spécifique]' avec CTA vers un diagnostic gratuit. 3. Proposer 3 diagnostics gratuits en échange de témoignages vidéo/textes.",
+        "why_now": "L'absence totale d'engagement et de polarisation signale une audience non identifiée ou non activée. Sans validation du problème réel, toute offre sera inefficace. Cette approche permet de créer une audience engagée en partant de zéro tout en générant des revenus immédiats via des diagnostics payants après les 3 gratuits.",
+        "expected_business_impact": "Validation du problème réel de l'audience en 7 jours, 3 témoignages clients pour preuve sociale, 5-10 diagnostics payants vendus à 200-500€ dans les 30 jours, et création d'une liste de prospects qualifiés pour une offre premium.",
+        "confidence_score": 0.85
+      },
+      "audience_psychology_used": {
+        "main_problem": "Manque de clarté sur la direction à prendre pour résoudre un problème personnel/professionnel spécifique (à valider), conduisant à une paralysie décisionnelle et une perte de confiance en soi.",
+        "main_desire": "Obtenir une feuille de route personnalisée et actionnable qui élimine la confusion et donne un sentiment de contrôle immédiat sur leur situation.",
+        "main_fear": "Perdre du temps et de l'argent sur des solutions génériques qui ne s'appliquent pas à leur cas unique, ou être jugée pour leurs choix.",
+        "main_frustration": "Recevoir des conseils contradictoires ou trop théoriques sans savoir par où commencer concrètement, ce qui renforce leur sentiment d'échec.",
+        "main_objection": "Pourquoi payer pour un diagnostic alors que je peux trouver des informations gratuites en ligne ? (Objection à traiter avec preuve de valeur immédiate)",
+        "values_sought": [
+          "Clarté sur les prochaines étapes",
+          "Validation de leur problème par un expert",
+          "Structure pour agir sans se sentir submergée",
+          "Reconnaissance de leur unicité (pas de solution one-size-fits-all)",
+          "Sécurité émotionnelle (ne pas être jugée)"
+        ],
+        "decision_drivers": [
+          "Preuve que le coach comprend leur situation spécifique (témoignages, langage précis)",
+          "Résultat tangible en moins d'une heure (ex: 'Voici exactement ce que tu dois faire cette semaine')"
+        ]
+      },
+      "value_to_create": {
+        "core_value": "Clarté immédiate et structure actionnable",
+        "why_this_value_matters": "Les signaux d'absence d'engagement et de polarisation révèlent une audience confuse ou non engagée. La clarté est la première valeur à vendre car elle répond directement au blocage décisionnel. Sans clarté, aucune autre valeur (statut, appartenance, etc.) ne peut être perçue.",
+        "what_the_audience_is_really_buying": "Un soulagement immédiat de l'anxiété liée à l'incertitude, et la permission de commencer à agir sans peur de se tromper.",
+        "value_gap_in_current_business": "Aucune offre actuelle ne propose un diagnostic rapide et personnalisé pour créer de la clarté. Les programmes existants semblent trop génériques ou trop longs, ce qui ne répond pas au besoin de résultat immédiat."
+      },
+      "offer_recommendation": {
+        "recommended_offer_name": "Diagnostic Clarté Express",
+        "offer_type": "Diagnostic personnalisé en 60 minutes + livrable écrit",
+        "promise": "En 60 minutes, tu sauras exactement : 1) Quel est ton vrai problème (pas le symptôme), 2) Les 3 actions prioritaires à faire cette semaine, 3) Comment éviter les pièges qui te bloquent depuis des mois.",
+        "target_persona": "Femmes de 30-45 ans, en reconversion professionnelle ou en quête de sens, qui se sentent perdues face à trop d'informations et ont déjà essayé des solutions génériques sans succès.",
+        "deliverables": [
+          "Session vidéo de 60 minutes avec analyse en direct",
+          "Document PDF personnalisé avec : diagnostic détaillé, roadmap sur 30 jours, ressources ciblées",
+          "Enregistrement audio de la session pour réécoute"
+        ],
+        "transformation": "Avant : Confusion, procrastination, sentiment d'échec. Après : Clarté sur les prochaines étapes, confiance en une direction précise, motivation à agir immédiatement.",
+        "why_this_offer_fits_the_psychology": "1) Répond au besoin de clarté immédiate (valeur principale). 2) Crée un soulagement émotionnel en 60 minutes (résultat tangible). 3) Valide leur unicité via un diagnostic personnalisé (répond à la peur des solutions génériques). 4) Permet de tester la relation coach-client sans engagement long terme.",
+        "minimum_viable_offer": "Offre de 30 minutes de diagnostic gratuit (sans livrable) pour valider le problème, suivie d'une proposition de diagnostic payant complet à 200€ avec livrable écrit.",
+        "risks": [
+          "Les prospects peuvent ne pas voir la valeur d'un diagnostic payant après un gratuit",
+          "Difficulté à articuler la différence entre le gratuit et le payant (à traiter avec un script de vente clair)"
+        ]
+      },
+      "social_media_decision": {
+        "best_platform": "Instagram (Reels + Stories) et LinkedIn (posts longs + messages privés)",
+        "best_content_format": "Vidéos courtes (30-60s) avec sous-titres + carrousels éducatifs",
+        "main_content_angle": "Révéler les erreurs invisibles qui bloquent les femmes dans [problème spécifique], avec des exemples concrets et une solution immédiate.",
+        "first_post_or_video_to_create": {
+          "titre": "L'erreur invisible que 90% des femmes font dans [problème] (et comment la corriger en 10 minutes)",
+          "structure": [
+            "Accroche : 'Si tu te sens bloquée dans [situation], c'est probablement à cause de ça...'",
+            "Problème : 'La plupart des conseils te disent de faire X, mais en réalité, ça aggrave Y'",
+            "Solution : 'Voici la première étape que j'ai donnée à [prénom client] pour [résultat]'",
+            "CTA : 'Si tu veux ton diagnostic personnalisé, envoie-moi 'CLARTÉ' en MP'"
+          ],
+          "format": "Reel Instagram avec texte animé et voix off"
+        },
+        "posting_priority_this_week": [
+          "1. Vidéo Reel 'L'erreur invisible' (à publier dans 24h)",
+          "2. Carrousel LinkedIn '3 signes que tu as besoin d'un diagnostic clarté'",
+          "3. Story Instagram 'Je t'offre 3 diagnostics gratuits cette semaine - voici comment postuler'"
+        ],
+        "why_this_format_fits_the_audience": "1) Les femmes de 30-45 ans consomment majoritairement du contenu vidéo court sur Instagram. 2) Les Reels permettent de capter l'attention rapidement et de montrer de l'empathie via le ton et les expressions. 3) Les carrousels LinkedIn attirent une audience plus professionnelle et prête à investir. 4) Les Stories créent de l'urgence et de l'interaction directe."
+      },
+      "pricing_logic": {
+        "recommended_price_range": "200-500€ pour le diagnostic complet (à ajuster après validation)",
+        "pricing_reasoning": "1) Niveau de douleur : Fort (paralysie décisionnelle = coût émotionnel élevé). 2) Valeur perçue : Élevée si le diagnostic donne une clarté immédiate et des actions concrètes. 3) Capacité de paiement : Les femmes en reconversion ou en quête de sens investissent souvent 200-1000€ dans des solutions qui promettent un soulagement rapide. 4) Positionnement : Milieu de gamme pour commencer, avec possibilité de monter à 800-1500€ après preuve sociale. 5) Preuve nécessaire : Témoignages vidéo avec résultats concrets ('Grâce à ce diagnostic, j'ai enfin su par où commencer').",
+        "entry_offer_if_needed": "Diagnostic gratuit de 30 minutes (sans livrable) pour les prospects hésitants, avec upsell immédiat vers le diagnostic payant à 200€.",
+        "proof_needed_to_support_price": "1) Témoignages vidéo de clientes avec leur transformation. 2) Exemple de livrable PDF pour montrer la valeur. 3) Script de vente qui articule clairement la différence entre le gratuit et le payant.",
+        "comfort_level_for_audience": "Effort (à valider) - Le prix peut sembler élevé pour une première offre, mais justifiable si la valeur est démontrée immédiatement."
+      },
+      "immediate_monetization_plan": {
+        "next_24h_action": "1. Créer et publier la vidéo Reel 'L'erreur invisible'. 2. Envoyer un message personnalisé à 10 femmes cibles sur LinkedIn/Instagram pour engager la conversation. 3. Préparer un script de vente pour le diagnostic payant.",
+        "next_7_days_action": "1. Publier 3 contenus (1 Reel, 1 carrousel, 1 Story) avec CTA vers le diagnostic. 2. Réaliser 3 diagnostics gratuits et collecter des témoignages. 3. Proposer le diagnostic payant à 200€ aux prospects qualifiés. 4. Lancer une offre limitée à 5 diagnostics payants à 300€ pour créer de l'urgence.",
+        "first_offer_to_test": "Diagnostic Clarté Express à 200€ (version complète avec livrable)",
+        "first_call_to_action": "'Envie de savoir exactement quoi faire cette semaine ? Réserve ton Diagnostic Clarté Express à 200€ (5 places disponibles) - envoie-moi 'CLARTÉ' en MP !'",
+        "metric_to_watch": "1) Taux de réponse aux messages privés (objectif : 30%). 2) Nombre de demandes pour le diagnostic gratuit (objectif : 10). 3) Taux de conversion du gratuit vers le payant (objectif : 50%). 4) Nombre de diagnostics payants vendus (objectif : 5)."
+      },
+      "decision_centrale": "Passer d'une offre de formation générique à une offre de diagnostic personnalisé pour créer de la clarté immédiate, valider le problème réel de l'audience, et générer des revenus rapides tout en construisant une preuve sociale.",
+      "objectif_utilisateur_reformule": "Scaler une activité de coaching en ligne pour femmes en validant d'abord le problème réel de l'audience via des diagnostics personnalisés, puis en capitalisant sur cette validation pour lancer une offre premium (programme ou accompagnement).",
+      "raisonnement": "1) Les données montrent une audience inexistante ou non engagée, ce qui signifie qu'aucune offre ne peut être vendue sans validation préalable. 2) Le pattern [no_audience_no_offer] impose de construire une audience avant de vendre, mais avec une approche qui génère des revenus immédiats. 3) Le diagnostic personnalisé est l'offre minimale viable pour : a) Valider le problème réel, b) Créer de la preuve sociale, c) Générer des revenus rapides, d) Qualifier des prospects pour une offre premium. 4) La psychologie de l'audience (confusion, peur des solutions génériques) est parfaitement adressée par une offre de clarté immédiate. 5) Cette approche évite le piège des formations à bas prix qui attirent des clients non investis.",
+      "angle_positionnel": "La coach qui donne de la clarté en 60 minutes, là où les autres vendent des programmes de 6 mois sans garantie de résultat.",
+      "message_central": "Tu n'as pas besoin de plus d'informations, tu as besoin de savoir exactement quoi faire MAINTENANT. En 60 minutes, je te donne ta feuille de route personnalisée pour [résultat désiré].",
+      "opportunites_marche": [
+        {
+          "signal": "Absence totale d'engagement et de polarisation",
+          "lecture_strategique": "L'audience n'est pas encore identifiée ou activée. Il faut partir de zéro pour créer une audience engagée autour d'un problème spécifique.",
+          "recommandation": "Utiliser des contenus polarisants qui révèlent un problème précis et proposent une solution immédiate (diagnostic).",
+          "action_concrete": "Créer 3 contenus cette semaine qui nomment un problème spécifique et offrent un diagnostic gratuit.",
+          "mesure_succes": "Nombre de messages privés reçus après publication (objectif : 20+)."
+        },
+        {
+          "signal": "Pattern [failed_patterns] : formations à bas prix et coaching à 50€/h",
+          "lecture_strategique": "Les offres actuelles attirent des clients non investis et non rentables. Il faut repositionner vers une offre premium qui filtre les prospects sérieux.",
+          "recommandation": "Lancer une offre de diagnostic à 200-500€ pour valider la capacité de paiement et la valeur perçue.",
+          "action_concrete": "Proposer 3 diagnostics gratuits cette semaine, puis upsell vers le diagnostic payant à 200€.",
+          "mesure_succes": "Taux de conversion du gratuit vers le payant (objectif : 50%)."
+        },
+        {
+          "signal": "Cible idéale : femmes en quête de sens ou reconversion",
+          "lecture_strategique": "Cette audience a un fort besoin de validation et de structure, mais craint les solutions génériques. Une offre personnalisée et rapide répond à ce besoin.",
+          "recommandation": "Créer une offre de diagnostic qui met l'accent sur la personnalisation et le résultat immédiat.",
+          "action_concrete": "Développer un script de vente qui souligne la différence entre un diagnostic personnalisé et des conseils génériques.",
+          "mesure_succes": "Nombre de diagnostics payants vendus (objectif : 5 dans les 30 jours)."
+        }
+      ],
+      "recommandations_prioritaires": [
+        {
+          "action": "Publier 3 contenus polarisants cette semaine pour activer l'audience et générer des demandes de diagnostic.",
+          "signal_source": "Absence d'engagement et de polarisation (signal 1)",
+          "impact": "Création d'une audience engagée et identification du problème réel.",
+          "delai": "Cette semaine"
+        },
+        {
+          "action": "Réaliser 3 diagnostics gratuits et collecter des témoignages pour preuve sociale.",
+          "signal_source": "Pattern [no_audience_no_offer] et besoin de validation",
+          "impact": "Preuve sociale pour soutenir le prix du diagnostic payant et qualifier des prospects.",
+          "delai": "Cette semaine"
+        },
+        {
+          "action": "Lancer une offre limitée de 5 diagnostics payants à 300€ pour tester la capacité de paiement.",
+          "signal_source": "Pattern [failed_patterns] (offres à bas prix non rentables)",
+          "impact": "Validation de la valeur perçue et génération de revenus rapides.",
+          "delai": "Ce mois"
+        },
+        {
+          "action": "Développer une offre premium (programme ou accompagnement) basée sur les insights des diagnostics.",
+          "signal_source": "Besoin de scaler et de capitaliser sur la validation du problème",
+          "impact": "Création d'une offre récurrente à haute valeur.",
+          "delai": "Dans 30-60 jours"
+        }
+      ],
+      "offre_recommandee": {
+        "nom": "Diagnostic Clarté Express",
+        "cible_precise": "Femmes de 30-45 ans en reconversion professionnelle ou en quête de sens, qui se sentent perdues et ont déjà essayé des solutions génériques sans succès.",
+        "probleme_traite": "Manque de clarté sur les prochaines étapes à suivre pour résoudre un problème personnel/professionnel spécifique, conduisant à une paralysie décisionnelle.",
+        "promesse": "En 60 minutes, tu sauras exactement : 1) Quel est ton vrai problème, 2) Les 3 actions prioritaires à faire cette semaine, 3) Comment éviter les pièges qui te bloquent depuis des mois.",
+        "resultat_attendu": "Clarté immédiate sur la direction à prendre, motivation à agir, et feuille de route personnalisée pour les 30 prochains jours.",
+        "format": "Session vidéo de 60 minutes + livrable PDF personnalisé + enregistrement audio.",
+        "livrables": [
+          "Diagnostic détaillé du problème (pas du symptôme)",
+          "Roadmap sur 30 jours avec actions prioritaires",
+          "Liste de ressources ciblées (livres, outils, personnes à contacter)"
+        ],
+        "prix_recommande": "200-500€ (à ajuster après validation)",
+        "justification_prix": "Prix justifié par : 1) Résultat immédiat en 60 minutes, 2) Personnalisation complète, 3) Livrable écrit pour référence future, 4) Accès à un expert qui comprend leur situation unique.",
+        "message_de_vente": "Tu as déjà essayé des solutions génériques qui ne marchent pas ? En 60 minutes, je te donne ta feuille de route personnalisée pour [résultat désiré]. Plus de confusion, plus de procrastination - juste les prochaines étapes claires. Offre limitée à 5 places cette semaine.",
+        "canaux_acquisition": [
+          "Instagram (Reels + Stories)",
+          "LinkedIn (posts + messages privés)",
+          "Témoignages clients (bouche-à-oreille)"
+        ],
+        "objections_a_traiter": [
+          "Pourquoi payer pour un diagnostic alors que je peux trouver des informations gratuites en ligne ? (Réponse : Les informations gratuites sont génériques et ne s'appliquent pas à ton cas unique. Ce diagnostic te donne exactement ce que tu dois faire, toi, maintenant.)",
+          "Comment savoir si ça va marcher pour moi ? (Réponse : Les 3 diagnostics gratuits cette semaine te permettent de tester sans risque. Si tu ne vois pas la valeur, tu ne paies rien.)"
+        ]
+      },
+      "strategie_contenu": {
+        "format_prioritaire": "Vidéos courtes (Reels Instagram) et carrousels LinkedIn",
+        "frequence": "3 contenus par semaine (1 Reel, 1 carrousel, 1 Story)",
+        "tonalite": "Empathique mais directe, avec un ton qui révèle les vérités inconfortables (ex: 'Si tu fais ça, tu vas continuer à tourner en rond'). Utiliser des exemples concrets et des histoires de clientes.",
+        "sujets_a_eviter": [
+          "Conseils génériques ('5 étapes pour réussir')",
+          "Contenu trop théorique sans application immédiate",
+          "Messages trop larges ('pour toutes les femmes')"
+        ]
+      }
+    },
+    "created_at": "2026-06-26T21:33:20.827759"
+  },
+  {
+    "user_id": "local",
+    "strategy_id": "9e5fd6a9-f001-41",
+    "analysis_id": "",
+    "title": "Passer d'une offre longue et générique (programme 3 mois) à une offre courte et ultra-pers",
+    "business_context": {
+      "role_utilisateur": "Coach de vie",
+      "activite": "Coaching développement personnel",
+      "offre": "Programme 3 mois",
+      "cible": "Femmes 30-45 ans",
+      "modele_economique": "Vente directe",
+      "resultats_actuels": "5 clients/mois",
+      "objectif_principal": "5000 euros/mois en 90 jours"
+    },
+    "strategy_result": {
+      "executive_decision": {
+        "one_sentence_decision": "Lancer immédiatement une offre de diagnostic personnalisé en 60 minutes pour valider le problème réel des femmes 30-45 ans et générer les premiers revenus cette semaine.",
+        "what_to_do_this_week": "Contacter 20 femmes correspondant au persona cible pour leur proposer un diagnostic gratuit en échange d'un témoignage, puis convertir 3 d'entre elles en clients payants pour la même offre à 150€.",
+        "why_now": "L'absence totale d'engagement et de polarisation signale une méconnaissance du problème réel de l'audience. Sans validation terrain, toute offre sera inefficace. Cette approche permet de créer une audience engagée et de générer des revenus immédiats.",
+        "expected_business_impact": "5 à 10 clients payants en 30 jours (750€-1500€), validation du problème réel, et création d'une base de témoignages pour scaler l'offre principale.",
+        "confidence_score": 0.85
+      },
+      "audience_psychology_used": {
+        "main_problem": "Perte de sens et d'alignement entre leurs aspirations personnelles et leur réalité quotidienne (carrière, famille, estime de soi), aggravée par un manque de clarté sur les priorités.",
+        "main_desire": "Retrouver un sentiment de contrôle et de progression tangible vers une vie qui leur ressemble, avec des résultats visibles en 30 jours.",
+        "main_fear": "Investir du temps et de l'argent dans une solution qui ne résoudra pas leur problème de fond, ou pire, qui les fera se sentir encore plus perdues.",
+        "main_frustration": "Avoir essayé des méthodes génériques (livres, podcasts, formations en ligne) sans résultat concret, et se sentir submergées par l'abondance d'informations contradictoires.",
+        "main_objection": "« Je ne suis pas sûre que ça marche pour moi, j'ai déjà tout essayé » ou « Je n'ai pas le temps pour un autre programme. »",
+        "values_sought": [
+          "Clarté sur les priorités immédiates",
+          "Preuve sociale (témoignages de femmes comme elles)",
+          "Structure simple et actionnable dès aujourd'hui",
+          "Reconnaissance de leur singularité (pas de solution « one-size-fits-all ») ",
+          "Soulagement émotionnel (se sentir écoutées et comprises)"
+        ],
+        "decision_drivers": [
+          "Un résultat concret et mesurable en moins de 30 jours",
+          "Une interaction humaine personnalisée (pas un cours en ligne impersonnel)"
+        ]
+      },
+      "value_to_create": {
+        "core_value": "Clarté et structure immédiate",
+        "why_this_value_matters": "Cette audience est en état de confusion avancée (signal : 0% d'engagement, 0% de polarisation). Elle a besoin d'un cadre pour agir, pas de plus d'informations. Un diagnostic personnalisé répond à ce besoin en offrant une feuille de route sur mesure.",
+        "what_the_audience_is_really_buying": "La certitude qu'elles ne gaspillent plus leur énergie sur des actions inefficaces, et la permission de se concentrer sur ce qui compte vraiment pour elles.",
+        "value_gap_in_current_business": "L'offre actuelle (programme 3 mois) est trop longue et abstraite pour une audience en état de confusion. Elle ne propose pas de résultat immédiat ni de preuve de concept personnalisée."
+      },
+      "offer_recommendation": {
+        "recommended_offer_name": "Diagnostic Éclair - Votre Plan d'Action en 60 Minutes",
+        "offer_type": "Diagnostic personnalisé (1:1)",
+        "promise": "À la fin de la session, vous aurez une feuille de route claire avec 3 actions prioritaires à mettre en place cette semaine pour avancer vers [résultat concret : ex. « une vie plus alignée avec vos valeurs »].",
+        "target_persona": "Femmes de 30-45 ans, en reconversion professionnelle ou en questionnement sur leur équilibre vie pro/perso, qui ont déjà essayé des solutions génériques sans succès.",
+        "deliverables": [
+          "Session de 60 minutes en visio (ou en présentiel si local)",
+          "Feuille de route personnalisée envoyée sous 24h (PDF)",
+          "Enregistrement audio de la session (optionnel)",
+          "Liste de ressources ciblées (livres, outils, contacts)"
+        ],
+        "transformation": "Avant : Sentiment de stagnation, confusion sur les priorités, frustration face aux méthodes génériques. Après : Clarté sur les 3 prochaines actions, motivation renforcée, sentiment de contrôle retrouvé.",
+        "why_this_offer_fits_the_psychology": "1) Répond à la peur de l'inefficacité avec un résultat tangible en 60 minutes. 2) Offre une interaction humaine personnalisée, ce que recherche cette audience. 3) Permet de tester la relation coach-client sans engagement long. 4) Crée un effet de soulagement immédiat (valeur clé recherchée).",
+        "minimum_viable_offer": "Proposer 3 diagnostics gratuits cette semaine en échange de témoignages vidéo, puis vendre la même offre à 150€ aux prochains prospects.",
+        "risks": [
+          "Difficulté à convertir les diagnostics gratuits en payants (mitigation : limiter à 3 gratuits et exiger un témoignage en échange)",
+          "Manque de clarté sur le livrable (mitigation : créer un template de feuille de route avant de lancer)",
+          "Surcharge de travail si trop de demandes (mitigation : limiter à 5 diagnostics/semaine au début)"
+        ]
+      },
+      "social_media_decision": {
+        "best_platform": "Instagram (stories + Reels) et LinkedIn (pour les femmes en reconversion pro)",
+        "best_content_format": "Vidéos courtes (Reels/Stories) avec témoignages clients + posts « avant/après » (ex. : « Voici la feuille de route que j'ai créée pour Claire en 60 minutes »).",
+        "main_content_angle": "« L'erreur invisible qui vous empêche d'avancer (et comment la corriger en 60 minutes) »",
+        "first_post_or_video_to_create": {
+          "titre": "« Pourquoi vous stagnez (même si vous avez tout essayé) »",
+          "angle": "Vidéo de 45 secondes montrant une femme (avatar de la cible) en train de survoler des livres de développement personnel, puis s'arrêtant net avec un regard perdu. Texte à l'écran : « Vous avez lu 10 livres, écouté 20 podcasts, et pourtant... vous êtes toujours au même point. Voici pourquoi. »",
+          "structure": [
+            "Problème (10s) : « Vous avez l'impression de tourner en rond ? »",
+            "Cause (15s) : « Vous appliquez des méthodes génériques qui ne correspondent pas à VOTRE situation. »",
+            "Solution (15s) : « En 60 minutes, je vous aide à identifier vos 3 prochaines actions prioritaires. »",
+            "CTA (5s) : « DM « DIAGNOSTIC » pour réserver votre session gratuite (3 places disponibles). »"
+          ]
+        },
+        "posting_priority_this_week": [
+          "1. Vidéo « Pourquoi vous stagnez » (Reel + Story)",
+          "2. Post « Avant/Après » avec un témoignage client (même fictif pour commencer)",
+          "3. Story interactive : « Quel est VOTRE plus gros blocage ? » (sondage avec 3 options)",
+          "4. Post LinkedIn : « La reconversion pro ne devrait pas être un casse-tête » (pour toucher les femmes en transition)"
+        ],
+        "why_this_format_fits_the_audience": "1) Les vidéos courtes captent l'attention d'une audience en état de confusion. 2) Les témoignages créent de la preuve sociale, essentielle pour cette cible méfiante. 3) Les stories interactives génèrent de l'engagement et révèlent les objections réelles. 4) LinkedIn touche les femmes en reconversion pro, un segment souvent négligé."
+      },
+      "pricing_logic": {
+        "recommended_price_range": "150€ à 300€ par diagnostic (à tester)",
+        "pricing_reasoning": "1) Niveau de douleur : Fort (cette audience est prête à payer pour un soulagement immédiat). 2) Valeur perçue : Un diagnostic de 60 minutes chez un coach expérimenté se vend généralement entre 100€ et 500€. 3) Capacité de paiement : Les femmes de 30-45 ans en reconversion ont souvent un budget de 200-500€ pour une solution qui promet un résultat rapide. 4) Positionnement : Prix d'entrée pour une offre premium (le programme 3 mois pourra être vendu 1500-3000€ ensuite). 5) Preuve nécessaire : Témoignages vidéo et résultats concrets (ex. : « 80% des clientes ont mis en place au moins 1 action dans les 48h »).",
+        "entry_offer_if_needed": "Diagnostic à 97€ pour les 5 premières clientes payantes (avec upsell vers le programme 3 mois).",
+        "proof_needed_to_support_price": "1) Témoignages vidéo avec résultats concrets. 2) Études de cas « avant/après ». 3) Enregistrement d'une session (avec accord de la cliente). 4) Garantie « Satisfait ou remboursé sous 48h ».",
+        "comfort_level_for_audience": "Effort (mais justifié par la promesse de clarté immédiate)"
+      },
+      "immediate_monetization_plan": {
+        "next_24h_action": "1) Créer un template de feuille de route (PDF) pour le diagnostic. 2) Rédiger un script pour la vidéo « Pourquoi vous stagnez ». 3) Identifier 20 femmes correspondant au persona (via réseaux sociaux, groupes Facebook, contacts LinkedIn) et leur envoyer un message personnalisé : « Bonjour [Prénom], je vois que vous êtes en reconversion pro – je propose 3 diagnostics gratuits cette semaine en échange d'un témoignage. Ça vous dit d'en discuter 15 min ? »",
+        "next_7_days_action": "1) Publier la vidéo « Pourquoi vous stagnez » et booster avec 50€ de budget. 2) Convertir 3 des diagnostics gratuits en payants (150€). 3) Enregistrer 1 témoignage vidéo. 4) Lancer un sondage Instagram : « Quel est votre plus gros blocage ? » pour affiner le message. 5) Contacter 5 influenceuses micro-locales (1k-10k abonnés) pour des partenariats (échange diagnostic contre visibilité).",
+        "first_offer_to_test": "Diagnostic Éclair à 150€ (avec garantie 48h).",
+        "first_call_to_action": "« DM « DIAGNOSTIC » pour réserver votre session (3 places disponibles cette semaine). »",
+        "metric_to_watch": "1) Taux de réponse aux messages personnalisés (objectif : 30%). 2) Taux de conversion des diagnostics gratuits en payants (objectif : 50%). 3) Nombre de vues de la vidéo « Pourquoi vous stagnez » (objectif : 1000 vues en 7 jours)."
+      },
+      "decision_centrale": "Passer d'une offre longue et générique (programme 3 mois) à une offre courte et ultra-personnalisée (diagnostic 60 minutes) pour valider le problème réel, générer des revenus immédiats, et créer une base de preuves sociales.",
+      "objectif_utilisateur_reformule": "Générer 5000€/mois en 90 jours en validant d'abord le problème réel de l'audience via une offre de diagnostic, puis en scalan le programme 3 mois une fois la preuve sociale établie.",
+      "raisonnement": "1) Le signal « 0/100 » sur tous les indicateurs d'audience révèle une absence totale de connexion avec le marché. 2) Les patterns [failed_patterns] et [ignoring_objections] montrent que les offres actuelles sont soit trop génériques, soit trop longues pour une audience en état de confusion. 3) La règle [no_audience_no_offer] impose de construire une audience avant de vendre. 4) La règle [confused_audience] recommande de vendre de la clarté via un diagnostic. 5) Le diagnostic permet de : a) Valider le problème réel. b) Générer des revenus immédiats. c) Créer des témoignages pour scaler. d) Identifier les objections pour affiner l'offre principale.",
+      "angle_positionnel": "« Le coach qui vous aide à passer de la confusion à l'action en 60 minutes – sans théorie, juste des résultats. »",
+      "message_central": "Vous n'avez pas besoin d'un autre programme de 3 mois. Vous avez besoin de clarté sur les 3 actions qui changeront tout pour vous – et je peux vous les donner en 60 minutes.",
+      "opportunites_marche": [
+        {
+          "signal": "0% d'engagement et 0% de polarisation",
+          "lecture_strategique": "L'audience ne se reconnaît pas dans le message actuel. Elle a besoin d'un problème précis et d'une solution immédiate pour s'engager.",
+          "recommandation": "Créer un contenu qui nomme exactement leur frustration (ex. : « Pourquoi vous stagnez ») et propose une solution en 60 minutes.",
+          "action_concrete": "Publier la vidéo « Pourquoi vous stagnez » dans les 24h et mesurer les réactions.",
+          "mesure_succes": "Nombre de vues (>1000 en 7 jours) et messages reçus (>20)."
+        },
+        {
+          "signal": "Pattern [failed_patterns] : prix bas et offres génériques",
+          "lecture_strategique": "Les offres actuelles attirent des clients peu investis. Une offre premium avec un résultat immédiat attirera une audience plus engagée.",
+          "recommandation": "Lancer une offre de diagnostic à 150€ avec une garantie « satisfait ou remboursé ».",
+          "action_concrete": "Proposer 3 diagnostics gratuits cette semaine, puis convertir en payant.",
+          "mesure_succes": "Taux de conversion des gratuits en payants (>50%)."
+        },
+        {
+          "signal": "Cible : femmes 30-45 ans en questionnement",
+          "lecture_strategique": "Cette audience recherche des preuves sociales et une interaction humaine. Les témoignages et les stories interactives sont clés.",
+          "recommandation": "Créer des contenus avec témoignages « avant/après » et des sondages pour engager la conversation.",
+          "action_concrete": "Publier 1 témoignage (même fictif) et 1 sondage Instagram cette semaine.",
+          "mesure_succes": "Taux d'engagement sur les stories (>10% de réponses au sondage)."
+        }
+      ],
+      "recommandations_prioritaires": [
+        {
+          "action": "Contacter 20 femmes correspondant au persona pour proposer 3 diagnostics gratuits en échange de témoignages.",
+          "signal_source": "0% d'engagement et règle [no_audience_no_offer]",
+          "impact": "Validation du problème réel + 3 témoignages + potentiellement 3 ventes à 150€.",
+          "delai": "Cette semaine"
+        },
+        {
+          "action": "Publier la vidéo « Pourquoi vous stagnez » et booster avec 50€ de budget.",
+          "signal_source": "0% de polarisation et besoin de clarté",
+          "impact": "1000 vues et 20+ messages pour identifier les objections réelles.",
+          "delai": "Cette semaine"
+        },
+        {
+          "action": "Créer un template de feuille de route pour le diagnostic et un script de vente.",
+          "signal_source": "Besoin de structure et de clarté",
+          "impact": "Professionnalisation de l'offre et gain de temps pour les sessions.",
+          "delai": "24h"
+        },
+        {
+          "action": "Lancer une offre d'entrée à 97€ pour les 5 premières clientes payantes (avec upsell vers le programme 3 mois).",
+          "signal_source": "Pattern [failed_patterns] : prix bas et offres génériques",
+          "impact": "Test du prix et création d'une base de clientes pour le programme long.",
+          "delai": "Ce mois"
+        }
+      ],
+      "offre_recommandee": {
+        "nom": "Diagnostic Éclair - Votre Plan d'Action en 60 Minutes",
+        "cible_precise": "Femmes de 30-45 ans en reconversion professionnelle ou en questionnement sur leur équilibre vie pro/perso, ayant déjà essayé des solutions génériques sans succès.",
+        "probleme_traite": "Confusion et stagnation malgré les efforts, manque de clarté sur les priorités, frustration face aux méthodes génériques.",
+        "promesse": "À la fin de la session, vous aurez une feuille de route claire avec 3 actions prioritaires à mettre en place cette semaine pour avancer vers une vie plus alignée.",
+        "resultat_attendu": "Clarté sur les prochaines étapes, motivation renforcée, sentiment de contrôle retrouvé, et mise en action sous 48h.",
+        "format": "Session 1:1 en visio (60 minutes) + livrable PDF sous 24h.",
+        "livrables": [
+          "Feuille de route personnalisée avec 3 actions prioritaires",
+          "Liste de ressources ciblées (outils, livres, contacts)",
+          "Enregistrement audio de la session (optionnel)"
+        ],
+        "prix_recommande": "150€ (test) → 300€ (après validation)",
+        "justification_prix": "Valeur perçue élevée (résultat immédiat), capacité de paiement de la cible, positionnement premium pour scaler vers le programme 3 mois.",
+        "message_de_vente": "Vous n'avez pas besoin d'un autre programme de 3 mois. Vous avez besoin de clarté sur les 3 actions qui changeront tout pour vous – et je peux vous les donner en 60 minutes.",
+        "canaux_acquisition": [
+          "Messages directs personnalisés (Instagram/LinkedIn)",
+          "Vidéos courtes (Reels/Stories) avec témoignages",
+          "Partenariats avec micro-influenceuses locales"
+        ],
+        "objections_a_traiter": [
+          "« Je ne suis pas sûre que ça marche pour moi » → Témoignages vidéo + garantie 48h.",
+          "« Je n'ai pas le temps » → « 60 minutes pour gagner des mois de stagnation. »",
+          "« C'est trop cher » → « Combien vous coûte votre confusion chaque mois ? »"
+        ]
+      },
+      "strategie_contenu": {
+        "format_prioritaire": "Vidéos courtes (Reels/Stories) + témoignages « avant/après » + posts interactifs (sondages, questions).",
+        "frequence": "3 posts/semaine (1 Reel, 1 témoignage, 1 sondage) + 5 stories/jour (interactives).",
+        "tonalite": "Empathique mais directe, avec un ton « je te comprends » et des appels à l'action clairs.",
+        "sujets_a_eviter": [
+          "Conseils génériques (« 5 étapes pour être heureuse ») qui renforcent la confusion.",
+          "Langage trop spirituel ou vague (« trouve ta voie ») qui ne propose pas de résultat concret."
+        ]
+      }
+    },
+    "created_at": "2026-06-26T21:32:56.691218"
+  },
+  {
+    "user_id": "local",
+    "strategy_id": "954cbb13-1cb0-4b",
+    "analysis_id": "",
+    "title": "Passer d'une offre vague (programme 3 mois) à une offre de diagnostic gratuit qui valide l",
+    "business_context": {
+      "role_utilisateur": "Coach de vie",
+      "activite": "Coaching développement personnel",
+      "offre": "Programme 3 mois accompagnement",
+      "cible": "Femmes 30-45 ans en reconversion",
+      "modele_economique": "Vente directe en ligne",
+      "resultats_actuels": "5 clients par mois, 2000 euros de CA",
+      "objectif_principal": "Atteindre 5000 euros de CA par mois en 90 jours"
+    },
+    "strategy_result": {
+      "executive_decision": {
+        "one_sentence_decision": "Lancer immédiatement un diagnostic gratuit personnalisé en 60 minutes pour valider le problème réel des femmes en reconversion et convertir ces échanges en ventes d'accompagnement premium.",
+        "what_to_do_this_week": "Contacter 20 femmes correspondant au persona cible (30-45 ans en reconversion) via LinkedIn/Instagram avec un message personnalisé proposant un diagnostic gratuit, réaliser 3 diagnostics gratuits, et convertir au moins 1 en client payant pour un accompagnement de 3 mois.",
+        "why_now": "L'absence totale d'engagement et de polarisation dans les données psychologiques indique un manque de clarté sur le problème réel de l'audience et une offre mal alignée. Cette approche permet de valider le problème en temps réel et de créer une offre basée sur des preuves concrètes, pas des hypothèses.",
+        "expected_business_impact": "Validation du problème réel en 7 jours, acquisition de 3-5 clients payants en 30 jours, et augmentation du CA à 5000€/mois en 90 jours grâce à une offre premium alignée sur les besoins réels.",
+        "confidence_score": 0.85
+      },
+      "audience_psychology_used": {
+        "main_problem": "Elles ne savent pas par où commencer leur reconversion et craignent de faire les mauvais choix, ce qui les paralyse dans l'inaction (cause racine : manque de clarté et peur de l'échec).",
+        "main_desire": "Avoir une feuille de route claire et personnalisée pour leur reconversion, avec la certitude de ne pas gaspiller leur temps et leur argent.",
+        "main_fear": "Choisir la mauvaise voie et regretter leur décision, ce qui les ramènerait à leur situation actuelle ou pire.",
+        "main_frustration": "Elles reçoivent trop de conseils génériques (ex : 'suis ta passion') qui ne s'appliquent pas à leur situation unique, et se sentent seules dans leur processus.",
+        "main_objection": "Elles doutent que quelqu'un puisse vraiment comprendre leur situation complexe et craignent que l'accompagnement soit une perte d'argent.",
+        "values_sought": [
+          "Clarté (comprendre leur situation actuelle et les options réalistes)",
+          "Structure (une méthode pas à pas pour avancer sans se sentir submergées)",
+          "Preuve (témoignages de femmes comme elles qui ont réussi leur reconversion)",
+          "Sécurité (garantie de ne pas faire d'erreurs coûteuses)"
+        ],
+        "decision_drivers": [
+          "Un diagnostic personnalisé qui révèle leurs blocages spécifiques",
+          "Une promesse de résultat concret (ex : 'Vous saurez exactement quelle formation suivre d'ici 30 jours')"
+        ]
+      },
+      "value_to_create": {
+        "core_value": "Clarté et structure immédiate pour sortir de la paralysie décisionnelle.",
+        "why_this_value_matters": "Le signal d'absence totale d'engagement montre que l'audience est perdue et ne sait pas vers qui se tourner. La clarté est la première valeur à vendre pour créer un lien de confiance et déclencher l'action.",
+        "what_the_audience_is_really_buying": "La certitude de ne pas faire d'erreur et la permission de se lancer sans culpabilité (transformation : de 'je ne sais pas' à 'je sais exactement quoi faire').",
+        "value_gap_in_current_business": "L'offre actuelle (programme 3 mois) est trop vague et ne répond pas au besoin immédiat de clarté. Il manque une étape de diagnostic pour créer un lien de confiance et justifier le prix premium."
+      },
+      "offer_recommendation": {
+        "recommended_offer_name": "Diagnostic Reconversion Express",
+        "offer_type": "Diagnostic personnalisé en 60 minutes avec livrable écrit",
+        "promise": "À la fin de la session, vous saurez exactement : 1) vos 3 options de reconversion réalistes, 2) la première action à prendre cette semaine, 3) les pièges à éviter dans votre situation.",
+        "target_persona": "Femmes de 30-45 ans en reconversion professionnelle, avec au moins 5 ans d'expérience dans leur domaine actuel, qui se sentent bloquées et ont déjà essayé des solutions génériques (formations en ligne, livres, etc.) sans résultat.",
+        "deliverables": [
+          "Analyse écrite de leur situation actuelle (points forts, blocages, opportunités)",
+          "Feuille de route personnalisée avec 3 options de reconversion priorisées",
+          "Liste des 3 prochaines actions à réaliser dans les 7 jours",
+          "Recommandations de ressources (formations, mentors, outils) adaptées à leur profil"
+        ],
+        "transformation": "De 'Je ne sais pas par où commencer et j'ai peur de me tromper' → 'Je sais exactement quelles sont mes options et quelle est la prochaine étape pour avancer en confiance'.",
+        "why_this_offer_fits_the_psychology": "Cette offre répond directement à leur peur de l'échec et à leur besoin de clarté. Le format court et concret réduit la barrière à l'entrée, et le livrable écrit crée une preuve tangible de la valeur apportée, ce qui facilite la conversion vers l'accompagnement premium.",
+        "minimum_viable_offer": "Un appel de 30 minutes avec un résumé écrit des 3 options de reconversion, envoyé par email après la session. Pas besoin de créer un livrable complexe pour commencer.",
+        "risks": [
+          "Les prospects peuvent prendre le diagnostic sans acheter l'accompagnement (mitigation : inclure une offre spéciale pour l'accompagnement pendant l'appel)",
+          "Difficulté à identifier les bonnes personnes à contacter (mitigation : utiliser des filtres précis sur LinkedIn/Instagram et cibler les groupes de reconversion)"
+        ]
+      },
+      "social_media_decision": {
+        "best_platform": "LinkedIn (pour le côté professionnel) et Instagram (pour le côté personnel et accessible). Priorité à LinkedIn pour les premiers contacts.",
+        "best_content_format": "Vidéo courte (30-60 secondes) + carrousel LinkedIn/Instagram Stories.",
+        "main_content_angle": "Parler des erreurs invisibles que font 90% des femmes en reconversion (ex : 'Pourquoi vos formations en ligne ne mènent à rien' ou 'Le piège des conseils génériques en reconversion').",
+        "first_post_or_video_to_create": {
+          "titre": "L'erreur invisible qui bloque votre reconversion (et comment la corriger en 1h)",
+          "angle": "Beaucoup de femmes en reconversion gaspillent du temps et de l'argent en suivant des conseils génériques. Je révèle les 3 erreurs les plus courantes et comment les éviter avec un diagnostic personnalisé.",
+          "structure": [
+            "Accroche : 'Vous avez l'impression de tourner en rond dans votre reconversion ?'",
+            "Problème : '90% des femmes que j'accompagne font ces 3 erreurs sans le savoir'",
+            "Solution : 'Un diagnostic en 60 minutes pour identifier vos blocages et vos options réelles'",
+            "Preuve : 'Témoignage d'une cliente qui a trouvé sa voie après 3 ans de doute'",
+            "CTA : 'DM 'DIAGNOSTIC' pour réserver votre session gratuite cette semaine'"
+          ]
+        },
+        "posting_priority_this_week": [
+          "1 vidéo courte (30-60 sec) sur LinkedIn/Instagram avec l'angle ci-dessus",
+          "1 carrousel LinkedIn : '5 signes que vous avez besoin d'un diagnostic reconversion'",
+          "3 Stories Instagram : 'Le saviez-vous ?' avec des faits sur les reconversions ratées (ex : '80% des reconversions échouent à cause d'un manque de clarté')",
+          "1 post LinkedIn : 'Pourquoi les formations en ligne ne marchent pas pour votre reconversion (et quoi faire à la place)'"
+        ],
+        "why_this_format_fits_the_audience": "Les femmes en reconversion consomment du contenu court et pratique sur LinkedIn/Instagram. Les vidéos et carrousels permettent de capter leur attention rapidement et de montrer l'expertise de Gabriel sans demander un engagement long. Les Stories créent un sentiment d'urgence et de proximité."
+      },
+      "pricing_logic": {
+        "recommended_price_range": "Diagnostic gratuit (pour générer des leads) → Accompagnement 3 mois à 1500-2500€ (soit 500-830€/mois).",
+        "pricing_reasoning": "Le prix actuel (2000€ pour 3 mois) est trop bas pour la valeur perçue et attire des clients peu engagés. Un prix entre 1500-2500€ reflète mieux la transformation apportée (sortir de l'indécision et trouver une voie claire) et cible des femmes prêtes à investir dans leur avenir. Le diagnostic gratuit sert de porte d'entrée pour créer la confiance et justifier le prix premium.",
+        "entry_offer_if_needed": "Si l'audience est très sceptique, proposer un atelier de groupe en ligne à 97€ : 'Clarifiez votre reconversion en 2h' avec Q&A en direct. Cet atelier peut servir de tremplin vers le diagnostic gratuit ou l'accompagnement premium.",
+        "proof_needed_to_support_price": "Témoignages vidéo de clientes ayant réussi leur reconversion, études de cas détaillées (avant/après), et garantie 'satisfait ou remboursé' pour réduire le risque perçu.",
+        "comfort_level_for_audience": "Effort (à valider) : Le prix de 1500-2500€ peut sembler élevé pour certaines, mais la garantie et les témoignages devraient le rendre acceptable. Le diagnostic gratuit réduit la barrière à l'entrée."
+      },
+      "immediate_monetization_plan": {
+        "next_24h_action": "1) Créer un message type pour contacter 20 femmes sur LinkedIn/Instagram (ex : 'Bonjour [Prénom], je vois que vous êtes en reconversion - je propose un diagnostic gratuit cette semaine pour vous aider à y voir plus clair. Intéressée ?'). 2) Préparer un template pour le livrable du diagnostic (feuille de route type). 3) Enregistrer une vidéo courte pour LinkedIn/Instagram avec l'angle proposé.",
+        "next_7_days_action": "1) Contacter 20 femmes et en convertir 3 en diagnostics gratuits. 2) Réaliser les 3 diagnostics et convertir au moins 1 en client payant pour l'accompagnement 3 mois. 3) Publier les 3 contenus prioritaires (vidéo, carrousel, Stories). 4) Demander un témoignage écrit ou vidéo à la cliente convertie. 5) Analyser les objections récurrentes pendant les diagnostics pour affiner l'offre.",
+        "first_offer_to_test": "Le diagnostic gratuit avec conversion vers l'accompagnement 3 mois à 1500-2500€.",
+        "first_call_to_action": "'DM 'DIAGNOSTIC' pour réserver votre session gratuite cette semaine - seulement 3 places disponibles.'",
+        "metric_to_watch": "Taux de conversion des contacts en diagnostics (objectif : 15-20%) et taux de conversion des diagnostics en clients payants (objectif : 30-50%)."
+      },
+      "decision_centrale": "Passer d'une offre vague (programme 3 mois) à une offre de diagnostic gratuit qui valide le problème réel et crée un entonnoir de vente vers un accompagnement premium. Utiliser les réseaux sociaux pour générer des leads qualifiés et convertir rapidement.",
+      "objectif_utilisateur_reformule": "Atteindre 5000€ de CA/mois en 90 jours en validant le problème réel de l'audience, en créant une offre premium alignée sur leurs besoins, et en utilisant un entonnoir de vente basé sur le diagnostic gratuit pour convertir rapidement.",
+      "raisonnement": "1) Les données psychologiques montrent une audience perdue et inactive, ce qui indique un manque de clarté sur leur problème et une offre mal positionnée. 2) Le pattern [confused_audience] de la base de connaissances recommande de vendre de la clarté via un diagnostic ou une roadmap. 3) Le diagnostic gratuit permet de valider le problème en temps réel, de créer un lien de confiance, et de justifier un prix premium pour l'accompagnement. 4) Les réseaux sociaux (LinkedIn/Instagram) sont les meilleurs canaux pour toucher cette audience avec du contenu court et engageant. 5) La monétisation immédiate passe par la conversion des diagnostics en ventes d'accompagnement, avec un objectif de 3-5 clients/mois pour atteindre 5000€/mois.",
+      "angle_positionnel": "Gabriel n'est pas un coach de plus qui donne des conseils génériques. Il est le 'détective de reconversion' qui aide les femmes à identifier leurs blocages invisibles et à trouver une voie claire en 60 minutes.",
+      "message_central": "Votre reconversion ne progresse pas parce que vous ne savez pas par où commencer. Je vous aide à y voir clair en 1h et à trouver une voie qui vous correspond vraiment.",
+      "opportunites_marche": [
+        {
+          "signal": "Absence totale d'engagement et de polarisation dans les données psychologiques.",
+          "lecture_strategique": "L'audience est perdue et ne sait pas vers qui se tourner. Il y a une opportunité de créer un lien de confiance en nommant précisément leur problème.",
+          "recommandation": "Créer du contenu qui nomme les erreurs invisibles de la reconversion et proposer un diagnostic gratuit pour les aider à y voir clair.",
+          "action_concrete": "Publier 3 posts cette semaine sur les erreurs de reconversion et inclure un CTA pour un diagnostic gratuit.",
+          "mesure_succes": "Nombre de messages reçus avec le mot 'DIAGNOSTIC' et taux de conversion en diagnostics gratuits."
+        },
+        {
+          "signal": "Pattern [failed_patterns] : prix trop bas et offre trop vague.",
+          "lecture_strategique": "L'offre actuelle attire des clients peu engagés et ne reflète pas la valeur réelle de la transformation. Il faut augmenter le prix et ajouter une étape de diagnostic pour justifier ce prix.",
+          "recommandation": "Lancer un diagnostic gratuit comme porte d'entrée et convertir vers un accompagnement premium à 1500-2500€.",
+          "action_concrete": "Contacter 20 femmes cette semaine pour proposer le diagnostic gratuit et convertir au moins 1 en client payant.",
+          "mesure_succes": "Taux de conversion des diagnostics en ventes d'accompagnement."
+        },
+        {
+          "signal": "Besoin de clarté et peur de l'échec identifiés comme valeurs principales.",
+          "lecture_strategique": "L'audience a besoin d'une méthode structurée et de preuves que la solution fonctionne pour elles. Le diagnostic gratuit répond à ces deux besoins.",
+          "recommandation": "Structurer le diagnostic pour fournir une feuille de route claire et des preuves tangibles (témoignages, études de cas).",
+          "action_concrete": "Préparer un template de livrable pour le diagnostic et demander un témoignage à la première cliente convertie.",
+          "mesure_succes": "Qualité des livrables et satisfaction des clientes (feedback post-diagnostic)."
+        }
+      ],
+      "recommandations_prioritaires": [
+        {
+          "action": "Contacter 20 femmes correspondant au persona cible pour proposer un diagnostic gratuit.",
+          "signal_source": "Absence d'engagement et besoin de valider le problème réel.",
+          "impact": "Validation du problème en 7 jours et acquisition des premiers clients payants.",
+          "delai": "cette semaine"
+        },
+        {
+          "action": "Créer et publier 3 contenus (vidéo, carrousel, Stories) sur les erreurs de reconversion avec CTA pour le diagnostic gratuit.",
+          "signal_source": "Pattern [confused_audience] et besoin de clarté.",
+          "impact": "Génération de leads qualifiés et augmentation de la visibilité.",
+          "delai": "cette semaine"
+        },
+        {
+          "action": "Convertir au moins 1 des 3 diagnostics gratuits en vente d'accompagnement premium à 1500-2500€.",
+          "signal_source": "Pattern [failed_patterns] sur les prix trop bas.",
+          "impact": "Augmentation du panier moyen et validation du prix premium.",
+          "delai": "ce mois"
+        },
+        {
+          "action": "Collecter des témoignages et études de cas pour soutenir le prix premium.",
+          "signal_source": "Besoin de preuve pour justifier le prix.",
+          "impact": "Réduction des objections et augmentation du taux de conversion.",
+          "delai": "dans 30-60 jours"
+        }
+      ],
+      "offre_recommandee": {
+        "nom": "Accompagnement Reconversion Sereine",
+        "cible_precise": "Femmes de 30-45 ans en reconversion professionnelle, bloquées par l'indécision et ayant déjà essayé des solutions génériques sans succès.",
+        "probleme_traite": "Manque de clarté sur les options de reconversion, peur de faire les mauvais choix, et sentiment de solitude dans le processus.",
+        "promesse": "En 3 mois, vous aurez : 1) une feuille de route claire pour votre reconversion, 2) les compétences pour prendre des décisions en confiance, 3) un plan d'action concret pour votre prochaine étape.",
+        "resultat_attendu": "Une reconversion réussie avec un métier aligné sur vos valeurs, compétences et contraintes, et la confiance pour avancer sans regret.",
+        "format": "6 appels individuels de 60 minutes + accès à une plateforme avec ressources (templates, exercices, communauté privée) + 2 audits de progression.",
+        "livrables": [
+          "Diagnostic initial personnalisé (feuille de route)",
+          "Plan d'action mensuel avec objectifs clairs",
+          "Recommandations de formations/outils adaptés",
+          "Support par email entre les sessions"
+        ],
+        "prix_recommande": "1500-2500€ pour 3 mois (paiement en 2-3 fois possible).",
+        "justification_prix": "Ce prix reflète la transformation apportée (sortir de l'indécision et trouver une voie claire) et cible des femmes prêtes à investir dans leur avenir. Le diagnostic gratuit sert de porte d'entrée pour justifier ce prix.",
+        "message_de_vente": "Arrêtez de tourner en rond dans votre reconversion. En 3 mois, je vous aide à trouver une voie claire et à avancer en confiance, sans regret.",
+        "canaux_acquisition": [
+          "LinkedIn (messages directs et contenu organique)",
+          "Instagram (Stories et posts engageants)",
+          "Partenariats avec des groupes de reconversion ou des influenceurs dans le domaine"
+        ],
+        "objections_a_traiter": [
+          "Je ne suis pas sûre que ça marche pour moi (réponse : le diagnostic gratuit permet de valider si c'est adapté à votre situation)",
+          "C'est trop cher (réponse : comparatif avec le coût d'une reconversion ratée ou d'une formation inutile)"
+        ]
+      },
+      "strategie_contenu": {
+        "format_prioritaire": "Vidéos courtes (30-60 sec) + carrousels LinkedIn/Instagram.",
+        "frequence": "3 posts par semaine (1 vidéo, 1 carrousel, 1 Story par jour).",
+        "tonalite": "Empathique mais direct, avec un ton de 'détective' qui révèle les erreurs invisibles. Éviter le jargon et les conseils trop génériques.",
+        "sujets_a_eviter": [
+          "Les conseils du type 'suis ta passion' ou 'fais ce que tu aimes' (trop génériques)",
+          "Les promesses de reconversion 'facile' ou 'rapide' (irréaliste)",
+          "Les comparaisons avec d'autres coachs (peu professionnel)"
+        ]
+      }
+    },
+    "created_at": "2026-06-26T21:31:07.877760"
+  },
+  {
+    "user_id": "869083e8-ee00-4ca0-9f05-fb798bf2e59c",
+    "strategy_id": "d4984243-5c3d-4d",
+    "analysis_id": "",
+    "title": "TRANSFORMER L'HISTOIRE PERSONNELLE EN UNE OFFRE DE RECONSTRUCTION SPIRITUELLE PREMIUM, CIB",
+    "business_context": {
+      "activite": "construction d'image de marque et stratégie de vente pour un livre",
+      "modele_economique": "vente directe de livre (produit central de l'écosystème)",
+      "contraintes": "Travail seul avec une capacité max de 4 clients simultanés / Budget publicitaire limité à 500 €/mois / Pas d’équipe permanente ni de CRM structuré",
+      "resultats_actuels": "CA mensuel entre 3 000 € et 6 000 € / 2 à 4 clients par mois / 8 500 abonnés Instagram, 2 300 LinkedIn, 620 contacts email / Peu de demandes qualifiées malgré un contenu engageant",
+      "objectif_principal": "vendre des livres en transformant l'histoire personnelle en message puissant et commercialement vendable / Créer une image de marque forte et désirable / Développer une audience qualifiée sur les réseaux sociaux / Convertir cette audience en lectrices et acheteuses du livre",
+      "offre": "livre témoignage sur le VIH, le rejet, la honte et la reconstruction par la foi",
+      "ressources": "histoire personnelle profonde et transformée en message puissant / Contenu émotionnel et spirituel engageant / Univers visuel chic, sobre et émotionnel",
+      "vision_strategique": "faire émerger une autrice identifiable, crédible et désirable associée à la foi, la reconstruction et la dignité / Positionner le livre comme un récit de foi et de reconstruction pour les femmes blessées",
+      "cible": "femmes francophones de 25-45 ans sensibles à la foi, à la guérison intérieure et aux récits de reconstruction / Personnes touchées directement ou indirectement par le VIH (30% de l'audience)",
+      "role_utilisateur": "consultant en stratégie de marque et acquisition digitale"
+    },
+    "strategy_result": {
+      "decision_centrale": "TRANSFORMER L'HISTOIRE PERSONNELLE EN UNE OFFRE DE RECONSTRUCTION SPIRITUELLE PREMIUM, CIBLANT UN SEGMENT DE FEMMES BLESSÉES EN QUÊTE DE DIGNITÉ ET DE FOI, AVEC UN POSITIONNEMENT D'AUTRICE-CONFÉRENCIÈRE CRÉDIBLE ET DÉSIRABLE",
+      "objectif_utilisateur_reformule": "Vendre le livre comme produit central d'un écosystème de reconstruction spirituelle et émotionnelle, en créant une image de marque forte et désirable pour une audience de femmes francophones (25-45 ans) sensibles à la foi et aux récits de guérison, tout en convertissant cette audience en lectrices et acheteuses qualifiées.",
+      "raisonnement": "L'analyse du Psychologue révèle une absence d'engagement et de polarisation, ce qui indique que le message actuel ne résonne pas suffisamment avec les aspirations profondes de l'audience. Le livre, bien que porteur d'une histoire puissante, n'est pas perçu comme une solution claire à un problème urgent. La stratégie doit donc : 1) Clarifier le problème central (rejet, honte, besoin de reconstruction) et le lier à la foi comme solution, 2) Positionner Gabriel comme une figure d'autorité et de guérison, 3) Structurer une offre premium autour du livre pour en faire un produit désirable et non un simple témoignage, 4) Utiliser des canaux ciblés pour toucher les femmes blessées en quête de sens.",
+      "angle_positionnel": "L'AUTRICE QUI A TRANSFORMÉ SA HONTE EN DIGNITÉ PAR LA FOI — UNE GUIDE POUR LES FEMMES EN QUÊTE DE RECONSTRUCTION SPIRITUELLE",
+      "message_central": "Votre histoire de rejet et de honte peut devenir votre plus grande force — la foi est le chemin vers une reconstruction digne et puissante.",
+      "opportunites_marche": [
+        {
+          "signal": "Audience de 8 500 abonnés Instagram et 2 300 LinkedIn avec un contenu émotionnel et spirituel engageant, mais peu de conversions en ventes.",
+          "lecture_strategique": "L'audience est réceptive au contenu émotionnel et spirituel, mais ne perçoit pas encore le livre comme une solution indispensable à un problème urgent. Il manque un lien clair entre le récit et un bénéfice transformationnel concret.",
+          "recommandation": "Transformer le livre en une offre de reconstruction spirituelle, avec des bonus (ex : guide audio, communauté privée) pour augmenter la valeur perçue et justifier un prix premium.",
+          "action_concrete": "Créer une offre groupée 'Le Pack Reconstruction' incluant le livre + un guide audio de méditations + accès à un groupe privé Facebook pour les lectrices. Lancer une campagne de pré-commande avec un webinaire gratuit 'Comment transformer votre honte en force par la foi'.",
+          "mesure_succes": "Taux de conversion du webinaire en pré-commandes (objectif : 10% des participants), nombre de ventes du Pack Reconstruction dans les 30 jours (objectif : 50 ventes)."
+        },
+        {
+          "signal": "30% de l'audience est touchée directement ou indirectement par le VIH, avec des enjeux de rejet et de honte non résolus.",
+          "lecture_strategique": "Ce segment a un besoin urgent de reconstruction et de dignité, mais il est sous-desservi par les offres spirituelles classiques. Une approche ciblée sur ce problème spécifique peut créer une niche profonde et fidèle.",
+          "recommandation": "Développer une série de contenus et d'offres dédiés à ce segment, en mettant en avant des témoignages de reconstruction et des outils concrets pour surmonter la honte.",
+          "action_concrete": "Lancer une série de posts Instagram et LinkedIn 'Paroles de Reconstruction' avec des extraits du livre et des témoignages de lectrices. Proposer un atelier en ligne payant 'Reconstruire sa dignité après le rejet' (prix : 47 €).",
+          "mesure_succes": "Nombre d'inscriptions à l'atelier (objectif : 30 participantes), taux de conversion des participantes en acheteuses du livre (objectif : 20%)."
+        },
+        {
+          "signal": "Budget publicitaire limité à 500 €/mois et capacité max de 4 clients simultanés.",
+          "lecture_strategique": "Les ressources limitées imposent une stratégie de niche et de ciblage précis pour maximiser le retour sur investissement. Il faut privilégier les canaux organiques et les partenariats pour toucher l'audience sans dépendre de la publicité.",
+          "recommandation": "Prioriser les collaborations avec des influenceurs spirituels et des communautés en ligne (ex : groupes Facebook de femmes chrétiennes) pour toucher l'audience cible sans coût publicitaire élevé.",
+          "action_concrete": "Identifier 5 influenceurs ou communautés en ligne alignés avec la cible (ex : pages Instagram de coaching spirituel, groupes Facebook de femmes en reconstruction). Leur proposer un partenariat (ex : envoi gratuit du livre en échange d'un témoignage ou d'une recommandation).",
+          "mesure_succes": "Nombre de partenariats conclus (objectif : 3), nombre de ventes générées par ces partenariats (objectif : 20 ventes/mois)."
+        }
+      ],
+      "recommandations_prioritaires": [
+        {
+          "action": "Créer et lancer le 'Pack Reconstruction' (livre + guide audio + accès communauté privée) avec une campagne de pré-commande via un webinaire gratuit.",
+          "signal_source": "Audience réceptive au contenu émotionnel mais peu de conversions en ventes.",
+          "impact": "Augmenter la valeur perçue du livre et générer des ventes immédiates via un appel à l'action clair (pré-commande).",
+          "delai": "Cette semaine"
+        },
+        {
+          "action": "Lancer la série de contenus 'Paroles de Reconstruction' sur Instagram et LinkedIn, avec un appel à l'action vers l'atelier en ligne 'Reconstruire sa dignité après le rejet'.",
+          "signal_source": "30% de l'audience touchée par le VIH et en quête de reconstruction.",
+          "impact": "Créer une connexion émotionnelle forte avec ce segment et générer des leads qualifiés pour l'atelier et le livre.",
+          "delai": "Ce mois"
+        },
+        {
+          "action": "Identifier et contacter 5 influenceurs ou communautés en ligne pour des partenariats (envoi gratuit du livre en échange d'un témoignage).",
+          "signal_source": "Budget publicitaire limité et besoin de toucher une audience qualifiée sans coût élevé.",
+          "impact": "Générer des ventes organiques et augmenter la crédibilité de l'offre via des recommandations tierces.",
+          "delai": "Ce mois"
+        },
+        {
+          "action": "Structurer un funnel de vente simple avec une page de capture (lead magnet : extrait gratuit du livre), une séquence email automatisée (3 emails) et une offre de vente (Pack Reconstruction).",
+          "signal_source": "Peu de demandes qualifiées malgré une audience engagée.",
+          "impact": "Convertir les abonnés en leads puis en clients avec un processus automatisé et scalable.",
+          "delai": "Ce mois"
+        }
+      ],
+      "offre_recommandee": {
+        "nom": "Le Pack Reconstruction",
+        "cible_precise": "Femmes francophones de 25-45 ans, touchées par le rejet ou la honte (directement ou indirectement), en quête de reconstruction spirituelle et de dignité par la foi.",
+        "probleme_traite": "La honte et le rejet liés au VIH ou à d'autres traumatismes, qui empêchent une reconstruction personnelle et spirituelle épanouie.",
+        "promesse": "Transformez votre histoire de honte en une force de reconstruction et de dignité grâce à la foi et à des outils concrets.",
+        "resultat_attendu": "Une meilleure estime de soi, une compréhension claire du rôle de la foi dans la guérison, et des outils pratiques pour surmonter la honte au quotidien.",
+        "format": "Pack comprenant : 1 livre physique (ou numérique) + 1 guide audio de méditations (5 méditations guidées) + accès à un groupe privé Facebook pour les lectrices (échanges et soutien communautaire).",
+        "livrables": [
+          "Livre 'Titre du livre' (version physique ou numérique)",
+          "Guide audio 'Méditations pour la Reconstruction' (5 méditations guidées)",
+          "Accès au groupe privé Facebook 'Communauté Reconstruction' (échanges et soutien)"
+        ],
+        "prix_recommande": "77 € (version numérique) / 97 € (version physique + numérique)",
+        "justification_prix": "Le prix reflète la valeur transformationnelle de l'offre (livre + guide audio + communauté) et se situe dans la fourchette des offres spirituelles premium (ex : formations en ligne à 50-150 €). La version physique inclut un coût d'impression et d'expédition, justifiant le prix plus élevé. Ce prix est accessible pour la cible (femmes actives avec un budget moyen pour le développement personnel) tout en positionnant l'offre comme premium.",
+        "message_de_vente": "Et si votre histoire de honte devenait le socle de votre reconstruction ? Découvrez comment la foi peut transformer votre rejet en dignité avec le Pack Reconstruction — le livre, les méditations et la communauté qui vous accompagnent pas à pas.",
+        "canaux_acquisition": [
+          "Webinaires gratuits (ex : 'Comment transformer votre honte en force par la foi')",
+          "Partenariats avec des influenceurs spirituels et des communautés en ligne",
+          "Séquences email automatisées pour les abonnés actuels",
+          "Publicité ciblée sur Facebook/Instagram (budget limité à 500 €/mois)"
+        ],
+        "objections_a_traiter": [
+          "Je n'ai pas les moyens : proposer un paiement en 2 fois ou une version numérique à prix réduit (47 €).",
+          "Je ne suis pas sûre que ça marche pour moi : partager des témoignages de lectrices ayant vécu une transformation similaire.",
+          "Je n'ai pas le temps : mettre en avant la flexibilité du guide audio (écoute en déplacement) et la communauté en ligne (accès 24/7)."
+        ]
+      },
+      "pricing_logic": {
+        "valeur_percue": "La cible valorise les offres qui combinent contenu spirituel, outils pratiques et communauté de soutien. Le livre seul est perçu comme un témoignage, mais le Pack Reconstruction est vu comme une solution complète pour la reconstruction.",
+        "niveau_douleur": "Fort à critique : la honte et le rejet sont des problèmes profonds qui impactent la qualité de vie, la santé mentale et les relations. La cible est prête à investir pour une solution qui promet une transformation durable.",
+        "capacite_paiement": "La cible a un budget moyen pour le développement personnel (50-150 € pour une formation ou un accompagnement). Les femmes actives de 25-45 ans ont généralement un pouvoir d'achat suffisant pour ce type d'offre, surtout si elle est présentée comme un investissement dans leur bien-être.",
+        "fourchette": "47 € (version numérique seule) à 97 € (Pack complet physique + numérique)",
+        "positionnement": "Premium : l'offre se distingue des livres spirituels classiques par sa valeur ajoutée (guide audio + communauté) et son positionnement comme une solution transformationnelle, pas seulement un témoignage.",
+        "justification": "Le prix est justifié par : 1) La valeur transformationnelle (livre + outils + communauté), 2) Le positionnement premium (autrice crédible et désirable), 3) La capacité de paiement de la cible, 4) La rareté de l'offre (peu de solutions spirituelles ciblent spécifiquement la honte et le rejet). La version numérique à 47 € permet de toucher une audience plus large, tandis que la version physique à 97 € cible les clientes prêtes à investir davantage pour une expérience complète."
+      },
+      "strategie_contenu": {
+        "format_prioritaire": "Contenu émotionnel et spirituel sous forme de témoignages, de citations inspirantes et de vidéos courtes (Reels/Stories) mettant en avant des extraits du livre et des moments de reconstruction. Prioriser les formats interactifs (sondages, questions ouvertes) pour engager l'audience.",
+        "frequence": "3 posts par semaine (Instagram/LinkedIn) + 1 vidéo courte (Reel/Story) par semaine + 1 email par semaine pour la liste de contacts.",
+        "tonalite": "Chaleureuse, inspirante et authentique. Éviter le ton moralisateur ou culpabilisant. Mettre l'accent sur l'espoir, la dignité et la reconstruction.",
+        "sujets_a_eviter": [
+          "Les détails médicaux ou techniques sur le VIH (risque de stigmatisation ou de désengagement)",
+          "Les messages culpabilisants ('Vous devriez avoir honte de ne pas avoir surmonté ça')",
+          "Les promesses de guérison miraculeuse ('La foi guérit tout instantanément')"
+        ]
+      },
+      "plan_90_jours": {
+        "phase_1": {
+          "titre": "Clarifier et structurer",
+          "periode": "Jours 1-30",
+          "objectifs": [
+            "Valider l'offre 'Pack Reconstruction' et son positionnement",
+            "Créer les assets nécessaires pour le lancement (page de vente, séquence email, webinaire)",
+            "Identifier et contacter 5 partenaires potentiels (influenceurs/communautés)"
+          ],
+          "taches": [
+            "Finaliser le contenu du Pack Reconstruction (livre + guide audio + communauté)",
+            "Créer une page de vente dédiée avec un formulaire de pré-commande",
+            "Rédiger une séquence email de 3 emails pour promouvoir le webinaire et le Pack",
+            "Enregistrer le webinaire gratuit 'Comment transformer votre honte en force par la foi'",
+            "Identifier 5 influenceurs/communautés alignés avec la cible et leur envoyer une proposition de partenariat",
+            "Lancer la série de contenus 'Paroles de Reconstruction' sur Instagram et LinkedIn (3 posts/semaine)"
+          ],
+          "livrables": [
+            "Pack Reconstruction finalisé et prêt à la vente",
+            "Page de vente et séquence email opérationnelles",
+            "Webinaire enregistré et prêt à être diffusé",
+            "5 partenariats initiés (en attente de réponse)",
+            "Série 'Paroles de Reconstruction' lancée (12 posts publiés)"
+          ],
+          "kpis": [
+            "Nombre de pré-commandes du Pack Reconstruction (objectif : 20)",
+            "Nombre de participants au webinaire (objectif : 50)",
+            "Nombre de partenariats conclus (objectif : 2)"
+          ],
+          "decisions_cles": [
+            "Valider le prix et le contenu du Pack Reconstruction en fonction des retours des premiers clients",
+            "Décider des ajustements à apporter au webinaire en fonction des taux d'inscription et de participation"
+          ]
+        },
+        "phase_2": {
+          "titre": "Tester et acquérir",
+          "periode": "Jours 31-60",
+          "objectifs": [
+            "Générer des ventes du Pack Reconstruction via le webinaire et les partenariats",
+            "Lancer l'atelier en ligne 'Reconstruire sa dignité après le rejet'",
+            "Optimiser la séquence email et la page de vente en fonction des retours"
+          ],
+          "taches": [
+            "Diffuser le webinaire en direct et promouvoir le Pack Reconstruction en clôture",
+            "Lancer une campagne de publicité ciblée (500 €) pour promouvoir le webinaire et le Pack",
+            "Organiser l'atelier en ligne 'Reconstruire sa dignité après le rejet' (prix : 47 €)",
+            "Suivre les partenariats et relancer les influenceurs/communautés pour des témoignages ou recommandations",
+            "Analyser les données de conversion (taux d'ouverture des emails, taux de clics, ventes) et ajuster la page de vente et la séquence email",
+            "Publier du contenu régulier sur les réseaux sociaux (3 posts/semaine + 1 vidéo courte/semaine)"
+          ],
+          "livrables": [
+            "Webinaire diffusé avec un taux de conversion en ventes mesuré",
+            "Atelier en ligne organisé avec au moins 30 participantes",
+            "Campagne publicitaire lancée et analysée",
+            "Page de vente et séquence email optimisées",
+            "Partenariats activés (au moins 2 témoignages ou recommandations publiées)"
+          ],
+          "kpis": [
+            "Nombre de ventes du Pack Reconstruction (objectif : 50)",
+            "Nombre d'inscriptions à l'atelier en ligne (objectif : 30)",
+            "Taux de conversion du webinaire en ventes (objectif : 10%)",
+            "Coût d'acquisition client via la publicité (objectif : < 20 €/client)"
+          ],
+          "decisions_cles": [
+            "Décider de poursuivre ou d'ajuster la campagne publicitaire en fonction des résultats",
+            "Valider la pertinence de l'atelier en ligne et son potentiel de scaling"
+          ]
+        },
+        "phase_3": {
+          "titre": "Optimiser et scaler",
+          "periode": "Jours 61-90",
+          "objectifs": [
+            "Augmenter les ventes du Pack Reconstruction via des canaux organiques et payants",
+            "Développer une offre complémentaire (ex : accompagnement individuel ou groupe)",
+            "Automatiser une partie du funnel de vente pour scaler"
+          ],
+          "taches": [
+            "Lancer une nouvelle campagne publicitaire ciblant les participantes de l'atelier en ligne (upsell vers le Pack Reconstruction)",
+            "Créer une offre d'accompagnement individuel ou en groupe (ex : 'Accompagnement Reconstruction' à 297 € pour 3 mois)",
+            "Automatiser la séquence email pour les nouvelles inscriptions (lead magnet : extrait gratuit du livre)",
+            "Collaborer avec 2-3 influenceurs pour des lives ou interviews sur le thème de la reconstruction",
+            "Analyser les données globales (ventes, trafic, engagement) et ajuster la stratégie pour les 90 prochains jours"
+          ],
+          "livrables": [
+            "Nouvelle campagne publicitaire lancée et optimisée",
+            "Offre d'accompagnement individuelle ou en groupe créée et promue",
+            "Funnel de vente automatisé (lead magnet + séquence email + offre de vente)",
+            "2-3 collaborations avec des influenceurs (lives/interviews)",
+            "Rapport d'analyse des 90 jours avec recommandations pour la suite"
+          ],
+          "kpis": [
+            "Nombre total de ventes du Pack Reconstruction (objectif : 100)",
+            "Nombre de clientes pour l'offre d'accompagnement (objectif : 10)",
+            "Taux de conversion du funnel automatisé (objectif : 5%)",
+            "Coût d'acquisition client global (objectif : < 15 €/client)"
+          ],
+          "decisions_cles": [
+            "Décider de scaler l'offre d'accompagnement ou de se concentrer sur le Pack Reconstruction",
+            "Valider les canaux d'acquisition les plus rentables pour les 90 prochains jours"
+          ]
+        }
+      }
+    },
+    "created_at": "2026-06-25T16:10:34.903304"
+  },
+  {
+    "user_id": "869083e8-ee00-4ca0-9f05-fb798bf2e59c",
+    "strategy_id": "d4625f4b-052e-4e",
+    "analysis_id": "",
+    "title": "TRANSFORMER L'HISTOIRE PERSONNELLE EN UNE OFFRE DE RECONSTRUCTION SPIRITUELLE PREMIUM, CIB",
+    "business_context": {
+      "activite": "construction d'image de marque et stratégie de vente pour un livre",
+      "modele_economique": "vente directe de livre (produit central de l'écosystème)",
+      "contraintes": "Travail seul avec une capacité max de 4 clients simultanés / Budget publicitaire limité à 500 €/mois / Pas d’équipe permanente ni de CRM structuré",
+      "resultats_actuels": "CA mensuel entre 3 000 € et 6 000 € / 2 à 4 clients par mois / 8 500 abonnés Instagram, 2 300 LinkedIn, 620 contacts email / Peu de demandes qualifiées malgré un contenu engageant",
+      "objectif_principal": "vendre des livres en transformant l'histoire personnelle en message puissant et commercialement vendable / Créer une image de marque forte et désirable / Développer une audience qualifiée sur les réseaux sociaux / Convertir cette audience en lectrices et acheteuses du livre",
+      "offre": "livre témoignage sur le VIH, le rejet, la honte et la reconstruction par la foi",
+      "ressources": "histoire personnelle profonde et transformée en message puissant / Contenu émotionnel et spirituel engageant / Univers visuel chic, sobre et émotionnel",
+      "vision_strategique": "faire émerger une autrice identifiable, crédible et désirable associée à la foi, la reconstruction et la dignité / Positionner le livre comme un récit de foi et de reconstruction pour les femmes blessées",
+      "cible": "femmes francophones de 25-45 ans sensibles à la foi, à la guérison intérieure et aux récits de reconstruction / Personnes touchées directement ou indirectement par le VIH (30% de l'audience)",
+      "role_utilisateur": "consultant en stratégie de marque et acquisition digitale"
+    },
+    "strategy_result": {
+      "decision_centrale": "TRANSFORMER L'HISTOIRE PERSONNELLE EN UNE OFFRE DE RECONSTRUCTION SPIRITUELLE PREMIUM, CIBLANT UN SEGMENT DE FEMMES BLESSÉES EN QUÊTE DE DIGNITÉ ET DE FOI, AVEC UNE STRATÉGIE DE CONTENU HYPER-CIBLÉE ET UNE LOGIQUE DE PRIX JUSTIFIÉE PAR LA VALEUR TRANSFORMATIVE",
+      "objectif_utilisateur_reformule": "Vendre le livre comme produit central d'un écosystème de reconstruction spirituelle et émotionnelle, en créant une image de marque forte et désirable pour les femmes francophones de 25-45 ans sensibles à la foi et aux récits de guérison, tout en convertissant l'audience existante en acheteuses qualifiées.",
+      "raisonnement": "L'analyse du Psychologue révèle une absence d'engagement et de polarisation, ce qui indique que l'audience actuelle n'est pas suffisamment qualifiée ou motivée. Cependant, le contexte business montre un potentiel fort : une histoire personnelle puissante, un univers visuel cohérent, et une niche sous-exploitée (femmes blessées par le VIH ou d'autres traumatismes, en quête de reconstruction par la foi). La stratégie doit donc recentrer l'offre sur un segment précis, renforcer le positionnement premium, et structurer un plan d'action pour transformer l'audience passive en communauté engagée et acheteuse.",
+      "angle_positionnel": "L'AUTRICE COMME GUIDE SPIRITUELLE POUR LES FEMMES EN QUÊTE DE DIGNITÉ : une figure qui incarne la reconstruction après la honte et le rejet, en s'appuyant sur la foi comme levier de transformation. Le livre n'est pas un simple témoignage, mais un outil de guérison intérieure pour celles qui se sentent brisées.",
+      "message_central": "Votre histoire n'est pas une fin, mais le début de votre reconstruction. La foi peut vous rendre votre dignité, et ce livre est la première étape.",
+      "opportunites_marche": [
+        {
+          "signal": "Audience de 8 500 abonnés Instagram et 2 300 LinkedIn avec un contenu émotionnel et spirituel engageant, mais peu de conversions en ventes.",
+          "lecture_strategique": "L'audience existe, mais elle n'est pas suffisamment qualifiée ou motivée pour acheter. Le problème n'est pas la taille de l'audience, mais son manque de segmentation et de polarisation autour d'un besoin précis (reconstruction par la foi).",
+          "recommandation": "Segmenter l'audience en sous-groupes cibles (ex : femmes touchées par le VIH, femmes en quête de guérison spirituelle, femmes ayant vécu un rejet familial ou social) et créer du contenu hyper-ciblé pour chaque segment.",
+          "action_concrete": "Lancer une série de 3 lives Instagram ou vidéos LinkedIn par mois, chacune adressant un segment spécifique (ex : 'Comment retrouver sa dignité après un diagnostic de VIH ?', 'La foi comme levier de reconstruction après un rejet').",
+          "mesure_succes": "Taux de participation aux lives (objectif : 10% de l'audience ciblée) et nombre de messages privés reçus après chaque session (objectif : 20 messages qualifiés par mois)."
+        },
+        {
+          "signal": "30% de l'audience est directement ou indirectement touchée par le VIH, mais ce sujet est peu exploité commercialement dans le positionnement actuel.",
+          "lecture_strategique": "Le VIH est un sujet tabou, mais aussi une douleur profonde pour une partie de l'audience. En abordant ce sujet avec sensibilité et en le liant à la reconstruction par la foi, on peut créer une offre premium qui répond à un besoin non comblé.",
+          "recommandation": "Créer une offre complémentaire au livre (ex : un accompagnement en ligne ou un groupe de parole) spécifiquement pour les femmes touchées par le VIH, avec un positionnement premium justifié par la rareté de ce type de soutien.",
+          "action_concrete": "Développer un mini-programme en ligne 'Reconstruction après le VIH : retrouver sa dignité par la foi' (3 modules, 1 live par semaine pendant 1 mois) et le proposer en prévente à 197 €.",
+          "mesure_succes": "Nombre de préventes (objectif : 20 ventes en 30 jours) et taux de conversion des leads qualifiés (objectif : 5% des participantes aux lives)."
+        },
+        {
+          "signal": "Budget publicitaire limité à 500 €/mois, mais une capacité max de 4 clients simultanés.",
+          "lecture_strategique": "La contrainte de capacité et de budget impose une stratégie d'acquisition ultra-ciblée et rentable. Les publicités doivent viser un retour sur investissement immédiat, en ciblant uniquement les segments les plus qualifiés.",
+          "recommandation": "Utiliser le budget publicitaire pour promouvoir les lives et les mini-programmes, en ciblant des audiences lookalike basées sur les abonnés actuels les plus engagés (ex : celles qui ont liké/commenté les posts sur la foi ou la reconstruction).",
+          "action_concrete": "Lancer une campagne Facebook/Instagram ciblant les femmes de 25-45 ans intéressées par la foi chrétienne, la guérison intérieure, ou des figures comme Joyce Meyer ou Lisa Bevere. Budget : 20 €/jour pendant 15 jours, avec un objectif de génération de leads pour les lives.",
+          "mesure_succes": "Coût par lead (objectif : < 2 €/lead) et taux de conversion des leads en participantes aux lives (objectif : 15%)."
+        }
+      ],
+      "recommandations_prioritaires": [
+        {
+          "action": "Segmenter l'audience en 3 sous-groupes (femmes touchées par le VIH, femmes en quête de guérison spirituelle, femmes ayant vécu un rejet) et créer un calendrier de contenu hyper-ciblé pour chaque segment.",
+          "signal_source": "Audience existante mais peu engagée et non segmentée.",
+          "impact": "Augmenter l'engagement et la qualification des leads, ce qui facilitera la conversion en ventes.",
+          "delai": "Cette semaine"
+        },
+        {
+          "action": "Lancer une série de 3 lives Instagram par mois, chacun adressant un segment spécifique, avec un appel à l'action clair (ex : 'Inscrivez-vous à mon mini-programme pour aller plus loin').",
+          "signal_source": "Contenu émotionnel et spirituel engageant, mais manque de polarisation et de conversion.",
+          "impact": "Créer une communauté engagée et générer des leads qualifiés pour les offres premium.",
+          "delai": "Ce mois"
+        },
+        {
+          "action": "Développer un mini-programme en ligne 'Reconstruction après le VIH : retrouver sa dignité par la foi' et le proposer en prévente à 197 €.",
+          "signal_source": "30% de l'audience touchée par le VIH, mais absence d'offre spécifique pour ce segment.",
+          "impact": "Monétiser un segment sous-exploité et créer une source de revenus complémentaire au livre.",
+          "delai": "Ce mois"
+        },
+        {
+          "action": "Lancer une campagne publicitaire ciblée (20 €/jour) pour promouvoir les lives et générer des leads qualifiés.",
+          "signal_source": "Budget limité mais besoin de rentabilité immédiate.",
+          "impact": "Acquérir des leads à moindre coût et augmenter la participation aux lives.",
+          "delai": "Cette semaine"
+        }
+      ],
+      "offre_recommandee": {
+        "nom": "Le Livre + Accompagnement 'Reconstruction par la Foi'",
+        "cible_precise": "Femmes francophones de 25-45 ans, touchées directement ou indirectement par le VIH, en quête de guérison spirituelle et de reconstruction après un rejet ou une honte.",
+        "probleme_traite": "La honte, le rejet et la perte de dignité liés au VIH ou à d'autres traumatismes, et le manque de ressources spirituelles pour se reconstruire.",
+        "promesse": "Ce livre et cet accompagnement vous donneront les clés pour transformer votre histoire de honte en une histoire de foi et de dignité retrouvée.",
+        "resultat_attendu": "Une compréhension claire de comment la foi peut guérir les blessures émotionnelles, des outils concrets pour retrouver sa dignité, et une communauté de soutien pour avancer.",
+        "format": "Pack comprenant : 1 exemplaire du livre (format papier ou numérique) + accès à un mini-programme en ligne (3 modules + 1 live par semaine pendant 1 mois) + groupe privé Facebook pour le soutien communautaire.",
+        "livrables": [
+          "1 exemplaire du livre 'Titre à définir' (format papier ou numérique)",
+          "Accès à 3 modules vidéo (1 module par semaine)",
+          "1 live interactif par semaine pendant 1 mois (replays disponibles)",
+          "Accès à un groupe privé Facebook pour le soutien et les échanges",
+          "1 workbook PDF avec des exercices de reconstruction spirituelle"
+        ],
+        "prix_recommande": "247 € (ou 2 paiements de 130 €)",
+        "justification_prix": "Ce prix se situe dans la fourchette haute pour un accompagnement en ligne, mais il est justifié par : 1) La rareté de ce type d'offre pour les femmes touchées par le VIH, 2) La valeur transformative du contenu (guérison spirituelle et émotionnelle), 3) La communauté de soutien incluse, 4) Le positionnement premium de l'autrice comme guide spirituelle. Comparaison avec des offres similaires : les accompagnements en guérison intérieure ou reconstruction spirituelle se situent généralement entre 150 € et 500 €.",
+        "message_de_vente": "Votre histoire de honte et de rejet n'est pas une condamnation, mais une invitation à vous reconstruire par la foi. Ce livre et cet accompagnement sont conçus pour vous aider à transformer votre douleur en force, et votre honte en dignité. Rejoignez-nous pour 1 mois de reconstruction spirituelle, avec des outils concrets et une communauté bienveillante.",
+        "canaux_acquisition": [
+          "Lives Instagram et LinkedIn (contenu gratuit pour générer des leads)",
+          "Publicités Facebook/Instagram ciblant les femmes intéressées par la foi et la guérison intérieure",
+          "Partenariats avec des influenceurs spirituels ou des associations luttant contre le VIH",
+          "Email marketing pour l'audience existante (8 500 abonnés Instagram + 2 300 LinkedIn + 620 contacts email)"
+        ],
+        "objections_a_traiter": [
+          "Je n'ai pas les moyens : proposer un paiement en 2 fois ou une version allégée (livre seul à 27 €).",
+          "Je ne suis pas sûre que ça marche pour moi : offrir un appel découverte gratuit de 15 minutes pour clarifier les attentes.",
+          "J'ai peur d'être jugée : insister sur la confidentialité et le groupe privé bienveillant."
+        ]
+      },
+      "pricing_logic": {
+        "valeur_percue": "La valeur perçue est élevée pour les femmes en quête de guérison spirituelle et de reconstruction, car l'offre répond à un besoin émotionnel profond (retrouver sa dignité) et propose une solution rare (combinaison de foi, de communauté et d'outils concrets).",
+        "niveau_douleur": "Fort à critique : le VIH et la honte associée sont des sujets tabous qui génèrent une douleur émotionnelle intense. Les personnes concernées sont prêtes à investir pour des solutions qui les aident à se reconstruire.",
+        "capacite_paiement": "La cible visée (femmes de 25-45 ans) a généralement un budget limité, mais elle est prête à investir dans des solutions qui répondent à un besoin émotionnel fort. Une fourchette de 150 € à 300 € est réaliste pour un accompagnement en ligne avec une dimension spirituelle.",
+        "fourchette": "197 € à 297 € (pour l'offre complète livre + accompagnement). Le livre seul peut être proposé à 27 € (format numérique) ou 37 € (format papier).",
+        "positionnement": "Premium : l'offre se positionne comme une solution haut de gamme pour un segment spécifique (femmes touchées par le VIH ou en quête de reconstruction spirituelle), avec une valeur transformative justifiant le prix.",
+        "justification": "Le prix est calculé en fonction de : 1) La valeur perçue (guérison spirituelle et émotionnelle), 2) La rareté de l'offre (peu de solutions combinant foi et reconstruction après le VIH), 3) La capacité de paiement de la cible (femmes prêtes à investir dans leur bien-être spirituel), 4) Le positionnement premium de l'autrice comme guide spirituelle. Comparaison avec le marché : les accompagnements en guérison intérieure ou reconstruction spirituelle se situent généralement entre 150 € et 500 €, ce qui place cette offre dans la fourchette moyenne-haute."
+      },
+      "strategie_contenu": {
+        "format_prioritaire": "Vidéos courtes (Reels, TikTok) et lives interactifs pour créer de l'engagement, complétés par des posts Instagram et LinkedIn avec des témoignages et des citations inspirantes.",
+        "frequence": "3 posts par semaine (Instagram/LinkedIn) + 1 Reel/TikTok par semaine + 1 live par mois pour chaque segment cible.",
+        "tonalite": "Chaleureuse, inspirante et authentique, avec une touche de vulnérabilité pour créer de la connexion. Éviter le ton moralisateur ou trop religieux : privilégier un discours de reconstruction et d'espoir.",
+        "sujets_a_eviter": [
+          "Les discours trop religieux ou dogmatiques (risque d'aliéner une partie de l'audience)",
+          "Les promesses de guérison miraculeuse (risque de décevoir et de perdre en crédibilité)",
+          "Les sujets politiques ou controversés liés au VIH (risque de polarisation négative)"
+        ]
+      },
+      "plan_90_jours": {
+        "phase_1": {
+          "titre": "Clarifier et structurer",
+          "periode": "Jours 1-30",
+          "objectifs": [
+            "Segmenter l'audience en 3 sous-groupes cibles et créer un calendrier de contenu hyper-ciblé.",
+            "Lancer les 3 premiers lives Instagram/LinkedIn (1 par segment) et générer 50 leads qualifiés.",
+            "Développer le mini-programme en ligne 'Reconstruction après le VIH' et le préparer pour la prévente."
+          ],
+          "taches": [
+            "Analyser les données d'audience (abonnés Instagram/LinkedIn) pour identifier les 3 segments prioritaires.",
+            "Créer un calendrier de contenu pour les 30 prochains jours, avec des posts et lives adaptés à chaque segment.",
+            "Rédiger les scripts des 3 premiers lives et préparer les visuels associés.",
+            "Enregistrer les 3 modules vidéo du mini-programme et créer le workbook PDF.",
+            "Mettre en place une landing page pour la prévente du mini-programme (avec option de paiement en 2 fois).",
+            "Lancer une campagne publicitaire test (20 €/jour pendant 7 jours) pour promouvoir les lives et générer des leads."
+          ],
+          "livrables": [
+            "Calendrier de contenu segmenté pour 30 jours",
+            "3 lives enregistrés et prêts à être diffusés",
+            "Mini-programme en ligne 'Reconstruction après le VIH' finalisé et prêt pour la prévente",
+            "Landing page de prévente opérationnelle",
+            "50 leads qualifiés générés (participantes aux lives ou inscriptions à la newsletter)"
+          ],
+          "kpis": [
+            "Nombre de leads qualifiés générés (objectif : 50)",
+            "Taux de participation aux lives (objectif : 10% de l'audience ciblée)",
+            "Taux de conversion des leads en préventes (objectif : 5%)"
+          ],
+          "decisions_cles": [
+            "Valider les segments cibles prioritaires en fonction des retours des premiers lives.",
+            "Ajuster le contenu du mini-programme en fonction des questions et objections reçues pendant les lives.",
+            "Décider si le budget publicitaire doit être augmenté ou réalloué en fonction des résultats de la campagne test."
+          ]
+        },
+        "phase_2": {
+          "titre": "Tester et acquérir",
+          "periode": "Jours 31-60",
+          "objectifs": [
+            "Lancer la prévente du mini-programme et atteindre 20 ventes en 30 jours.",
+            "Augmenter l'engagement de l'audience avec du contenu interactif (sondages, Q&A, témoignages).",
+            "Optimiser les campagnes publicitaires pour réduire le coût par lead et augmenter le taux de conversion."
+          ],
+          "taches": [
+            "Lancer la prévente du mini-programme et promouvoir via les lives, les publicités et l'email marketing.",
+            "Créer du contenu interactif (sondages Instagram, Q&A en stories, témoignages vidéo) pour augmenter l'engagement.",
+            "Analyser les données des campagnes publicitaires et ajuster le ciblage pour réduire le coût par lead.",
+            "Envoyer une série de 3 emails aux leads qualifiés pour les inciter à s'inscrire au mini-programme.",
+            "Collaborer avec 2-3 influenceurs spirituels ou associations luttant contre le VIH pour promouvoir le mini-programme.",
+            "Lancer une campagne de parrainage (ex : 'Parrainez une amie et recevez un bonus')."
+          ],
+          "livrables": [
+            "20 préventes du mini-programme réalisées",
+            "Taux d'engagement sur Instagram/LinkedIn augmenté de 20%",
+            "Coût par lead réduit à < 1,50 €",
+            "3 partenariats avec des influenceurs ou associations finalisés"
+          ],
+          "kpis": [
+            "Nombre de préventes (objectif : 20)",
+            "Taux d'engagement (objectif : +20% par rapport à la phase 1)",
+            "Coût par lead (objectif : < 1,50 €)",
+            "Taux de conversion des leads en ventes (objectif : 5%)"
+          ],
+          "decisions_cles": [
+            "Valider la rentabilité du mini-programme et décider s'il faut le dupliquer pour d'autres segments (ex : femmes ayant vécu un rejet familial).",
+            "Identifier les canaux d'acquisition les plus performants (publicités, partenariats, email marketing) et réallouer le budget en conséquence.",
+            "Décider si le prix du mini-programme doit être ajusté en fonction des retours clients."
+          ]
+        }
+      }
+    },
+    "created_at": "2026-06-25T13:34:50.554837"
+  }
+]

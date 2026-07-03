@@ -1,0 +1,44 @@
+[
+  {
+    "id": "specific_problem_specific_person",
+    "pattern": "Problème très spécifique pour une personne très spécifique",
+    "why_it_wins": "La spécificité crée la reconnaissance immédiate. 'C'est exactement mon problème' est 10x plus puissant que 'c'est pour tout le monde'.",
+    "examples": ["Formation Facebook Ads spécifiquement pour les coachs", "Comptabilité uniquement pour les créateurs de contenu", "Stratégie TikTok pour les thérapeutes"],
+    "application": "Segmenter l'audience la plus engagée dans les commentaires et créer une offre pour ce segment précis"
+  },
+  {
+    "id": "result_promise_not_method",
+    "pattern": "Promettre le résultat, pas la méthode",
+    "why_it_wins": "Les clients achètent la transformation, pas la formation. 'Obtenir 3 nouveaux clients cette semaine' bat 'Apprendre les techniques de vente'.",
+    "examples": ["Perdre 5kg en 30 jours vs cours de nutrition", "Générer votre premier client en 7 jours vs formation vente", "Doubler votre visibilité en 90 jours vs stratégie réseaux sociaux"],
+    "application": "Reformuler toutes les promesses de l'offre en termes de résultat concret et chiffré"
+  },
+  {
+    "id": "authority_through_specificity",
+    "pattern": "L'autorité par la spécialisation — être le meilleur pour un segment précis",
+    "why_it_wins": "Il est impossible d'être le meilleur dans tout. Il est possible d'être le référent pour un problème spécifique d'une audience précise.",
+    "examples": ["Le coach des coachs qui veulent scaler au-delà de 100k€", "L'expert en copywriting uniquement pour le secteur santé"],
+    "application": "Identifier dans les commentaires le segment le plus représenté et se positionner comme le spécialiste de ce segment"
+  },
+  {
+    "id": "proof_before_pitch",
+    "pattern": "Démontrer la valeur avant de demander de l'argent",
+    "why_it_wins": "Le contenu gratuit qui résout réellement un problème crée plus de ventes que 10 publicités. La confiance précède toujours la conversion.",
+    "examples": ["Publier le résultat complet d'un client avec sa permission", "Donner 80% de la méthode gratuite, vendre les 20% d'accompagnement", "Montrer le processus en coulisses avant de proposer le service"],
+    "application": "Identifier le quick win que l'offre produit et le rendre accessible gratuitement dans le contenu"
+  },
+  {
+    "id": "urgency_through_scarcity_not_fake_countdown",
+    "pattern": "Urgence réelle par la rareté réelle (pas les faux comptes à rebours)",
+    "why_it_wins": "Les comptes à rebours artificiels détruisent la confiance sur le long terme. La vraie rareté (nb de places, fenêtre de disponibilité) crée une urgence authentique.",
+    "examples": ["Seulement 5 places en coaching mensuel car le calendrier est plein", "Ouverture des inscriptions uniquement en janvier et juillet", "Accès premium réservé aux 20 premiers inscrits"],
+    "application": "Créer de vraies limites dans l'offre (places, temps d'accès, bonus exclusifs)"
+  },
+  {
+    "id": "community_as_moat",
+    "pattern": "La communauté comme avantage concurrentiel durable",
+    "why_it_wins": "Le contenu peut être copié. La communauté ne peut pas l'être. Une communauté engagée est le moat le plus fort pour un créateur.",
+    "examples": ["Mastermind privé", "Groupe Slack ou Discord avec accès direct au créateur", "Challenge mensuel collectif"],
+    "application": "Ajouter une composante communautaire à l'offre principale pour augmenter la valeur et réduire le churn"
+  }
+]

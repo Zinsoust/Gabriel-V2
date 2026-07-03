@@ -1,0 +1,67 @@
+[
+  {
+    "id": "no_audience_no_offer",
+    "situation": "Pas d'audience, pas d'offre validée",
+    "immediate_decision": "Construire une audience avant de vendre quoi que ce soit",
+    "what_to_do_this_week": [
+      "Publier 3 posts qui nomment exactement le problème de ta cible",
+      "Engager personnellement 20 personnes qui correspondent à ta cible idéale",
+      "Proposer un diagnostic gratuit à 3 personnes pour valider le problème"
+    ],
+    "biggest_mistake": "Créer une offre avant d'avoir des conversations avec de vrais clients potentiels",
+    "first_revenue_path": "Offrir 3 sessions de consulting gratuit contre témoignage, puis vendre la même chose payante",
+    "timeline": "Semaine 1 : écoute. Semaine 2-3 : premières offres gratuites. Semaine 4 : premières ventes."
+  },
+  {
+    "id": "audience_no_offer",
+    "situation": "Audience engagée mais pas d'offre payante",
+    "immediate_decision": "Transformer l'engagement en revenus via une offre simple et immédiate",
+    "what_to_do_this_week": [
+      "Identifier les 3 questions les plus répétées dans les commentaires",
+      "Créer une offre simple qui répond à la question n°1 (1h30 de consultation, workbook, template)",
+      "Annoncer l'offre dans une story ou un post direct — pas de page de vente complexe"
+    ],
+    "biggest_mistake": "Penser que tu dois créer une formation complète avant de pouvoir vendre",
+    "first_revenue_path": "Service live D'abord (coaching, audit, consulting), formation ensuite",
+    "timeline": "Semaine 1 : identifier le problème. Semaine 2 : annoncer l'offre. Semaine 3 : premières ventes."
+  },
+  {
+    "id": "offer_no_sales",
+    "situation": "Offre créée mais pas ou peu de ventes",
+    "immediate_decision": "Ne pas refaire l'offre — comprendre pourquoi elle ne convertit pas",
+    "what_to_do_this_week": [
+      "Contacter les 5 personnes qui ont regardé l'offre sans acheter et demander pourquoi",
+      "Vérifier si le problème est la visibilité (pas assez de monde voit l'offre) ou la conversion (ils voient mais n'achètent pas)",
+      "Tester une conversation de vente directe avec 3 prospects chauds plutôt que d'attendre les ventes passives"
+    ],
+    "biggest_mistake": "Recréer l'offre en pensant que le problème est le produit. Le problème est presque toujours la communication ou la confiance.",
+    "first_revenue_path": "Vente conversationnelle directe > page de vente > publicité",
+    "timeline": "Semaine 1 : diagnostiquer le blocage. Semaine 2 : corriger la communication. Semaine 3 : relancer."
+  },
+  {
+    "id": "revenue_plateau",
+    "situation": "Revenus stagnants ou plafond de croissance",
+    "immediate_decision": "Ne pas chercher plus de clients — augmenter la valeur par client existant",
+    "what_to_do_this_week": [
+      "Identifier les 20% de clients qui génèrent 80% des revenus et leur proposer une offre complémentaire",
+      "Créer ou annoncer une offre premium pour les clients les plus engagés",
+      "Calculer le taux de retour client et créer un programme de fidélité ou de suivi"
+    ],
+    "biggest_mistake": "Dépenser en acquisition quand le vrai problème est la rétention et l'upsell",
+    "first_revenue_path": "Upsell clients existants → offre récurrente → puis acquisition",
+    "timeline": "Semaine 1 : identifier les clients premium. Semaine 2 : pitch de l'offre complémentaire. Semaine 3 : lancer."
+  },
+  {
+    "id": "high_engagement_low_conversion",
+    "situation": "Fort engagement sur le contenu mais faible conversion en clients",
+    "immediate_decision": "Créer un pont entre la communauté et l'offre via une étape intermédiaire gratuite",
+    "what_to_do_this_week": [
+      "Créer un lead magnet qui résout un micro-problème (checklist, template, mini-guide)",
+      "Ajouter un CTA clair dans les 3 prochains contenus avec lien vers le lead magnet",
+      "Lancer une séquence email de 3-5 emails après l'opt-in pour créer la confiance"
+    ],
+    "biggest_mistake": "Passer directement de contenu gratuit à offre payante élevée sans étape intermédiaire",
+    "first_revenue_path": "Contenu gratuit → lead magnet → séquence email → offre d'entrée → offre principale",
+    "timeline": "Semaine 1 : créer le lead magnet. Semaine 2 : déployer les CTAs. Semaine 3-4 : séquence email."
+  }
+]

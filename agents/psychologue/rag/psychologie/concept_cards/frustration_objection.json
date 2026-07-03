@@ -1,0 +1,44 @@
+{
+  "id": "PSY-006",
+  "title": "Frustration et objections",
+  "domain": "psychologie_emotionnelle",
+  "source_files": ["001_psychology_2e.md", "002_introduction_to_psychology_the_full_noba_collection.md"],
+  "concept": "Frustration et objections",
+  "definition": "La frustration est l'état émotionnel résultant d'un objectif bloqué ou d'une attente non satisfaite (théorie de la frustration-agression, Dollard et al. 1939). Dans les commentaires, elle se manifeste comme une énergie canalisée vers une cible (le créateur, le contenu, ou la situation). L'objection est la verbalisation rationnelle d'une résistance à l'action, souvent une frustration rationalisée.",
+  "use_when": [
+    "Les commentaires expriment de la déception, de la colère ou de l'insatisfaction",
+    "Les objections explicites sont nombreuses (prix, temps, pertinence)",
+    "On détecte un gap entre les attentes de l'audience et ce que le contenu offre",
+    "Le taux de commentaires négatifs est significativement supérieur à la moyenne"
+  ],
+  "dashboard_triggers": [
+    "signal 'critique' ou 'objection' dominant",
+    "émotion 'colère' ou 'frustration' détectée",
+    "sentiment négatif élevé",
+    "tokens TF-IDF avec forte valence négative"
+  ],
+  "interpretation_rule": "La frustration dans les commentaires est de l'énergie canalisée. Derrière chaque frustration exprimée se cache une attente non satisfaite et un désir profond. 'Ce contenu ne sert à rien' = 'j'avais besoin que ce contenu m'aide avec X et ça n'a pas fonctionné'. Comprendre QUELLE attente a été déçue est plus précieux que de mesurer le volume de la critique. Les objections les plus fréquentes révèlent les blocages principaux de la conversion.",
+  "what_to_observe": [
+    "Nature de la frustration : déception d'attente, sentiment d'injustice, sentiment de perte",
+    "Cible de la frustration : le créateur, le contenu, la situation, eux-mêmes",
+    "Récurrence : quelles objections reviennent systématiquement ?",
+    "Intensité : frustration exprimée avec agression vs avec tristesse vs avec ironie"
+  ],
+  "warnings": [
+    "Ne pas traiter toutes les critiques comme équivalentes — distinguer frustration informée et réaction défensive",
+    "La frustration très forte peut trahir une forte attente préalable — signe d'audience très engagée",
+    "Les objections de prix cachent souvent une objection de valeur perçue, pas de budget réel"
+  ],
+  "output_guidance": "Lister les principales objections, identifier l'attente non satisfaite derrière chacune, et préciser si la frustration est orientée vers le créateur, le contenu ou la situation externe.",
+  "example_interpretation": "Les commentaires de frustration se concentrent sur [X] — révélant une attente non satisfaite de [Y]. Cette frustration suggère que l'audience s'était engagée avec une attente élevée (signe d'intérêt fort) et se sent déçue sur [point précis]. Recommandation : adresser explicitement cette attente dans le prochain contenu, avec une validation de la légitimité de l'attente avant tout.",
+  "confidence_factors": [
+    "Volume mesurable de commentaires à valence négative",
+    "Récurrence de la même objection dans des commentaires indépendants",
+    "Présence de marqueurs de déception ou d'attente déçue"
+  ],
+  "avoid": [
+    "Minimiser les frustrations ou les rejeter comme 'trolling' sans analyse",
+    "Traiter une objection de valeur comme une objection de prix",
+    "Confondre frustration avec une attaque personnelle contre le créateur"
+  ]
+}

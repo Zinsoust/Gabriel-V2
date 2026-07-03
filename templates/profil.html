@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+{% block title %}Gabriel — Profil business{% endblock %}
+{% block page_name %}Profil{% endblock %}
+
+{% block head %}
+<style>
+.pro-page { max-width: 640px; margin: 0 auto; padding: 32px 0 80px; }
+
+/* ── En-tête ─────────────────────────────────────────────────────────────── */
+.pro-head {
+  margin-bottom: 28px;
+}
+.pro-h1 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+}
+.pro-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── Statut complétion ────────────────────────────────────────────────────── */
+.pro-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.pro-status.complete {
+  background: rgba(120,200,140,0.06);
+  border: 1px solid rgba(120,200,140,0.15);
+  color: rgba(120,200,140,0.8);
+}
+.pro-status.partial {
+  background: rgba(216,185,130,0.05);
+  border: 1px solid rgba(216,185,130,0.12);
+  color: rgba(216,185,130,0.7);
+}
+.pro-status.empty {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.25);
+}
+.pro-status-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.complete .pro-status-dot { background: rgba(120,200,140,0.9); box-shadow: 0 0 6px rgba(120,200,140,0.4); }
+.partial  .pro-status-dot { background: rgba(216,185,130,0.9); box-shadow: 0 0 6px rgba(216,185,130,0.3); }
+.empty    .pro-status-dot { background: rgba(255,255,255,0.15); }
+
+.pro-bar-track {
+  flex: 1; height: 2px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.pro-bar-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.complete .pro-bar-fill { background: rgba(120,200,140,0.6); }
+.partial  .pro-bar-fill { background: rgba(216,185,130,0.5); }
+
+/* ── Formulaire ───────────────────────────────────────────────────────────── */
+.pro-section {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.pro-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+.pro-row:last-child { border-bottom: none; }
+.pro-row:focus-within {
+  background: rgba(216,185,130,0.02);
+}
+
+.pro-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.22);
+}
+.pro-label-req {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(216,185,130,0.5);
+  flex-shrink: 0;
+}
+.pro-label-opt {
+  font-size: 8px;
+  color: rgba(255,255,255,0.1);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  margin-left: auto;
+}
+
+.pro-input, .pro-textarea {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.7;
+  outline: none;
+  width: 100%;
+  caret-color: rgba(216,185,130,0.7);
+  box-sizing: border-box;
+}
+.pro-input::placeholder, .pro-textarea::placeholder {
+  color: rgba(255,255,255,0.1);
+}
+.pro-textarea { resize: none; min-height: 64px; }
+
+/* ── Actions ──────────────────────────────────────────────────────────────── */
+.pro-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.pro-hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.15);
+}
+
+.pro-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 22px;
+  border-radius: 10px;
+  background: rgba(216,185,130,0.1);
+  border: 1px solid rgba(216,185,130,0.28);
+  color: #D8B982;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s,
+              transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pro-btn:hover {
+  background: rgba(216,185,130,0.17);
+  border-color: rgba(216,185,130,0.42);
+  box-shadow: 0 0 16px rgba(216,185,130,0.07);
+}
+.pro-btn:active { transform: scale(0.97); }
+.pro-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.pro-btn.done {
+  background: rgba(120,200,140,0.08);
+  border-color: rgba(120,200,140,0.3);
+  color: rgba(120,200,140,0.85);
+}
+
+/* Toast */
+.pro-toast {
+  position: fixed;
+  bottom: 22px; right: 22px;
+  padding: 8px 14px;
+  background: rgba(14,14,18,0.97);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s, transform 0.18s;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+}
+.pro-toast.on { opacity: 1; transform: translateY(0); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  .pro-page { padding: 20px 0 60px; }
+  .pro-h1   { font-size: 18px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pro-page">
+
+  <div class="pro-head">
+    <h1 class="pro-h1">Profil business</h1>
+    <p class="pro-sub">Ces informations sont injectées dans chaque analyse. Plus elles sont précises, plus Gabriel comprend votre réalité terrain.</p>
+  </div>
+
+  <div class="pro-status empty" id="pro-status">
+    <div class="pro-status-dot"></div>
+    <span id="pro-status-txt">Chargement…</span>
+    <div class="pro-bar-track"><div class="pro-bar-fill" id="pro-bar" style="width:0%"></div></div>
+    <span id="pro-status-pct" style="font-variant-numeric:tabular-nums">0 / 7</span>
+  </div>
+
+  <form id="pro-form" onsubmit="save(event)">
+
+    <div class="pro-section">
+
+      <div class="pro-row">
+        <label class="pro-label" for="role_utilisateur">
+          <span class="pro-label-req"></span>
+          Votre rôle
+        </label>
+        <input class="pro-input" id="role_utilisateur" name="role_utilisateur"
+          placeholder="Coach business, fondateur SaaS, consultant marketing…"
+          oninput="updateStatus()" />
+      </div>
+
+      <div class="pro-row">
+        <label class="pro-label" for="activite">
+          <span class="pro-label-req"></span>
+          Activité / entreprise
+        </label>
+        <input class="pro-input" id="activite" name="activite"
+          placeholder="Ce que vous faites concrètement au quotidien"
+          oninput="updateStatus()" />
+      </div>
+
+      <div class="pro-row">
+        <label class="pro-label" for="offre">
+          <span class="pro-label-req"></span>
+          Offre principale
+        </label>
+        <input class="pro-input" id="offre" name="offre"
+          placeholder="Programme, formation, service, logiciel, produit…"
+          oninput="updateStatus()" />
+      </div>
+
+      <div class="pro-row">
+        <label class="pro-label" for="cible">
+          <span class="pro-label-req"></span>
+          Cible idéale
+        </label>
+        <input class="pro-input" id="cible" name="cible"
+          placeholder="Entrepreneurs, PME, indépendants, e-commerçants…"
+          oninput="updateStatus()" />
+      </div>
+
+      <div class="pro-row">
+        <label class="pro-label" for="modele_economique">
+          <span class="pro-label-req"></span>
+          Modèle économique
+        </label>
+        <input class="pro-input" id="modele_economique" name="modele_economique"
+          placeholder="Abonnement mensuel, vente unique, commission, freemium…"
+          oninput="updateStatus()" />
+      </div>
+
+      <div class="pro-row">
+        <label class="pro-label" for="resultats_actuels">
+          <span class="pro-label-req"></span>
+          Résultats actuels
+        </label>
+        <textarea class="pro-textarea" id="resultats_actuels" name="resultats_actuels"
+          rows="2"
+          placeholder="CA mensuel, nombre de clients, taux de conversion, audience…"
+          oninput="updateStatus()"></textarea>
+      </div>
+
+      <div class="pro-row">
+        <label class="pro-label" for="objectif_principal">
+          <span class="pro-label-req"></span>
+          Objectif prioritaire
+        </label>
+        <textarea class="pro-textarea" id="objectif_principal" name="objectif_principal"
+          rows="2"
+          placeholder="Ce que vous voulez atteindre dans les 90 prochains jours"
+          oninput="updateStatus()"></textarea>
+      </div>
+
+    </div>
+
+    <!-- Champs optionnels -->
+    <div class="pro-section">
+
+      <div class="pro-row">
+        <label class="pro-label" for="vision_strategique">
+          Vision stratégique
+          <span class="pro-label-opt">optionnel</span>
+        </label>
+        <textarea class="pro-textarea" id="vision_strategique" name="vision_strategique"
+          rows="2"
+          placeholder="Où voulez-vous amener votre entreprise dans 3 ans ?"></textarea>
+      </div>
+
+      <div class="pro-row">
+        <label class="pro-label" for="ton_de_marque">
+          Ton de marque
+          <span class="pro-label-opt">optionnel</span>
+        </label>
+        <input class="pro-input" id="ton_de_marque" name="ton_de_marque"
+          placeholder="Expert, chaleureux, direct, premium, provocateur…" />
+      </div>
+
+    </div>
+
+  </form>
+
+  <div class="pro-footer">
+    <span class="pro-hint">Sauvegardé localement · utilisé par Gabriel à chaque analyse</span>
+    <button class="pro-btn" id="pro-save" onclick="save(event)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Sauvegarder
+    </button>
+  </div>
+
+</div>
+
+<div class="pro-toast" id="pro-toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ─── Champs requis ────────────────────────────────────────────────────────── */
+const REQUIRED = [
+  'role_utilisateur','activite','offre','cible',
+  'modele_economique','resultats_actuels','objectif_principal'
+];
+
+/* ─── Chargement ──────────────────────────────────────────────────────────── */
+(async function load() {
+  try {
+    const r = await fetch('/profil/data');
+    const d = await r.json();
+    const fields = [
+      'role_utilisateur','activite','offre','cible','modele_economique',
+      'resultats_actuels','objectif_principal','vision_strategique','ton_de_marque'
+    ];
+    fields.forEach(k => {
+      const el = document.getElementById(k);
+      if (el && d[k]) el.value = d[k];
+    });
+  } catch(e) {}
+  updateStatus();
+})();
+
+/* ─── Statut complétion ───────────────────────────────────────────────────── */
+function updateStatus() {
+  const filled = REQUIRED.filter(k => {
+    const el = document.getElementById(k);
+    return el && el.value.trim().length > 0;
+  }).length;
+  const total = REQUIRED.length;
+  const pct   = Math.round(filled / total * 100);
+
+  const bar  = document.getElementById('pro-bar');
+  const txt  = document.getElementById('pro-status-txt');
+  const pctEl= document.getElementById('pro-status-pct');
+  const wrap = document.getElementById('pro-status');
+
+  bar.style.width = pct + '%';
+  pctEl.textContent = filled + ' / ' + total;
+
+  if (filled === total) {
+    wrap.className = 'pro-status complete';
+    txt.textContent = 'Profil complet — Gabriel a tout ce qu\'il lui faut';
+  } else if (filled >= 3) {
+    wrap.className = 'pro-status partial';
+    txt.textContent = 'Profil partiel — complétez pour de meilleurs résultats';
+  } else {
+    wrap.className = 'pro-status empty';
+    txt.textContent = 'Profil vide — commencez par renseigner votre rôle';
+  }
+}
+
+/* ─── Sauvegarde ──────────────────────────────────────────────────────────── */
+async function save(e) {
+  if (e) e.preventDefault();
+  const btn = document.getElementById('pro-save');
+  btn.disabled = true;
+
+  const payload = {};
+  [
+    'role_utilisateur','activite','offre','cible','modele_economique',
+    'resultats_actuels','objectif_principal','vision_strategique','ton_de_marque'
+  ].forEach(k => {
+    const el = document.getElementById(k);
+    if (el) payload[k] = el.value.trim();
+  });
+
+  try {
+    const r = await fetch('/profil', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const d = await r.json();
+    if (d.success) {
+      btn.textContent = '✓ Sauvegardé';
+      btn.className = 'pro-btn done';
+      toast('Profil sauvegardé');
+      setTimeout(() => {
+        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Sauvegarder';
+        btn.className = 'pro-btn';
+        btn.disabled = false;
+      }, 2500);
+    } else {
+      toast('Erreur lors de la sauvegarde', true);
+      btn.disabled = false;
+    }
+  } catch(err) {
+    toast('Erreur réseau', true);
+    btn.disabled = false;
+  }
+}
+
+/* ─── Toast ────────────────────────────────────────────────────────────────── */
+let _tt = null;
+function toast(msg, isErr = false) {
+  const t = document.getElementById('pro-toast');
+  t.textContent = msg;
+  t.style.color = isErr ? 'rgba(235,100,100,0.7)' : 'rgba(255,255,255,0.5)';
+  t.classList.add('on');
+  if (_tt) clearTimeout(_tt);
+  _tt = setTimeout(() => t.classList.remove('on'), 2500);
+}
+</script>
+{% endblock %}

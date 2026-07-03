@@ -1,0 +1,44 @@
+{
+  "id": "SOC-012",
+  "title": "Socialisation et transmission des normes",
+  "domain": "sociologie",
+  "source_files": ["020_introduction_to_sociology_3e.md", "023_education_et_sociologie.md", "008_human_nature_and_conduct.md"],
+  "concept": "Socialisation et transmission des normes",
+  "definition": "La socialisation (Durkheim 1922, Berger & Luckmann 1966 : 'La Construction sociale de la réalité') est le processus par lequel les individus intériorisent les normes, valeurs et représentations de leur groupe. La socialisation primaire (famille, école) produit les croyances les plus profondes et les plus résistantes au changement. La socialisation secondaire (pairs, médias, réseaux sociaux) modifie les croyances de surface. Les créateurs de contenu sont des agents de socialisation secondaire — ils participent à la transmission et à la transformation des normes de leur communauté.",
+  "use_when": [
+    "Les commentaires révèlent des valeurs et croyances profondément intériorisées issues de la socialisation",
+    "L'audience réagit différemment selon les générations au même contenu",
+    "Des conflits de normes intergénérationnels ou interclasses sont visibles",
+    "Le créateur joue explicitement un rôle éducatif ou normatif pour son audience"
+  ],
+  "dashboard_triggers": [
+    "conflits de valeurs entre segments générationnels de l'audience",
+    "références à la famille, l'éducation ou 'comment on m'a élevé'",
+    "différences de réaction selon la génération ou le milieu",
+    "rôle du créateur comme référence normative perçue"
+  ],
+  "interpretation_rule": "Les réactions les plus intenses à un contenu révèlent les normes de socialisation primaire touchées. Ces normes (famille, religion, identité nationale, classe sociale) sont très résistantes au changement car elles sont associées à l'identité fondamentale. Le créateur qui touche ces normes — même involontairement — déclenche des réactions disproportionnées. La conscientisation de ces normes via le contenu est possible mais risquée : l'audience perçoit souvent le défi normatif comme une attaque personnelle.",
+  "what_to_observe": [
+    "Valeurs dures invoquées : famille, religion, travail, mérite, nation",
+    "Conflits générationnels dans les commentaires : 'de mon temps...' vs 'les millennials...'",
+    "Références à l'éducation reçue comme source d'autorité",
+    "Réactions disproportionnées révélant des normes de socialisation primaire touchées"
+  ],
+  "warnings": [
+    "Les normes de socialisation primaire sont quasi-imperméables à la persuasion directe — ne pas chercher à les 'corriger' dans le contenu",
+    "Les conflits intergénérationnels dans les commentaires peuvent polluer l'ambiance générale sans que le créateur en soit la cause",
+    "Jouer sur la nostalgie (socialisation primaire) est puissant mais peut exclure les audiences plus jeunes"
+  ],
+  "output_guidance": "Identifier les normes de socialisation actives dans les commentaires, les conflits générationnels éventuels, et le rôle du créateur comme agent de socialisation pour cette audience.",
+  "example_interpretation": "Les normes de socialisation actives dans cette audience incluent [X, Y, Z]. Le contenu a [renforcé / challengé / ignoré] la norme [X] — explication de la réaction [forte/modérée/faible]. Un conflit intergénérationnel [est / n'est pas] visible entre [groupes A et B]. Recommandation : [capitaliser sur les normes partagées / éviter de challenger la norme X / adresser les deux générations séparément].",
+  "confidence_factors": [
+    "Intensité et consistance des valeurs invoquées",
+    "Présence de patterns générationnels distincts dans les réactions",
+    "Volume de réactions disproportionnées révélatrices de normes profondes touchées"
+  ],
+  "avoid": [
+    "Recommander de challenger directement des normes de socialisation primaire dans le contenu",
+    "Ignorer les conflits intergénérationnels comme bruit sans valeur analytique",
+    "Confondre préférences superficielles et normes de socialisation profondément intériorisées"
+  ]
+}

@@ -1,0 +1,1075 @@
+{% extends "base.html" %}
+{% block title %}Gabriel — Créateur{% endblock %}
+{% block page_name %}Créateur{% endblock %}
+
+{% block head %}
+<style>
+/* ── Layout ─────────────────────────────────────────────────────────────────── */
+.app-content { padding-top: 0; padding-bottom: 0; }
+.cre-page    { max-width: 800px; margin: 0 auto; padding: 0 0 100px; }
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+.cre-hero {
+  position: relative;
+  text-align: center;
+  padding: 56px 24px 40px;
+}
+.cre-glow-a {
+  position: absolute;
+  top: -20px; left: 50%;
+  transform: translateX(-50%);
+  width: 640px; height: 320px;
+  background: radial-gradient(ellipse 60% 50% at 50% 30%,
+    rgba(216,185,130,0.07) 0%,
+    rgba(216,185,130,0.02) 50%,
+    transparent 100%);
+  pointer-events: none;
+}
+.cre-h1 {
+  position: relative;
+  font-size: 33px;
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin: 0 0 18px;
+}
+/* Signature typography — gradient partiel sur le mot-clé */
+.cre-h1-accent {
+  background: linear-gradient(90deg,
+    #D8B982 0%,
+    #F0D499 45%,
+    #C7A66B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.cre-h2 {
+  position: relative;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  max-width: 500px;
+  margin: 0 auto;
+  font-weight: 400;
+}
+
+/* ── 6 Tonalités — pills avec shimmer actif ───────────────────────────────── */
+.cre-tones {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 4px 24px 0;
+}
+
+/* Signature : shimmer lent sur la pill active */
+@keyframes cre-shimmer {
+  0%   { background-position: -280px 0; }
+  100% { background-position: 280px 0; }
+}
+
+.cre-tone {
+  padding: 8px 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: rgba(255,255,255,0.28);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.015em;
+  transition:
+    border-color   0.18s ease,
+    color          0.18s ease,
+    background     0.18s ease,
+    box-shadow     0.18s ease;
+  user-select: none;
+  position: relative;
+}
+.cre-tone:hover {
+  border-color: rgba(216,185,130,0.2);
+  color: rgba(255,255,255,0.55);
+  background: rgba(216,185,130,0.03);
+}
+/* Élément signature */
+.cre-tone.active {
+  border-color: rgba(216,185,130,0.35);
+  color: #D8B982;
+  background-image: linear-gradient(
+    90deg,
+    rgba(216,185,130,0.04) 0%,
+    rgba(216,185,130,0.12) 40%,
+    rgba(216,185,130,0.04) 100%
+  );
+  background-size: 560px 100%;
+  background-position: -280px 0;
+  animation: cre-shimmer 3s ease-in-out infinite;
+  box-shadow:
+    0 0 12px rgba(216,185,130,0.06),
+    inset 0 1px 0 rgba(216,185,130,0.08);
+}
+
+/* Description tonalité */
+.cre-desc {
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255,255,255,0.22);
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  margin: 13px 24px 0;
+  min-height: 16px;
+  transition: opacity 0.2s ease;
+}
+
+/* ── Barre contexte ────────────────────────────────────────────────────────── */
+.cre-ctx {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 22px 0 0;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.018);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 10px;
+}
+.cre-ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+}
+.cre-ctx-dot {
+  width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(120,200,140,0.9);
+  box-shadow: 0 0 5px rgba(120,200,140,0.35);
+}
+.cre-ctx-dot.off { background: rgba(255,255,255,0.12); box-shadow: none; }
+.cre-ctx-label   { color: var(--text-secondary); font-weight: 500; }
+.cre-ctx-val     {
+  color: var(--text-muted);
+  max-width: 200px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cre-ctx-sep { width: 1px; height: 12px; background: rgba(255,255,255,0.07); flex-shrink: 0; }
+
+/* ── Carte de saisie ───────────────────────────────────────────────────────── */
+.cre-card {
+  margin-top: 20px;
+  background: rgba(255,255,255,0.022);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 22px 24px 18px;
+  transition:
+    border-color 0.22s ease,
+    box-shadow   0.22s ease;
+}
+.cre-card:focus-within {
+  border-color: rgba(216,185,130,0.15);
+  box-shadow:
+    0 0 0 1px rgba(216,185,130,0.04),
+    0 8px 32px rgba(0,0,0,0.2),
+    inset 0 0 0 1px rgba(216,185,130,0.04);
+}
+
+.cre-textarea {
+  display: block;
+  width: 100%;
+  min-height: 128px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.8;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+  caret-color: rgba(216,185,130,0.7);
+}
+.cre-textarea::placeholder {
+  color: rgba(255,255,255,0.14);
+}
+
+.cre-hr {
+  height: 1px;
+  background: rgba(255,255,255,0.055);
+  margin: 14px -24px;
+}
+
+/* Options */
+.cre-opts {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.cre-opt { display: flex; flex-direction: column; gap: 4px; }
+.cre-opt-lbl {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.2);
+  font-weight: 600;
+}
+.cre-select {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 6px 10px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.cre-select:focus { border-color: rgba(216,185,130,0.2); }
+.cre-select option { background: #111214; }
+
+/* ── Ligne CTA ─────────────────────────────────────────────────────────────── */
+.cre-cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+.cre-count {
+  font-size: 10px;
+  color: rgba(255,255,255,0.16);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.cre-count.near { color: rgba(216,185,130,0.5); }
+.cre-count.over { color: rgba(235,100,100,0.6); }
+
+.cre-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 26px;
+  border-radius: 10px;
+  background: rgba(216,185,130,0.1);
+  border: 1px solid rgba(216,185,130,0.28);
+  color: #D8B982;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background  0.18s ease,
+    border-color 0.18s ease,
+    box-shadow   0.18s ease,
+    transform    0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cre-btn:hover {
+  background: rgba(216,185,130,0.17);
+  border-color: rgba(216,185,130,0.42);
+  box-shadow: 0 0 20px rgba(216,185,130,0.08);
+}
+.cre-btn:active { transform: scale(0.97); }
+.cre-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── Loading — progress scanline ─────────────────────────────────────────── */
+.cre-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  gap: 18px;
+}
+.cre-progress {
+  width: 180px; height: 1px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 1px;
+  overflow: hidden;
+  position: relative;
+}
+@keyframes cre-scan {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+.cre-progress-fill {
+  position: absolute;
+  top: 0; left: 0;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(216,185,130,0.7) 50%,
+    transparent 100%);
+  animation: cre-scan 1.6s ease-in-out infinite;
+}
+.cre-loading-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.03em;
+}
+.cre-loading-sub {
+  font-size: 10px;
+  color: rgba(255,255,255,0.15);
+  margin-top: -10px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Résultat ──────────────────────────────────────────────────────────────── */
+@keyframes cre-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cre-result {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: cre-rise 0.3s ease both;
+}
+
+/* Brief — chips compacts */
+.cre-brief {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 11px 14px;
+  background: rgba(216,185,130,0.03);
+  border: 1px solid rgba(216,185,130,0.09);
+  border-radius: 10px;
+}
+.cre-chip {
+  font-size: 9px;
+  padding: 2px 9px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.32);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.cre-chip.hi {
+  background: rgba(216,185,130,0.07);
+  border-color: rgba(216,185,130,0.18);
+  color: rgba(216,185,130,0.8);
+}
+
+/* Carte contenu — la zone d'écriture */
+.cre-out-card {
+  background: rgba(255,255,255,0.018);
+  border: 1px solid rgba(255,255,255,0.055);
+  border-left: 2px solid rgba(216,185,130,0.2);
+  border-radius: 0 12px 12px 0;
+  padding: 22px 26px 20px;
+  position: relative;
+}
+.cre-out-lbl {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(216,185,130,0.4);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cre-out-lbl::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(216,185,130,0.08);
+}
+.cre-out-text {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.95;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  font-weight: 400;
+}
+
+/* Justification */
+.cre-why {
+  background: rgba(255,255,255,0.015);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+.cre-why-hdr {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.18);
+  margin-bottom: 12px;
+}
+.cre-why-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  line-height: 1.6;
+  align-items: baseline;
+}
+.cre-why-row:last-child { margin-bottom: 0; }
+.cre-why-k {
+  color: rgba(255,255,255,0.28);
+  font-weight: 500;
+  min-width: 88px;
+  flex-shrink: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cre-why-v { color: rgba(255,255,255,0.45); }
+
+/* Variante */
+.cre-var {
+  background: rgba(100,170,235,0.02);
+  border: 1px solid rgba(100,170,235,0.09);
+  border-radius: 10px;
+  padding: 18px 22px;
+}
+.cre-var-lbl {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(100,170,235,0.4);
+  margin-bottom: 12px;
+}
+
+/* Raffiner */
+.cre-refine-wrap { display: flex; flex-direction: column; gap: 5px; }
+.cre-refine-lbl  {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.18); font-weight: 600;
+}
+.cre-refine-row { display: flex; gap: 8px; }
+.cre-refine-in {
+  flex: 1;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.cre-refine-in:focus   { border-color: rgba(216,185,130,0.2); }
+.cre-refine-in::placeholder { color: rgba(255,255,255,0.14); }
+
+/* Boutons d'action */
+.cre-actions { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.cre-act {
+  padding: 7px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: transparent;
+  color: rgba(255,255,255,0.32);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    border-color 0.15s,
+    color        0.15s,
+    background   0.15s,
+    transform    0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cre-act:hover {
+  border-color: rgba(216,185,130,0.25);
+  color: rgba(216,185,130,0.8);
+  background: rgba(216,185,130,0.04);
+}
+.cre-act:active { transform: scale(0.96); }
+.cre-act.sv {
+  color: rgba(120,200,140,0.6);
+  border-color: rgba(120,200,140,0.14);
+}
+.cre-act.sv:hover {
+  border-color: rgba(120,200,140,0.3);
+  background: rgba(120,200,140,0.04);
+  color: rgba(120,200,140,0.85);
+}
+.cre-act.sv.done {
+  color: rgba(120,200,140,0.9);
+  border-color: rgba(120,200,140,0.32);
+  cursor: default;
+}
+.cre-act.ok {
+  color: rgba(120,200,140,0.9);
+  border-color: rgba(120,200,140,0.32);
+}
+.cre-act.cp:hover {
+  border-color: rgba(216,185,130,0.25);
+  color: rgba(216,185,130,0.8);
+}
+
+/* Toast */
+.cre-toast {
+  position: fixed;
+  bottom: 26px; right: 26px;
+  padding: 9px 16px;
+  background: rgba(14,14,18,0.97);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+}
+.cre-toast.on { opacity: 1; transform: translateY(0); }
+
+/* Separateur ligne actions-result */
+.cre-separator {
+  height: 1px;
+  background: rgba(255,255,255,0.04);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 680px) {
+  .cre-h1 { font-size: 24px; }
+  .cre-tones { gap: 5px; }
+  .cre-tone  { padding: 7px 14px; font-size: 11px; }
+  .cre-opts  { flex-direction: column; }
+  .cre-cta-row { flex-direction: column; align-items: flex-end; gap: 10px; }
+  .cre-out-card { padding: 16px 18px; }
+}
+</style>
+{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-ghost btn-sm" onclick="reset()">Nouvelle création</button>
+{% endblock %}
+
+{% block content %}
+<div class="cre-page">
+
+  <!-- Hero -->
+  <div class="cre-hero">
+    <div class="cre-glow-a"></div>
+    <h1 class="cre-h1">
+      Écrivez avec la&nbsp;<span class="cre-h1-accent">voix juste</span>,<br>
+      pour la bonne audience.
+    </h1>
+    <p class="cre-h2">Choisissez une tonalité. Gabriel s'appuie sur votre stratégie, vos personas et les signaux psychologiques de votre audience pour produire des scripts cohérents, ciblés et prêts à l'action.</p>
+  </div>
+
+  <!-- 6 Tonalités -->
+  <div class="cre-tones" id="cre-tones">
+    <button class="cre-tone active"
+      data-tone="expert"
+      data-desc="Diagnostic, précision, autorité, décision. Logique : signal → analyse → décision → action."
+      onclick="selectTone(this)">Expert</button>
+    <button class="cre-tone"
+      data-tone="premium"
+      data-desc="Sobriété, valeur perçue, rareté, élégance. Moins de bruit → plus de précision → plus de valeur."
+      onclick="selectTone(this)">Premium</button>
+    <button class="cre-tone"
+      data-tone="educational"
+      data-desc="Clarté, progression, exemples concrets, transmission. Du simple vers le complexe."
+      onclick="selectTone(this)">Éducatif</button>
+    <button class="cre-tone"
+      data-tone="viral"
+      data-desc="Hook immédiat, tension, contraste, rétention. Logique : hook → tension → surprise → payoff → action."
+      onclick="selectTone(this)">Viral</button>
+    <button class="cre-tone"
+      data-tone="direct_response"
+      data-desc="Douleur, bénéfice, preuve, CTA unique. Chaque ligne répond à : pourquoi agir maintenant ?"
+      onclick="selectTone(this)">Direct Response</button>
+    <button class="cre-tone"
+      data-tone="emotional"
+      data-desc="Empathie, vécu, identification, vérité humaine. Logique : vécu → tension → vérité → ouverture → action."
+      onclick="selectTone(this)">Émotionnel</button>
+  </div>
+  <div class="cre-desc" id="cre-desc">Diagnostic, précision, autorité, décision. Logique : signal → analyse → décision → action.</div>
+
+  <!-- Contexte (si connecté) -->
+  <div class="cre-ctx" id="cre-ctx" style="display:none">
+    <div class="cre-ctx-item">
+      <div class="cre-ctx-dot off" id="ctx-p-dot"></div>
+      <span class="cre-ctx-label">Psychologue</span>
+      <span class="cre-ctx-val" id="ctx-p-val"></span>
+    </div>
+    <div class="cre-ctx-sep"></div>
+    <div class="cre-ctx-item">
+      <div class="cre-ctx-dot off" id="ctx-s-dot"></div>
+      <span class="cre-ctx-label">Stratège</span>
+      <span class="cre-ctx-val" id="ctx-s-val"></span>
+    </div>
+  </div>
+
+  <!-- Carte formulaire -->
+  <div class="cre-card" id="cre-card">
+    <textarea
+      class="cre-textarea"
+      id="cre-req"
+      maxlength="2000"
+      rows="5"
+      placeholder="Décrivez le script ou le texte que vous voulez créer…&#10;&#10;Ex : « Écris un script TikTok pour présenter cette offre »&#10;     « Transforme cette stratégie en post LinkedIn expert »&#10;     « Crée un discours de lancement premium »"
+      oninput="updateCount()"
+    ></textarea>
+
+    <div class="cre-hr"></div>
+
+    <div class="cre-opts">
+      <div class="cre-opt">
+        <div class="cre-opt-lbl">Format</div>
+        <select class="cre-select" id="cre-fmt">
+          <option value="script">Script court</option>
+          <option value="youtube">Script YouTube</option>
+          <option value="tiktok">Script TikTok / Reels</option>
+          <option value="hooks">Hooks d'accroche</option>
+          <option value="linkedin">Post LinkedIn</option>
+          <option value="post">Post réseaux sociaux</option>
+          <option value="email">Email séquence</option>
+          <option value="speech">Discours</option>
+          <option value="ad">Publicité</option>
+          <option value="sales_page">Page de vente</option>
+          <option value="angles">Angles de contenu</option>
+        </select>
+      </div>
+      <div class="cre-opt">
+        <div class="cre-opt-lbl">Canal</div>
+        <select class="cre-select" id="cre-ch">
+          <option value="">Automatique</option>
+          <option value="tiktok">TikTok</option>
+          <option value="youtube">YouTube</option>
+          <option value="instagram">Instagram</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="email">Email</option>
+          <option value="website">Site web</option>
+          <option value="ads">Publicités</option>
+        </select>
+      </div>
+      <div class="cre-opt">
+        <div class="cre-opt-lbl">Objectif</div>
+        <select class="cre-select" id="cre-obj">
+          <option value="">Automatique</option>
+          <option value="attention">Attention</option>
+          <option value="education">Éducation</option>
+          <option value="conversion">Conversion</option>
+          <option value="autorite">Autorité</option>
+          <option value="sales">Vente</option>
+          <option value="launch">Lancement</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cre-cta-row">
+    <span class="cre-count" id="cre-count">0 / 2000</span>
+    <button class="cre-btn" id="cre-gen" onclick="generate()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Créer le script
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="hidden cre-loading" id="cre-load">
+    <div class="cre-progress"><div class="cre-progress-fill"></div></div>
+    <div class="cre-loading-label" id="cre-load-lbl">Le Créateur travaille…</div>
+    <div class="cre-loading-sub">Signaux psychologiques · RAG · Rédaction</div>
+  </div>
+
+  <!-- Résultat -->
+  <div class="hidden cre-result" id="cre-out">
+
+    <div class="cre-brief"   id="cre-brief"></div>
+
+    <div class="cre-out-card">
+      <div class="cre-out-lbl" id="cre-out-lbl">Script généré</div>
+      <div class="cre-out-text" id="cre-out-text"></div>
+    </div>
+
+    <div class="cre-why" id="cre-why">
+      <div class="cre-why-hdr">Pourquoi cette tonalité</div>
+      <div id="cre-why-body"></div>
+    </div>
+
+    <div class="hidden cre-var" id="cre-var">
+      <div class="cre-var-lbl" id="cre-var-lbl">Variante · angle alternatif</div>
+      <div class="cre-out-text" id="cre-var-txt" style="margin-bottom:14px"></div>
+      <button class="cre-act cp" onclick="copyVar()">Copier la variante</button>
+    </div>
+
+    <div class="cre-refine-wrap">
+      <div class="cre-refine-lbl">Raffiner</div>
+      <div class="cre-refine-row">
+        <input type="text" class="cre-refine-in" id="cre-rfn"
+          placeholder="Rendre le hook plus percutant, raccourcir, ajouter une preuve sociale…" />
+        <button class="cre-act" onclick="refine()" style="white-space:nowrap">Appliquer</button>
+      </div>
+    </div>
+
+    <div class="cre-separator"></div>
+
+    <div class="cre-actions">
+      <button class="cre-act cp"  id="cre-cp"  onclick="copyMain()">Copier</button>
+      <button class="cre-act"          onclick="regen()">Régénérer</button>
+      <button class="cre-act"          onclick="changeTone()">Changer la tonalité</button>
+      <button class="cre-act sv"  id="cre-sv"  onclick="save()">Sauvegarder</button>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="cre-toast" id="cre-toast" aria-live="polite"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ─── État ──────────────────────────────────────────────────────────────────── */
+let _tone       = 'expert';
+let _psycho     = {};
+let _strategy   = {};
+let _analysisId = '';
+let _lastResult = null;
+let _pollTimer  = null;
+let _pollN      = 0;
+
+/* ─── Descriptions & infos tonalités ────────────────────────────────────────── */
+const TONES = {
+  expert:          { label: 'Expert / Conseil',    logic: 'Problème → signal → analyse → décision → action', signal: 'Crédibilité par la précision analytique' },
+  premium:         { label: 'Premium',             logic: 'Moins de bruit → précision → valeur',             signal: 'Valeur perçue par la sobriété et la rareté' },
+  educational:     { label: 'Éducatif',            logic: 'Constat → explication → exemple → conclusion',    signal: 'Confiance par la clarté et la transmission' },
+  viral:           { label: 'Viral / Attention',   logic: 'Hook → tension → surprise → payoff → action',     signal: 'Rétention par la tension narrative et le contraste' },
+  direct_response: { label: 'Direct Response',     logic: 'Douleur → promesse → preuve → offre → action',    signal: 'Conversion par la clarté du bénéfice' },
+  emotional:       { label: 'Émotionnel / Humain', logic: 'Vécu → tension → vérité humaine → ouverture',     signal: "Connexion par l'identification et l'empathie précise" },
+  storytelling:    { label: 'Storytelling',        logic: 'Situation → conflit → bascule → transformation',  signal: 'Mémorabilité par la narration' },
+  autorite:        { label: 'Autorité',            logic: 'Constat fort → position → direction → action',    signal: 'Confiance par la vision et la clarté' },
+};
+
+/* ─── Helpers DOM ────────────────────────────────────────────────────────────── */
+const $  = id => document.getElementById(id);
+const sh = id => $(id)?.classList.remove('hidden');
+const hd = id => $(id)?.classList.add('hidden');
+
+/* ─── Init sessionStorage ────────────────────────────────────────────────────── */
+(function init() {
+  const raw = sessionStorage.getItem('gabriel_for_createur');
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    sessionStorage.removeItem('gabriel_for_createur');
+    _analysisId = d.analysis_id    || '';
+    _strategy   = d.strategie_data || d.strategy || {};
+    _psycho     = d.psycho_data    || {};
+
+    const ctx = $('cre-ctx');
+    ctx.style.display = 'flex';
+
+    const brief   = (_psycho.brief || {});
+    const insight = brief.insight_cle || '';
+    if (_analysisId || insight) {
+      $('ctx-p-dot').classList.remove('off');
+      $('ctx-p-val').textContent = insight ? insight.slice(0, 52) + '…' : 'Analyse liée';
+    }
+    const dec = d.decision || _strategy.decision_centrale || '';
+    if (dec) {
+      $('ctx-s-dot').classList.remove('off');
+      $('ctx-s-val').textContent = dec.slice(0, 52) + (dec.length > 52 ? '…' : '');
+    }
+  } catch(e) {}
+})();
+
+/* ─── Tonalité ───────────────────────────────────────────────────────────────── */
+function selectTone(btn) {
+  document.querySelectorAll('.cre-tone').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _tone = btn.dataset.tone;
+  $('cre-desc').textContent = btn.dataset.desc || '';
+}
+
+/* ─── Compteur chars ─────────────────────────────────────────────────────────── */
+function updateCount() {
+  const n = $('cre-req').value.length;
+  const el = $('cre-count');
+  el.textContent = n + ' / 2000';
+  el.className = 'cre-count' + (n >= 1900 ? ' over' : n >= 1600 ? ' near' : '');
+}
+
+/* ─── Génération ─────────────────────────────────────────────────────────────── */
+async function generate() {
+  _lastResult = null;
+  hd('cre-out');
+  sh('cre-load');
+  $('cre-gen').disabled = true;
+
+  const payload = {
+    content_type:  $('cre-fmt').value,
+    channel:       $('cre-ch').value,
+    tone:          _tone,
+    objective:     $('cre-obj').value,
+    user_request:  $('cre-req').value.trim(),
+    analysis_id:   _analysisId,
+    psycho_data:   _psycho,
+    strategy:      _strategy,
+    generate_variant: false,
+  };
+
+  try {
+    const r = await fetch('/creator/generate', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+    });
+    if (r.status === 401) {
+      err('Votre session a expiré. Veuillez vous reconnecter.');
+      setTimeout(() => { window.location.href = '/login'; }, 2000);
+      return;
+    }
+    const d = await r.json();
+    if (d.error) { err(d.error); return; }
+    if (d.job_id) { _pollN = 0; poll(d.job_id); }
+    else renderResult(d.data || d);
+  } catch(e) {
+    err('Erreur réseau. Réessayez.');
+  }
+}
+
+/* ─── Polling ────────────────────────────────────────────────────────────────── */
+const STEPS = [
+  'Analyse des signaux psychologiques…',
+  'Sélection des références RAG…',
+  'Construction du brief d\'écriture…',
+  'Rédaction avec la discipline choisie…',
+  'Vérification de la cohérence…',
+];
+function poll(jid) {
+  if (_pollTimer) clearTimeout(_pollTimer);
+  _pollTimer = setTimeout(async () => {
+    _pollN++;
+    if (_pollN > 120) { err('Temps dépassé. Réessayez.'); return; }
+    $('cre-load-lbl').textContent = STEPS[Math.min(_pollN - 1, STEPS.length - 1)];
+    try {
+      const r = await fetch(`/status/${jid}`);
+      if (r.status === 401) {
+        err('Votre session a expiré. Veuillez vous reconnecter.');
+        setTimeout(() => { window.location.href = '/login'; }, 2000);
+        return;
+      }
+      if (r.status === 429) { err('Trop de requêtes — réessayez dans quelques instants.'); return; }
+      const d = await r.json();
+      if      (d.status === 'done')  renderResult(d.data);
+      else if (d.status === 'error') err(d.error || 'Erreur interne.');
+      else    poll(jid);
+    } catch(e) { poll(jid); }
+  }, 3000);
+}
+
+/* ─── Rendu ──────────────────────────────────────────────────────────────────── */
+function renderResult(d) {
+  if (_pollTimer) clearTimeout(_pollTimer);
+  _lastResult = d;
+  $('cre-gen').disabled = false;
+  hd('cre-load');
+
+  // Brief chips
+  const brief = d.writing_brief || {};
+  const fmtOpt = $('cre-fmt');
+  const fmtLabel = fmtOpt.options[fmtOpt.selectedIndex].text;
+  const br = $('cre-brief');
+  br.innerHTML = '';
+  const chips = [
+    [brief.format || fmtLabel, true],
+    [TONES[_tone]?.label || _tone, true],
+    [brief.channel  || '', false],
+    [brief.objective|| '', false],
+    [brief.emotion_dominante || '', false],
+  ].filter(c => c[0]);
+  chips.forEach(([t, hi]) => {
+    const s = document.createElement('span');
+    s.className = 'cre-chip' + (hi ? ' hi' : '');
+    s.textContent = t;
+    br.appendChild(s);
+  });
+
+  // Contenu
+  $('cre-out-text').textContent = d.full_text || '(Aucun contenu — réessayez)';
+  const ti = TONES[_tone] || {};
+  $('cre-out-lbl').textContent = (ti.label || _tone) + ' — Script généré';
+
+  // Justification
+  const psycho = _psycho.psychologie || {};
+  const frus   = (psycho.frustrations || [])[0] || '';
+  const insight = brief.audience_insight_used || ((_psycho.brief || {}).insight_cle || '').slice(0,100) || '';
+  const strat   = brief.strategy_used || (_strategy.decision_centrale || '').slice(0,100) || '';
+  const rows = [
+    ['Discipline',  ti.logic   || ''],
+    ['Signal',      ti.signal  || ''],
+    ['Insight',     insight    || (frus ? frus.slice(0,90) : '')],
+    ['Stratégie',   strat      || ''],
+  ].filter(r => r[1]);
+  $('cre-why-body').innerHTML = rows.map(([k,v]) =>
+    `<div class="cre-why-row"><span class="cre-why-k">${esc(k)}</span><span class="cre-why-v">${esc(v)}</span></div>`
+  ).join('');
+
+  // Variante
+  const variant = d.variant || {};
+  if (variant.full_text) {
+    const vti = TONES[variant.angle] || {};
+    $('cre-var-lbl').textContent = 'Variante · ' + (vti.label || variant.angle || 'angle alternatif');
+    $('cre-var-txt').textContent = variant.full_text;
+    sh('cre-var');
+  } else {
+    hd('cre-var');
+  }
+
+  // Reset boutons
+  const sv = $('cre-sv');
+  sv.textContent = 'Sauvegarder';
+  sv.className = 'cre-act sv';
+  const cp = $('cre-cp');
+  cp.textContent = 'Copier';
+  cp.className = 'cre-act cp';
+  $('cre-rfn').value = '';
+
+  sh('cre-out');
+
+  if (typeof GabrielSurvey !== 'undefined') {
+    GabrielSurvey.trigger({
+      eventType:  'after_creation',
+      targetType: 'content',
+      targetId:   (_lastResult?.analysis_id) || (_lastResult?.strategy_id) || '',
+      agent:      'createur',
+      question:   'Ce contenu vous semble-t-il utilisable tel quel ?',
+      delay:      3500,
+    });
+  }
+}
+
+/* ─── Raffiner ───────────────────────────────────────────────────────────────── */
+async function refine() {
+  const instruction = $('cre-rfn').value.trim();
+  if (!instruction) return;
+  hd('cre-out'); sh('cre-load');
+  $('cre-load-lbl').textContent = 'Raffinement en cours…';
+  $('cre-gen').disabled = true;
+
+  try {
+    const r = await fetch('/creator/refine', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        original_content: (_lastResult?.content) || {},
+        instruction,
+        content_type: $('cre-fmt').value,
+        tone:         _tone,
+        analysis_id:  _analysisId,
+        psycho_data:  _psycho,
+        strategy:     _strategy,
+      }),
+    });
+    const d = await r.json();
+    $('cre-gen').disabled = false; hd('cre-load');
+    if (d.error) { err(d.error); return; }
+    const refined = d.data || d;
+    if (refined.full_text) {
+      $('cre-out-text').textContent = refined.full_text;
+      if (_lastResult) _lastResult.content = refined;
+      $('cre-sv').textContent = 'Sauvegarder';
+      $('cre-sv').className = 'cre-act sv';
+      $('cre-rfn').value = '';
+      toast('Contenu raffiné');
+    }
+    sh('cre-out');
+  } catch(e) {
+    $('cre-gen').disabled = false;
+    err('Erreur lors du raffinement.');
+  }
+}
+
+/* ─── Régénérer / changer tonalité ─────────────────────────────────────────── */
+function regen()       { hd('cre-out'); generate(); }
+function changeTone()  { hd('cre-out'); $('cre-tones').scrollIntoView({behavior:'smooth',block:'center'}); }
+
+/* ─── Copier ─────────────────────────────────────────────────────────────────── */
+async function copyMain() {
+  await cpText($('cre-out-text').textContent);
+  const btn = $('cre-cp');
+  btn.textContent = '✓ Copié';
+  btn.className = 'cre-act ok';
+  setTimeout(() => { btn.textContent = 'Copier'; btn.className = 'cre-act cp'; }, 2200);
+}
+async function copyVar() {
+  await cpText($('cre-var-txt').textContent);
+  toast('Variante copiée');
+}
+async function cpText(t) {
+  try { await navigator.clipboard.writeText(t); toast('Copié'); } catch(e){}
+}
+
+/* ─── Sauvegarder ────────────────────────────────────────────────────────────── */
+async function save() {
+  const btn = $('cre-sv');
+  if (btn.classList.contains('done')) return;
+  try {
+    const r = await fetch('/creator/save', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        content_type: $('cre-fmt').value,
+        full_text:    $('cre-out-text').textContent,
+        analysis_id:  _analysisId,
+        tone:         _tone,
+        channel:      $('cre-ch').value,
+        content:      (_lastResult?.content) || {},
+      }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      btn.textContent = '✓ Sauvegardé';
+      btn.className = 'cre-act sv done';
+      toast('Contenu sauvegardé');
+    }
+  } catch(e){}
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────────────────── */
+function reset() {
+  if (_pollTimer) clearTimeout(_pollTimer);
+  _psycho = {}; _strategy = {}; _analysisId = ''; _lastResult = null;
+  $('cre-req').value = '';
+  $('cre-count').textContent = '0 / 2000';
+  $('cre-count').className = 'cre-count';
+  $('cre-ctx').style.display = 'none';
+  $('cre-gen').disabled = false;
+  hd('cre-load'); hd('cre-out');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ─── Erreur ─────────────────────────────────────────────────────────────────── */
+function err(msg) {
+  if (_pollTimer) clearTimeout(_pollTimer);
+  $('cre-gen').disabled = false;
+  hd('cre-load');
+  toast(msg, true);
+}
+
+/* ─── Toast ──────────────────────────────────────────────────────────────────── */
+let _tt = null;
+function toast(msg, isErr = false) {
+  const t = $('cre-toast');
+  t.textContent = msg;
+  t.style.color = isErr ? 'rgba(235,100,100,0.7)' : 'rgba(255,255,255,0.5)';
+  t.classList.add('on');
+  if (_tt) clearTimeout(_tt);
+  _tt = setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+/* ─── Escape HTML ────────────────────────────────────────────────────────────── */
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+{% endblock %}

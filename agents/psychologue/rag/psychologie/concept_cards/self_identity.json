@@ -1,0 +1,44 @@
+{
+  "id": "PSY-009",
+  "title": "Identité et estime de soi",
+  "domain": "psychologie_personnalite",
+  "source_files": ["016_the_balance_of_personality.md", "017_theories_of_personality_open_course_text.md", "001_psychology_2e.md"],
+  "concept": "Identité et estime de soi",
+  "definition": "L'identité personnelle est la représentation stable de soi-même qui guide les choix et comportements. L'estime de soi (Rosenberg 1965) est l'évaluation globale qu'on a de sa propre valeur. Une faible estime de soi génère une sensibilité accrue aux critiques et un besoin de validation externe. Le concept de self-concept (Rogers) distingue le soi réel (qui on est) du soi idéal (qui on voudrait être) — l'écart entre les deux génère de l'inconfort et de la motivation.",
+  "use_when": [
+    "Les commentaires révèlent une sensibilité forte à la reconnaissance ou au jugement",
+    "L'audience compare sa situation à celle du créateur ou à un idéal",
+    "On détecte des marqueurs de légitimité personnelle ('je ne suis pas assez...')",
+    "Les commentaires expriment un besoin de validation ou de permission"
+  ],
+  "dashboard_triggers": [
+    "besoin de reconnaissance détecté",
+    "marqueurs d'estime de soi faible dans les commentaires",
+    "comparaisons ascendantes fréquentes",
+    "demandes de validation ou de permission"
+  ],
+  "interpretation_rule": "Quand l'estime de soi de l'audience est un facteur, le message doit rencontrer l'audience à son niveau actuel avant de l'élever vers un idéal. Commencer par l'idéal crée un écart trop grand qui génère de la résistance défensive ('c'est pour les autres, pas pour moi'). La technique d'amorce identitaire ('vous êtes le type de personne qui...') active l'identité désirée AVANT la demande d'action, la rendant cohérente avec l'image de soi.",
+  "what_to_observe": [
+    "Marqueurs de légitimité : 'qui suis-je pour', 'je ne suis pas comme eux', 'peut-être que pour moi...'",
+    "Besoin de permission : 'est-ce que c'est normal de...?', 'est-ce que je peux vraiment...?'",
+    "Comparaisons ascendantes : références à des 'modèles' inaccessibles vs accessibles",
+    "Réactions aux compliments du créateur : rejet ou acceptation de la validation"
+  ],
+  "warnings": [
+    "Ne pas confondre une faible estime de soi situationnelle (sur ce sujet) et une faible estime de soi globale",
+    "La flatterie non méritée sera rejetée par les audiences à haut capital culturel",
+    "L'amorce identitaire fonctionne uniquement si elle est perçue comme authentique"
+  ],
+  "output_guidance": "Identifier si l'identité est un facteur primaire (audience dont l'estime de soi est directement en jeu) ou secondaire. Préciser l'écart soi réel/soi idéal tel qu'exprimé dans les commentaires.",
+  "example_interpretation": "Les commentaires révèlent un écart identitaire fort : l'audience s'identifie à [soi réel] mais aspire à [soi idéal]. Cet écart génère un mélange d'aspiration et de résistance défensive. Un contenu qui valide [soi réel] comme point de départ valable avant de proposer le chemin vers [soi idéal] sera reçu avec moins de résistance.",
+  "confidence_factors": [
+    "Présence de marqueurs de légitimité personnelle dans les commentaires",
+    "Réactions aux comparaisons ou aux exemples de succès",
+    "Patterns de demande de validation"
+  ],
+  "avoid": [
+    "Commencer par l'idéal sans valider le point de départ",
+    "Flatter de façon transparente ou non méritée",
+    "Ignorer les signaux d'estime de soi faible dans une audience à haute réflexivité"
+  ]
+}

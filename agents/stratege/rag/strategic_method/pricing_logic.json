@@ -1,0 +1,55 @@
+[
+  {
+    "id": "value_based_pricing",
+    "principle": "Le prix juste est basé sur la valeur créée, pas sur le temps passé",
+    "formula": "Prix = (valeur créée × probabilité de succès) / facteur risque client",
+    "application": "Si ton offre aide quelqu'un à gagner 5000€/mois, ton offre peut se vendre 1000-3000€. Si elle fait gagner du temps (10h/mois à 50€/h = 500€/mois), l'offre peut se vendre 200-500€.",
+    "price_anchors": {
+      "micro_offer": "7-47€ — contenu numérique, template, guide, mini-cours",
+      "entry_offer": "97-297€ — atelier, diagnostic, workbook, formation courte",
+      "core_offer": "500-2000€ — formation complète, programme accompagné, coaching mois",
+      "premium_offer": "2000-10000€ — accompagnement intensif, mastermind, VIP day",
+      "ultra_premium": "10000€+ — conseil stratégique, accès exclusif, programme sur-mesure"
+    },
+    "biggest_mistake": "Sous-estimer sa valeur par peur de ne pas trouver de clients. Un prix bas ne garantit pas les ventes — il garantit des clients qui valorisent peu et négocient."
+  },
+  {
+    "id": "positioning_price",
+    "principle": "Le prix communique le positionnement avant même que le client ne lise l'offre",
+    "rules": [
+      "En dessous de 47€ : le client sait qu'il est seul avec le produit",
+      "Entre 97-297€ : le client attend une formation structurée",
+      "Entre 500-2000€ : le client attend un accompagnement ou une communauté",
+      "Au-dessus de 2000€ : le client attend un résultat garanti ou un accès exceptionnel"
+    ],
+    "competitor_rule": "Ne jamais se positionner uniquement sur le prix le plus bas. Différencier sur la valeur ou l'expérience.",
+    "premium_rule": "Pour un public premium : ne jamais baisser le prix — ajouter de la valeur ou réduire le risque client"
+  },
+  {
+    "id": "entry_offer_strategy",
+    "principle": "L'offre d'entrée est une porte, pas un produit. Elle doit préparer la vente principale.",
+    "design_rules": [
+      "L'offre d'entrée résout un problème spécifique et petit, mais réel",
+      "Elle démontre la compétence du créateur de manière concrète",
+      "Elle crée le désir naturel de continuer avec l'offre principale",
+      "Prix entre 7-197€ selon la profondeur"
+    ],
+    "examples": [
+      "Guide 'Les 5 erreurs que tu fais sur LinkedIn' à 17€ → lead vers formation LinkedIn à 497€",
+      "Diagnostic en 45 min à 97€ → lead vers accompagnement à 1500€",
+      "Template de stratégie à 27€ → lead vers programme à 397€"
+    ],
+    "warning": "Ne jamais brader l'offre principale. Si les gens ne l'achètent pas, le problème est rarement le prix — c'est la confiance ou la clarté."
+  },
+  {
+    "id": "pain_level_pricing",
+    "principle": "L'intensité de la douleur détermine le plafond de prix acceptable",
+    "scale": {
+      "douleur_faible": "Curiosité, confort, amélioration marginale → prix max 50-150€",
+      "douleur_moyenne": "Frustration récurrente, besoin réel non satisfait → prix max 150-800€",
+      "douleur_forte": "Problème qui coûte argent, temps ou énergie chaque jour → prix max 800-3000€",
+      "douleur_critique": "Problème existentiel (survie du business, santé, revenus) → prix max 3000-20000€"
+    },
+    "application": "Identifier le niveau de douleur dans l'analyse psychologique, puis caler le prix sur ce niveau."
+  }
+]
