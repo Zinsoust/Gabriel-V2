@@ -106,18 +106,36 @@ def unauthorized_handler(e):
     }), 401
 
 
+@app.route('/health', methods=['GET'])
+def health():
+    """Route de santé légère — répond immédiatement, ne charge ni RAG ni modèle."""
+    return jsonify({'status': 'ok'})
+
+
 # Passer le client Supabase à db.py
 from api.auth import _supabase as _sb_client
 _db.init_db(_sb_client)
 gabriel = Gabriel()
 memory  = GabrielMemory()
 
-# ── RAG — chargement des bases de connaissances au démarrage ─────────────────
-try:
-    from core import rag as _rag
-    _rag.load_all()
-except Exception as _e:
-    print(f"[RAG] Initialisation non bloquante : {_e}")
+# ── RAG — lazy loading (Render : le port doit s'ouvrir avant tout chargement) ─
+# Par défaut, AUCUN index n'est chargé au démarrage : rag.search() charge et
+# met en cache l'index d'un agent à sa première utilisation (première analyse).
+# RAG_PRELOAD=true précharge tous les index en arrière-plan (thread), sans
+# bloquer l'ouverture du port — utile en local pour éviter la latence de la
+# première analyse.
+_RAG_PRELOAD = os.environ.get('RAG_PRELOAD', 'false').lower() == 'true'
+if _RAG_PRELOAD:
+    def _rag_preload_bg():
+        try:
+            from core import rag as _rag
+            _rag.load_all()
+        except Exception as _e:
+            print(f"[RAG] Préchargement en arrière-plan échoué (non bloquant) : {_e}")
+    threading.Thread(target=_rag_preload_bg, daemon=True, name='rag-preload').start()
+    print("[RAG] Préchargement lancé en arrière-plan (RAG_PRELOAD=true).")
+else:
+    print("[RAG] Lazy loading actif — index chargés à la première analyse.")
 
 _BASE_DIR      = os.path.dirname(os.path.abspath(__file__))
 _DATA_DIR      = os.path.join(_BASE_DIR, 'data')
