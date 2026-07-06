@@ -315,6 +315,16 @@ def landing():
     return render_template('landing.html')
 
 
+@app.route('/en-savoir-plus')
+def en_savoir_plus():
+    """Page publique de présentation de Gabriel."""
+    return render_template(
+        'en_savoir_plus.html',
+        active_page='en_savoir_plus',
+        current_user=current_user(),
+    )
+
+
 @app.route('/app')
 def index():
     """Ancienne interface à onglets — redirige vers /psychologue."""
