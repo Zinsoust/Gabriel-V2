@@ -3,7 +3,15 @@ import re
 import json
 import math
 from collections import Counter
-from mistralai import Mistral
+try:
+    from mistralai import Mistral
+except ImportError as _mistral_import_err:
+    raise ImportError(
+        "Le SDK 'mistralai' installé est incompatible (classe 'Mistral' introuvable dans "
+        "'mistralai'). Ce projet requiert mistralai==1.10.0 (voir requirements.txt) — "
+        "vérifiez qu'aucune autre dépendance ne force une version différente, et videz "
+        "le cache de build si le problème persiste en production."
+    ) from _mistral_import_err
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from json_repair import repair_json
