@@ -411,6 +411,7 @@
     <div class="src-tabs">
       <button class="src-tab active" data-tab="manual"    onclick="switchTab('manual')">Commentaires</button>
       <button class="src-tab" data-tab="youtube"   onclick="switchTab('youtube')">YouTube</button>
+      <button class="src-tab" data-tab="file"      onclick="switchTab('file')">Fichier</button>
     </div>
     <div class="card-body">
       <div id="tab-manual">
@@ -423,6 +424,29 @@
       <div id="tab-youtube" class="hidden">
         <input type="url" id="youtubeUrl" class="input" placeholder="https://youtube.com/watch?v=…" style="width:100%;box-sizing:border-box;" onchange="scrapeYoutube()">
         <div id="yt-status" class="url-hint"></div>
+      </div>
+      <div id="tab-file" class="hidden">
+        <div id="file-dropzone"
+             onclick="document.getElementById('fileInput').click()"
+             ondragover="event.preventDefault(); this.classList.add('drag');"
+             ondragleave="this.classList.remove('drag')"
+             ondrop="event.preventDefault(); this.classList.remove('drag'); handleFileDrop(event);"
+             style="border:1.5px dashed rgba(216,185,130,.25);border-radius:10px;padding:26px 16px;text-align:center;cursor:pointer;transition:border-color .2s, background .2s;">
+          <div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:4px;">
+            Importez un fichier CSV, Excel ou JSON contenant des commentaires, avis ou retours clients.
+          </div>
+          <div style="font-size:10px;color:rgba(255,255,255,.28);">
+            Glissez-déposez ou cliquez · .csv .xlsx .xls .json · 5 MB max
+          </div>
+          <div id="file-name" style="font-size:11px;color:#D8B982;margin-top:8px;"></div>
+        </div>
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json" style="display:none;" onchange="handleFileSelect(this.files)">
+        <div id="file-status" class="url-hint" style="margin-top:8px;"></div>
+        <div id="file-column-select" class="hidden" style="margin-top:8px;">
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px;">Sélectionnez la colonne à analyser :</div>
+          <select id="fileColumn" class="input" style="width:100%;box-sizing:border-box;font-size:12px;" onchange="reparseWithColumn()"></select>
+        </div>
+        <div id="file-preview" class="hidden" style="margin-top:10px;max-height:150px;overflow-y:auto;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:10px 12px;font-size:11px;color:rgba(255,255,255,.5);line-height:1.7;"></div>
       </div>
     </div>
     <div class="card-footer">
@@ -470,6 +494,7 @@
 <div id="loading-section" class="hidden">
   <div class="loading-overlay active">
     <div class="loading-spinner"></div>
+    <div class="loading-percent" id="loading-percent">0%</div>
     <div class="loading-title">Analyse en cours…</div>
     <div class="loading-steps">
       <div class="loading-step active" id="step-nlp"><div class="loading-step-dot"></div>Traitement NLP · Embeddings sémantiques</div>
@@ -709,9 +734,85 @@
 /* ── Tab switching (input) ───────────────────────────────────────────── */
 function switchTab(tab) {
   document.querySelectorAll('.src-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  ['manual','youtube'].forEach(t =>
+  ['manual','youtube','file'].forEach(t =>
     document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab)
   );
+}
+
+/* ── Import fichier (CSV / Excel / JSON) ─────────────────────────────── */
+let _fileComments = [];   // commentaires normalisés du dernier upload
+let _lastFile     = null; // fichier en cours (pour re-parse avec autre colonne)
+
+function handleFileDrop(ev) {
+  const files = ev.dataTransfer?.files;
+  if (files && files.length) handleFileSelect(files);
+}
+
+function handleFileSelect(files) {
+  if (!files || !files.length) return;
+  const f = files[0];
+  _lastFile = f;
+  uploadCommentsFile(f, null);
+}
+
+async function uploadCommentsFile(f, column) {
+  const nameEl    = document.getElementById('file-name');
+  const statusEl  = document.getElementById('file-status');
+  const previewEl = document.getElementById('file-preview');
+  const colWrap   = document.getElementById('file-column-select');
+  _fileComments = [];
+  nameEl.textContent = f.name;
+  previewEl.classList.add('hidden');
+  if (!column) colWrap.classList.add('hidden');
+  if (f.size > 5 * 1024 * 1024) {
+    statusEl.innerHTML = '<span style="font-size:10px;color:rgba(220,100,100,.7);">Le fichier est trop lourd (maximum 5 MB).</span>';
+    return;
+  }
+  statusEl.innerHTML = '<span style="font-size:10px;color:var(--text-muted);">Extraction en cours…</span>';
+
+  const fd = new FormData();
+  fd.append('file', f);
+  if (column) fd.append('column', column);
+
+  let d;
+  try {
+    const r = await fetch('/upload-comments-file', {method: 'POST', body: fd});
+    d = await r.json();
+  } catch(_) {
+    statusEl.innerHTML = '<span style="font-size:10px;color:rgba(220,100,100,.7);">Erreur réseau — réessayez.</span>';
+    return;
+  }
+  if (!d.success) {
+    statusEl.innerHTML = `<span style="font-size:10px;color:rgba(220,100,100,.7);">${d.error || 'Import impossible.'}</span>`;
+    return;
+  }
+
+  _fileComments = d.normalized_comments || [];
+  const colInfo = d.selected_column ? ` · colonne « ${d.selected_column} »` : '';
+  const warn    = d.warning ? `<br><span style="color:rgba(216,185,130,.7);">${d.warning}</span>` : '';
+  statusEl.innerHTML = `<span style="font-size:10px;color:var(--champagne-soft);">Fichier importé avec succès. ${d.comments_count} commentaires détectés${colInfo}.</span>${warn}`;
+
+  // Sélecteur de colonne si plusieurs candidates
+  if ((d.detected_columns || []).length > 1) {
+    const sel = document.getElementById('fileColumn');
+    sel.innerHTML = d.detected_columns.map(c =>
+      `<option value="${c.replace(/"/g,'&quot;')}"${c === d.selected_column ? ' selected' : ''}>${c}</option>`).join('');
+    colWrap.classList.remove('hidden');
+  }
+
+  // Aperçu (max 15)
+  if ((d.preview || []).length) {
+    previewEl.innerHTML = d.preview.map(t =>
+      `<div>· ${t.replace(/</g,'&lt;').slice(0,140)}</div>`).join('');
+    previewEl.classList.remove('hidden');
+  }
+  document.getElementById('analyzeHint').textContent =
+    `${d.comments_count} commentaires prêts — confirmez avec « Lancer l'analyse »`;
+}
+
+function reparseWithColumn() {
+  const col = document.getElementById('fileColumn').value;
+  if (_lastFile && col) uploadCommentsFile(_lastFile, col);
 }
 
 /* ── Tab switching (résultats) ───────────────────────────────────────── */
@@ -781,6 +882,10 @@ function getActiveSource() {
     return {source:'text', content:text, count:text.split('\n').filter(l=>l.trim()).length};
   }
   if (tab === 'youtube')   return {source:'youtube',   content:document.getElementById('youtubeUrl').value.trim(),   count:999};
+  if (tab === 'file') {
+    const name = (_lastFile && _lastFile.name) || 'fichier importé';
+    return {source:'file', content:_fileComments.length ? name : '', count:_fileComments.length, comments:_fileComments};
+  }
   return {source:'text', content:'', count:0};
 }
 
@@ -793,13 +898,29 @@ function animateSteps() {
   }, 1800);
 }
 
+/* Pourcentage estimé — basé sur le temps écoulé depuis t0 (≈95% à 2 min) */
+function startPercent(t0) {
+  const el = document.getElementById('loading-percent');
+  const tick = () => {
+    if (!el) return;
+    const pct = Math.min(95, Math.round((Date.now() - t0) / 1250));
+    el.textContent = pct + '%';
+  };
+  tick();
+  return setInterval(tick, 1000);
+}
+
 /* ── Analyse ──────────────────────────────────────────────────────────── */
+const PENDING_JOB_KEY = 'gabriel_pending_job';
+
 async function startAnalysis() {
-  const {source, content, count} = getActiveSource();
-  if (!content) { alert('Ajoutez du contenu à analyser.'); return; }
-  if (source==='text' && count<3) { alert('Ajoutez au moins 3 commentaires.'); return; }
+  const {source, content, count, comments} = getActiveSource();
+  if (!content) { alert(source === 'file' ? 'Importez d\'abord un fichier de commentaires.' : 'Ajoutez du contenu à analyser.'); return; }
+  if ((source==='text' || source==='file') && count<3) { alert('Ajoutez au moins 3 commentaires.'); return; }
   show('loading-section'); hide('input-section'); hide('error-section'); hide('dashboard-section');
+  const t0 = Date.now();
   const timer = animateSteps();
+  const pctTimer = startPercent(t0);
 
   // ── Phase 1 : lancer le job (scraping + démarrage LLM) ───────────────────
   let jobId;
@@ -807,22 +928,35 @@ async function startAnalysis() {
     const r = await fetch('/analyze', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({source, content}),
+      body: JSON.stringify(source === 'file' ? {source, content, comments} : {source, content}),
     });
     let d;
     try { d = await r.json(); } catch(_) {
-      clearInterval(timer); showError(`Erreur serveur (${r.status})`); return;
+      clearInterval(timer); clearInterval(pctTimer); showError(`Erreur serveur (${r.status})`); return;
     }
     if (r.status === 401 || d.redirect) { window.location.href = d.redirect||'/login'; return; }
     if (r.status === 403 && d.error === 'limit_reached') {
-      clearInterval(timer); hide('loading-section'); show('input-section');
+      clearInterval(timer); clearInterval(pctTimer); hide('loading-section'); show('input-section');
       showUpgradeModal(d.analyses_used, d.analyses_limit); return;
     }
-    if (d.error) { clearInterval(timer); showError(d.error); return; }
+    if (d.error) { clearInterval(timer); clearInterval(pctTimer); showError(d.error); return; }
     jobId = d.job_id;
   } catch(e) {
-    clearInterval(timer); showError('Impossible de joindre le serveur.'); return;
+    clearInterval(timer); clearInterval(pctTimer); showError('Impossible de joindre le serveur.'); return;
   }
+
+  // Le job survit à la navigation : on le mémorise pour reprendre le suivi
+  // si l'utilisateur visite Stratège/Créateur puis revient ici.
+  try { localStorage.setItem(PENDING_JOB_KEY, JSON.stringify({id: jobId, t0})); } catch(_) {}
+
+  await pollAnalysis(jobId, timer, pctTimer);
+}
+
+async function pollAnalysis(jobId, timer, pctTimer) {
+  const stop = () => {
+    clearInterval(timer); clearInterval(pctTimer);
+    try { localStorage.removeItem(PENDING_JOB_KEY); } catch(_) {}
+  };
 
   // ── Phase 2 : polling jusqu'à 'done' (max 8 min — 100+ commentaires) ─────
   const MAX_POLLS = 160;  // 160 × 3s = 8 min
@@ -833,13 +967,13 @@ async function startAnalysis() {
     try {
       const pr = await fetch(`/status/${jobId}`);
       if (pr.status === 401) {
-        clearInterval(timer);
+        stop();
         showError('Votre session a expiré. Veuillez vous reconnecter.');
         setTimeout(() => { window.location.href = '/login'; }, 2000);
         return;
       }
       if (pr.status === 429) {
-        clearInterval(timer);
+        stop();
         showError('Trop de requêtes — attendez quelques instants et réessayez.');
         return;
       }
@@ -847,7 +981,7 @@ async function startAnalysis() {
     } catch(_) { continue; }
 
     if (poll.status === 'interrupted') {
-      clearInterval(timer);
+      stop();
       showError(poll.error || "L'analyse a été interrompue par un redémarrage du serveur. Relancez l'analyse.");
       return;
     }
@@ -855,7 +989,7 @@ async function startAnalysis() {
       // Tolérer quelques 404 transitoires (redéploiement en cours), puis abandonner
       notFoundStreak++;
       if (notFoundStreak >= 4) {
-        clearInterval(timer);
+        stop();
         showError("Le suivi de l'analyse a été perdu (redémarrage du serveur). Relancez l'analyse.");
         return;
       }
@@ -864,7 +998,9 @@ async function startAnalysis() {
     notFoundStreak = 0;
 
     if (poll.status === 'done') {
-      clearInterval(timer);
+      const pctEl = document.getElementById('loading-percent');
+      if (pctEl) pctEl.textContent = '100%';
+      stop();
       try { renderDashboard(poll.data || {}); loadUsageCounter(); }
       catch(e) { showError("Analyse terminée mais affichage échoué. Rechargez."); }
       if (typeof GabrielSurvey !== 'undefined') {
@@ -880,12 +1016,28 @@ async function startAnalysis() {
       return;
     }
     if (poll.status === 'error') {
-      clearInterval(timer); showError(poll.error || "Erreur d'analyse."); return;
+      stop(); showError(poll.error || "Erreur d'analyse."); return;
     }
     // 'running' → continuer à poller
   }
-  clearInterval(timer);
+  stop();
   showError("L'analyse prend trop de temps. Vérifiez votre connexion et réessayez.");
+}
+
+/* Reprise d'un job en cours après navigation (Stratège/Créateur → retour ici) */
+function resumePendingAnalysis() {
+  let job = null;
+  try { job = JSON.parse(localStorage.getItem(PENDING_JOB_KEY) || 'null'); } catch(_) {}
+  if (!job || !job.id) return false;
+  if (Date.now() - (job.t0 || 0) > 10 * 60 * 1000) {
+    try { localStorage.removeItem(PENDING_JOB_KEY); } catch(_) {}
+    return false;
+  }
+  show('loading-section'); hide('input-section'); hide('error-section'); hide('dashboard-section');
+  const timer = animateSteps();
+  const pctTimer = startPercent(job.t0 || Date.now());
+  pollAnalysis(job.id, timer, pctTimer);
+  return true;
 }
 
 // ── Compteur d'usage & modal upgrade ─────────────────────────────────────────
@@ -1969,6 +2121,7 @@ function tryRestoreFromHistory() {
 
 document.addEventListener('DOMContentLoaded',()=>{
   updateCount();
+  if (resumePendingAnalysis()) return;  // une analyse tourne encore → reprendre le suivi
   hydrateFromLanding();
   tryRestoreFromHistory();
 });

@@ -502,6 +502,7 @@
     <div class="hidden" id="strat-loading">
       <div class="loading-overlay active" style="position:relative;min-height:300px;background:transparent;">
         <div class="loading-spinner"></div>
+        <div class="loading-percent" id="strat-percent">0%</div>
         <div class="loading-title">Stratégie en cours…</div>
         <div class="loading-steps">
           <div class="loading-step active"><div class="loading-step-dot"></div>Lecture du contexte business</div>
@@ -693,6 +694,8 @@ function renderRecentStrategies(list) {
 
 async function openStrategy(strategyId) {
   hide('strat-memory'); hide('strat-idle'); hide('strat-analyze-section');
+  const pctEl = document.getElementById('strat-percent');
+  if (pctEl) pctEl.textContent = '';   // chargement rapide — pas de pourcentage
   show('strat-loading');
   try {
     const r = await fetch('/strategies/' + strategyId);
@@ -957,6 +960,7 @@ async function submitStrategie() {
   hide('strat-analyze-section'); hide('strat-dashboard'); hide('strat-memory');
   show('strat-loading');
   const timer = animSteps();
+  const pctTimer = startStratPercent();
 
   const payload = _linkedAnalysisId
     ? {analysis_id: _linkedAnalysisId, brain_profile: ctx, psycho_data: _linkedPsychoData}
@@ -969,7 +973,9 @@ async function submitStrategie() {
       body: JSON.stringify(payload)
     });
     const raw = await r.json();
-    clearInterval(timer); hide('strat-loading');
+    const pctEl = document.getElementById('strat-percent');
+    if (pctEl) pctEl.textContent = '100%';
+    clearInterval(timer); clearInterval(pctTimer); hide('strat-loading');
 
     if (raw.error) { showStratErr(raw.error); return; }
 
@@ -988,7 +994,7 @@ async function submitStrategie() {
       });
     }
   } catch(e) {
-    clearInterval(timer); hide('strat-loading'); showStratErr('Erreur de connexion.');
+    clearInterval(timer); clearInterval(pctTimer); hide('strat-loading'); showStratErr('Erreur de connexion.');
   }
 }
 
@@ -997,6 +1003,18 @@ function animSteps() {
   return setInterval(() => {
     if (i < ids.length) { document.getElementById(ids[i])?.classList.add('active'); i++; }
   }, 2200);
+}
+
+/* Pourcentage estimé — ≈95% à 90 s (génération Mistral Large) */
+function startStratPercent() {
+  const el = document.getElementById('strat-percent');
+  const t0 = Date.now();
+  const tick = () => {
+    if (!el) return;
+    el.textContent = Math.min(95, Math.round((Date.now() - t0) / 950)) + '%';
+  };
+  tick();
+  return setInterval(tick, 1000);
 }
 
 function showStratErr(msg) {

@@ -676,6 +676,7 @@
   <!-- Loading -->
   <div class="hidden cre-loading" id="cre-load">
     <div class="cre-progress"><div class="cre-progress-fill"></div></div>
+    <div class="loading-percent" id="cre-percent" style="font-size:22px;min-height:26px;">0%</div>
     <div class="cre-loading-label" id="cre-load-lbl">Le Créateur travaille…</div>
     <div class="cre-loading-sub">Signaux psychologiques · RAG · Rédaction</div>
   </div>
@@ -798,11 +799,29 @@ function updateCount() {
   el.className = 'cre-count' + (n >= 1900 ? ' over' : n >= 1600 ? ' near' : '');
 }
 
+/* ─── Pourcentage estimé (≈95% à 70 s) ───────────────────────────────────────── */
+let _crePctTimer = null;
+function startCrePercent() {
+  stopCrePercent();
+  const el = $('cre-percent');
+  const t0 = Date.now();
+  const tick = () => {
+    if (el) el.textContent = Math.min(95, Math.round((Date.now() - t0) / 740)) + '%';
+  };
+  tick();
+  _crePctTimer = setInterval(tick, 1000);
+}
+function stopCrePercent(done) {
+  if (_crePctTimer) { clearInterval(_crePctTimer); _crePctTimer = null; }
+  if (done) { const el = $('cre-percent'); if (el) el.textContent = '100%'; }
+}
+
 /* ─── Génération ─────────────────────────────────────────────────────────────── */
 async function generate() {
   _lastResult = null;
   hd('cre-out');
   sh('cre-load');
+  startCrePercent();
   $('cre-gen').disabled = true;
 
   const payload = {
@@ -870,6 +889,7 @@ function poll(jid) {
 /* ─── Rendu ──────────────────────────────────────────────────────────────────── */
 function renderResult(d) {
   if (_pollTimer) clearTimeout(_pollTimer);
+  stopCrePercent(true);
   _lastResult = d;
   $('cre-gen').disabled = false;
   hd('cre-load');
@@ -953,6 +973,7 @@ async function refine() {
   const instruction = $('cre-rfn').value.trim();
   if (!instruction) return;
   hd('cre-out'); sh('cre-load');
+  startCrePercent();
   $('cre-load-lbl').textContent = 'Raffinement en cours…';
   $('cre-gen').disabled = true;
 
@@ -971,6 +992,7 @@ async function refine() {
       }),
     });
     const d = await r.json();
+    stopCrePercent(true);
     $('cre-gen').disabled = false; hd('cre-load');
     if (d.error) { err(d.error); return; }
     const refined = d.data || d;
@@ -1044,6 +1066,7 @@ function reset() {
   $('cre-count').className = 'cre-count';
   $('cre-ctx').style.display = 'none';
   $('cre-gen').disabled = false;
+  stopCrePercent();
   hd('cre-load'); hd('cre-out');
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -1051,6 +1074,7 @@ function reset() {
 /* ─── Erreur ─────────────────────────────────────────────────────────────────── */
 function err(msg) {
   if (_pollTimer) clearTimeout(_pollTimer);
+  stopCrePercent();
   $('cre-gen').disabled = false;
   hd('cre-load');
   toast(msg, true);

@@ -563,6 +563,13 @@ select option { background: var(--bg-card); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-title { font-size: 14px; font-weight: 500; color: var(--text-secondary); }
+.loading-percent {
+  font-size: 28px; font-weight: 300;
+  color: var(--champagne);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  min-height: 34px;
+}
 .loading-steps { display: flex; flex-direction: column; gap: 5px; align-items: center; }
 .loading-step { font-size: 11px; color: var(--text-disabled); display: flex; align-items: center; gap: 7px; letter-spacing: 0.02em; }
 .loading-step.done { color: var(--champagne-soft); }
