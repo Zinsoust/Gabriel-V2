@@ -2352,10 +2352,21 @@ def _compute_dashboard(layer1, nlp_data, n_total, title=""):
 
 # ─── PIPELINE PRINCIPAL ───────────────────────────────────────────────────────
 
-def analyze_comments(comments, brain_context="", video_context="", title=""):
+def analyze_comments(comments, brain_context="", video_context="", title="",
+                     progress_cb=None):
 
     nb_total = len(comments)
     _target  = title or video_context
+
+    def _progress(step, pct):
+        if progress_cb:
+            try:
+                progress_cb(step, pct)
+            except Exception as e:
+                print(f"[ANALYZE] progress_cb erreur (non bloquant) : {e}")
+
+    print(f"[ANALYZE] comments_count={nb_total}")
+    _progress('nlp', 5)
 
     # ── NLP d'abord (fournit les relevance_scores pour le scoring mathématique)
     print("[GABRIEL] NLP pipeline...")
@@ -2367,6 +2378,8 @@ def analyze_comments(comments, brain_context="", video_context="", title=""):
                   f"clusters={len(nlp_data.get('cluster_summary', []))}")
         except Exception as e:
             print(f"[GABRIEL] NLP ERREUR (non bloquant) : {e}")
+    print("[ANALYZE] nlp_done")
+    _progress('scoring', 20)
 
     # ── Couche 1 : scoring purement mathématique (VADER + cosine sim — zéro LLM)
     print("[GABRIEL] Couche 1 : scoring mathématique (VADER + cosine sim)...")
@@ -2398,6 +2411,8 @@ def analyze_comments(comments, brain_context="", video_context="", title=""):
     print(f"[GABRIEL] Dashboard OK — emotion={dashboard.get('dominant_emotion')} | stance={dashboard.get('dominant_stance')} | opp={dashboard.get('opportunity_score')}")
 
     # ── RAG — enrichissement base de connaissances psychologiques + sous-RAGs avec concept cards
+    print("[ANALYZE] rag_start")
+    _progress('rag', 30)
     rag_context       = ""
     rag_psycho_context = ""
     rag_socio_context  = ""
@@ -2438,8 +2453,11 @@ def analyze_comments(comments, brain_context="", video_context="", title=""):
         print(f"[GABRIEL] RAG psycho : {len(r_psycho)} extraits + {len(psycho_cards_filtered)} cartes | RAG socio : {len(r_socio)} extraits + {len(socio_cards_filtered)} cartes")
     except Exception as _e:
         print(f"[GABRIEL] RAG non disponible (non bloquant) : {_e}")
+    print("[ANALYZE] rag_done")
 
     # ── COUCHE 3A : Analyse qualitative principale (Sonnet — profond)
+    print("[ANALYZE] llm_start")
+    _progress('llm_principal', 40)
     print("[GABRIEL] Couche 3 : analyse principale...")
     print(f"[GABRIEL] Layer1 agg — intentions: {layer1_agg.get('intentions')} | signaux: {layer1_agg.get('signaux_marketing')}")
     try:
@@ -2460,6 +2478,7 @@ def analyze_comments(comments, brain_context="", video_context="", title=""):
             kpis[k]["description"] = desc
 
     # ── ÉTAPES PARALLÈLES : Personas + Recommandations + Brief + Livrables IA + Interprétations
+    _progress('llm_paralleles', 65)
     print("[GABRIEL] Personas + recommandations + brief + livrables IA + interprétations en parallèle...")
     personas = []
     recommandations = {}
@@ -2521,6 +2540,9 @@ def analyze_comments(comments, brain_context="", video_context="", title=""):
             print(f"[GABRIEL] Interprétation socio-culturelle OK")
         except Exception as e:
             print(f"[GABRIEL] Interprétation socio-culturelle ERREUR (non bloquant) : {e}")
+
+    print("[ANALYZE] llm_done")
+    _progress('assemblage', 90)
 
     # ── Fusion livrables statistiques (purs + IA)
     livrables_statistiques = {**stat_deliverables, **livrables_ia}

@@ -22,10 +22,11 @@ class Gabriel:
 
     # ── Pipeline 1 : Analyse Psychologique ───────────────────────────────────
 
-    def run_psycho(self, comments, video_context="", title=""):
+    def run_psycho(self, comments, video_context="", title="", progress_cb=None):
         """
         Analyse les commentaires et retourne les insights psychologiques.
         N'a pas besoin du profil projet — s'appuie uniquement sur les données audience.
+        progress_cb(step: str, progress: int) — optionnel, appelé aux étapes clés.
         """
         ctx = AnalysisContext(
             comments=comments,
@@ -33,6 +34,7 @@ class Gabriel:
             video_context=video_context,
             title=title,
         )
+        ctx.progress_cb = progress_cb
         ctx.record_step(f"[GABRIEL] Pipeline psychologique — {len(comments)} commentaires")
 
         try:

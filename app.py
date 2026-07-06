@@ -24,6 +24,7 @@ from services.scraper import (
     scrape_instagram_rapidapi,
     scrape_tiktok_rapidapi,
     parse_manual_comments,
+    RapidAPIUnavailable,
 )
 
 app = Flask(__name__)
@@ -442,6 +443,9 @@ def analyze():
             'error':       None,
             'started_at':  datetime.datetime.now().isoformat(),
         }
+        print(f"[JOB] created job_id={job_id} analysis_id={analysis_id}")
+        # Persister le job en base — survit aux redémarrages Render
+        _job_in_db = _db.create_job(job_id, uid, analysis_id)
         # Purger les vieux jobs (max _JOBS_MAX)
         if len(_jobs) > _JOBS_MAX:
             try:
@@ -459,8 +463,24 @@ def analyze():
         _video_description = video_info.get('description', '')
 
         def _run_analysis():
+            def _on_progress(step, pct):
+                """Callback appelé aux étapes clés — met à jour mémoire + DB (heartbeat)."""
+                if job_id in _jobs:
+                    _jobs[job_id]['step']     = step
+                    _jobs[job_id]['progress'] = pct
+                print(f"[JOB] progress={pct} step={step} job_id={job_id}")
+                if _job_in_db:
+                    _db.update_job(job_id, user_id=uid, status='running',
+                                   progress=pct, step=step)
+
             try:
-                result = gabriel.run_psycho(_comments, _video_context, title=_video_title)
+                print(f"[JOB] running job_id={job_id}")
+                if _job_in_db:
+                    _db.update_job(job_id, user_id=uid, status='running',
+                                   progress=1, step='demarrage')
+                result = gabriel.run_psycho(_comments, _video_context,
+                                            title=_video_title,
+                                            progress_cb=_on_progress)
 
                 _psycho_cache[analysis_id] = {
                     'psycho':        result,
@@ -493,21 +513,41 @@ def analyze():
                     'full_result':     result,
                 }
                 _db.save_analysis(entry, uid)
+                print("[ANALYZE] supabase_save_done")
 
                 if job_id in _jobs:
                     _jobs[job_id]['result'] = result
                     _jobs[job_id]['status'] = 'done'
+                if _job_in_db:
+                    _db.update_job(job_id, user_id=uid, status='completed',
+                                   progress=100, step='termine',
+                                   result_data=result, completed=True)
+                print(f"[JOB] completed job_id={job_id}")
 
             except Exception as exc:
                 import traceback; traceback.print_exc()
+                _step = (_jobs.get(job_id) or {}).get('step', 'inconnu')
+                print(f"[ANALYZE_ERROR] step={_step} job_id={job_id} error={exc}")
                 safe_log_event('analyze_job_error', user_id=uid, error=exc)
                 if job_id in _jobs:
                     _jobs[job_id]['status'] = 'error'
                     _jobs[job_id]['error']  = "Erreur d'analyse. Réessayez dans quelques instants."
+                if _job_in_db:
+                    _db.update_job(job_id, user_id=uid, status='failed',
+                                   step=_step, completed=True,
+                                   error_message="Erreur d'analyse. Réessayez dans quelques instants.")
+                print(f"[JOB] failed job_id={job_id}")
 
         threading.Thread(target=_run_analysis, daemon=True).start()
         return jsonify({'job_id': job_id, 'status': 'running'})
 
+    except RapidAPIUnavailable as e:
+        safe_log_event('rapidapi_not_subscribed', metadata={'platform': e.platform})
+        return jsonify({
+            'error': f"La connexion {e.platform.capitalize()} est temporairement indisponible côté "
+                     "Gabriel (pas un problème avec votre lien). Réessayez plus tard ou collez vos "
+                     "commentaires manuellement.",
+        }), 503
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -517,29 +557,69 @@ def analyze():
 @app.route('/status/<job_id>', methods=['GET'])
 @login_required
 def job_status(job_id):
-    """Polling endpoint — retourne l'état d'un job d'analyse en cours."""
-    job = _jobs.get(job_id)
-    if not job:
-        return jsonify({'status': 'not_found', 'error': 'Job introuvable ou expiré'}), 404
-
-    # Vérification d'appartenance — un user ne peut pas lire le job d'un autre
+    """Polling endpoint — retourne l'état d'un job d'analyse en cours.
+    Lit d'abord la mémoire (rapide), puis Supabase (survit aux redémarrages)."""
     uid = (current_user() or {}).get('user_id')
-    if not assert_job_owner(job, uid):
+    job = _jobs.get(job_id)
+
+    # ── Job en mémoire (cas nominal) ─────────────────────────────────────────
+    if job:
+        # Vérification d'appartenance — un user ne peut pas lire le job d'un autre
+        if not assert_job_owner(job, uid):
+            return jsonify({'status': 'not_found', 'error': 'Job introuvable ou expiré'}), 404
+
+        status = job['status']
+
+        if status == 'done':
+            result = job.pop('result', {})
+            job['status'] = 'consumed'
+            return jsonify({'status': 'done', 'data': result})
+
+        if status == 'error':
+            error = job.get('error', 'Erreur inconnue')
+            job['status'] = 'consumed'
+            return jsonify({'status': 'error', 'error': error})
+
+        return jsonify({
+            'status':   status,
+            'step':     job.get('step', ''),
+            'progress': job.get('progress', 0),
+        })
+
+    # ── Job absent de la mémoire → chercher en base (redémarrage serveur) ────
+    db_job = _db.get_job(job_id, user_id=uid)
+    if not db_job:
         return jsonify({'status': 'not_found', 'error': 'Job introuvable ou expiré'}), 404
 
-    status = job['status']
+    print(f"[JOB] recovered_from_db job_id={job_id} status={db_job.get('status')}")
+    db_status = db_job.get('status', '')
 
-    if status == 'done':
-        result = job.pop('result', {})
-        job['status'] = 'consumed'
-        return jsonify({'status': 'done', 'data': result})
+    if db_status == 'completed':
+        return jsonify({'status': 'done', 'data': db_job.get('result_data') or {}})
 
-    if status == 'error':
-        error = job.get('error', 'Erreur inconnue')
-        job['status'] = 'consumed'
-        return jsonify({'status': 'error', 'error': error})
+    if db_status == 'failed':
+        return jsonify({'status': 'error',
+                        'error': db_job.get('error_message') or 'Erreur inconnue'})
 
-    return jsonify({'status': status})
+    if db_status in ('pending', 'running'):
+        # Le job existe en base mais plus en mémoire : le serveur a redémarré
+        # pendant l'analyse (worker unique) — le thread est perdu.
+        _db.update_job(job_id, user_id=uid, status='interrupted',
+                       error_message='Analyse interrompue par un redémarrage du serveur.')
+        return jsonify({
+            'status': 'interrupted',
+            'error':  "L'analyse a été interrompue par un redémarrage du serveur. "
+                      "Relancez l'analyse — vos commentaires n'ont pas été perdus.",
+        })
+
+    if db_status == 'interrupted':
+        return jsonify({
+            'status': 'interrupted',
+            'error':  "L'analyse a été interrompue par un redémarrage du serveur. "
+                      "Relancez l'analyse — vos commentaires n'ont pas été perdus.",
+        })
+
+    return jsonify({'status': 'not_found', 'error': 'Job introuvable ou expiré'}), 404
 
 
 @app.route('/strategize', methods=['POST'])

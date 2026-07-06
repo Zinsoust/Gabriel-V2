@@ -140,6 +140,77 @@ def get_analysis_by_id(analysis_id, user_id=None):
     return None
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# JOBS D'ANALYSE (persistance — survit aux redémarrages Render)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_T_JOBS = 'gabriel_analysis_jobs'
+
+
+def create_job(job_id, user_id, analysis_id=''):
+    """Crée un job en base (status=pending). Retourne True si persisté en DB."""
+    if not (_supabase and user_id):
+        return False
+    try:
+        _supabase.table(_T_JOBS).insert({
+            'job_id':      job_id,
+            'user_id':     user_id,
+            'analysis_id': analysis_id,
+            'status':      'pending',
+            'progress':    0,
+            'step':        'created',
+        }).execute()
+        print(f'[JOB] saved_to_db job_id={job_id}')
+        return True
+    except Exception as e:
+        print(f'[DB] create_job error: {e}')
+        return False
+
+
+def update_job(job_id, user_id=None, status=None, progress=None, step=None,
+               error_message=None, result_data=None, completed=False):
+    """Met à jour un job. Chaque champ est optionnel. updated_at sert de heartbeat."""
+    if not (_supabase and job_id):
+        return False
+    fields = {'updated_at': datetime.datetime.utcnow().isoformat()}
+    if status is not None:
+        fields['status'] = status
+    if progress is not None:
+        fields['progress'] = int(progress)
+    if step is not None:
+        fields['step'] = str(step)[:200]
+    if error_message is not None:
+        fields['error_message'] = str(error_message)[:500]
+    if result_data is not None:
+        fields['result_data'] = result_data
+    if completed:
+        fields['completed_at'] = datetime.datetime.utcnow().isoformat()
+    try:
+        q = _supabase.table(_T_JOBS).update(fields).eq('job_id', job_id)
+        if user_id:
+            q = q.eq('user_id', user_id)
+        q.execute()
+        return True
+    except Exception as e:
+        print(f'[DB] update_job error: {e}')
+        return False
+
+
+def get_job(job_id, user_id=None):
+    """Récupère un job par job_id (filtré par user_id). None si introuvable."""
+    if not (_supabase and job_id):
+        return None
+    try:
+        q = _supabase.table(_T_JOBS).select('*').eq('job_id', job_id)
+        if user_id:
+            q = q.eq('user_id', user_id)
+        rows = (q.limit(1).execute()).data or []
+        return rows[0] if rows else None
+    except Exception as e:
+        print(f'[DB] get_job error: {e}')
+        return None
+
+
 def update_analysis_strategy(analysis_id, strategy_result, strategy_id=None, user_id=None):
     """Attache le résultat stratégique à une analyse existante."""
     if _supabase and user_id and analysis_id:

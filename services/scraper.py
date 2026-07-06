@@ -8,6 +8,13 @@ _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(_env_path, override=True)
 
 
+class RapidAPIUnavailable(Exception):
+    """La clé RapidAPI est valide mais non abonnée à l'API demandée (401/403)."""
+    def __init__(self, platform):
+        self.platform = platform
+        super().__init__(f"RapidAPI non abonné pour {platform}")
+
+
 def extract_youtube_id(url_or_id):
     patterns = [
         r'(?:v=|youtu\.be/)([a-zA-Z0-9_-]{11})',
@@ -98,6 +105,9 @@ def scrape_instagram_rapidapi(url):
             params={"code_or_id_or_url": shortcode},
             timeout=15
         )
+        if response.status_code in (401, 403):
+            print(f"[SCRAPER] RapidAPI Instagram {response.status_code} — clé non abonnée à instagram-scraper-api2.")
+            raise RapidAPIUnavailable('instagram')
         if response.status_code != 200:
             return [], {}
 
@@ -112,6 +122,8 @@ def scrape_instagram_rapidapi(url):
                     'author': item.get('user', {}).get('username', '')
                 })
         return comments, {}
+    except RapidAPIUnavailable:
+        raise
     except Exception:
         return [], {}
 
@@ -148,6 +160,9 @@ def scrape_tiktok_rapidapi(url):
             params={"url": canonical},
             timeout=15
         )
+        if meta.status_code in (401, 403):
+            print(f"[SCRAPER] RapidAPI TikTok {meta.status_code} — clé non abonnée à tiktok-api23.")
+            raise RapidAPIUnavailable('tiktok')
         if meta.status_code == 200:
             item   = meta.json().get('data', {}).get('itemInfo', {}).get('itemStruct', {})
             desc   = item.get('desc', '')
@@ -155,6 +170,8 @@ def scrape_tiktok_rapidapi(url):
             aweme  = item.get('id', '')
             if desc or author:
                 video_info = {'title': desc, 'channel': f"@{author}"}
+    except RapidAPIUnavailable:
+        raise
     except Exception:
         pass
 

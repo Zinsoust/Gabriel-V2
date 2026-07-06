@@ -12,6 +12,7 @@ class Psychologue(BaseAgent):
             ctx.brain_context,
             ctx.video_context,
             ctx.title,
+            progress_cb=getattr(ctx, 'progress_cb', None),
         )
         ctx.add(self.AGENT_ID, result)
         return ctx

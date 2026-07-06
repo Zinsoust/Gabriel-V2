@@ -53,13 +53,21 @@ CHUNK_OVERLAP = 80    # mots de recouvrement
 _model = None
 
 def _get_model():
+    """Réutilise le modèle déjà chargé par nlp_engine (une seule copie en RAM —
+    charger deux SentenceTransformer provoque un OOM sur Render 512 Mo)."""
     global _model
     if _model is None:
         try:
-            from sentence_transformers import SentenceTransformer
-            _model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+            from core.nlp_engine import _get_model as _nlp_get_model
+            _model = _nlp_get_model()
         except Exception as e:
-            print(f"[RAG] Modèle sémantique non disponible : {e}")
+            print(f"[RAG] Modèle nlp_engine non disponible : {e}")
+        if _model is None:
+            try:
+                from sentence_transformers import SentenceTransformer
+                _model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+            except Exception as e:
+                print(f"[RAG] Modèle sémantique non disponible : {e}")
     return _model
 
 
