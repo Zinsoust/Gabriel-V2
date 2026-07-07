@@ -164,9 +164,11 @@
   .opp-signal-text { font-size:12px; color:var(--text-secondary); line-height:1.6; }
   .opp-arrow { font-size:14px; color:rgba(216,185,130,0.35); padding-top:12px; text-align:center; }
   .opp-decision-box { padding:10px 12px; background:rgba(120,200,140,0.03); border:1px solid rgba(120,200,140,0.1); border-radius:6px; }
+  .opp-decision-lead { margin-bottom:10px; }
   .opp-decision-label { font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(120,200,140,0.45); font-weight:600; margin-bottom:4px; }
   .opp-decision-text { font-size:12px; color:var(--text-secondary); line-height:1.6; }
-  .opp-action-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .opp-action-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+  .opp-why { margin-top:2px; }
   .opp-action { padding:8px 10px; border-radius:5px; background:rgba(255,255,255,0.012); border:1px solid rgba(255,255,255,0.05); }
   .opp-sub-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:500; margin-bottom:4px; }
   .opp-sub-text { font-size:11px; color:var(--text-secondary); line-height:1.55; }
@@ -1197,22 +1199,21 @@ function renderStrat(d) {
       if (!o || typeof o !== 'object') return;
       html += `
         <div class="opp-card">
-          <div class="opp-flow">
-            <div class="opp-signal-box">
-              <div class="opp-signal-label">Signal détecté</div>
-              <div class="opp-signal-text">${_esc(o.signal || '')}</div>
-            </div>
-            <div class="opp-arrow">→</div>
-            <div class="opp-decision-box">
-              <div class="opp-decision-label">Décision recommandée</div>
-              <div class="opp-decision-text">${_esc(o.recommandation || '')}</div>
-            </div>
+          <div class="opp-decision-box opp-decision-lead">
+            <div class="opp-decision-label">Décision recommandée</div>
+            <div class="opp-decision-text">${_esc(o.recommandation || '')}</div>
           </div>
           <div class="opp-action-row">
             <div class="opp-action"><div class="opp-sub-label">Action concrète</div><div class="opp-sub-text">${_esc(o.action_concrete || '')}</div></div>
             <div class="opp-action"><div class="opp-sub-label">Mesure de succès</div><div class="opp-sub-text">${_esc(o.mesure_succes || '')}</div></div>
           </div>
-          ${o.lecture_strategique ? `<div style="margin-top:8px;padding:6px 9px;background:rgba(255,255,255,0.012);border-radius:4px;font-size:10px;color:var(--text-muted);line-height:1.6;">Lecture : ${_esc(o.lecture_strategique)}</div>` : ''}
+          <div class="opp-why">
+            <div class="opp-signal-box">
+              <div class="opp-signal-label">Signal détecté</div>
+              <div class="opp-signal-text">${_esc(o.signal || '')}</div>
+            </div>
+            ${o.lecture_strategique ? `<div style="margin-top:8px;padding:6px 9px;background:rgba(255,255,255,0.012);border-radius:4px;font-size:10px;color:var(--text-muted);line-height:1.6;">Lecture : ${_esc(o.lecture_strategique)}</div>` : ''}
+          </div>
         </div>`;
     });
     html += '</div>';
