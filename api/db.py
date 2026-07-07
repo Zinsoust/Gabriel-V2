@@ -32,7 +32,7 @@ _T_TRAIN_CAND  = 'gabriel_training_candidates'
 FREE_ANALYSES_LIMIT = 5
 
 # Emails avec accès illimité (admin / fondateurs)
-ADMIN_EMAILS = {'outilsagencechretienne@gmail.com'}
+ADMIN_EMAILS = frozenset({'outilsagencechretienne@gmail.com'})
 
 _supabase = None
 

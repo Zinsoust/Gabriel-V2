@@ -107,6 +107,14 @@ def unauthorized_handler(e):
     }), 401
 
 
+@app.after_request
+def _security_headers(response):
+    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+    response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+    return response
+
+
 @app.route('/health', methods=['GET'])
 def health():
     """Route de santé légère — répond immédiatement, ne charge ni RAG ni modèle."""
@@ -118,6 +126,16 @@ from api.auth import _supabase as _sb_client
 _db.init_db(_sb_client)
 gabriel = Gabriel()
 memory  = GabrielMemory()
+
+# Client Mistral partagé pour les routes légères (contexte business, chat consultant)
+# Évite de recréer un objet lourd + pool de connexion à chaque requête.
+try:
+    from mistralai import Mistral as _MistralClass
+    def _get_mistral_client(timeout_ms=60_000):
+        return _MistralClass(api_key=os.environ.get('MISTRAL_API_KEY', ''), timeout_ms=timeout_ms)
+except ImportError:
+    def _get_mistral_client(timeout_ms=60_000):
+        raise RuntimeError("mistralai non disponible")
 
 # ── RAG — lazy loading (Render : le port doit s'ouvrir avant tout chargement) ─
 # Par défaut, AUCUN index n'est chargé au démarrage : rag.search() charge et
@@ -335,7 +353,8 @@ def index():
 @login_required
 def psychologue_page():
     uid_psy   = (current_user() or {}).get('user_id')
-    brain_ctx = json.dumps(_get_user_profile(uid_psy), ensure_ascii=False) if _get_user_profile(uid_psy) else ''
+    _psy_profile = _get_user_profile(uid_psy)
+    brain_ctx = json.dumps(_psy_profile, ensure_ascii=False) if _psy_profile else ''
     resp = make_response(render_template(
         'psychologue.html',
         current_user=current_user(),
@@ -748,7 +767,7 @@ def strategize():
         # Construire un psycho_data minimal à partir du texte libre
         psycho_data = {}
         if psycho_text:
-            psycho_data = {'brief': {'synthese': psycho_text, 'insight_cle': '', 'action_prioritaire': ''}}
+            psycho_data = {'brief': {'qui': '', 'insight': psycho_text, 'action': ''}}
 
         try:
             uid      = (current_user() or {}).get('user_id')
@@ -960,7 +979,6 @@ def creator_generate():
             _jobs[job_id] = {'status': 'error', 'error': 'Erreur génération contenu.', 'user_id': uid}
             safe_log_event('creator_error', user_id=uid, error=e)
 
-    import threading
     threading.Thread(target=_run, daemon=True).start()
     return jsonify({'job_id': job_id, 'status': 'running'})
 
@@ -1574,8 +1592,7 @@ def contexte_business_supplement():
             if not ok:
                 return jsonify({'error': err}), 400
 
-        key    = os.environ.get("MISTRAL_API_KEY")
-        client = Mistral(api_key=key, timeout_ms=60_000)
+        client = _get_mistral_client(timeout_ms=60_000)
         response = client.chat.complete(
             model="mistral-small-latest",
             max_tokens=700,
@@ -1639,15 +1656,18 @@ def contexte_business_chat():
         f'\"confirmation\": \"1 phrase de confirmation naturelle et encourageante\"}}'
     )
     try:
-        key    = os.environ.get("MISTRAL_API_KEY")
-        client = Mistral(api_key=key, timeout_ms=30_000)
+        client = _get_mistral_client(timeout_ms=30_000)
         response = client.chat.complete(
             model="mistral-small-latest",
             max_tokens=220,
             messages=[{'role': 'user', 'content': prompt}],
         )
         text = response.choices[0].message.content.strip()
-        return jsonify(json.loads(text))
+        data = json.loads(text)
+        return jsonify({
+            'extracted_value': str(data.get('extracted_value', message[:120]))[:200],
+            'confirmation': str(data.get('confirmation', 'Noté, merci !'))[:300],
+        })
     except Exception:
         return jsonify({'extracted_value': message[:120], 'confirmation': 'Noté, merci !'})
 
@@ -1759,9 +1779,9 @@ def strategy_chat():
 
     psycho_block = f"""
 ANALYSE PSYCHOLOGIQUE DE L'AUDIENCE :
-  Synthèse    : {brief.get('synthese', '—')}
-  Insight clé : {brief.get('insight_cle', '—')}
-  Action clé  : {brief.get('action_prioritaire', '—')}
+  Synthèse    : {brief.get('qui', '—')}
+  Insight clé : {brief.get('insight', '—')}
+  Action clé  : {brief.get('action', '—')}
   Émotions dominantes  : {', '.join(emo_list) or '—'}
   Espoir déçu          : {emotions.get('espoir_decu', '—')}
   Aspiration nourrie   : {emotions.get('aspiration_nourrie', '—')}
@@ -1880,8 +1900,7 @@ RÈGLES ABSOLUES :
     messages.append({"role": "user", "content": wrap_untrusted_content(message)})
 
     try:
-        key    = os.environ.get("MISTRAL_API_KEY")
-        client = Mistral(api_key=key, timeout_ms=90_000)
+        client = _get_mistral_client(timeout_ms=90_000)
         response = client.chat.complete(
             model="mistral-large-latest",
             max_tokens=1200,
@@ -2149,7 +2168,6 @@ def _format_brain_context(profile):
 
 
 if __name__ == '__main__':
-    import os as _os
     print("Gabriel - Intelligence Humaine Avancée")
     try:
         from core.nlp_engine import preload_model

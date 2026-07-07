@@ -288,7 +288,7 @@ def _neutralize_formula(text):
     """Neutralise les préfixes de formule tableur (=SUM, +cmd, @…) —
     évite l'injection de formule si le texte est réexporté en CSV/Excel."""
     t = text.lstrip()
-    while t[:1] in ('=', '@'):
+    while t[:1] in ('=', '+', '@'):
         t = t[1:].lstrip()
     return t
 

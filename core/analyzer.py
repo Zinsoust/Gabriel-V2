@@ -360,9 +360,14 @@ def _detect_signals_v2(text):
 # like_bonus     : log(1+likes)/10 dans le sens du sentiment
 # spam           : alpha_ratio < 0.3 sur texte court → -1.0
 #
+try:
+    from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as _VaderClass
+    _vader_singleton = _VaderClass()
+except Exception:
+    _vader_singleton = None
+
 def score_comments_math(comments, nlp_data, title=""):
-    from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-    vader            = SentimentIntensityAnalyzer()
+    vader = _vader_singleton
     relevance_scores = (nlp_data or {}).get("relevance_scores", [])
     title_keywords   = _extract_title_keywords(title)
 
@@ -1564,7 +1569,7 @@ Peurs implicites : {peurs_str}
 Désirs cachés : {desirs_str}
 Croyances limitantes : {croyances_str}
 Tensions internes : {tensions}
-Insight clé : {str(main_data.get('brief', {}).get('insight_cle', ''))[:200]}
+Insight clé : {str(main_data.get('brief', {}).get('insight', ''))[:200]}
 
 Ta mission : produire une interprétation psychologique PROFONDE et ACTIONNABLES.
 Identifie les mécanismes réels (biais cognitifs, schémas émotionnels, peurs sous-jacentes, désirs profonds, croyances actives, facteurs de décision).
@@ -1627,7 +1632,7 @@ Valeurs dominantes détectées : {valeurs or '—'}
 Croyances mobilisatrices : {croyances or '—'}
 Opportunités contenu : {opport or '—'}
 Tensions internes : {tensions or '—'}
-Insight clé : {str(main_data.get('brief', {}).get('insight_cle', ''))[:200]}
+Insight clé : {str(main_data.get('brief', {}).get('insight', ''))[:200]}
 
 Ta mission : produire une interprétation socio-culturelle PROFONDE et ACTIONNABLES.
 Identifie les dynamiques de groupe réelles (polarisation, conformisme, codes culturels, appartenance communautaire, croyances collectives, tensions sociales).
@@ -2429,7 +2434,7 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
 
         # Signaux dashboard pour filtrage des concept cards
         dashboard_signals = [dominant_emotion, dominant_stance, _target]
-        if dashboard.get("noise_ratio", 0) > 0.3:
+        if dashboard.get("noise_ratio", 0) > 30:
             dashboard_signals.append("frustration élevée")
         if dashboard.get("opportunity_score", 0) > 70:
             dashboard_signals.append("forte opportunité")
