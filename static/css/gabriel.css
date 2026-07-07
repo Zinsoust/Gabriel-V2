@@ -1228,3 +1228,97 @@ body:has(.learn-page) .app-content {
   .learn-actions .btn { width: min(100%, 280px); justify-content: center; }
   .learn-final { margin-bottom: 24px; padding: 76px 4px; }
 }
+
+/* ── Orchestrateur — widget flottant ─────────────────────────────────── */
+.orch-bubble {
+  position: fixed; right: 24px; bottom: 24px; z-index: 500;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--bg-card); border: 1px solid var(--border-champagne);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--champagne); cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.35);
+  transition: transform 0.15s, border-color 0.2s;
+}
+.orch-bubble:hover { transform: scale(1.06); border-color: var(--champagne); }
+.orch-bubble svg { width: 22px; height: 22px; }
+.orch-bubble.hidden { display: none; }
+
+.orch-panel {
+  position: fixed; right: 24px; bottom: 24px; z-index: 500;
+  width: 340px; height: 460px; max-height: 72vh;
+  background: var(--bg-panel); border: 1px solid var(--border-champagne);
+  border-radius: var(--radius-lg);
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  transition: width 0.2s, height 0.2s, right 0.2s, bottom 0.2s, max-height 0.2s;
+}
+.orch-panel.hidden { display: none; }
+.orch-panel.expanded {
+  right: 24px; bottom: 24px;
+  width: min(720px, calc(100vw - 48px));
+  height: min(820px, calc(100vh - 48px));
+  max-height: calc(100vh - 48px);
+}
+
+.orch-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-card);
+}
+.orch-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.orch-header-actions { display: flex; gap: 4px; }
+.orch-icon-btn {
+  width: 26px; height: 26px; border-radius: var(--radius-sm);
+  background: transparent; border: none; color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.orch-icon-btn:hover { background: var(--bg-card-hover); color: var(--champagne); }
+.orch-icon-btn svg { width: 14px; height: 14px; }
+
+.orch-messages {
+  flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px;
+}
+.orch-msg { display: flex; }
+.orch-msg.user { justify-content: flex-end; }
+.orch-msg.agent { justify-content: flex-start; }
+.orch-bubble-text {
+  max-width: 88%; font-size: 12.5px; line-height: 1.6; padding: 9px 12px;
+  border-radius: var(--radius-md); color: var(--text-primary);
+}
+.orch-msg.agent .orch-bubble-text { background: var(--bg-card); border: 1px solid var(--border-soft); }
+.orch-msg.user .orch-bubble-text { background: rgba(216,185,130,0.1); border: 1px solid var(--border-champagne); color: var(--champagne-light); }
+
+.orch-typing { display: flex; gap: 4px; padding: 9px 12px; }
+.orch-typing span {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted);
+  animation: orch-blink 1.2s infinite ease-in-out;
+}
+.orch-typing span:nth-child(2) { animation-delay: 0.2s; }
+.orch-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes orch-blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+.orch-input-row {
+  display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border-soft);
+  background: rgba(255,255,255,0.012);
+}
+.orch-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-size: 12.5px; color: var(--text-primary); font-family: inherit;
+  resize: none; line-height: 1.5; max-height: 80px;
+}
+.orch-input::placeholder { color: var(--text-disabled); }
+.orch-send {
+  width: 30px; height: 30px; flex-shrink: 0; border-radius: var(--radius-sm);
+  background: rgba(216,185,130,0.12); border: 1px solid var(--border-champagne);
+  color: var(--champagne); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 0.15s;
+}
+.orch-send:hover { background: rgba(216,185,130,0.2); }
+.orch-send svg { width: 14px; height: 14px; }
+
+@media (max-width: 640px) {
+  .orch-panel { width: calc(100vw - 24px); right: 12px; bottom: 12px; }
+  .orch-panel.expanded { width: calc(100vw - 24px); height: calc(100vh - 24px); right: 12px; bottom: 12px; }
+  .orch-bubble { right: 16px; bottom: 16px; }
+}
