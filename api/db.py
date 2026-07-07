@@ -28,6 +28,7 @@ _T_CONSENT     = 'gabriel_consent_records'
 _T_CHAT_CONV   = 'gabriel_chat_conversations'
 _T_CHAT_MSG    = 'gabriel_chat_messages'
 _T_TRAIN_CAND  = 'gabriel_training_candidates'
+_T_FOLDERS     = 'gabriel_folders'
 
 FREE_ANALYSES_LIMIT = 5
 
@@ -77,7 +78,7 @@ def get_history(user_id=None, limit=50):
     ]
 
 
-def save_analysis(entry, user_id=None):
+def save_analysis(entry, user_id=None, folder_id=None):
     """Sauvegarde une analyse. entry = dict complet avec full_result."""
     analysis_id = entry.get('analysis_id') or str(uuid.uuid4())[:12]
 
@@ -94,6 +95,8 @@ def save_analysis(entry, user_id=None):
                 'has_strategy':    False,
                 'created_at':      datetime.datetime.utcnow().isoformat(),
             }
+            if folder_id:
+                row['folder_id'] = folder_id
             _supabase.table(_T_ANALYSES).insert(row).execute()
         except Exception as e:
             print(f'[DB] save_analysis Supabase error: {e}')
@@ -147,19 +150,22 @@ def get_analysis_by_id(analysis_id, user_id=None):
 _T_JOBS = 'gabriel_analysis_jobs'
 
 
-def create_job(job_id, user_id, analysis_id=''):
+def create_job(job_id, user_id, analysis_id='', folder_id=None):
     """Crée un job en base (status=pending). Retourne True si persisté en DB."""
     if not (_supabase and user_id):
         return False
     try:
-        _supabase.table(_T_JOBS).insert({
+        row = {
             'job_id':      job_id,
             'user_id':     user_id,
             'analysis_id': analysis_id,
             'status':      'pending',
             'progress':    0,
             'step':        'created',
-        }).execute()
+        }
+        if folder_id:
+            row['folder_id'] = folder_id
+        _supabase.table(_T_JOBS).insert(row).execute()
         print(f'[JOB] saved_to_db job_id={job_id}')
         return True
     except Exception as e:
@@ -274,7 +280,7 @@ def _strategy_title(strategy_data):
     return 'Stratégie'
 
 
-def save_strategy(strategy_data, user_id=None, analysis_id=None, business_context=None):
+def save_strategy(strategy_data, user_id=None, analysis_id=None, business_context=None, folder_id=None):
     """
     Sauvegarde une stratégie comme enregistrement de premier ordre.
     Persiste dans Supabase (si user connecté) ET dans le fallback JSON local.
@@ -294,6 +300,8 @@ def save_strategy(strategy_data, user_id=None, analysis_id=None, business_contex
                 'strategy_result':  strategy_data or {},
                 'created_at':       created_at,
             }
+            if folder_id:
+                row['folder_id'] = folder_id
             _supabase.table(_T_STRATEGIES).insert(row).execute()
         except Exception as e:
             print(f'[DB] save_strategy Supabase error: {e}')
@@ -888,3 +896,114 @@ def get_consent(user_id: str, consent_type: str) -> str:
         except Exception as e:
             print(f'[DB] get_consent error: {e}')
     return 'unknown'
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DOSSIERS STRATÉGIQUES
+# ─────────────────────────────────────────────────────────────────────────────
+
+def create_folder(folder_id, user_id, title, objective='', folder_type='audience'):
+    """Crée un dossier stratégique. Retourne le dict créé ou None."""
+    if not (user_id and title and title.strip()):
+        return None
+    now = datetime.datetime.utcnow().isoformat()
+    row = {
+        'folder_id':   folder_id,
+        'user_id':     user_id,
+        'title':       str(title).strip()[:200],
+        'objective':   str(objective or '').strip()[:500],
+        'folder_type': folder_type or 'audience',
+        'status':      'active',
+        'step':        'source',
+        'created_at':  now,
+        'updated_at':  now,
+    }
+    if _supabase:
+        try:
+            _supabase.table(_T_FOLDERS).insert(row).execute()
+        except Exception as e:
+            print(f'[DB] create_folder error: {e}')
+            return None
+    return row
+
+
+def get_folders(user_id, limit=50):
+    """Liste les dossiers d'un utilisateur (métadonnées seulement)."""
+    if not user_id:
+        return []
+    if _supabase:
+        try:
+            res = (
+                _supabase.table(_T_FOLDERS)
+                .select('folder_id,title,objective,folder_type,status,step,analysis_id,created_at,updated_at')
+                .eq('user_id', user_id)
+                .order('updated_at', desc=True)
+                .limit(limit)
+                .execute()
+            )
+            return res.data or []
+        except Exception as e:
+            print(f'[DB] get_folders error: {e}')
+    return []
+
+
+def get_folder_by_id(folder_id, user_id):
+    """Retourne un dossier complet. None si introuvable ou appartient à un autre user."""
+    if not (folder_id and user_id):
+        return None
+    if _supabase:
+        try:
+            res = (
+                _supabase.table(_T_FOLDERS)
+                .select('*')
+                .eq('folder_id', folder_id)
+                .eq('user_id', user_id)
+                .limit(1)
+                .execute()
+            )
+            rows = res.data or []
+            return rows[0] if rows else None
+        except Exception as e:
+            print(f'[DB] get_folder_by_id error: {e}')
+    return None
+
+
+def update_folder(folder_id, user_id, **fields):
+    """Met à jour les champs d'un dossier. Retourne True si succès."""
+    if not (folder_id and user_id):
+        return False
+    allowed = {'title', 'objective', 'folder_type', 'status', 'step',
+               'analysis_id', 'strategy_id', 'creator_output_id',
+               'source_type', 'source_summary'}
+    payload = {k: v for k, v in fields.items() if k in allowed}
+    if not payload:
+        return False
+    payload['updated_at'] = datetime.datetime.utcnow().isoformat()
+    if _supabase:
+        try:
+            _supabase.table(_T_FOLDERS)\
+                .update(payload)\
+                .eq('folder_id', folder_id)\
+                .eq('user_id', user_id)\
+                .execute()
+            return True
+        except Exception as e:
+            print(f'[DB] update_folder error: {e}')
+    return False
+
+
+def delete_folder(folder_id, user_id):
+    """Supprime un dossier (lien seulement — les analyses sous-jacentes restent). Retourne True si succès."""
+    if not (folder_id and user_id):
+        return False
+    if _supabase:
+        try:
+            _supabase.table(_T_FOLDERS)\
+                .delete()\
+                .eq('folder_id', folder_id)\
+                .eq('user_id', user_id)\
+                .execute()
+            return True
+        except Exception as e:
+            print(f'[DB] delete_folder error: {e}')
+    return False

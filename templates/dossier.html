@@ -1,0 +1,703 @@
+{% extends "base.html" %}
+{% block title %}Gabriel — {{ folder.title }}{% endblock %}
+{% block page_name %}{{ folder.title }}{% endblock %}
+
+{% block head %}
+<style>
+  /* ─── En-tête dossier ─────────────────────────────────────── */
+  .df-header { margin-bottom:24px; }
+  .df-breadcrumb { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); margin-bottom:12px; }
+  .df-breadcrumb a { color:var(--text-muted); text-decoration:none; }
+  .df-breadcrumb a:hover { color:var(--text-secondary); }
+  .df-breadcrumb svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .df-title { font-size:20px; font-weight:600; color:var(--text-primary); letter-spacing:-0.02em; line-height:1.3; }
+  .df-objective { font-size:13px; color:var(--text-muted); margin-top:5px; line-height:1.5; }
+
+  /* ─── Navigation en étapes ────────────────────────────────── */
+  .df-steps { display:flex; align-items:center; gap:0; margin-bottom:28px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:6px; overflow-x:auto; }
+  .df-step-btn { flex:1; min-width:fit-content; display:flex; align-items:center; justify-content:center; gap:8px; padding:9px 14px; border-radius:var(--radius-md); border:1px solid transparent; background:transparent; cursor:pointer; transition:all 0.15s; font-family:inherit; white-space:nowrap; }
+  .df-step-btn:hover { background:rgba(255,255,255,0.04); }
+  .df-step-btn.active { background:rgba(216,185,130,0.1); border-color:rgba(216,185,130,0.25); }
+  .df-step-num { width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; color:var(--text-muted); flex-shrink:0; }
+  .df-step-btn.active .df-step-num { background:rgba(216,185,130,0.15); border-color:rgba(216,185,130,0.35); color:#D8B982; }
+  .df-step-btn.done .df-step-num { background:rgba(120,200,140,0.12); border-color:rgba(120,200,140,0.3); color:rgba(130,210,150,0.9); }
+  .df-step-label { font-size:12px; font-weight:500; color:var(--text-muted); }
+  .df-step-btn.active .df-step-label { color:#D8B982; }
+  .df-step-btn.done .df-step-label { color:rgba(130,210,150,0.9); }
+  .df-step-sep { width:1px; height:20px; background:var(--border-soft); flex-shrink:0; margin:0 2px; }
+
+  /* ─── Panneau de contenu ──────────────────────────────────── */
+  .df-panel { display:none; }
+  .df-panel.active { display:block; animation:gb-slide-up 0.25s cubic-bezier(0.22,1,.36,1); }
+
+  /* ─── Source panel ────────────────────────────────────────── */
+  .df-source-card { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:24px; max-width:640px; }
+  .df-src-title { font-size:15px; font-weight:500; color:var(--text-primary); margin-bottom:6px; }
+  .df-src-desc  { font-size:13px; color:var(--text-muted); margin-bottom:20px; line-height:1.5; }
+
+  .df-src-tabs  { display:flex; gap:0; border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:3px; margin-bottom:16px; }
+  .df-src-tab   { flex:1; padding:8px 10px; border-radius:var(--radius-sm,6px); border:none; background:transparent; color:var(--text-muted); font-size:11px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:inherit; letter-spacing:0.04em; text-transform:uppercase; }
+  .df-src-tab.active { background:rgba(216,185,130,0.12); color:#D8B982; }
+  .df-src-tab:hover:not(.active) { color:var(--text-secondary); }
+
+  .df-textarea { width:100%; box-sizing:border-box; min-height:130px; background:rgba(255,255,255,0.02); border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:12px 14px; font-size:12px; color:var(--text-primary); font-family:inherit; resize:none; outline:none; transition:border-color 0.2s; line-height:1.7; }
+  .df-textarea:focus { border-color:rgba(216,185,130,0.35); }
+  .df-textarea::placeholder { color:var(--text-disabled); }
+  .df-url-input { width:100%; box-sizing:border-box; background:rgba(255,255,255,0.02); border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:11px 14px; font-size:13px; color:var(--text-primary); font-family:inherit; outline:none; transition:border-color 0.2s; }
+  .df-url-input:focus { border-color:rgba(216,185,130,0.35); }
+  .df-url-input::placeholder { color:var(--text-disabled); }
+
+  .df-analyse-btn { display:inline-flex; align-items:center; gap:8px; padding:10px 22px; border-radius:var(--radius-md); border:1px solid rgba(216,185,130,0.3); background:rgba(216,185,130,0.1); color:#D8B982; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.2s; font-family:inherit; margin-top:14px; }
+  .df-analyse-btn:hover { background:rgba(216,185,130,0.18); }
+  .df-analyse-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .df-analyse-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ─── Résultat panel ──────────────────────────────────────── */
+  .df-result-wrap { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:24px; }
+  .df-result-title { font-size:15px; font-weight:500; color:var(--text-primary); margin-bottom:16px; }
+  .df-result-iframe { width:100%; min-height:500px; border:none; background:transparent; }
+  .df-open-btn { display:inline-flex; align-items:center; gap:8px; padding:9px 18px; border-radius:var(--radius-md); border:1px solid rgba(216,185,130,0.3); background:rgba(216,185,130,0.08); color:#D8B982; font-size:12px; font-weight:500; cursor:pointer; text-decoration:none; transition:all 0.15s; }
+  .df-open-btn:hover { background:rgba(216,185,130,0.16); }
+  .df-open-btn svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ─── État vide dans un panel ─────────────────────────────── */
+  .df-empty { text-align:center; padding:56px 24px; }
+  .df-empty-icon { font-size:32px; margin-bottom:14px; opacity:0.5; }
+  .df-empty-title { font-size:15px; font-weight:500; color:var(--text-primary); margin-bottom:8px; }
+  .df-empty-desc  { font-size:13px; color:var(--text-muted); line-height:1.6; max-width:360px; margin:0 auto 20px; }
+
+  /* ─── Chargement ──────────────────────────────────────────── */
+  .df-progress { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:40px 24px; text-align:center; }
+  .df-progress-spinner { width:32px; height:32px; border:3px solid rgba(216,185,130,0.12); border-top-color:rgba(216,185,130,0.7); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 16px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .df-progress-msg { font-size:14px; color:var(--text-secondary); margin-bottom:6px; }
+  .df-progress-sub { font-size:12px; color:var(--text-muted); }
+  .df-progress-bar-wrap { width:100%; max-width:300px; margin:16px auto 0; background:rgba(255,255,255,0.05); border-radius:4px; height:3px; overflow:hidden; }
+  .df-progress-bar { height:100%; background:rgba(216,185,130,0.6); border-radius:4px; transition:width 0.4s ease; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- En-tête -->
+<div class="df-header">
+  <div class="df-breadcrumb">
+    <a href="/dossiers">Dossiers</a>
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <span>{{ folder.title }}</span>
+  </div>
+  <div class="df-title">{{ folder.title }}</div>
+  {% if folder.objective %}
+  <div class="df-objective">{{ folder.objective }}</div>
+  {% endif %}
+</div>
+
+<!-- Navigation étapes -->
+<nav class="df-steps" id="df-steps">
+  <button class="df-step-btn{% if not folder.analysis_id or folder.step == 'source' %} active{% endif %}" onclick="goStep('source')" id="step-btn-source">
+    <span class="df-step-num">1</span>
+    <span class="df-step-label">Source</span>
+  </button>
+  <div class="df-step-sep"></div>
+  <button class="df-step-btn{% if folder.analysis_id and folder.step in ['psychologue','stratege','createur','verification'] %} done{% elif folder.step == 'psychologue' %} active{% endif %}" onclick="goStep('psychologue')" id="step-btn-psychologue">
+    <span class="df-step-num">✓</span>
+    <span class="df-step-label">Psychologue</span>
+  </button>
+  <div class="df-step-sep"></div>
+  <button class="df-step-btn{% if folder.strategy_id and folder.step in ['createur','verification'] %} done{% elif folder.step == 'stratege' %} active{% endif %}" onclick="goStep('stratege')" id="step-btn-stratege">
+    <span class="df-step-num">3</span>
+    <span class="df-step-label">Stratège</span>
+  </button>
+  <div class="df-step-sep"></div>
+  <button class="df-step-btn{% if folder.creator_output_id and folder.step == 'verification' %} done{% elif folder.step == 'createur' %} active{% endif %}" onclick="goStep('createur')" id="step-btn-createur">
+    <span class="df-step-num">4</span>
+    <span class="df-step-label">Créateur</span>
+  </button>
+  <div class="df-step-sep"></div>
+  <button class="df-step-btn{% if folder.step == 'verification' %} active{% endif %}" onclick="goStep('verification')" id="step-btn-verification">
+    <span class="df-step-num">5</span>
+    <span class="df-step-label">Vérification</span>
+  </button>
+</nav>
+
+<!-- ── Panneau 1 : Source ─────────────────────────────────────── -->
+<div class="df-panel{% if not folder.analysis_id or folder.step == 'source' %} active{% endif %}" id="panel-source">
+  <div class="df-source-card">
+    <div class="df-src-title">Sélectionner la source</div>
+    <div class="df-src-desc">Collez vos commentaires, une URL YouTube, ou importez un fichier pour lancer l'analyse psychologique.</div>
+
+    <div class="df-src-tabs">
+      <button class="df-src-tab active" onclick="srcTab('text',this)">Texte</button>
+      <button class="df-src-tab" onclick="srcTab('youtube',this)">YouTube</button>
+      <button class="df-src-tab" onclick="srcTab('instagram',this)">Instagram</button>
+      <button class="df-src-tab" onclick="srcTab('tiktok',this)">TikTok</button>
+      <button class="df-src-tab" onclick="srcTab('file',this)">Fichier</button>
+    </div>
+
+    <div id="src-text">
+      <textarea id="df-comments" class="df-textarea" placeholder="Collez vos commentaires ici (un par ligne ou séparés par virgules)…"></textarea>
+    </div>
+    <div id="src-youtube" style="display:none">
+      <input id="df-yt-url" class="df-url-input" type="text" placeholder="https://youtube.com/watch?v=…" autocomplete="off" />
+    </div>
+    <div id="src-instagram" style="display:none">
+      <input id="df-ig-url" class="df-url-input" type="text" placeholder="https://www.instagram.com/p/…" autocomplete="off" />
+    </div>
+    <div id="src-tiktok" style="display:none">
+      <input id="df-tt-url" class="df-url-input" type="text" placeholder="https://www.tiktok.com/@user/video/…" autocomplete="off" />
+    </div>
+    <div id="src-file" style="display:none">
+      <div id="df-file-dropzone"
+           onclick="document.getElementById('df-fileInput').click()"
+           ondragover="event.preventDefault(); this.style.borderColor='rgba(216,185,130,.55)';"
+           ondragleave="this.style.borderColor='rgba(216,185,130,.25)'"
+           ondrop="event.preventDefault(); this.style.borderColor='rgba(216,185,130,.25)'; dfHandleFileDrop(event);"
+           style="border:1.5px dashed rgba(216,185,130,.25);border-radius:10px;padding:26px 16px;text-align:center;cursor:pointer;transition:border-color .2s;">
+        <div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:4px;">Importez un fichier CSV, Excel ou JSON contenant des commentaires ou avis.</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.28);">Glissez-déposez ou cliquez · .csv .xlsx .xls .json · 5 MB max</div>
+        <div id="df-file-name" style="font-size:11px;color:#D8B982;margin-top:8px;"></div>
+      </div>
+      <input type="file" id="df-fileInput" accept=".csv,.xlsx,.xls,.json" style="display:none;" onchange="dfHandleFileSelect(this.files)">
+      <div id="df-file-status" style="font-size:11px;color:var(--text-muted);margin-top:8px;min-height:16px;"></div>
+      <div id="df-file-column-select" style="display:none;margin-top:8px;">
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px;">Sélectionnez la colonne à analyser :</div>
+        <select id="df-fileColumn" class="df-url-input" style="font-size:12px;" onchange="dfReparseWithColumn()"></select>
+      </div>
+    </div>
+
+    <div id="df-src-err" style="font-size:12px;color:rgba(255,130,130,0.85);margin-top:10px;display:none;"></div>
+
+    <button class="df-analyse-btn" id="df-analyse-btn" onclick="startAnalysis()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Lancer l'analyse
+    </button>
+  </div>
+</div>
+
+<!-- ── Panneau 2 : Psychologue ────────────────────────────────── -->
+<div class="df-panel{% if folder.analysis_id and folder.step not in ['source'] %} active{% endif %}" id="panel-psychologue">
+  {% if folder.analysis_id %}
+  <div class="df-result-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div class="df-result-title">Analyse Psychologique</div>
+      <a href="/psychologue?folder_id={{ folder.folder_id }}#{{ folder.analysis_id }}" class="df-open-btn" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Ouvrir dans Psychologue
+      </a>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
+      L'analyse est disponible dans le Psychologue. Cliquez sur le bouton ci-dessus pour voir les insights détaillés, puis revenez ici pour lancer le Stratège.
+    </p>
+    <button class="df-analyse-btn" onclick="goStep('stratege')">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Continuer vers le Stratège
+    </button>
+  </div>
+  {% else %}
+  <div class="df-empty">
+    <div class="df-empty-icon">🧠</div>
+    <div class="df-empty-title">Analyse non lancée</div>
+    <div class="df-empty-desc">Commencez par sélectionner une source dans l'étape 1 pour analyser votre audience.</div>
+    <button class="df-analyse-btn" onclick="goStep('source')">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Retour à Source
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Panneau 3 : Stratège ───────────────────────────────────── -->
+<div class="df-panel{% if folder.step == 'stratege' %} active{% endif %}" id="panel-stratege">
+  {% if folder.analysis_id %}
+    {% if folder.strategy_id %}
+    <div class="df-result-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div class="df-result-title">Stratégie Business</div>
+        <a href="/stratege?folder_id={{ folder.folder_id }}" class="df-open-btn" target="_blank">
+          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Ouvrir le Stratège
+        </a>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
+        La stratégie a été générée. Ouvrez le Stratège pour consulter les recommandations complètes.
+      </p>
+      <button class="df-analyse-btn" onclick="goStep('createur')">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Continuer vers le Créateur
+      </button>
+    </div>
+    {% else %}
+    <div class="df-result-wrap" id="df-strat-form">
+      <div class="df-result-title">Générer la stratégie</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
+        L'analyse psychologique est prête. Gabriel va construire une décision stratégique à partir de ces insights et de votre profil business.
+      </p>
+      <div id="df-strat-err" style="font-size:12px;color:rgba(255,130,130,0.85);margin-bottom:12px;display:none;"></div>
+      <button class="df-analyse-btn" id="df-strat-btn" onclick="dfGenerateStrategy()">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Générer la stratégie
+      </button>
+    </div>
+    {% endif %}
+  {% else %}
+  <div class="df-empty">
+    <div class="df-empty-icon">📊</div>
+    <div class="df-empty-title">Analyse requise</div>
+    <div class="df-empty-desc">Le Stratège a besoin d'une analyse psychologique. Commencez par l'étape Source.</div>
+    <button class="df-analyse-btn" onclick="goStep('source')">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Retour à Source
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Panneau 4 : Créateur ───────────────────────────────────── -->
+<div class="df-panel{% if folder.step == 'createur' %} active{% endif %}" id="panel-createur">
+  {% if folder.strategy_id %}
+    {% if folder.creator_output_id %}
+    <div class="df-result-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div class="df-result-title">Contenu & Création</div>
+        <a href="/createur?folder_id={{ folder.folder_id }}" class="df-open-btn" target="_blank">
+          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Ouvrir le Créateur
+        </a>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+        Du contenu a déjà été généré pour ce dossier. Ouvrez le Créateur pour le consulter ou en générer d'autre.
+      </p>
+      <button class="df-analyse-btn" onclick="goStep('verification')">
+        <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Voir la vérification
+      </button>
+    </div>
+    {% else %}
+    <div class="df-result-wrap" id="df-cre-form">
+      <div class="df-result-title">Créer du contenu</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">
+        Décrivez ce que vous voulez créer — Gabriel s'appuie sur l'analyse et la stratégie de ce dossier.
+      </p>
+      <textarea id="df-cre-req" class="df-textarea" style="min-height:80px;" placeholder="Ex : Écris un script TikTok pour présenter cette offre…"></textarea>
+      <div style="margin-top:10px;max-width:280px;">
+        <select id="df-cre-fmt" class="df-url-input">
+          <option value="script">Script court</option>
+          <option value="youtube">Script YouTube</option>
+          <option value="tiktok">Script TikTok / Reels</option>
+          <option value="hooks">Hooks d'accroche</option>
+          <option value="linkedin">Post LinkedIn</option>
+          <option value="post">Post réseaux sociaux</option>
+          <option value="email">Email séquence</option>
+        </select>
+      </div>
+      <div id="df-cre-err" style="font-size:12px;color:rgba(255,130,130,0.85);margin-top:10px;display:none;"></div>
+      <button class="df-analyse-btn" id="df-cre-btn" onclick="dfGenerateCreateur()">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Générer le contenu
+      </button>
+    </div>
+    {% endif %}
+  {% else %}
+  <div class="df-empty">
+    <div class="df-empty-icon">✍️</div>
+    <div class="df-empty-title">Stratégie requise</div>
+    <div class="df-empty-desc">Générez d'abord une stratégie dans l'étape Stratège avant de créer du contenu.</div>
+    <button class="df-analyse-btn" onclick="goStep('stratege')">
+      <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Retour au Stratège
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Panneau 5 : Vérification ──────────────────────────────── -->
+<div class="df-panel{% if folder.step == 'verification' %} active{% endif %}" id="panel-verification">
+  <div class="df-result-wrap">
+    <div class="df-result-title">Vérification de cohérence</div>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;">
+      Récapitulatif de ce dossier — vérifiez que chaque étape est cohérente avant de prendre votre décision.
+    </p>
+    <div id="df-verif-content">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;">Analyse</div>
+          <div style="font-size:13px;color:{% if folder.analysis_id %}rgba(130,210,150,0.9){% else %}var(--text-disabled){% endif %}">
+            {% if folder.analysis_id %}✓ Complétée{% else %}— Non lancée{% endif %}
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;">Stratégie</div>
+          <div style="font-size:13px;color:{% if folder.strategy_id %}rgba(130,210,150,0.9){% else %}var(--text-disabled){% endif %}">
+            {% if folder.strategy_id %}✓ Générée{% else %}— Non générée{% endif %}
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;">Contenu</div>
+          <div style="font-size:13px;color:{% if folder.creator_output_id %}rgba(130,210,150,0.9){% else %}var(--text-disabled){% endif %}">
+            {% if folder.creator_output_id %}✓ Créé{% else %}— Non créé{% endif %}
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;">Statut</div>
+          <div style="font-size:13px;color:var(--text-secondary);">{{ folder.status | capitalize }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Zone de progression (affichée pendant l'analyse) -->
+<div id="df-progress" style="display:none;">
+  <div class="df-progress">
+    <div class="df-progress-spinner"></div>
+    <div class="df-progress-msg" id="df-progress-msg">Gabriel lit les réactions du marché…</div>
+    <div class="df-progress-sub" id="df-progress-sub"></div>
+    <div class="df-progress-bar-wrap"><div class="df-progress-bar" id="df-progress-bar" style="width:0%"></div></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const FOLDER_ID  = {{ folder.folder_id | tojson }};
+  const ANALYSIS_ID = {{ (folder.analysis_id or '') | tojson }};
+  const STRATEGY_ID = {{ (folder.strategy_id or '') | tojson }};
+
+  let currentSrc = 'text';
+  let pollTimer  = null;
+
+  const PROGRESS_MSGS = [
+    'Gabriel lit les réactions du marché…',
+    'Gabriel détecte les signaux dominants…',
+    'Gabriel structure les tensions de l\'audience…',
+    'Gabriel identifie les opportunités cachées…',
+    'Gabriel synthétise les insights clés…',
+  ];
+
+  // ── Navigation étapes ───────────────────────────────────────
+  window.goStep = function (step) {
+    document.querySelectorAll('.df-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.df-step-btn').forEach(b => b.classList.remove('active'));
+    const panel = document.getElementById('panel-' + step);
+    if (panel) panel.classList.add('active');
+    const btn = document.getElementById('step-btn-' + step);
+    if (btn) btn.classList.add('active');
+  };
+
+  // ── Onglets source ──────────────────────────────────────────
+  window.srcTab = function (src, btn) {
+    currentSrc = src;
+    document.querySelectorAll('.df-src-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    ['text','youtube','instagram','tiktok','file'].forEach(s => {
+      const el = document.getElementById('src-' + s);
+      if (el) el.style.display = s === src ? '' : 'none';
+    });
+  };
+
+  // ── Import fichier (CSV / Excel / JSON) ─────────────────────
+  let _dfFileComments = [];
+  let _dfLastFile     = null;
+
+  window.dfHandleFileDrop = function (ev) {
+    const files = ev.dataTransfer?.files;
+    if (files && files.length) dfHandleFileSelect(files);
+  };
+
+  window.dfHandleFileSelect = function (files) {
+    if (!files || !files.length) return;
+    _dfLastFile = files[0];
+    dfUploadFile(_dfLastFile, null);
+  };
+
+  window.dfReparseWithColumn = function () {
+    const col = document.getElementById('df-fileColumn').value;
+    if (_dfLastFile && col) dfUploadFile(_dfLastFile, col);
+  };
+
+  async function dfUploadFile(f, column) {
+    const nameEl   = document.getElementById('df-file-name');
+    const statusEl = document.getElementById('df-file-status');
+    const colWrap  = document.getElementById('df-file-column-select');
+    _dfFileComments = [];
+    nameEl.textContent = f.name;
+    if (!column) colWrap.style.display = 'none';
+    if (f.size > 5 * 1024 * 1024) {
+      statusEl.style.color = 'rgba(220,100,100,.7)';
+      statusEl.textContent = 'Fichier trop lourd (max 5 MB).';
+      return;
+    }
+    statusEl.style.color = 'var(--text-muted)';
+    statusEl.textContent = 'Extraction en cours…';
+    const fd = new FormData();
+    fd.append('file', f);
+    if (column) fd.append('column', column);
+    let d;
+    try {
+      const r = await fetch('/upload-comments-file', { method: 'POST', body: fd });
+      d = await r.json();
+    } catch (_) {
+      statusEl.style.color = 'rgba(220,100,100,.7)';
+      statusEl.textContent = 'Erreur réseau — réessayez.';
+      return;
+    }
+    if (!d.success) {
+      statusEl.style.color = 'rgba(220,100,100,.7)';
+      statusEl.textContent = d.error || 'Import impossible.';
+      return;
+    }
+    _dfFileComments = d.normalized_comments || [];
+    statusEl.style.color = 'rgba(130,210,150,.85)';
+    statusEl.textContent = `${d.comments_count} commentaires importés${d.selected_column ? ' · colonne « ' + d.selected_column + ' »' : ''}.`;
+    if ((d.detected_columns || []).length > 1) {
+      const sel = document.getElementById('df-fileColumn');
+      sel.innerHTML = d.detected_columns.map(c =>
+        `<option value="${c.replace(/"/g,'&quot;')}"${c === d.selected_column ? ' selected' : ''}>${c}</option>`).join('');
+      colWrap.style.display = '';
+    }
+  }
+
+  // ── Lancer l'analyse ────────────────────────────────────────
+  window.startAnalysis = async function () {
+    const errEl = document.getElementById('df-src-err');
+    errEl.style.display = 'none';
+
+    let content = '';
+    let fileComments = null;
+    if (currentSrc === 'text') {
+      content = (document.getElementById('df-comments').value || '').trim();
+    } else if (currentSrc === 'youtube') {
+      content = (document.getElementById('df-yt-url').value || '').trim();
+    } else if (currentSrc === 'instagram') {
+      content = (document.getElementById('df-ig-url').value || '').trim();
+    } else if (currentSrc === 'tiktok') {
+      content = (document.getElementById('df-tt-url').value || '').trim();
+    } else if (currentSrc === 'file') {
+      if (!_dfFileComments.length) {
+        errEl.textContent = 'Importez d\'abord un fichier de commentaires.';
+        errEl.style.display = 'block';
+        return;
+      }
+      content = _dfLastFile ? _dfLastFile.name : 'fichier';
+      fileComments = _dfFileComments;
+    }
+
+    if (!content) {
+      errEl.textContent = 'Veuillez saisir du contenu ou une URL.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    // Masquer le panel source, afficher progression
+    document.getElementById('panel-source').classList.remove('active');
+    document.getElementById('df-progress').style.display = '';
+    document.getElementById('df-analyse-btn').disabled = true;
+
+    let msgIdx = 0;
+    const msgTimer = setInterval(() => {
+      msgIdx = (msgIdx + 1) % PROGRESS_MSGS.length;
+      document.getElementById('df-progress-msg').textContent = PROGRESS_MSGS[msgIdx];
+    }, 4000);
+
+    try {
+      const r = await fetch('/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fileComments
+          ? { source: 'file', content, comments: fileComments, folder_id: FOLDER_ID }
+          : { source: currentSrc, content, folder_id: FOLDER_ID }),
+      });
+      const j = await r.json();
+      clearInterval(msgTimer);
+
+      if (j.job_id) {
+        pollJob(j.job_id);
+      } else if (j.error === 'limit_reached') {
+        showErr('Limite d\'analyses atteinte. Upgradez votre plan pour continuer.');
+        resetProgress();
+      } else {
+        showErr(j.error || 'Erreur lors du lancement de l\'analyse.');
+        resetProgress();
+      }
+    } catch (e) {
+      clearInterval(msgTimer);
+      showErr('Erreur réseau. Réessayez.');
+      resetProgress();
+    }
+  };
+
+  function pollJob(jobId) {
+    let attempts = 0;
+    pollTimer = setInterval(async () => {
+      attempts++;
+      if (attempts > 120) { clearInterval(pollTimer); showErr('L\'analyse a pris trop de temps. Réessayez.'); resetProgress(); return; }
+      try {
+        const r = await fetch('/status/' + jobId);
+        const j = await r.json();
+        const pct = j.progress || 0;
+        document.getElementById('df-progress-bar').style.width = pct + '%';
+        if (j.step) document.getElementById('df-progress-sub').textContent = j.step;
+        if (j.status === 'done' || j.status === 'completed') {
+          clearInterval(pollTimer);
+          // Mettre à jour la page pour refléter l'analyse complète
+          window.location.reload();
+        } else if (j.status === 'error' || j.status === 'failed') {
+          clearInterval(pollTimer);
+          showErr(j.error || 'L\'analyse a échoué. Réessayez.');
+          resetProgress();
+        } else if (j.status === 'interrupted') {
+          clearInterval(pollTimer);
+          showErr(j.error || 'L\'analyse a été interrompue par un redémarrage du serveur. Relancez l\'analyse.');
+          resetProgress();
+        }
+      } catch { /* retry next tick */ }
+    }, 1500);
+  }
+
+  function showErr(msg) {
+    document.getElementById('panel-source').classList.add('active');
+    document.getElementById('df-progress').style.display = 'none';
+    const errEl = document.getElementById('df-src-err');
+    errEl.textContent = msg;
+    errEl.style.display = 'block';
+    document.getElementById('df-analyse-btn').disabled = false;
+  }
+
+  function resetProgress() {
+    document.getElementById('df-progress').style.display = 'none';
+    document.getElementById('df-progress-bar').style.width = '0%';
+  }
+
+  // ── Générer la stratégie (inline, sans quitter le dossier) ──
+  window.dfGenerateStrategy = async function () {
+    const errEl = document.getElementById('df-strat-err');
+    if (errEl) errEl.style.display = 'none';
+    const form = document.getElementById('df-strat-form');
+    if (form) form.style.display = 'none';
+    document.getElementById('df-progress').style.display = '';
+    document.getElementById('df-progress-msg').textContent = 'Le Stratège construit votre décision…';
+    document.getElementById('df-progress-sub').textContent = '';
+    document.getElementById('df-progress-bar').style.width = '0%';
+
+    let pct = 0;
+    const barTimer = setInterval(() => {
+      pct = Math.min(95, pct + 3);
+      document.getElementById('df-progress-bar').style.width = pct + '%';
+    }, 1200);
+
+    try {
+      const r = await fetch('/strategize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analysis_id: ANALYSIS_ID, folder_id: FOLDER_ID }),
+      });
+      const j = await r.json();
+      clearInterval(barTimer);
+      if (j.success) {
+        window.location.reload();
+      } else {
+        dfShowStratErr(j.error || 'Erreur lors de la génération de la stratégie.');
+      }
+    } catch (e) {
+      clearInterval(barTimer);
+      dfShowStratErr('Erreur réseau. Réessayez.');
+    }
+  };
+
+  function dfShowStratErr(msg) {
+    document.getElementById('df-progress').style.display = 'none';
+    resetProgress();
+    const form = document.getElementById('df-strat-form');
+    if (form) form.style.display = '';
+    const errEl = document.getElementById('df-strat-err');
+    if (errEl) {
+      errEl.innerHTML = _dfEsc(msg) + ' — <a href="/profil" style="color:#D8B982;" target="_blank">compléter mon profil</a>';
+      errEl.style.display = 'block';
+    }
+  }
+
+  // ── Générer le contenu (inline, sans quitter le dossier) ────
+  window.dfGenerateCreateur = async function () {
+    const errEl = document.getElementById('df-cre-err');
+    if (errEl) errEl.style.display = 'none';
+    const req = (document.getElementById('df-cre-req').value || '').trim();
+    if (!req) {
+      if (errEl) { errEl.textContent = 'Décrivez ce que vous voulez créer.'; errEl.style.display = 'block'; }
+      return;
+    }
+    const fmt  = document.getElementById('df-cre-fmt').value;
+    const form = document.getElementById('df-cre-form');
+    if (form) form.style.display = 'none';
+    document.getElementById('df-progress').style.display = '';
+    document.getElementById('df-progress-msg').textContent = 'Le Créateur rédige votre contenu…';
+    document.getElementById('df-progress-sub').textContent = '';
+    document.getElementById('df-progress-bar').style.width = '0%';
+
+    try {
+      const r = await fetch('/creator/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content_type: fmt, tone: 'expert', channel: '', objective: '',
+          user_request: req, analysis_id: ANALYSIS_ID, folder_id: FOLDER_ID,
+          generate_variant: false,
+        }),
+      });
+      const j = await r.json();
+      if (j.job_id) dfPollCreateur(j.job_id);
+      else dfShowCreErr(j.error || 'Erreur lors du lancement de la génération.');
+    } catch (e) {
+      dfShowCreErr('Erreur réseau. Réessayez.');
+    }
+  };
+
+  function dfPollCreateur(jobId) {
+    let attempts = 0;
+    const t = setInterval(async () => {
+      attempts++;
+      if (attempts > 120) { clearInterval(t); dfShowCreErr('La génération a pris trop de temps. Réessayez.'); return; }
+      try {
+        const r = await fetch('/status/' + jobId);
+        const j = await r.json();
+        const pct = j.progress || Math.min(90, attempts * 3);
+        document.getElementById('df-progress-bar').style.width = pct + '%';
+        if (j.status === 'done' || j.status === 'completed') {
+          clearInterval(t);
+          window.location.reload();
+        } else if (j.status === 'error' || j.status === 'failed') {
+          clearInterval(t);
+          dfShowCreErr(j.error || 'La génération a échoué. Réessayez.');
+        } else if (j.status === 'interrupted') {
+          clearInterval(t);
+          dfShowCreErr(j.error || 'La génération a été interrompue par un redémarrage du serveur. Réessayez.');
+        }
+      } catch { /* retry next tick */ }
+    }, 1500);
+  }
+
+  function dfShowCreErr(msg) {
+    document.getElementById('df-progress').style.display = 'none';
+    resetProgress();
+    const form = document.getElementById('df-cre-form');
+    if (form) form.style.display = '';
+    const errEl = document.getElementById('df-cre-err');
+    if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+  }
+
+  function _dfEsc(s) {
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+  }
+
+  // Restaurer étape active selon l'état du dossier
+  (function initStep() {
+    const step = {{ (folder.step or 'source') | tojson }};
+    const hasAnalysis = !!ANALYSIS_ID;
+    if (!hasAnalysis) return; // reste sur source
+    const target = step && step !== 'source' ? step : 'psychologue';
+    goStep(target);
+  })();
+})();
+</script>
+{% endblock %}

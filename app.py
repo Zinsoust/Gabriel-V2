@@ -268,6 +268,9 @@ def _save_user_conversations(uid, conversations):
 # Clé : analysis_id  |  Valeur : {psycho, title, video_context}
 _psycho_cache = {}
 
+# Verrou pour les lectures/écritures de l'historique partagé (multi-threads)
+_history_lock = threading.Lock()
+
 # Jobs d'analyse en arrière-plan
 # Clé : job_id  |  Valeur : {status, result, error, analysis_id, user_id}
 # status : 'pending' | 'running' | 'done' | 'error'
@@ -294,22 +297,24 @@ def _load_history():
 
 
 def _save_history(entry):
-    history = _load_history()
-    history.insert(0, entry)
-    history = history[:20]
-    with open(_HISTORY_FILE, 'w', encoding='utf-8') as f:
-        json.dump(history, f, ensure_ascii=False, indent=2)
+    with _history_lock:
+        history = _load_history()
+        history.insert(0, entry)
+        history = history[:20]
+        with open(_HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(history, f, ensure_ascii=False, indent=2)
 
 
 def _update_history_strategie(analysis_id, strategie_result):
     """Attache le résultat stratégique à l'entrée d'historique correspondante."""
-    history = _load_history()
-    for entry in history:
-        if entry.get('analysis_id') == analysis_id:
-            entry['strategie_result'] = strategie_result
-            break
-    with open(_HISTORY_FILE, 'w', encoding='utf-8') as f:
-        json.dump(history, f, ensure_ascii=False, indent=2)
+    with _history_lock:
+        history = _load_history()
+        for entry in history:
+            if entry.get('analysis_id') == analysis_id:
+                entry['strategie_result'] = strategie_result
+                break
+        with open(_HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(history, f, ensure_ascii=False, indent=2)
 
 
 def _rebuild_cache():
@@ -401,6 +406,7 @@ def analyze():
     source  = data.get('source', 'text')
     content = data.get('content', '').strip()
     preview_only = bool(data.get('preview_only'))
+    folder_id = str(data.get('folder_id') or '').strip()[:64] or None
 
     if not content:
         return jsonify({'error': 'Contenu vide — collez une URL ou des commentaires'}), 400
@@ -489,7 +495,7 @@ def analyze():
         }
         print(f"[JOB] created job_id={job_id} analysis_id={analysis_id}")
         # Persister le job en base — survit aux redémarrages Render
-        _job_in_db = _db.create_job(job_id, uid, analysis_id)
+        _job_in_db = _db.create_job(job_id, uid, analysis_id, folder_id=folder_id)
         # Purger les vieux jobs (max _JOBS_MAX)
         if len(_jobs) > _JOBS_MAX:
             try:
@@ -556,7 +562,13 @@ def analyze():
                     'has_data':        True,
                     'full_result':     result,
                 }
-                _db.save_analysis(entry, uid)
+                _db.save_analysis(entry, uid, folder_id=folder_id)
+                if folder_id:
+                    _db.update_folder(folder_id, uid,
+                                      analysis_id=analysis_id,
+                                      source_type=_source_label,
+                                      source_summary=(_video_title or _content)[:200],
+                                      step='psychologue')
                 print("[ANALYZE] supabase_save_done")
 
                 if job_id in _jobs:
@@ -745,6 +757,7 @@ def strategize():
     brain_override = data.get('brain_profile')
     cb_context     = data.get('context')          # Context Builder dict
     psycho_text    = data.get('psycho_summary', '') # texte libre du Psychologue
+    folder_id_strat = str(data.get('folder_id') or '').strip()[:64] or None
 
     # ── Flux Context Builder ──────────────────────────────────
     if cb_context and not analysis_id:
@@ -843,8 +856,11 @@ def strategize():
         strat_data  = result.get('strategie', {})
         strategy_id = _db.save_strategy(strat_data, user_id=uid,
                                         analysis_id=analysis_id,
-                                        business_context=effective_profile)
+                                        business_context=effective_profile,
+                                        folder_id=folder_id_strat)
         _db.update_analysis_strategy(analysis_id, strat_data, strategy_id, uid)
+        if folder_id_strat:
+            _db.update_folder(folder_id_strat, uid, strategy_id=strategy_id, step='stratege')
         user_mem.add_case(analysis_id, psycho_data, strat_data, effective_profile, user_id=uid)
         return jsonify({'success': True, 'data': result, 'memory': memory_summary,
                         'strategy_id': strategy_id})
@@ -915,6 +931,23 @@ def _resolve_psycho(data, uid):
     return psycho_data
 
 
+def _resolve_strategy(data, uid):
+    """Résout la stratégie depuis le body, un strategy_id, ou le dossier lié — jamais laissée vide si disponible."""
+    strategy = data.get('strategy') or data.get('strategie_data') or {}
+    if strategy:
+        return strategy
+    strategy_id = str(data.get('strategy_id') or '').strip()
+    folder_id   = str(data.get('folder_id') or '').strip()
+    if not strategy_id and folder_id:
+        folder = _db.get_folder_by_id(folder_id, uid)
+        strategy_id = (folder or {}).get('strategy_id', '')
+    if strategy_id:
+        s = _db.get_strategy_by_id(strategy_id, uid)
+        if s:
+            return s.get('strategy_result') or {}
+    return {}
+
+
 @app.route('/creator/generate', methods=['POST'])
 @login_required
 @_rl(_RL_CREATOR)
@@ -922,7 +955,7 @@ def creator_generate():
     """
     Génère un texte ou script complet via l'Agent Créateur.
     Body : {
-      content_type, analysis_id?, psycho_data?, strategy?,
+      content_type, analysis_id?, psycho_data?, strategy?, strategy_id?, folder_id?,
       channel, tone, objective, persona?, business_context?,
       user_request, generate_variant?
     }
@@ -938,7 +971,7 @@ def creator_generate():
     business_context = data.get('business_context') or _get_user_profile(uid) or {}
     user_request     = data.get('user_request', '')
     generate_variant = data.get('generate_variant', False)
-    strategy         = data.get('strategy') or data.get('strategie_data') or {}
+    folder_id        = str(data.get('folder_id') or '').strip()[:64] or None
 
     # Validation taille user_request
     ok, err = validate_size(user_request, 'user_request', LIMITS['user_request_max_chars'])
@@ -946,6 +979,7 @@ def creator_generate():
         return jsonify({'error': err}), 400
 
     psycho_data = _resolve_psycho(data, uid)
+    strategy    = _resolve_strategy(data, uid)
 
     # Charger le profil business per-user si non fourni dans le payload
     if not business_context:
@@ -970,6 +1004,7 @@ def creator_generate():
     # UUID aléatoire — non prédictible
     job_id = f"cr_{str(uuid.uuid4())[:12]}"
     _jobs[job_id] = {'status': 'running', 'user_id': uid}
+    _db.create_job(job_id, uid, job_id, folder_id=folder_id)  # job_id sert aussi d'analysis_id pour le creator
     if len(_jobs) > _JOBS_MAX:
         try:
             oldest = next(iter(_jobs))
@@ -981,9 +1016,17 @@ def creator_generate():
         try:
             result = _job()
             _jobs[job_id] = {'status': 'done', 'result': result, 'user_id': uid}
+            _db.update_job(job_id, user_id=uid, status='completed',
+                           progress=100, step='termine',
+                           result_data=result, completed=True)
+            if folder_id:
+                _db.update_folder(folder_id, uid, creator_output_id=job_id, step='createur')
         except Exception as e:
             import traceback; traceback.print_exc()
             _jobs[job_id] = {'status': 'error', 'error': 'Erreur génération contenu.', 'user_id': uid}
+            _db.update_job(job_id, user_id=uid, status='failed',
+                           step='creator', completed=True,
+                           error_message='Erreur génération contenu.')
             safe_log_event('creator_error', user_id=uid, error=e)
 
     threading.Thread(target=_run, daemon=True).start()
@@ -1115,6 +1158,83 @@ def mes_strategies():
 def history():
     uid = (current_user() or {}).get('user_id')
     return jsonify(_db.get_history(uid))
+
+
+# ── Dossiers Stratégiques ─────────────────────────────────────────────────────
+
+@app.route('/dossiers')
+@login_required_page
+def dossiers_page():
+    return render_template('dossiers.html', active_page='dossiers', current_user=current_user())
+
+
+@app.route('/dossiers/<folder_id>')
+@login_required_page
+def dossier_detail_page(folder_id):
+    uid    = (current_user() or {}).get('user_id')
+    folder = _db.get_folder_by_id(folder_id, uid)
+    if not folder:
+        return redirect('/dossiers')
+    return render_template('dossier.html', active_page='dossiers',
+                           current_user=current_user(), folder=folder)
+
+
+@app.route('/api/folders', methods=['GET'])
+@login_required_api
+def api_list_folders():
+    uid = (current_user() or {}).get('user_id')
+    folders = _db.get_folders(uid)
+    return jsonify({'success': True, 'folders': folders})
+
+
+@app.route('/api/folders', methods=['POST'])
+@login_required_api
+def api_create_folder():
+    uid  = (current_user() or {}).get('user_id')
+    data = request.get_json(silent=True) or {}
+    title = str(data.get('title') or '').strip()
+    if not title:
+        return jsonify({'success': False, 'error': 'Le titre du dossier est requis.'}), 400
+    if len(title) > 200:
+        return jsonify({'success': False, 'error': 'Titre trop long (200 caractères max).'}), 400
+    objective   = str(data.get('objective') or '').strip()[:500]
+    folder_type = str(data.get('folder_type') or 'audience').strip()[:50]
+    folder_id   = str(uuid.uuid4())[:16]
+    folder = _db.create_folder(folder_id, uid, title, objective=objective, folder_type=folder_type)
+    if not folder:
+        return jsonify({'success': False, 'error': 'Erreur lors de la création du dossier.'}), 500
+    return jsonify({'success': True, 'folder': folder}), 201
+
+
+@app.route('/api/folders/<folder_id>', methods=['GET'])
+@login_required_api
+def api_get_folder(folder_id):
+    uid    = (current_user() or {}).get('user_id')
+    folder = _db.get_folder_by_id(folder_id, uid)
+    if not folder:
+        return jsonify({'success': False, 'error': 'Dossier introuvable.'}), 404
+    return jsonify({'success': True, 'folder': folder})
+
+
+@app.route('/api/folders/<folder_id>', methods=['PATCH'])
+@login_required_api
+def api_update_folder(folder_id):
+    uid  = (current_user() or {}).get('user_id')
+    data = request.get_json(silent=True) or {}
+    allowed = {'title', 'objective', 'folder_type', 'status'}
+    fields  = {k: v for k, v in data.items() if k in allowed}
+    if not fields:
+        return jsonify({'success': False, 'error': 'Aucun champ modifiable fourni.'}), 400
+    ok = _db.update_folder(folder_id, uid, **fields)
+    return jsonify({'success': ok})
+
+
+@app.route('/api/folders/<folder_id>', methods=['DELETE'])
+@login_required_api
+def api_delete_folder(folder_id):
+    uid = (current_user() or {}).get('user_id')
+    ok  = _db.delete_folder(folder_id, uid)
+    return jsonify({'success': ok})
 
 
 @app.route('/upgrade')

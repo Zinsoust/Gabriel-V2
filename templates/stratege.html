@@ -547,6 +547,7 @@ let _linkedAnalysisId = null;
 let _linkedPsychoData = {};
 let _lastStratData    = {};
 let _pendingPsychoRaw = null;
+let _folderId         = new URLSearchParams(window.location.search).get('folder_id') || '';
 
 const FIRST_QUESTIONS = {
   user_role:       'Quel est votre rôle dans ce projet ?',
@@ -632,6 +633,7 @@ async function init() {
       const stored = JSON.parse(raw);
       if (stored.analysis_id) {
         _pendingPsychoRaw = stored;
+        if (!_folderId) _folderId = stored.folder_id || '';
         _showPsychoBanner(stored);
       }
     } catch(e) {}
@@ -965,7 +967,7 @@ async function submitStrategie() {
   const pctTimer = startStratPercent();
 
   const payload = _linkedAnalysisId
-    ? {analysis_id: _linkedAnalysisId, brain_profile: ctx, psycho_data: _linkedPsychoData}
+    ? {analysis_id: _linkedAnalysisId, brain_profile: ctx, psycho_data: _linkedPsychoData, folder_id: _folderId}
     : {context: ctx, psycho_summary: psychoSum};
 
   try {
@@ -1646,12 +1648,13 @@ function goToCreateur() {
   sessionStorage.setItem('gabriel_for_createur', JSON.stringify({
     analysis_id:    _analysisId  || '',
     strategy_id:    _strategyId  || '',
+    folder_id:      _folderId    || '',
     strategie_data: _lastStratData,
     psycho_data:    _linkedPsychoData || {},
     decision:       _lastStratData.decision_centrale || '',
     message:        _lastStratData.message_central   || '',
   }));
-  window.location.href = '/createur';
+  window.location.href = '/createur' + (_folderId ? ('?folder_id=' + encodeURIComponent(_folderId)) : '');
 }
 
 /* ── Feedback ───────────────────────────────────────── */

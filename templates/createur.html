@@ -734,6 +734,7 @@ let _tone       = 'expert';
 let _psycho     = {};
 let _strategy   = {};
 let _analysisId = '';
+let _folderId   = '';
 let _lastResult = null;
 let _pollTimer  = null;
 let _pollN      = 0;
@@ -755,6 +756,9 @@ const $  = id => document.getElementById(id);
 const sh = id => $(id)?.classList.remove('hidden');
 const hd = id => $(id)?.classList.add('hidden');
 
+/* ─── Init folder_id (arrivée depuis un dossier) ─────────────────────────────── */
+_folderId = new URLSearchParams(window.location.search).get('folder_id') || '';
+
 /* ─── Init sessionStorage ────────────────────────────────────────────────────── */
 (function init() {
   const raw = sessionStorage.getItem('gabriel_for_createur');
@@ -765,6 +769,7 @@ const hd = id => $(id)?.classList.add('hidden');
     _analysisId = d.analysis_id    || '';
     _strategy   = d.strategie_data || d.strategy || {};
     _psycho     = d.psycho_data    || {};
+    if (!_folderId) _folderId = d.folder_id || '';
 
     const ctx = $('cre-ctx');
     ctx.style.display = 'flex';
@@ -831,6 +836,7 @@ async function generate() {
     objective:     $('cre-obj').value,
     user_request:  $('cre-req').value.trim(),
     analysis_id:   _analysisId,
+    folder_id:     _folderId,
     psycho_data:   _psycho,
     strategy:      _strategy,
     generate_variant: false,
@@ -881,6 +887,7 @@ function poll(jid) {
       const d = await r.json();
       if      (d.status === 'done')  renderResult(d.data);
       else if (d.status === 'error') err(d.error || 'Erreur interne.');
+      else if (d.status === 'interrupted') err(d.error || 'Génération interrompue par un redémarrage du serveur. Réessayez.');
       else    poll(jid);
     } catch(e) { poll(jid); }
   }, 3000);

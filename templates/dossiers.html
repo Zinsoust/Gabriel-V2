@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% block title %}Gabriel — Dossiers Stratégiques{% endblock %}
+{% block page_name %}Dossiers{% endblock %}
+
+{% block head %}
+<style>
+  /* ─── En-tête ─────────────────────────────────────────────── */
+  .ds-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+  .ds-title  { font-size:22px; font-weight:600; color:var(--text-primary); letter-spacing:-0.02em; }
+  .ds-subtitle { font-size:13px; color:var(--text-muted); margin-top:4px; }
+
+  /* ─── Bouton créer ────────────────────────────────────────── */
+  .ds-btn-create { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:var(--radius-md); border:1px solid rgba(216,185,130,0.35); background:rgba(216,185,130,0.1); color:#D8B982; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:inherit; }
+  .ds-btn-create:hover { background:rgba(216,185,130,0.18); border-color:rgba(216,185,130,0.5); }
+  .ds-btn-create svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ─── Grille de dossiers ──────────────────────────────────── */
+  .ds-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:14px; }
+
+  /* ─── Carte dossier ───────────────────────────────────────── */
+  .ds-card { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:20px; cursor:pointer; transition:border-color 0.2s, transform 0.15s; text-decoration:none; display:flex; flex-direction:column; gap:12px; animation:gb-slide-up 0.3s cubic-bezier(0.22,1,.36,1) both; }
+  .ds-card:hover { border-color:rgba(216,185,130,0.25); transform:translateY(-1px); }
+  .ds-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .ds-card-icon { width:36px; height:36px; border-radius:10px; background:rgba(216,185,130,0.1); border:1px solid rgba(216,185,130,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .ds-card-icon svg { width:16px; height:16px; stroke:#D8B982; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .ds-card-title { font-size:14px; font-weight:500; color:var(--text-primary); line-height:1.4; }
+  .ds-card-obj   { font-size:12px; color:var(--text-muted); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .ds-card-meta  { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:auto; }
+  .ds-card-date  { font-size:11px; color:var(--text-disabled); }
+
+  /* ─── Badge étape ─────────────────────────────────────────── */
+  .ds-step { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:500; letter-spacing:0.03em; }
+  .ds-step.source       { background:rgba(255,255,255,0.04); border:1px solid var(--border-soft); color:var(--text-muted); }
+  .ds-step.psychologue  { background:rgba(100,160,255,0.08); border:1px solid rgba(100,160,255,0.2); color:rgba(130,180,255,0.9); }
+  .ds-step.stratege     { background:rgba(216,185,130,0.08); border:1px solid rgba(216,185,130,0.22); color:#D8B982; }
+  .ds-step.createur     { background:rgba(120,200,140,0.08); border:1px solid rgba(120,200,140,0.22); color:rgba(130,210,150,0.9); }
+  .ds-step.verification { background:rgba(180,120,255,0.08); border:1px solid rgba(180,120,255,0.2); color:rgba(190,140,255,0.9); }
+  .ds-step .dot { width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0; }
+
+  /* ─── Badge type ──────────────────────────────────────────── */
+  .ds-type { display:inline-flex; padding:3px 8px; border-radius:20px; font-size:10px; font-weight:500; background:rgba(255,255,255,0.04); border:1px solid var(--border-soft); color:var(--text-muted); }
+
+  /* ─── Bouton suppr ────────────────────────────────────────── */
+  .ds-card-del { width:28px; height:28px; border-radius:8px; border:1px solid transparent; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s; color:var(--text-disabled); }
+  .ds-card-del:hover { border-color:rgba(255,100,100,0.3); color:rgba(255,130,130,0.8); background:rgba(255,100,100,0.06); }
+  .ds-card-del svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+
+  /* ─── État vide ───────────────────────────────────────────── */
+  .ds-empty { text-align:center; padding:80px 24px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); }
+  .ds-empty-icon { width:56px; height:56px; margin:0 auto 20px; border-radius:16px; background:rgba(216,185,130,0.08); border:1px solid rgba(216,185,130,0.15); display:flex; align-items:center; justify-content:center; }
+  .ds-empty-icon svg { width:24px; height:24px; stroke:rgba(216,185,130,0.5); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+  .ds-empty-title { font-size:16px; font-weight:500; color:var(--text-primary); margin-bottom:8px; }
+  .ds-empty-desc  { font-size:13px; color:var(--text-muted); max-width:340px; margin:0 auto 24px; line-height:1.6; }
+
+  /* ─── Chargement ──────────────────────────────────────────── */
+  .ds-loading { display:flex; align-items:center; justify-content:center; padding:60px; color:var(--text-muted); font-size:13px; gap:10px; }
+  .ds-spinner { width:18px; height:18px; border:2px solid rgba(216,185,130,0.15); border-top-color:rgba(216,185,130,0.6); border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ─── Modal création ──────────────────────────────────────── */
+  .ds-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px; }
+  .ds-modal-overlay.open { display:flex; }
+  .ds-modal { background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:var(--radius-xl); padding:28px; width:100%; max-width:480px; animation:gb-slide-up 0.25s cubic-bezier(0.22,1,.36,1); }
+  .ds-modal-title { font-size:17px; font-weight:600; color:var(--text-primary); margin-bottom:4px; }
+  .ds-modal-sub   { font-size:13px; color:var(--text-muted); margin-bottom:22px; }
+
+  .ds-field { margin-bottom:16px; }
+  .ds-label { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); display:block; margin-bottom:7px; }
+  .ds-input { width:100%; background:var(--bg-input,rgba(255,255,255,0.05)); border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:10px 14px; font-size:13px; color:var(--text-primary); font-family:inherit; transition:border-color 0.15s; box-sizing:border-box; }
+  .ds-input:focus { outline:none; border-color:rgba(216,185,130,0.4); }
+  .ds-input::placeholder { color:var(--text-disabled); }
+  .ds-select { appearance:none; cursor:pointer; }
+
+  .ds-modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:22px; }
+  .ds-modal-cancel { padding:9px 18px; border-radius:var(--radius-md); border:1px solid var(--border-soft); background:transparent; color:var(--text-secondary); font-size:13px; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .ds-modal-cancel:hover { border-color:rgba(255,255,255,0.15); color:var(--text-primary); }
+  .ds-modal-submit { padding:9px 20px; border-radius:var(--radius-md); border:1px solid rgba(216,185,130,0.35); background:rgba(216,185,130,0.12); color:#D8B982; font-size:13px; font-weight:500; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+  .ds-modal-submit:hover { background:rgba(216,185,130,0.2); }
+  .ds-modal-submit:disabled { opacity:0.5; cursor:not-allowed; }
+
+  .ds-err { font-size:12px; color:rgba(255,130,130,0.85); margin-top:10px; display:none; }
+  .ds-err.show { display:block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ds-header">
+  <div>
+    <div class="ds-title">Dossiers</div>
+    <div class="ds-subtitle">Chaque dossier est un espace de décision complet — analyse, stratégie, création.</div>
+  </div>
+  <button class="ds-btn-create" onclick="openModal()">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Nouveau dossier
+  </button>
+</div>
+
+<div id="ds-content">
+  <div class="ds-loading">
+    <div class="ds-spinner"></div>
+    <span>Chargement des dossiers…</span>
+  </div>
+</div>
+
+<!-- Modal création -->
+<div class="ds-modal-overlay" id="ds-modal" role="dialog" aria-modal="true" aria-label="Créer un dossier">
+  <div class="ds-modal">
+    <div class="ds-modal-title">Nouveau dossier</div>
+    <div class="ds-modal-sub">Un espace pour centraliser votre analyse de décision.</div>
+
+    <div class="ds-field">
+      <label class="ds-label" for="ds-f-title">Nom du dossier</label>
+      <input id="ds-f-title" class="ds-input" type="text" placeholder="Ex : Lancement offre Premium — Août 2026" maxlength="200" autocomplete="off" />
+    </div>
+
+    <div class="ds-field">
+      <label class="ds-label" for="ds-f-objective">Objectif (optionnel)</label>
+      <input id="ds-f-objective" class="ds-input" type="text" placeholder="Ex : Décider si lancer l'offre à 297€ ou 497€" maxlength="500" autocomplete="off" />
+    </div>
+
+    <div class="ds-field">
+      <label class="ds-label" for="ds-f-type">Type d'analyse</label>
+      <select id="ds-f-type" class="ds-input ds-select">
+        <option value="audience">Audience — comprendre qui vous écoute</option>
+        <option value="offre">Offre — évaluer une proposition de valeur</option>
+        <option value="concurrent">Concurrent — analyser la concurrence</option>
+        <option value="avis">Avis — analyser des retours clients</option>
+        <option value="campagne">Campagne — évaluer une campagne</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+
+    <div class="ds-err" id="ds-form-err"></div>
+
+    <div class="ds-modal-actions">
+      <button class="ds-modal-cancel" onclick="closeModal()">Annuler</button>
+      <button class="ds-modal-submit" id="ds-submit-btn" onclick="submitCreate()">Créer le dossier</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const STEP_LABELS = {
+    source:       'Source',
+    psychologue:  'Psychologue',
+    stratege:     'Stratège',
+    createur:     'Créateur',
+    verification: 'Vérification',
+  };
+  const TYPE_LABELS = {
+    audience:   'Audience',
+    offre:      'Offre',
+    concurrent: 'Concurrent',
+    avis:       'Avis',
+    campagne:   'Campagne',
+    autre:      'Autre',
+  };
+
+  function fmtDate(s) {
+    if (!s) return '';
+    const d = new Date(s);
+    if (isNaN(d)) return '';
+    return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  async function load() {
+    try {
+      const r = await fetch('/api/folders');
+      const j = await r.json();
+      render(j.folders || []);
+    } catch {
+      document.getElementById('ds-content').innerHTML =
+        '<div class="ds-loading" style="color:rgba(255,130,130,0.8)">Erreur de chargement. Rechargez la page.</div>';
+    }
+  }
+
+  function render(folders) {
+    const el = document.getElementById('ds-content');
+    if (!folders.length) {
+      el.innerHTML = `
+        <div class="ds-empty">
+          <div class="ds-empty-icon">
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="ds-empty-title">Aucun dossier pour l'instant</div>
+          <div class="ds-empty-desc">Créez votre premier dossier pour centraliser une analyse de décision complète.</div>
+          <button class="ds-btn-create" onclick="openModal()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Créer mon premier dossier
+          </button>
+        </div>`;
+      return;
+    }
+
+    const cards = folders.map((f, i) => {
+      const step = f.step || 'source';
+      const type = TYPE_LABELS[f.folder_type] || f.folder_type || '';
+      return `
+        <a href="/dossiers/${f.folder_id}" class="ds-card" style="animation-delay:${i * 40}ms">
+          <div class="ds-card-top">
+            <div class="ds-card-icon">
+              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div class="ds-card-title">${esc(f.title)}</div>
+              ${f.objective ? `<div class="ds-card-obj">${esc(f.objective)}</div>` : ''}
+            </div>
+            <button class="ds-card-del" title="Supprimer" data-fid="${esc(f.folder_id)}" onclick="deleteFolder(event, this)">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+          <div class="ds-card-meta">
+            <span class="ds-step ${step}"><span class="dot"></span>${STEP_LABELS[step] || step}</span>
+            ${type ? `<span class="ds-type">${esc(type)}</span>` : ''}
+            <span class="ds-card-date">${fmtDate(f.updated_at || f.created_at)}</span>
+          </div>
+        </a>`;
+    }).join('');
+
+    el.innerHTML = `<div class="ds-grid">${cards}</div>`;
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  window.openModal = function () {
+    document.getElementById('ds-modal').classList.add('open');
+    setTimeout(() => document.getElementById('ds-f-title').focus(), 50);
+  };
+
+  window.closeModal = function () {
+    document.getElementById('ds-modal').classList.remove('open');
+    document.getElementById('ds-form-err').classList.remove('show');
+    document.getElementById('ds-submit-btn').disabled = false;
+  };
+
+  window.submitCreate = async function () {
+    const title     = document.getElementById('ds-f-title').value.trim();
+    const objective = document.getElementById('ds-f-objective').value.trim();
+    const type      = document.getElementById('ds-f-type').value;
+    const errEl     = document.getElementById('ds-form-err');
+    const btn       = document.getElementById('ds-submit-btn');
+
+    errEl.classList.remove('show');
+    if (!title) { errEl.textContent = 'Le nom du dossier est requis.'; errEl.classList.add('show'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Création…';
+    try {
+      const r = await fetch('/api/folders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, objective, folder_type: type }),
+      });
+      const j = await r.json();
+      if (j.success) {
+        window.location.href = '/dossiers/' + j.folder.folder_id;
+      } else {
+        errEl.textContent = j.error || 'Erreur lors de la création.';
+        errEl.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Créer le dossier';
+      }
+    } catch {
+      errEl.textContent = 'Erreur réseau. Réessayez.';
+      errEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Créer le dossier';
+    }
+  };
+
+  window.deleteFolder = async function (e, btn) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!confirm('Supprimer ce dossier ? Les analyses liées resteront dans l\'historique.')) return;
+    const fid = btn.dataset.fid;
+    try {
+      await fetch('/api/folders/' + fid, { method: 'DELETE' });
+      load();
+    } catch { /* silently ignore */ }
+  };
+
+  // Close modal on overlay click
+  document.getElementById('ds-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+  // Close modal on Escape
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+  // Submit on Enter in inputs
+  ['ds-f-title','ds-f-objective'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') submitCreate();
+    });
+  });
+
+  load();
+})();
+</script>
+{% endblock %}

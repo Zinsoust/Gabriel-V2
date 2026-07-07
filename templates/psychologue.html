@@ -2028,6 +2028,7 @@ function resetToInput(){hide('dashboard-section');hide('loading-section');hide('
 // ── State courant ────────────────────────────────────────────────────────
 let _currentAnalysisId = null;
 let _lastAnalysisData  = null;
+let _currentFolderId   = new URLSearchParams(window.location.search).get('folder_id') || null;
 
 const _origRenderDashboard = renderDashboard;
 renderDashboard = function(d) {
@@ -2055,6 +2056,7 @@ function goToStratege() {
 
     sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({
       analysis_id:  _currentAnalysisId,
+      folder_id:    _currentFolderId || '',
       psycho_brief: lines.join('\n'),
       psycho_data:  {
         brief:        brief,
@@ -2068,7 +2070,7 @@ function goToStratege() {
       },
     }));
   }
-  window.location.href = '/stratege';
+  window.location.href = '/stratege' + (_currentFolderId ? ('?folder_id=' + encodeURIComponent(_currentFolderId)) : '');
 }
 
 async function exportCurrentPdf() {
@@ -2119,9 +2121,25 @@ function tryRestoreFromHistory() {
   } catch(e) {}
 }
 
-document.addEventListener('DOMContentLoaded',()=>{
+// ── Restauration depuis un hash d'analyse (ex: lien "Ouvrir dans Psychologue" d'un dossier) ──
+async function tryRestoreFromHash() {
+  const id = (window.location.hash || '').replace('#', '').trim();
+  if (!id) return false;
+  try {
+    const r = await fetch('/history/' + encodeURIComponent(id) + '/load');
+    const d = await r.json();
+    if (d.success && d.full_result) {
+      renderDashboard(d.full_result);
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
   updateCount();
   if (resumePendingAnalysis()) return;  // une analyse tourne encore → reprendre le suivi
+  if (await tryRestoreFromHash()) return;
   hydrateFromLanding();
   tryRestoreFromHistory();
 });
