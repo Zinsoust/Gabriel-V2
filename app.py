@@ -357,8 +357,8 @@ def en_savoir_plus():
 
 @app.route('/app')
 def index():
-    """Ancienne interface à onglets — redirige vers /psychologue."""
-    return redirect('/psychologue')
+    """Ancienne interface à onglets — redirige vers /dossiers."""
+    return redirect('/dossiers')
 
 
 @app.route('/psychologue')
@@ -2282,7 +2282,7 @@ def stripe_checkout():
 @login_required
 def stripe_success():
     """Page de retour après paiement Stripe réussi."""
-    return redirect('/psychologue?upgrade=success')
+    return redirect('/dossiers?upgrade=success')
 
 
 @app.route('/stripe/webhook', methods=['POST'])
