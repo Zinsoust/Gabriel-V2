@@ -20,8 +20,23 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a href="/dossiers" class="sidebar-item {% if active_page in ['dossiers', 'psychologue', 'stratege', 'createur'] %}active{% endif %}" title="Dossiers">
+      <a href="/dossiers" class="sidebar-item {% if active_page == 'dossiers' %}active{% endif %}" title="Dossiers">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      </a>
+      <a href="/psychologue" class="sidebar-item {% if active_page == 'psychologue' %}active{% endif %}" title="Analyse">
+        <svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44l-1.7-7.23A2 2 0 0 1 7.29 9.5H9.5V2Z"/><path d="M14.5 2v7.5h2.21a2 2 0 0 1 1.95 2.33l-1.7 7.23A2.5 2.5 0 0 1 12 19.5"/></svg>
+      </a>
+      <a href="/stratege" class="sidebar-item {% if active_page == 'stratege' %}active{% endif %}" title="Stratégie">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </a>
+      <a href="/createur" class="sidebar-item {% if active_page == 'createur' %}active{% endif %}" title="Créateur">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </a>
+      <a href="/mes-strategies" class="sidebar-item {% if active_page == 'strategies' %}active{% endif %}" title="Mes Stratégies">
+        <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </a>
+      <a href="/mes-analyses" class="sidebar-item {% if active_page == 'history' %}active{% endif %}" title="Historique">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </a>
       <a href="/en-savoir-plus" class="sidebar-item {% if active_page == 'en_savoir_plus' %}active{% endif %}" title="En savoir plus">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
