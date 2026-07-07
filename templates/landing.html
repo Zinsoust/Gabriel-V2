@@ -6,7 +6,7 @@
   <title>Gabriel — Intelligence stratégique pour votre audience</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Epilogue:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Epilogue:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/gabriel.css') }}">
   <style>
     @font-face { font-family: 'Creato Display'; src: url("{{ url_for('static', filename='fonts/CreatoDisplay-Thin.otf') }}") format('opentype'); font-weight: 200; font-style: normal; }
@@ -58,9 +58,10 @@
       overflow: hidden;
       min-height: 780px;
       background-image: url("{{ url_for('static', filename='images/image-1782086549980.webp') }}");
+      background-repeat: no-repeat;
+      /* zoom léger + recadrage vers le bas pour faire apparaître les pièces d'échecs */
       background-size: cover;
-      /* parallax position driven by JS */
-      background-position: center 0px;
+      background-position: center 68%;
       will-change: border-radius, background-position;
     }
     .lhero-inner::before {
@@ -68,23 +69,14 @@
       position: absolute; inset: 0;
       background: linear-gradient(
         to bottom,
-        rgba(0,0,0,0.68) 0%,
-        rgba(0,0,0,0.82) 38%,
-        rgba(0,0,0,0.95) 100%
+        rgba(0,0,0,0.20) 0%,
+        rgba(0,0,0,0.15) 38%,
+        rgba(0,0,0,0.42) 100%
       );
       pointer-events: none; z-index: 1;
     }
-    /* subtle grid texture */
-    .lhero-inner::after {
-      content: '';
-      position: absolute; inset: 0;
-      background-image:
-        linear-gradient(var(--line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--line) 1px, transparent 1px);
-      background-size: 56px 56px;
-      pointer-events: none; z-index: 0;
-      opacity: 0.35;
-    }
+    /* grille texture supprimée — laisse l'image respirer */
+    .lhero-inner::after { display: none; }
     .lhero-inner > * { position: relative; z-index: 2; }
 
     /* ── NAVBAR ── */
@@ -94,9 +86,15 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 26px 36px;
     }
-    .lnav-logo { display: flex; align-items: center; gap: 0; text-decoration: none; }
-    .lnav-mark { height: 38px; flex-shrink: 0; }
-    .lnav-mark img { height: 100%; width: auto; object-fit: contain; display: block; }
+    .lnav-logo {
+      display: flex; align-items: center; gap: 0; text-decoration: none;
+      font-family: 'DM Mono', 'DM Sans', ui-monospace, monospace;
+      font-size: 15px; font-weight: 500;
+      letter-spacing: 0.01em;
+      color: rgba(255,255,255,0.92);
+    }
+    .lnav-logo-dot { color: var(--champ); }
+    .lnav-mark { display: none; }
     .lnav-center { display: flex; gap: 32px; align-items: center; }
     .lnav-link {
       color: rgba(255,255,255,0.62); text-decoration: none;
@@ -962,9 +960,7 @@
 
     <nav class="lnav">
       <a href="/" class="lnav-logo">
-        <div class="lnav-mark">
-          <img src="{{ url_for('static', filename='images/gabriel_logo.png') }}" alt="Gabriel" />
-        </div>
+        Gabriel<span class="lnav-logo-dot">.ai</span>
       </a>
       <div class="lnav-center">
         <a href="#fonctionnalites" class="lnav-link">Fonctionnalités</a>
@@ -1717,11 +1713,11 @@ function lhAnalyse() {
     inner.style.borderRadius = radius + 'px';
 
     /* 2. Parallax — background se déplace moins vite que la page
-     *    Départ : 20% (donne de la marge en haut pour ne pas clipper)
+     *    Départ : 68% (montre le bas de l'image, là où sont les pièces d'échecs)
      *    + décalage proportionnel au scroll (positif = montre plus de haut)
      */
     var pxShift = Math.round(y * PARALLAX_R);
-    inner.style.backgroundPosition = 'center calc(20% + ' + pxShift + 'px)';
+    inner.style.backgroundPosition = 'center calc(68% + ' + pxShift + 'px)';
   }
 
   /* ── Listener passif, throttlé via rAF ── */
@@ -1741,7 +1737,7 @@ function lhAnalyse() {
     if (mq.matches) {
       outer.style.paddingTop = outer.style.paddingLeft = outer.style.paddingRight = '';
       inner.style.borderRadius = '';
-      inner.style.backgroundPosition = 'center top';
+      inner.style.backgroundPosition = 'center 68%';
       window.removeEventListener('scroll', update);
     }
   }

@@ -424,6 +424,14 @@ def analyze():
             video_title  = video_info.get('title', '')
             if video_title:
                 video_context = f"{video_title} — {video_info.get('channel', '')}"
+        elif source == 'file':
+            # Commentaires issus d'un fichier importé (/upload-comments-file).
+            # Le payload vient du frontend → re-sanitisé intégralement.
+            from services.file_importer import sanitize_uploaded_comments
+            comments = sanitize_uploaded_comments(
+                data.get('comments'), source_file=content[:120])
+            source_label  = 'Fichier importé'
+            video_context = f"Fichier : {content[:80]}" if content else ''
         else:
             comments     = parse_manual_comments(content)
             source_label = 'Texte libre'
@@ -562,6 +570,69 @@ def analyze():
         import traceback
         traceback.print_exc()
         return jsonify({'error': "Erreur lors de l'analyse. Réessayez dans quelques instants."}), 500
+
+
+@app.route('/upload-comments-file', methods=['POST'])
+@login_required
+@_rl(os.environ.get('RATE_LIMIT_UPLOAD', '20 per hour'))
+def upload_comments_file():
+    """
+    Import de fichier commentaires (CSV / Excel / JSON).
+    Parse en mémoire (aucune écriture disque), normalise, retourne un aperçu
+    + les commentaires normalisés pour lancement via /analyze (source='file').
+    Param form optionnel : column — force la colonne à analyser.
+    """
+    from services.file_importer import (
+        parse_comments_file, normalize_comment_items, check_mime,
+        extract_texts_for_analysis, FileImportError, FILE_MAX_BYTES,
+    )
+
+    f = request.files.get('file')
+    if not f or not f.filename:
+        return jsonify({'success': False, 'error': 'Aucun fichier reçu.'}), 400
+
+    if not check_mime(f.mimetype):
+        print(f"[UPLOAD] rejected mime={f.mimetype}")
+        return jsonify({'success': False, 'error': 'Format non supporté.'}), 400
+
+    # Lire au plus FILE_MAX_BYTES + 1 — refuse les fichiers trop lourds sans
+    # jamais charger un fichier énorme en mémoire.
+    raw = f.stream.read(FILE_MAX_BYTES + 1)
+    if len(raw) > FILE_MAX_BYTES:
+        print("[UPLOAD] rejected size>5MB")
+        return jsonify({'success': False, 'error': 'Le fichier est trop lourd (maximum 5 MB).'}), 413
+
+    forced_column = (request.form.get('column') or '').strip() or None
+
+    try:
+        parsed = parse_comments_file(f.filename, raw, forced_column=forced_column)
+        normalized = normalize_comment_items(parsed['items'], source_file=f.filename)
+    except FileImportError as e:
+        print(f"[UPLOAD] failed error={e}")
+        return jsonify({'success': False, 'error': str(e)}), 400
+    except Exception:
+        import traceback; traceback.print_exc()
+        print("[UPLOAD] failed status=unexpected_error")
+        return jsonify({'success': False, 'error': 'Impossible de lire ce fichier. Vérifiez son format.'}), 400
+
+    if not normalized:
+        return jsonify({'success': False,
+                        'error': 'Aucun commentaire exploitable trouvé dans le fichier.'}), 400
+
+    texts = extract_texts_for_analysis(normalized)
+    print(f"[UPLOAD] ok type={parsed['file_type']} count={len(normalized)} "
+          f"column={parsed.get('selected_column', '')}")
+
+    return jsonify({
+        'success':             True,
+        'file_type':           parsed['file_type'],
+        'detected_columns':    parsed.get('detected_columns', []),
+        'selected_column':     parsed.get('selected_column', ''),
+        'warning':             parsed.get('warning', ''),
+        'comments_count':      len(normalized),
+        'preview':             texts[:15],
+        'normalized_comments': normalized,
+    })
 
 
 @app.route('/status/<job_id>', methods=['GET'])
