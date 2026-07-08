@@ -226,16 +226,15 @@
       </button>
     </div>
     {% else %}
-    <div class="df-result-wrap" id="df-strat-form">
+    <div class="df-result-wrap">
       <div class="df-result-title">Générer la stratégie</div>
       <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
-        L'analyse psychologique est prête. Gabriel va construire une décision stratégique à partir de ces insights et de votre profil business.
+        L'analyse psychologique est prête. Ouvrez le Stratège pour construire votre décision — il aura accès à ce dossier.
       </p>
-      <div id="df-strat-err" style="font-size:12px;color:rgba(255,130,130,0.85);margin-bottom:12px;display:none;"></div>
-      <button class="df-analyse-btn" id="df-strat-btn" onclick="dfGenerateStrategy()">
-        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Générer la stratégie
-      </button>
+      <a href="/stratege?folder_id={{ folder.folder_id }}" class="df-analyse-btn" style="text-decoration:none;">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Ouvrir le Stratège
+      </a>
     </div>
     {% endif %}
   {% else %}
@@ -272,28 +271,15 @@
       </button>
     </div>
     {% else %}
-    <div class="df-result-wrap" id="df-cre-form">
+    <div class="df-result-wrap">
       <div class="df-result-title">Créer du contenu</div>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">
-        Décrivez ce que vous voulez créer — Gabriel s'appuie sur l'analyse et la stratégie de ce dossier.
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
+        La stratégie est prête. Ouvrez le Créateur pour rédiger votre contenu — il aura accès à ce dossier.
       </p>
-      <textarea id="df-cre-req" class="df-textarea" style="min-height:80px;" placeholder="Ex : Écris un script TikTok pour présenter cette offre…"></textarea>
-      <div style="margin-top:10px;max-width:280px;">
-        <select id="df-cre-fmt" class="df-url-input">
-          <option value="script">Script court</option>
-          <option value="youtube">Script YouTube</option>
-          <option value="tiktok">Script TikTok / Reels</option>
-          <option value="hooks">Hooks d'accroche</option>
-          <option value="linkedin">Post LinkedIn</option>
-          <option value="post">Post réseaux sociaux</option>
-          <option value="email">Email séquence</option>
-        </select>
-      </div>
-      <div id="df-cre-err" style="font-size:12px;color:rgba(255,130,130,0.85);margin-top:10px;display:none;"></div>
-      <button class="df-analyse-btn" id="df-cre-btn" onclick="dfGenerateCreateur()">
-        <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        Générer le contenu
-      </button>
+      <a href="/createur?folder_id={{ folder.folder_id }}" class="df-analyse-btn" style="text-decoration:none;">
+        <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Ouvrir le Créateur
+      </a>
     </div>
     {% endif %}
   {% else %}
@@ -566,128 +552,6 @@
   function resetProgress() {
     document.getElementById('df-progress').style.display = 'none';
     document.getElementById('df-progress-bar').style.width = '0%';
-  }
-
-  // ── Générer la stratégie (inline, sans quitter le dossier) ──
-  window.dfGenerateStrategy = async function () {
-    const errEl = document.getElementById('df-strat-err');
-    if (errEl) errEl.style.display = 'none';
-    const form = document.getElementById('df-strat-form');
-    if (form) form.style.display = 'none';
-    document.getElementById('df-progress').style.display = '';
-    document.getElementById('df-progress-msg').textContent = 'Le Stratège construit votre décision…';
-    document.getElementById('df-progress-sub').textContent = '';
-    document.getElementById('df-progress-bar').style.width = '0%';
-
-    let pct = 0;
-    const barTimer = setInterval(() => {
-      pct = Math.min(95, pct + 3);
-      document.getElementById('df-progress-bar').style.width = pct + '%';
-    }, 1200);
-
-    try {
-      const r = await fetch('/strategize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ analysis_id: ANALYSIS_ID, folder_id: FOLDER_ID }),
-      });
-      const j = await r.json();
-      clearInterval(barTimer);
-      if (j.success) {
-        window.location.reload();
-      } else {
-        dfShowStratErr(j.error || 'Erreur lors de la génération de la stratégie.');
-      }
-    } catch (e) {
-      clearInterval(barTimer);
-      dfShowStratErr('Erreur réseau. Réessayez.');
-    }
-  };
-
-  function dfShowStratErr(msg) {
-    document.getElementById('df-progress').style.display = 'none';
-    resetProgress();
-    const form = document.getElementById('df-strat-form');
-    if (form) form.style.display = '';
-    const errEl = document.getElementById('df-strat-err');
-    if (errEl) {
-      errEl.innerHTML = _dfEsc(msg) + ' — <a href="/profil" style="color:#D8B982;" target="_blank">compléter mon profil</a>';
-      errEl.style.display = 'block';
-    }
-  }
-
-  // ── Générer le contenu (inline, sans quitter le dossier) ────
-  window.dfGenerateCreateur = async function () {
-    const errEl = document.getElementById('df-cre-err');
-    if (errEl) errEl.style.display = 'none';
-    const req = (document.getElementById('df-cre-req').value || '').trim();
-    if (!req) {
-      if (errEl) { errEl.textContent = 'Décrivez ce que vous voulez créer.'; errEl.style.display = 'block'; }
-      return;
-    }
-    const fmt  = document.getElementById('df-cre-fmt').value;
-    const form = document.getElementById('df-cre-form');
-    if (form) form.style.display = 'none';
-    document.getElementById('df-progress').style.display = '';
-    document.getElementById('df-progress-msg').textContent = 'Le Créateur rédige votre contenu…';
-    document.getElementById('df-progress-sub').textContent = '';
-    document.getElementById('df-progress-bar').style.width = '0%';
-
-    try {
-      const r = await fetch('/creator/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content_type: fmt, tone: 'expert', channel: '', objective: '',
-          user_request: req, analysis_id: ANALYSIS_ID, folder_id: FOLDER_ID,
-          generate_variant: false,
-        }),
-      });
-      const j = await r.json();
-      if (j.job_id) dfPollCreateur(j.job_id);
-      else dfShowCreErr(j.error || 'Erreur lors du lancement de la génération.');
-    } catch (e) {
-      dfShowCreErr('Erreur réseau. Réessayez.');
-    }
-  };
-
-  function dfPollCreateur(jobId) {
-    let attempts = 0;
-    const t = setInterval(async () => {
-      attempts++;
-      if (attempts > 120) { clearInterval(t); dfShowCreErr('La génération a pris trop de temps. Réessayez.'); return; }
-      try {
-        const r = await fetch('/status/' + jobId);
-        const j = await r.json();
-        const pct = j.progress || Math.min(90, attempts * 3);
-        document.getElementById('df-progress-bar').style.width = pct + '%';
-        if (j.status === 'done' || j.status === 'completed') {
-          clearInterval(t);
-          window.location.reload();
-        } else if (j.status === 'error' || j.status === 'failed') {
-          clearInterval(t);
-          dfShowCreErr(j.error || 'La génération a échoué. Réessayez.');
-        } else if (j.status === 'interrupted') {
-          clearInterval(t);
-          dfShowCreErr(j.error || 'La génération a été interrompue par un redémarrage du serveur. Réessayez.');
-        }
-      } catch { /* retry next tick */ }
-    }, 1500);
-  }
-
-  function dfShowCreErr(msg) {
-    document.getElementById('df-progress').style.display = 'none';
-    resetProgress();
-    const form = document.getElementById('df-cre-form');
-    if (form) form.style.display = '';
-    const errEl = document.getElementById('df-cre-err');
-    if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
-  }
-
-  function _dfEsc(s) {
-    const d = document.createElement('div');
-    d.textContent = s == null ? '' : String(s);
-    return d.innerHTML;
   }
 
   // Restaurer étape active selon l'état du dossier

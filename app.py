@@ -4,6 +4,7 @@ import json
 import uuid
 import datetime
 import threading
+from functools import wraps
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response, send_file
 from dotenv import load_dotenv
 
@@ -48,6 +49,11 @@ if _is_production:
 
 init_auth(app)
 app.register_blueprint(auth_bp)
+
+
+@app.context_processor
+def _inject_active_folder():
+    return {'has_active_folder': bool(session.get('active_folder_id'))}
 
 # ── Rate Limiting ─────────────────────────────────────────────────────────────
 # Configurable via .env (RATE_LIMIT_ENABLED=false désactive tout, utile en dev)
@@ -361,8 +367,22 @@ def index():
     return redirect('/dossiers')
 
 
+def _requires_folder(f):
+    """Exige un dossier actif — sélectionné en session ou passé en paramètre — avant d'accéder à la page."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        folder_id = request.args.get('folder_id')
+        if folder_id:
+            session['active_folder_id'] = folder_id
+        elif not session.get('active_folder_id'):
+            return redirect('/dossiers')
+        return f(*args, **kwargs)
+    return decorated
+
+
 @app.route('/psychologue')
 @login_required
+@_requires_folder
 def psychologue_page():
     uid_psy   = (current_user() or {}).get('user_id')
     _psy_profile = _get_user_profile(uid_psy)
@@ -379,6 +399,7 @@ def psychologue_page():
 
 @app.route('/stratege')
 @login_required
+@_requires_folder
 def stratege_page():
     uid   = (current_user() or {}).get('user_id')
     profil = _get_user_context(uid)
@@ -873,6 +894,7 @@ def strategize():
 
 @app.route('/createur')
 @login_required
+@_requires_folder
 def createur_page():
     resp = make_response(render_template(
         'createur.html',
@@ -1139,12 +1161,14 @@ def profil_data():
 
 @app.route('/mes-analyses')
 @login_required
+@_requires_folder
 def mes_analyses():
     return render_template('history.html', active_page='history', current_user=current_user())
 
 
 @app.route('/mes-strategies')
 @login_required
+@_requires_folder
 def mes_strategies():
     resp = make_response(render_template(
         'mes_strategies.html', active_page='strategies', current_user=current_user(),
@@ -1175,6 +1199,7 @@ def dossier_detail_page(folder_id):
     folder = _db.get_folder_by_id(folder_id, uid)
     if not folder:
         return redirect('/dossiers')
+    session['active_folder_id'] = folder_id
     return render_template('dossier.html', active_page='dossiers',
                            current_user=current_user(), folder=folder)
 
