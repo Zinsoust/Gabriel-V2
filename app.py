@@ -55,6 +55,21 @@ app.register_blueprint(auth_bp)
 def _inject_active_folder():
     return {'has_active_folder': bool(session.get('active_folder_id'))}
 
+
+# Précharge le modèle sémantique NLP au démarrage de CE process.
+# Sous Gunicorn, app.py est importé (jamais exécuté comme __main__), donc le
+# préchargement placé dans `if __name__ == '__main__'` ne tournait jamais en
+# production — le modèle se chargeait à froid sur le premier utilisateur de
+# chaque worker après un déploiement. Appelé ici, il tourne une fois par
+# worker au boot, avant toute requête utilisateur.
+try:
+    from core.nlp_engine import preload_model as _preload_nlp_model
+    print("[GABRIEL] Préchargement du modèle sémantique…")
+    _preload_nlp_model()
+    print("[GABRIEL] Modèle sémantique prêt.")
+except Exception as _nlp_preload_err:
+    print(f"[GABRIEL] Préchargement NLP ignoré : {_nlp_preload_err}")
+
 # ── Rate Limiting ─────────────────────────────────────────────────────────────
 # Configurable via .env (RATE_LIMIT_ENABLED=false désactive tout, utile en dev)
 _RATE_LIMIT_ENABLED = os.environ.get('RATE_LIMIT_ENABLED', 'true').lower() == 'true'
@@ -2431,13 +2446,8 @@ def _format_brain_context(profile):
 
 if __name__ == '__main__':
     print("Gabriel - Intelligence Humaine Avancée")
-    try:
-        from core.nlp_engine import preload_model
-        print("[GABRIEL] Préchargement du modèle sémantique…")
-        preload_model()
-        print("[GABRIEL] Modèle prêt.")
-    except Exception as _e:
-        print(f"[GABRIEL] Préchargement NLP ignoré : {_e}")
+    # Le préchargement NLP tourne déjà au niveau module (voir plus haut) —
+    # couvre aussi bien `python3 app.py` que `gunicorn app:app`.
     _port = int(os.environ.get("PORT", 5050))
     print(f"http://localhost:{_port}")
     app.run(debug=False, port=_port, host='0.0.0.0', threaded=True)
