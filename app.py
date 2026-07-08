@@ -882,29 +882,50 @@ def strategize():
     memory_context = user_mem.get_memory_context(psycho_data, effective_profile, user_id=uid)
     memory_summary = user_mem.get_similar_summary(psycho_data, effective_profile, user_id=uid)
 
-    try:
-        result = gabriel.run_stratege(
-            psycho_data,
-            brain_context,
-            title=title,
-            memory_context=memory_context,
-        )
-        strat_data  = result.get('strategie', {})
-        strategy_id = _db.save_strategy(strat_data, user_id=uid,
-                                        analysis_id=analysis_id,
-                                        business_context=effective_profile,
-                                        folder_id=folder_id_strat)
-        _db.update_analysis_strategy(analysis_id, strat_data, strategy_id, uid)
-        if folder_id_strat:
-            _db.update_folder(folder_id_strat, uid, strategy_id=strategy_id, step='stratege')
-        user_mem.add_case(analysis_id, psycho_data, strat_data, effective_profile, user_id=uid)
-        return jsonify({'success': True, 'data': result, 'memory': memory_summary,
-                        'strategy_id': strategy_id})
+    # UUID aléatoire — non prédictible
+    job_id = f"st_{str(uuid.uuid4())[:12]}"
+    _jobs[job_id] = {'status': 'running', 'user_id': uid}
+    _db.create_job(job_id, uid, analysis_id, folder_id=folder_id_strat)
+    if len(_jobs) > _JOBS_MAX:
+        try:
+            oldest = next(iter(_jobs))
+            _jobs.pop(oldest, None)
+        except StopIteration:
+            pass
 
-    except Exception as e:
-        import traceback; traceback.print_exc()
-        safe_log_event('strategize_error', user_id=uid, error=e)
-        return jsonify({'success': False, 'error': 'Erreur lors de la génération stratégique. Réessayez.'}), 500
+    def _run():
+        try:
+            result = gabriel.run_stratege(
+                psycho_data,
+                brain_context,
+                title=title,
+                memory_context=memory_context,
+            )
+            strat_data  = result.get('strategie', {})
+            strategy_id = _db.save_strategy(strat_data, user_id=uid,
+                                            analysis_id=analysis_id,
+                                            business_context=effective_profile,
+                                            folder_id=folder_id_strat)
+            _db.update_analysis_strategy(analysis_id, strat_data, strategy_id, uid)
+            if folder_id_strat:
+                _db.update_folder(folder_id_strat, uid, strategy_id=strategy_id, step='stratege')
+            user_mem.add_case(analysis_id, psycho_data, strat_data, effective_profile, user_id=uid)
+            job_result = {'success': True, 'data': result, 'memory': memory_summary,
+                          'strategy_id': strategy_id, 'analysis_id': analysis_id}
+            _jobs[job_id] = {'status': 'done', 'result': job_result, 'user_id': uid}
+            _db.update_job(job_id, user_id=uid, status='completed',
+                           progress=100, step='termine',
+                           result_data=job_result, completed=True)
+        except Exception as e:
+            import traceback; traceback.print_exc()
+            _jobs[job_id] = {'status': 'error', 'error': 'Erreur lors de la génération stratégique. Réessayez.', 'user_id': uid}
+            _db.update_job(job_id, user_id=uid, status='failed',
+                           step='stratege', completed=True,
+                           error_message='Erreur lors de la génération stratégique.')
+            safe_log_event('strategize_error', user_id=uid, error=e)
+
+    threading.Thread(target=_run, daemon=True).start()
+    return jsonify({'job_id': job_id, 'status': 'running'})
 
 
 @app.route('/createur')

@@ -663,6 +663,8 @@ async function tryRestoreStratege() {
 
 /* ── Init ───────────────────────────────────────────── */
 async function init() {
+  if (resumePendingStratege()) return;  // une génération tourne encore → reprendre le suivi
+
   // Ouverture directe d'une stratégie sauvegardée (depuis Mes Stratégies)
   const directStrat = new URLSearchParams(window.location.search).get('strategy');
   if (directStrat) {
@@ -1009,12 +1011,15 @@ function launchStratege() {
   document.getElementById('strat-analyze-section').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+const STRAT_PENDING_JOB_KEY = 'gabriel_pending_stratege_job';
+
 async function submitStrategie() {
   const psychoSum = (document.getElementById('psycho-summary')?.value||'').trim();
   hide('strat-analyze-section'); hide('strat-dashboard'); hide('strat-memory');
   show('strat-loading');
+  const t0 = Date.now();
   const timer = animSteps();
-  const pctTimer = startStratPercent();
+  const pctTimer = startStratPercent(t0);
 
   const payload = _linkedAnalysisId
     ? {analysis_id: _linkedAnalysisId, brain_profile: ctx, psycho_data: _linkedPsychoData, folder_id: _folderId}
@@ -1027,29 +1032,124 @@ async function submitStrategie() {
       body: JSON.stringify(payload)
     });
     const raw = await r.json();
+
+    if (raw.error) {
+      clearInterval(timer); clearInterval(pctTimer); hide('strat-loading');
+      showStratErr(raw.error);
+      return;
+    }
+
+    if (raw.job_id) {
+      // La génération tourne en tâche de fond — survit à la navigation.
+      try { localStorage.setItem(STRAT_PENDING_JOB_KEY, JSON.stringify({id: raw.job_id, t0})); } catch(_) {}
+      await pollStrategize(raw.job_id, timer, pctTimer, t0);
+      return;
+    }
+
+    // Flux Context Builder — reste synchrone
     const pctEl = document.getElementById('strat-percent');
     if (pctEl) pctEl.textContent = '100%';
     clearInterval(timer); clearInterval(pctTimer); hide('strat-loading');
-
-    if (raw.error) { showStratErr(raw.error); return; }
-
-    const stratData = raw.data?.strategie || raw;
-    _strategyId = raw.strategy_id || null;
-    _analysisId = raw.analysis_id || _linkedAnalysisId || null;
-    renderStrat(stratData);
-    if (typeof GabrielSurvey !== 'undefined') {
-      GabrielSurvey.trigger({
-        eventType:  'after_strategy',
-        targetType: 'strategy',
-        targetId:   _strategyId || _analysisId || '',
-        agent:      'stratege',
-        question:   'Cette décision stratégique vous aide-t-elle à savoir quoi faire maintenant ?',
-        delay:      5000,
-      });
-    }
+    _finishStrategie(raw);
   } catch(e) {
     clearInterval(timer); clearInterval(pctTimer); hide('strat-loading'); showStratErr('Erreur de connexion.');
   }
+}
+
+function _finishStrategie(raw) {
+  const stratData = raw.data?.strategie || raw;
+  _strategyId = raw.strategy_id || null;
+  _analysisId = raw.analysis_id || _linkedAnalysisId || null;
+  renderStrat(stratData);
+  if (typeof GabrielSurvey !== 'undefined') {
+    GabrielSurvey.trigger({
+      eventType:  'after_strategy',
+      targetType: 'strategy',
+      targetId:   _strategyId || _analysisId || '',
+      agent:      'stratege',
+      question:   'Cette décision stratégique vous aide-t-elle à savoir quoi faire maintenant ?',
+      delay:      5000,
+    });
+  }
+}
+
+async function pollStrategize(jobId, timer, pctTimer) {
+  const stop = () => {
+    clearInterval(timer); clearInterval(pctTimer);
+    try { localStorage.removeItem(STRAT_PENDING_JOB_KEY); } catch(_) {}
+  };
+
+  const MAX_POLLS = 160; // 160 × 3s = 8 min
+  let notFoundStreak = 0;
+  for (let i = 0; i < MAX_POLLS; i++) {
+    await new Promise(res => setTimeout(res, 3000));
+    let poll;
+    try {
+      const pr = await fetch(`/status/${jobId}`);
+      if (pr.status === 401) {
+        stop(); hide('strat-loading');
+        showStratErr('Votre session a expiré. Veuillez vous reconnecter.');
+        setTimeout(() => { window.location.href = '/login'; }, 2000);
+        return;
+      }
+      if (pr.status === 429) {
+        stop(); hide('strat-loading');
+        showStratErr('Trop de requêtes — attendez quelques instants et réessayez.');
+        return;
+      }
+      poll = await pr.json();
+    } catch(_) { continue; }
+
+    if (poll.status === 'interrupted') {
+      stop(); hide('strat-loading');
+      showStratErr(poll.error || "La génération a été interrompue par un redémarrage du serveur. Relancez la génération.");
+      return;
+    }
+    if (poll.status === 'not_found') {
+      notFoundStreak++;
+      if (notFoundStreak >= 4) {
+        stop(); hide('strat-loading');
+        showStratErr("Le suivi de la génération a été perdu (redémarrage du serveur). Relancez la génération.");
+        return;
+      }
+      continue;
+    }
+    notFoundStreak = 0;
+
+    if (poll.status === 'done') {
+      const pctEl = document.getElementById('strat-percent');
+      if (pctEl) pctEl.textContent = '100%';
+      stop(); hide('strat-loading');
+      try { _finishStrategie(poll.data || {}); }
+      catch(e) { showStratErr('Génération terminée mais affichage échoué. Rechargez.'); }
+      return;
+    }
+    if (poll.status === 'error') {
+      stop(); hide('strat-loading');
+      showStratErr(poll.error || 'Erreur de génération.');
+      return;
+    }
+    // 'running' → continuer à poller
+  }
+  stop(); hide('strat-loading');
+  showStratErr('La génération prend trop de temps. Vérifiez votre connexion et réessayez.');
+}
+
+/* Reprise d'une génération en cours après navigation (Psychologue/Créateur → retour ici) */
+function resumePendingStratege() {
+  let job = null;
+  try { job = JSON.parse(localStorage.getItem(STRAT_PENDING_JOB_KEY) || 'null'); } catch(_) {}
+  if (!job || !job.id) return false;
+  if (Date.now() - (job.t0 || 0) > 10 * 60 * 1000) {
+    try { localStorage.removeItem(STRAT_PENDING_JOB_KEY); } catch(_) {}
+    return false;
+  }
+  hide('strat-analyze-section'); hide('strat-dashboard'); hide('strat-memory'); hide('strat-idle');
+  show('strat-loading');
+  const timer = animSteps();
+  const pctTimer = startStratPercent(job.t0 || Date.now());
+  pollStrategize(job.id, timer, pctTimer);
+  return true;
 }
 
 function animSteps() {
@@ -1060,12 +1160,12 @@ function animSteps() {
 }
 
 /* Pourcentage estimé — ≈95% à 90 s (génération Mistral Large) */
-function startStratPercent() {
+function startStratPercent(t0) {
   const el = document.getElementById('strat-percent');
-  const t0 = Date.now();
+  const start = t0 || Date.now();
   const tick = () => {
     if (!el) return;
-    el.textContent = Math.min(95, Math.round((Date.now() - t0) / 950)) + '%';
+    el.textContent = Math.min(95, Math.round((Date.now() - start) / 950)) + '%';
   };
   tick();
   return setInterval(tick, 1000);
