@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Gabriel — Stratège{% endblock %}
-{% block page_name %}Stratège{% endblock %}
+{% block title %}Gabriel — Le Stratège{% endblock %}
+{% block page_name %}Le Stratège{% endblock %}
 
 {% block head %}
 <style>
@@ -155,6 +155,24 @@
   .obj-label { font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(216,185,130,0.5); font-weight:600; margin-bottom:6px; }
   .obj-text { font-size:13px; color:var(--text-secondary); line-height:1.7; }
 
+  /* ─── Positionnement & message (décision d'abord) ───── */
+  .pos-message-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:rgba(216,185,130,0.45); font-weight:600; margin-bottom:5px; }
+  .pos-message-text { font-size:13px; font-weight:500; color:var(--text-primary); line-height:1.6; padding:10px 14px; background:rgba(216,185,130,0.05); border-left:2px solid rgba(216,185,130,0.4); border-radius:0 6px 6px 0; margin-bottom:14px; }
+  .pos-angle-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:600; margin-bottom:3px; }
+  .pos-angle-text { font-size:12px; color:var(--text-secondary); line-height:1.7; margin:0; }
+
+  /* ─── Recommandations prioritaires ──────────────────── */
+  .reco-list { display:flex; flex-direction:column; gap:8px; }
+  .reco-item { display:flex; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.018); border-radius:6px; border:1px solid var(--border-soft); }
+  .reco-num { width:18px; height:18px; border-radius:50%; background:rgba(216,185,130,0.1); border:1px solid rgba(216,185,130,0.2); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:600; color:rgba(216,185,130,0.7); flex-shrink:0; margin-top:1px; }
+  .reco-body { flex:1; min-width:0; }
+  .reco-action { font-size:12px; color:var(--text-primary); line-height:1.6; margin-bottom:4px; }
+  .reco-signal { font-size:10px; color:var(--text-muted); font-style:italic; }
+  .reco-tags { display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; }
+  .reco-tag { font-size:9px; padding:2px 7px; border-radius:20px; }
+  .reco-tag.impact { background:rgba(120,200,140,0.06); border:1px solid rgba(120,200,140,0.12); color:rgba(120,200,140,0.65); }
+  .reco-tag.delai  { background:rgba(216,185,130,0.05); border:1px solid rgba(216,185,130,0.15); color:rgba(216,185,130,0.6); }
+
   .opp-list { display:flex; flex-direction:column; gap:10px; }
   .opp-card { padding:16px 18px; background:rgba(255,255,255,0.018); border:1px solid var(--border-soft); border-radius:var(--radius-md); transition:border-color 0.2s; }
   .opp-card:hover { border-color:rgba(216,185,130,0.2); }
@@ -194,6 +212,27 @@
   .price-val { font-size:12px; font-weight:500; color:var(--text-secondary); margin-bottom:4px; }
   .price-lbl { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.07em; }
   .price-position-badge { display:inline-flex; padding:4px 11px; border-radius:20px; font-size:11px; font-weight:500; background:rgba(216,185,130,0.08); border:1px solid rgba(216,185,130,0.2); color:rgba(216,185,130,0.8); }
+  .price-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .price-fourchette-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:600; margin-bottom:3px; }
+  .price-fourchette-val { font-size:15px; font-weight:600; color:var(--text-primary); }
+  .price-justification { margin-top:10px; font-size:11px; color:var(--text-muted); line-height:1.65; border-top:1px solid var(--border-soft); padding-top:10px; }
+
+  .content-row { display:flex; gap:12px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .content-row-label { font-size:10px; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); font-weight:600; min-width:130px; padding-top:2px; }
+  .content-row-val { font-size:13px; color:var(--text-secondary); line-height:1.65; }
+  .content-avoid { margin-top:10px; }
+  .content-avoid-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:600; margin-bottom:5px; }
+  .content-avoid-tag { display:inline-flex; padding:2px 8px; margin:2px; border-radius:20px; border:1px solid rgba(255,100,100,0.12); font-size:10px; color:rgba(255,130,130,0.55); }
+
+  .plan-kpi-row { display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
+
+  .risk-list { display:flex; flex-direction:column; gap:8px; }
+  .risk-item { padding:10px 12px; border-radius:6px; background:rgba(255,100,100,0.03); border:1px solid rgba(255,100,100,0.1); }
+  .risk-text { font-size:12px; color:var(--text-secondary); margin-bottom:0; }
+  .risk-text.has-mitigation { margin-bottom:5px; }
+  .risk-mitigation { font-size:10px; color:var(--text-muted); font-style:italic; }
+
+  .indic-row { display:flex; flex-wrap:wrap; gap:6px; }
 
   .plan-tabs { display:flex; gap:2px; background:rgba(255,255,255,0.03); border-radius:9px; padding:3px; margin-bottom:16px; }
   .plan-tab { flex:1; padding:8px 10px; text-align:center; font-size:11px; font-weight:500; border-radius:7px; cursor:pointer; transition:all 0.15s; color:var(--text-muted); border:none; background:transparent; font-family:inherit; }
@@ -368,6 +407,17 @@
     .createur-features { grid-template-columns:1fr 1fr; }
     .exec-meta { grid-template-columns:1fr; }
     .psycho-used-grid { grid-template-columns:1fr; }
+    .opp-action-row { grid-template-columns:1fr; }
+    .offer-grid { grid-template-columns:1fr; }
+    .offer-block-full { grid-column:span 1; }
+    .price-grid { grid-template-columns:1fr 1fr; }
+    .offer-price-row { flex-direction:column; align-items:flex-start; gap:10px; }
+    .offer-price-just { max-width:100%; text-align:left; }
+  }
+
+  @media (max-width:520px) {
+    .createur-features { grid-template-columns:1fr; }
+    .price-grid { grid-template-columns:1fr; }
   }
 </style>
 {% endblock %}
@@ -505,7 +555,7 @@
       <div class="loading-overlay active" style="position:relative;min-height:300px;background:transparent;">
         <div class="loading-spinner"></div>
         <div class="loading-percent" id="strat-percent">0%</div>
-        <div class="loading-title">Stratégie en cours…</div>
+        <div class="loading-title">Gabriel élabore votre stratégie…</div>
         <div class="loading-steps">
           <div class="loading-step active"><div class="loading-step-dot"></div>Lecture du contexte business</div>
           <div class="loading-step" id="sl2"><div class="loading-step-dot"></div>Analyse des insights audience</div>
@@ -1181,15 +1231,15 @@ function renderStrat(d) {
       <div class="obj-text">${_esc(d.objectif_utilisateur_reformule)}</div>`));
   }
 
-  // ── 3. Message central + angle ─────────────────────────
+  // ── 3. Message central + angle (le message — la décision — d'abord) ──
   if (d.message_central || d.angle_positionnel) {
     let html = secHead('lightbulb', 'Positionnement & message');
-    if (d.angle_positionnel) html += `
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--text-muted);font-weight:600;margin-bottom:3px;">Angle positionnel</div>
-      <p style="font-size:12px;color:var(--text-secondary);line-height:1.7;margin:0 0 12px;">${_esc(d.angle_positionnel)}</p>`;
     if (d.message_central) html += `
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:rgba(216,185,130,0.45);font-weight:600;margin-bottom:5px;">Message central</div>
-      <div style="font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.6;padding:10px 14px;background:rgba(216,185,130,0.05);border-left:2px solid rgba(216,185,130,0.4);border-radius:0 6px 6px 0;">${_esc(d.message_central)}</div>`;
+      <div class="pos-message-label">Message central</div>
+      <div class="pos-message-text">${_esc(d.message_central)}</div>`;
+    if (d.angle_positionnel) html += `
+      <div class="pos-angle-label">Angle positionnel</div>
+      <p class="pos-angle-text">${_esc(d.angle_positionnel)}</p>`;
     add(card(html));
   }
 
@@ -1225,19 +1275,19 @@ function renderStrat(d) {
   // ── 5. Recommandations ─────────────────────────────────
   if (Array.isArray(d.recommandations_prioritaires) && d.recommandations_prioritaires.length) {
     let html = secHead('arrow', 'Recommandations prioritaires');
-    html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+    html += '<div class="reco-list">';
     d.recommandations_prioritaires.forEach((r, i) => {
       const action = typeof r === 'string' ? r : (r.action || '');
       const signal = typeof r === 'object' ? (r.signal_source || '') : '';
       const impact = typeof r === 'object' ? (r.impact || '') : '';
       const delai  = typeof r === 'object' ? (r.delai || '') : '';
       html += `
-        <div style="display:flex;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.018);border-radius:6px;border:1px solid var(--border-soft);">
-          <div style="width:18px;height:18px;border-radius:50%;background:rgba(216,185,130,0.1);border:1px solid rgba(216,185,130,0.2);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:rgba(216,185,130,0.7);flex-shrink:0;margin-top:1px;">${i+1}</div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;color:var(--text-primary);line-height:1.6;margin-bottom:4px;">${_esc(action)}</div>
-            ${signal ? `<div style="font-size:10px;color:var(--text-muted);font-style:italic;">Signal : ${_esc(signal)}</div>` : ''}
-            ${(impact||delai) ? `<div style="display:flex;gap:6px;margin-top:5px;">${impact?`<span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(120,200,140,0.06);border:1px solid rgba(120,200,140,0.12);color:rgba(120,200,140,0.65);">${_esc(impact)}</span>`:''}${delai?`<span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(216,185,130,0.05);border:1px solid rgba(216,185,130,0.15);color:rgba(216,185,130,0.6);">${_esc(delai)}</span>`:''}</div>` : ''}
+        <div class="reco-item">
+          <div class="reco-num">${i+1}</div>
+          <div class="reco-body">
+            <div class="reco-action">${_esc(action)}</div>
+            ${signal ? `<div class="reco-signal">Signal : ${_esc(signal)}</div>` : ''}
+            ${(impact||delai) ? `<div class="reco-tags">${impact?`<span class="reco-tag impact">${_esc(impact)}</span>`:''}${delai?`<span class="reco-tag delai">${_esc(delai)}</span>`:''}</div>` : ''}
           </div>
         </div>`;
     });
@@ -1285,8 +1335,8 @@ function renderStrat(d) {
     let html = secHead('dollar', 'Logique de prix');
     html += `<div class="price-card">`;
     if (pricing.fourchette) {
-      html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:var(--text-muted);font-weight:600;margin-bottom:3px;">Fourchette</div><div style="font-size:15px;font-weight:600;color:var(--text-primary);">${_esc(pricing.fourchette)}</div></div>
+      html += `<div class="price-header-row">
+        <div><div class="price-fourchette-label">Fourchette</div><div class="price-fourchette-val">${_esc(pricing.fourchette)}</div></div>
         ${pricing.positionnement?`<span class="price-position-badge">${_esc(pricing.positionnement)}</span>`:''}
       </div>`;
     }
@@ -1295,7 +1345,7 @@ function renderStrat(d) {
     if (pricing.niveau_douleur)    html += `<div class="price-item"><div class="price-val">${_esc(pricing.niveau_douleur)}</div><div class="price-lbl">Douleur marché</div></div>`;
     if (pricing.capacite_paiement) html += `<div class="price-item"><div class="price-val">${_esc(pricing.capacite_paiement)}</div><div class="price-lbl">Budget cible</div></div>`;
     html += `</div>`;
-    if (pricing.justification) html += `<div style="margin-top:10px;font-size:11px;color:var(--text-muted);line-height:1.65;border-top:1px solid var(--border-soft);padding-top:10px;">${_esc(pricing.justification)}</div>`;
+    if (pricing.justification) html += `<div class="price-justification">${_esc(pricing.justification)}</div>`;
     html += `</div>`;
     add(card(html));
   }
@@ -1305,13 +1355,13 @@ function renderStrat(d) {
   if (contenu && typeof contenu === 'object') {
     let html = secHead('edit', 'Stratégie de contenu');
     [['Format prioritaire', contenu.format_prioritaire],['Fréquence', contenu.frequence],['Tonalité', contenu.tonalite]].forEach(([l,v]) => {
-      if (v) html += `<div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-muted);font-weight:600;min-width:130px;padding-top:2px;">${l}</div>
-        <div style="font-size:13px;color:var(--text-secondary);line-height:1.65;">${_esc(v)}</div>
+      if (v) html += `<div class="content-row">
+        <div class="content-row-label">${l}</div>
+        <div class="content-row-val">${_esc(v)}</div>
       </div>`;
     });
     const eviter = Array.isArray(contenu.sujets_a_eviter) ? contenu.sujets_a_eviter : [];
-    if (eviter.length) html += `<div style="margin-top:10px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:600;margin-bottom:5px;">À éviter</div>${eviter.map(s=>`<span style="display:inline-flex;padding:2px 8px;margin:2px;border-radius:20px;border:1px solid rgba(255,100,100,0.12);font-size:10px;color:rgba(255,130,130,0.55);">✕ ${_esc(s)}</span>`).join('')}</div>`;
+    if (eviter.length) html += `<div class="content-avoid"><div class="content-avoid-label">À éviter</div>${eviter.map(s=>`<span class="content-avoid-tag">✕ ${_esc(s)}</span>`).join('')}</div>`;
     add(card(html));
   }
 
@@ -1342,7 +1392,7 @@ function renderStrat(d) {
       if (objList.length) html += `<div class="plan-section-title">Objectifs</div><div class="plan-items">${objList.map(o=>`<div class="plan-item">${_esc(o)}</div>`).join('')}</div>`;
       if (taches.length)  html += `<div class="plan-section-title">Tâches</div><div class="plan-items">${taches.map(t=>`<div class="plan-item">${_esc(t)}</div>`).join('')}</div>`;
       if (livr.length)    html += `<div class="plan-section-title">Livrables</div><div class="plan-items">${livr.map(l=>`<div class="plan-item">${_esc(l)}</div>`).join('')}</div>`;
-      if (kpis.length)    html += `<div class="plan-section-title">KPIs</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;">${kpis.map(k=>`<span class="plan-kpi">${_esc(k)}</span>`).join('')}</div>`;
+      if (kpis.length)    html += `<div class="plan-section-title">KPIs</div><div class="plan-kpi-row">${kpis.map(k=>`<span class="plan-kpi">${_esc(k)}</span>`).join('')}</div>`;
       if (decs.length)    html += `<div class="plan-section-title">Décisions clés</div>${decs.map(dec=>`<div class="plan-decision">${_esc(dec)}</div>`).join('')}`;
       html += `</div>`;
     });
@@ -1352,13 +1402,13 @@ function renderStrat(d) {
   // ── 10. Risques ────────────────────────────────────────
   if (Array.isArray(d.risques) && d.risques.length) {
     let html = secHead('alert', 'Risques à surveiller');
-    html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+    html += '<div class="risk-list">';
     d.risques.forEach(r => {
       const risque = typeof r === 'string' ? r : (r.risque || '');
       const mit    = typeof r === 'object' ? (r.mitigation || '') : '';
-      html += `<div style="padding:10px 12px;border-radius:6px;background:rgba(255,100,100,0.03);border:1px solid rgba(255,100,100,0.1);">
-        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:${mit?'5':'0'}px;">${_esc(risque)}</div>
-        ${mit?`<div style="font-size:10px;color:var(--text-muted);font-style:italic;">→ ${_esc(mit)}</div>`:''}
+      html += `<div class="risk-item">
+        <div class="risk-text${mit ? ' has-mitigation' : ''}">${_esc(risque)}</div>
+        ${mit?`<div class="risk-mitigation">→ ${_esc(mit)}</div>`:''}
       </div>`;
     });
     html += '</div>';
@@ -1368,7 +1418,7 @@ function renderStrat(d) {
   // ── 11. Indicateurs de succès ──────────────────────────
   if (Array.isArray(d.indicateurs_succes) && d.indicateurs_succes.length) {
     let html = secHead('chart', 'Indicateurs de succès');
-    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;">${d.indicateurs_succes.map(k=>`<span class="plan-kpi" style="font-size:11px;">${_esc(k)}</span>`).join('')}</div>`;
+    html += `<div class="indic-row">${d.indicateurs_succes.map(k=>`<span class="plan-kpi">${_esc(k)}</span>`).join('')}</div>`;
     add(card(html));
   }
 
