@@ -1155,7 +1155,7 @@ Polarisation : {kpis.get('polarisation',{}).get('score',0)}/100
     lines = [f"- [r:{s:+.2f}] {_sanitize(c['text'])}" for c, s in filtered[:25]]
     brain_section = f"\nCONTEXTE METIER :\n{brain_context}\n" if brain_context else ""
 
-    prompt = f"""{GABRIEL_SYSTEM}
+    shared = f"""{GABRIEL_SYSTEM}
 {brain_section}
 DONNÉES MESURÉES :
 {ctx}
@@ -1163,13 +1163,12 @@ DONNÉES MESURÉES :
 COMMENTAIRES :
 {chr(10).join(lines)}
 
-RÈGLE ABSOLUE : chaque persona doit provenir d un cluster mesuré ci-dessus.
-Si 2 clusters → 2 personas de base + 1 persona hybride/émergent.
+RÈGLE ABSOLUE : le persona doit provenir d un cluster mesuré ci-dessus (sauf mention contraire).
 "poids" = pourcentage du cluster source.
 "signaux_mesures" = tokens/bigrams réels du cluster, pas inventés.
 "confiance" = score ∈ [0,1] selon la solidité des signaux (0.7+ si cluster clair).
 
-Chaque persona incarne un SEGMENT RÉEL d audience — pas un personnage littéraire.
+Ce persona incarne un SEGMENT RÉEL d audience — pas un personnage littéraire.
 Moins de roman. Plus de précision. Chaque champ doit être inférable des données.
 
 CADRE DE PROFONDEUR (sans romanticisme) :
@@ -1177,106 +1176,72 @@ CADRE DE PROFONDEUR (sans romanticisme) :
 - Jung : archetype dominant, ombre cachee
 - Frankl : quelle quete de sens ?
 - Kahneman : quels biais governent ses decisions ?
+"""
 
-Reponds UNIQUEMENT avec ce JSON :
+    persona_schema = """
+Reponds UNIQUEMENT avec ce JSON (un seul persona) :
 
 {{
-  "personas": [
-    {{
-      "nom": "Nom du segment — ex: Les sceptiques du prix",
-      "cluster_source": "Cluster 0",
-      "poids": "34%",
-      "age": 35,
-      "genre": "Homme",
-      "metier": "metier precis tiré des signaux",
-      "situation_vie": "situation complete — lieu, famille, finances",
-      "etat_esprit": "etat psychologique actuel en profondeur",
-      "vision_monde": "philosophie en 1 phrase memorable",
-      "langage_typique": "expression exacte qu il dirait dans un commentaire — tiree des exemples reels",
-      "emotion_dominante_mesuree": "emotion du cluster (frustration | espoir | mefiance...)",
-      "signaux_mesures": ["token1 du cluster", "token2", "bigram1"],
-      "ombre_jungienne": "face cachee qu il ne montre pas",
-      "quete_de_sens": "quete fondamentale au sens de Frankl",
-      "biais_cognitifs": "2-3 biais Kahneman qui guidient ses decisions",
-      "frustrations": ["frustration concrete 1 — inferable des signaux", "frustration 2"],
-      "aspirations": ["aspiration profonde 1", "aspiration 2"],
-      "peurs": ["peur existentielle 1", "peur pratique 2"],
-      "desirs": ["desir cache 1", "desir 2"],
-      "objection_principale": "objection exacte — ex: Trop cher",
-      "preuve_attendue": "type de preuve qui le convaincrait — resultats / temoignages / demo...",
-      "rapport_argent": "rapport reel a l argent avec contradictions",
-      "rapport_autorite": "perception des experts et leaders",
-      "habitudes_digitales": ["habitude specifique 1", "habitude 2"],
-      "declencheurs_emotionnels": ["ce qui le fait reagir fort 1", "declencheur 2"],
-      "ce_qui_le_ferait_acheter": "declencheur exact d achat",
-      "ce_qui_le_ferait_fuir": "repoussoir principal",
-      "message_a_lui_dire": "la phrase exacte qui repond a son besoin profond",
-      "messages_impactants": ["message qui le toucherait au plus profond", "message 2"],
-      "objections_a_lever": ["objection principale", "objection 2"],
-      "histoire_interieure": "monologue interieur — ce qu il se dit a lui-meme",
-      "mission_cachee": "purpose non encore nomme — Myles Munroe",
-      "potentiel_non_exprime": "potentiel bloque par la peur ou les circonstances",
-      "archetype_jungien": "Heros | Sage | Orphelin | Guerrier | Createur | Souverain",
-      "besoin_d_appartenance": "quelle communaute, tribu aspire-t-il a rejoindre ?",
-      "desir_de_legacy": "ce qu il veut laisser derriere lui",
-      "tension_existentielle": "tension entre qui il est et qui il est appele a devenir",
-      "confiance": 0.75
-    }},
-    {{
-      "nom": "Nom segment 2",
-      "cluster_source": "Cluster 1",
-      "poids": "27%",
-      "age": 29, "genre": "Femme", "metier": "metier different",
-      "situation_vie": "situation complete differente", "etat_esprit": "etat different",
-      "vision_monde": "philosophie differente", "langage_typique": "expression differente",
-      "emotion_dominante_mesuree": "emotion mesuree du cluster 1",
-      "signaux_mesures": ["token cluster1-a", "token cluster1-b"],
-      "ombre_jungienne": "ombre differente", "quete_de_sens": "quete differente",
-      "biais_cognitifs": "biais differents",
-      "frustrations": ["frustration 1", "frustration 2"], "aspirations": ["aspiration 1", "aspiration 2"],
-      "peurs": ["peur 1", "peur 2"], "desirs": ["desir 1", "desir 2"],
-      "objection_principale": "objection 2", "preuve_attendue": "preuve attendue 2",
-      "rapport_argent": "rapport", "rapport_autorite": "autorite",
-      "habitudes_digitales": ["habitude 1", "habitude 2"], "declencheurs_emotionnels": ["dec 1", "dec 2"],
-      "ce_qui_le_ferait_acheter": "declencheur", "ce_qui_le_ferait_fuir": "repoussoir",
-      "message_a_lui_dire": "message 2",
-      "messages_impactants": ["message 1", "message 2"], "objections_a_lever": ["obj 1", "obj 2"],
-      "histoire_interieure": "monologue 2",
-      "mission_cachee": "purpose 2", "potentiel_non_exprime": "potentiel 2",
-      "archetype_jungien": "archetype 2", "besoin_d_appartenance": "appartenance 2",
-      "desir_de_legacy": "legacy 2", "tension_existentielle": "tension 2",
-      "confiance": 0.68
-    }},
-    {{
-      "nom": "Nom segment 3 — hybride ou emergent",
-      "cluster_source": "hybride",
-      "poids": "15%",
-      "age": 42, "genre": "Homme", "metier": "metier 3",
-      "situation_vie": "situation 3", "etat_esprit": "etat 3",
-      "vision_monde": "philosophie 3", "langage_typique": "expression 3",
-      "emotion_dominante_mesuree": "emotion 3",
-      "signaux_mesures": ["signal3a", "signal3b"],
-      "ombre_jungienne": "ombre 3", "quete_de_sens": "quete 3", "biais_cognitifs": "biais 3",
-      "frustrations": ["f1", "f2"], "aspirations": ["a1", "a2"],
-      "peurs": ["p1", "p2"], "desirs": ["d1", "d2"],
-      "objection_principale": "objection 3", "preuve_attendue": "preuve 3",
-      "rapport_argent": "r3", "rapport_autorite": "a3",
-      "habitudes_digitales": ["h1", "h2"], "declencheurs_emotionnels": ["d1", "d2"],
-      "ce_qui_le_ferait_acheter": "achat 3", "ce_qui_le_ferait_fuir": "fuite 3",
-      "message_a_lui_dire": "message 3",
-      "messages_impactants": ["m1", "m2"], "objections_a_lever": ["o1", "o2"],
-      "histoire_interieure": "monologue 3",
-      "mission_cachee": "purpose 3", "potentiel_non_exprime": "potentiel 3",
-      "archetype_jungien": "archetype 3", "besoin_d_appartenance": "appartenance 3",
-      "desir_de_legacy": "legacy 3", "tension_existentielle": "tension 3",
-      "confiance": 0.55
-    }}
-  ]
+  "nom": "Nom du segment — ex: Les sceptiques du prix",
+  "cluster_source": "{cluster_source}",
+  "poids": "34%",
+  "age": 35,
+  "genre": "Homme",
+  "metier": "metier precis tiré des signaux",
+  "situation_vie": "situation complete — lieu, famille, finances",
+  "etat_esprit": "etat psychologique actuel en profondeur",
+  "vision_monde": "philosophie en 1 phrase memorable",
+  "langage_typique": "expression exacte qu il dirait dans un commentaire — tiree des exemples reels",
+  "emotion_dominante_mesuree": "emotion du cluster (frustration | espoir | mefiance...)",
+  "signaux_mesures": ["token1 du cluster", "token2", "bigram1"],
+  "ombre_jungienne": "face cachee qu il ne montre pas",
+  "quete_de_sens": "quete fondamentale au sens de Frankl",
+  "biais_cognitifs": "2-3 biais Kahneman qui guidient ses decisions",
+  "frustrations": ["frustration concrete 1 — inferable des signaux", "frustration 2"],
+  "aspirations": ["aspiration profonde 1", "aspiration 2"],
+  "peurs": ["peur existentielle 1", "peur pratique 2"],
+  "desirs": ["desir cache 1", "desir 2"],
+  "objection_principale": "objection exacte — ex: Trop cher",
+  "preuve_attendue": "type de preuve qui le convaincrait — resultats / temoignages / demo...",
+  "rapport_argent": "rapport reel a l argent avec contradictions",
+  "rapport_autorite": "perception des experts et leaders",
+  "habitudes_digitales": ["habitude specifique 1", "habitude 2"],
+  "declencheurs_emotionnels": ["ce qui le fait reagir fort 1", "declencheur 2"],
+  "ce_qui_le_ferait_acheter": "declencheur exact d achat",
+  "ce_qui_le_ferait_fuir": "repoussoir principal",
+  "message_a_lui_dire": "la phrase exacte qui repond a son besoin profond",
+  "messages_impactants": ["message qui le toucherait au plus profond", "message 2"],
+  "objections_a_lever": ["objection principale", "objection 2"],
+  "histoire_interieure": "monologue interieur — ce qu il se dit a lui-meme",
+  "mission_cachee": "purpose non encore nomme — Myles Munroe",
+  "potentiel_non_exprime": "potentiel bloque par la peur ou les circonstances",
+  "archetype_jungien": "Heros | Sage | Orphelin | Guerrier | Createur | Souverain",
+  "besoin_d_appartenance": "quelle communaute, tribu aspire-t-il a rejoindre ?",
+  "desir_de_legacy": "ce qu il veut laisser derriere lui",
+  "tension_existentielle": "tension entre qui il est et qui il est appele a devenir",
+  "confiance": 0.75
 }}"""
 
-    text = _call_claude(prompt, max_tokens=5000)
-    data = _parse_json(text)
-    return data.get('personas', [])
+    persona_briefs = [
+        ("Cluster 0", "Génère le PREMIER persona — le segment le plus large/représentatif parmi les clusters mesurés."),
+        ("Cluster 1", "Génère le DEUXIÈME persona — un segment mesuré clairement distinct du premier (cluster différent si disponible)."),
+        ("hybride", "Génère le TROISIÈME persona — hybride ou émergent, une tension ou combinaison qui ne correspond pleinement à aucun cluster pris isolément."),
+    ]
+
+    def _one_persona(cluster_source, mission):
+        prompt = f"{shared}\nTA MISSION : {mission}\n{persona_schema.format(cluster_source=cluster_source)}"
+        text = _call_claude(prompt, max_tokens=2000)
+        return _parse_json(text)
+
+    personas = []
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [executor.submit(_one_persona, src, mission) for src, mission in persona_briefs]
+        for fut in futures:
+            try:
+                personas.append(fut.result())
+            except Exception as e:
+                print(f"[GABRIEL] Persona ERREUR (non bloquant) : {e}")
+    return personas
 
 
 # ─── ÉTAPE 2C : RECOMMANDATIONS (appel dédié) ────────────────────────────────
