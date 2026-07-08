@@ -831,7 +831,7 @@ Polarisation={d.get('polarization_score',0)} | Opportunité={d.get('opportunity_
 Émotion dominante={d.get('dominant_emotion','')} | Stance dominante={d.get('dominant_stance','')} | Désir dominant={d.get('dominant_desire','')}
 """
 
-    prompt = f"""{GABRIEL_SYSTEM}
+    shared_context = f"""{GABRIEL_SYSTEM}
 {brain_section}{video_section}{rag_section}
 DONNEES MATHEMATIQUES DEJA CALCULEES :
 KPIs : {kpi_summary}
@@ -840,9 +840,9 @@ Moyenne scores : {distribution['mean']} | Ecart-type : {distribution['std_dev']}
 {l1_section}{nlp_section}{dashboard_section}
 {len(filtered)} commentaires selectionnes (r = score, tri par valeur signal) :
 {comments_text}
+"""
 
-Ta mission : ecrire les DESCRIPTIONS des KPIs et produire l analyse qualitative complete.
-
+    shared_rules = """
 RÈGLE ABSOLUE — FORMAT TRIPARTITE OBLIGATOIRE POUR CHAQUE CONCLUSION :
   Observation : [X% des commentaires / token Y / signal Z mesuré]
   Interprétation : [ce que ce signal révèle psychologiquement]
@@ -863,7 +863,16 @@ LECTURE REQUISE — AVANT DE COMMENCER :
 → Detecte le PURPOSE cache : quelle mission, quel potentiel, quelle vision aspire a emerger dans ces commentaires ?
 → Detecte les besoins bibliques universels : appartenance, signifiance, transformation, legacy, grace
 → Les recommandations partent de la vraie aspiration humaine detectee — jamais d un angle invente
+"""
 
+    # Le schéma complet (10 sections + grille 10 questions tripartites) nécessitait
+    # 8000 tokens en un seul appel séquentiel — c'était le principal goulot de vitesse
+    # du Psychologue (bloquant avant même le début de la phase parallèle). Découpé en
+    # 2 appels concurrents de même profondeur/modèle : le temps de génération de cette
+    # étape est dicté par le plus lent des deux au lieu de leur somme.
+    prompt_a = f"""{shared_context}
+Ta mission : ecrire les DESCRIPTIONS des KPIs et produire la lecture psychologique individuelle (emotions, psychologie profonde, aspirations, identite, trajectoire de transformation).
+{shared_rules}
 Reponds UNIQUEMENT avec ce JSON :
 
 {{
@@ -941,6 +950,35 @@ Reponds UNIQUEMENT avec ce JSON :
     "faiblesses_narratives": ["faiblesse 1", "faiblesse 2"],
     "recit_dominant": "1 phrase — le grand recit collectif"
   }},
+  "transformation": {{
+    "etat_actuel": {{
+      "situation": "1 phrase — où ils en sont concrètement aujourd'hui",
+      "frustration_principale": "le point de douleur #1 qui les maintient à l'état A",
+      "croyance_bloquante": "la croyance ou le récit intérieur qui les empêche d'avancer",
+      "identite_actuelle": "comment ils se définissent eux-mêmes aujourd'hui",
+      "conscience_du_probleme": "naissante | partielle | pleine"
+    }},
+    "etat_desire": {{
+      "transformation_visee": "la transformation concrète qu'ils cherchent — pas un rêve vague, une réalité précise",
+      "identite_aspiree": "qui ils veulent être après la transformation — leur 'moi B'",
+      "vie_revelee": "la vie qu'ils imaginent de l'autre côté du changement",
+      "indicateur_de_succes": "comment ils sauraient concrètement qu'ils ont réussi"
+    }},
+    "le_pont": {{
+      "ce_dont_ils_ont_besoin": "la ressource, le guide ou l'outil manquant pour passer de A à B",
+      "obstacle_principal": "le blocage #1 qui empêche la transition — psychologique, pratique ou identitaire",
+      "declencheur_de_transition": "ce qui les ferait passer à l'action maintenant — le signal déclencheur",
+      "message_de_passage": "la phrase qui capture leur voyage — 'Je suis X qui cherche à devenir Y sans Z'"
+    }}
+  }}
+}}"""
+
+    prompt_b = f"""{shared_context}
+Ta mission : produire la lecture socio-culturelle et strategique de cette audience (culture, marketing, demographie, marches caches, grille de decision).
+{shared_rules}
+Reponds UNIQUEMENT avec ce JSON :
+
+{{
   "culturel": {{
     "visions_du_monde": "1 phrase",
     "croyances_dominantes": ["croyance 1", "croyance 2", "croyance 3"],
@@ -982,27 +1020,6 @@ Reponds UNIQUEMENT avec ce JSON :
       "pays": ["pays inféré 1", "pays 2"],
       "villes_regions": ["ville ou région inférée 1", "ville 2"],
       "note": "inféré des expressions, argot, références culturelles présents dans les commentaires"
-    }}
-  }},
-  "transformation": {{
-    "etat_actuel": {{
-      "situation": "1 phrase — où ils en sont concrètement aujourd'hui",
-      "frustration_principale": "le point de douleur #1 qui les maintient à l'état A",
-      "croyance_bloquante": "la croyance ou le récit intérieur qui les empêche d'avancer",
-      "identite_actuelle": "comment ils se définissent eux-mêmes aujourd'hui",
-      "conscience_du_probleme": "naissante | partielle | pleine"
-    }},
-    "etat_desire": {{
-      "transformation_visee": "la transformation concrète qu'ils cherchent — pas un rêve vague, une réalité précise",
-      "identite_aspiree": "qui ils veulent être après la transformation — leur 'moi B'",
-      "vie_revelee": "la vie qu'ils imaginent de l'autre côté du changement",
-      "indicateur_de_succes": "comment ils sauraient concrètement qu'ils ont réussi"
-    }},
-    "le_pont": {{
-      "ce_dont_ils_ont_besoin": "la ressource, le guide ou l'outil manquant pour passer de A à B",
-      "obstacle_principal": "le blocage #1 qui empêche la transition — psychologique, pratique ou identitaire",
-      "declencheur_de_transition": "ce qui les ferait passer à l'action maintenant — le signal déclencheur",
-      "message_de_passage": "la phrase qui capture leur voyage — 'Je suis X qui cherche à devenir Y sans Z'"
     }}
   }},
   "marches_caches": {{
@@ -1074,10 +1091,13 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
-    # 8000 tokens : le schéma complet (10 sections + grille 10 questions tripartites)
-    # dépassait 5500 et tronquait la grille_psychologique (dernière section).
-    text = _call_claude(prompt, max_tokens=8000)
-    return _parse_json(text)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        fut_a = executor.submit(_call_claude, prompt_a, max_tokens=5000)
+        fut_b = executor.submit(_call_claude, prompt_b, max_tokens=5000)
+        data_a = _parse_json(fut_a.result())
+        data_b = _parse_json(fut_b.result())
+
+    return {**data_a, **data_b}
 
 
 # ─── ÉTAPE 2B : PERSONAS (appel dédié) ───────────────────────────────────────
