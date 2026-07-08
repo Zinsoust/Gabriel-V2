@@ -100,17 +100,17 @@
   <div class="df-step-sep"></div>
   <button class="df-step-btn{% if folder.analysis_id and folder.step in ['psychologue','stratege','createur','verification'] %} done{% elif folder.step == 'psychologue' %} active{% endif %}" onclick="goStep('psychologue')" id="step-btn-psychologue">
     <span class="df-step-num">✓</span>
-    <span class="df-step-label">Psychologue</span>
+    <span class="df-step-label">Le Psychologue</span>
   </button>
   <div class="df-step-sep"></div>
   <button class="df-step-btn{% if folder.strategy_id and folder.step in ['createur','verification'] %} done{% elif folder.step == 'stratege' %} active{% endif %}" onclick="goStep('stratege')" id="step-btn-stratege">
     <span class="df-step-num">3</span>
-    <span class="df-step-label">Stratège</span>
+    <span class="df-step-label">Le Stratège</span>
   </button>
   <div class="df-step-sep"></div>
   <button class="df-step-btn{% if folder.creator_output_id and folder.step == 'verification' %} done{% elif folder.step == 'createur' %} active{% endif %}" onclick="goStep('createur')" id="step-btn-createur">
     <span class="df-step-num">4</span>
-    <span class="df-step-label">Créateur</span>
+    <span class="df-step-label">Le Créateur</span>
   </button>
   <div class="df-step-sep"></div>
   <button class="df-step-btn{% if folder.step == 'verification' %} active{% endif %}" onclick="goStep('verification')" id="step-btn-verification">
@@ -181,7 +181,7 @@
       <div class="df-result-title">Analyse Psychologique</div>
       <a href="/psychologue?folder_id={{ folder.folder_id }}#{{ folder.analysis_id }}" class="df-open-btn" target="_blank">
         <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Ouvrir dans Psychologue
+        Ouvrir le Psychologue
       </a>
     </div>
     <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">
@@ -360,6 +360,18 @@
     'Gabriel synthétise les insights clés…',
   ];
 
+  // Traduction des étapes techniques en messages premium (montre que Gabriel réfléchit)
+  const STEP_LABELS = {
+    'demarrage':      'Gabriel prépare le terrain d\'analyse…',
+    'nlp':            'Gabriel lit les réactions du marché…',
+    'scoring':        'Gabriel mesure l\'intensité émotionnelle…',
+    'rag':            'Gabriel mobilise son expertise stratégique…',
+    'llm_principal':  'Gabriel décrypte la psychologie de l\'audience…',
+    'llm_paralleles': 'Gabriel croise les signaux dominants…',
+    'assemblage':     'Gabriel structure ses conclusions…',
+    'termine':        'Analyse terminée ✓',
+  };
+
   // ── Navigation étapes ───────────────────────────────────────
   window.goStep = function (step) {
     document.querySelectorAll('.df-panel').forEach(p => p.classList.remove('active'));
@@ -516,13 +528,18 @@
     let attempts = 0;
     pollTimer = setInterval(async () => {
       attempts++;
-      if (attempts > 120) { clearInterval(pollTimer); showErr('L\'analyse a pris trop de temps. Réessayez.'); resetProgress(); return; }
+      // 300 tentatives × 1500ms = 7,5 min — marge pour scraping + NLP + appels LLM
+      if (attempts > 300) { clearInterval(pollTimer); showErr('Gabriel prend un peu plus de temps que prévu. Relancez l\'analyse dans un instant.'); resetProgress(); return; }
       try {
         const r = await fetch('/status/' + jobId);
         const j = await r.json();
         const pct = j.progress || 0;
         document.getElementById('df-progress-bar').style.width = pct + '%';
-        if (j.step) document.getElementById('df-progress-sub').textContent = j.step;
+        // Message premium piloté par la vraie étape (jamais de texte technique brut)
+        if (j.step && STEP_LABELS[j.step]) {
+          document.getElementById('df-progress-msg').textContent = STEP_LABELS[j.step];
+        }
+        document.getElementById('df-progress-sub').textContent = pct > 0 ? pct + ' %' : '';
         if (j.status === 'done' || j.status === 'completed') {
           clearInterval(pollTimer);
           // Mettre à jour la page pour refléter l'analyse complète

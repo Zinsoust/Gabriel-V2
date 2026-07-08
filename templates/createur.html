@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Gabriel — Créateur{% endblock %}
-{% block page_name %}Créateur{% endblock %}
+{% block title %}Gabriel — Le Créateur{% endblock %}
+{% block page_name %}Le Créateur{% endblock %}
 
 {% block head %}
 <style>
@@ -595,13 +595,13 @@
   <div class="cre-ctx" id="cre-ctx" style="display:none">
     <div class="cre-ctx-item">
       <div class="cre-ctx-dot off" id="ctx-p-dot"></div>
-      <span class="cre-ctx-label">Psychologue</span>
+      <span class="cre-ctx-label">Le Psychologue</span>
       <span class="cre-ctx-val" id="ctx-p-val"></span>
     </div>
     <div class="cre-ctx-sep"></div>
     <div class="cre-ctx-item">
       <div class="cre-ctx-dot off" id="ctx-s-dot"></div>
-      <span class="cre-ctx-label">Stratège</span>
+      <span class="cre-ctx-label">Le Stratège</span>
       <span class="cre-ctx-val" id="ctx-s-val"></span>
     </div>
   </div>
@@ -677,8 +677,8 @@
   <div class="hidden cre-loading" id="cre-load">
     <div class="cre-progress"><div class="cre-progress-fill"></div></div>
     <div class="loading-percent" id="cre-percent" style="font-size:22px;min-height:26px;">0%</div>
-    <div class="cre-loading-label" id="cre-load-lbl">Le Créateur travaille…</div>
-    <div class="cre-loading-sub">Signaux psychologiques · RAG · Rédaction</div>
+    <div class="cre-loading-label" id="cre-load-lbl">Gabriel compose votre contenu…</div>
+    <div class="cre-loading-sub">Inspiré de la psychologie de votre audience</div>
   </div>
 
   <!-- Résultat -->
@@ -864,11 +864,11 @@ async function generate() {
 
 /* ─── Polling ────────────────────────────────────────────────────────────────── */
 const STEPS = [
-  'Analyse des signaux psychologiques…',
-  'Sélection des références RAG…',
-  'Construction du brief d\'écriture…',
-  'Rédaction avec la discipline choisie…',
-  'Vérification de la cohérence…',
+  'Gabriel relit la psychologie de votre audience…',
+  'Gabriel puise dans son expertise éditoriale…',
+  'Gabriel façonne l\'angle de votre contenu…',
+  'Gabriel rédige avec la tonalité choisie…',
+  'Gabriel peaufine la cohérence finale…',
 ];
 function poll(jid) {
   if (_pollTimer) clearTimeout(_pollTimer);
