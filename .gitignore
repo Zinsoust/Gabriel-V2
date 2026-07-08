@@ -27,6 +27,13 @@ gabriel_err.log
 brain_profile.json
 contexte_business.json
 history.json
+data/history.json
+data/strategies.json
+data/exports.json
+data/gabriel_memory.json
+data/conversations.json
+data/contexts/*.json
+data/memory_*.json
 data/feedbacks.json
 data/local_*.json
 
@@ -42,3 +49,9 @@ data/local_*.json
 # Outils locaux
 .claude/
 .agents/
+
+# Médias perso / temporaires (hors repo)
+photo/
+tmp/
+*_stderr.log
+*_stdout.log
