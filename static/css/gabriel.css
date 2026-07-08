@@ -1288,6 +1288,16 @@ body:has(.learn-page) .app-content {
 }
 .orch-msg.agent .orch-bubble-text { background: var(--bg-card); border: 1px solid var(--border-soft); }
 .orch-msg.user .orch-bubble-text { background: rgba(216,185,130,0.1); border: 1px solid var(--border-champagne); color: var(--champagne-light); }
+.orch-bubble-text strong { color: var(--champagne-light); font-weight: 600; }
+.orch-bubble-text p { margin: 0 0 8px; }
+.orch-bubble-text p:last-child { margin-bottom: 0; }
+.orch-bubble-text ul { margin: 0 0 8px; padding-left: 16px; }
+.orch-bubble-text ul:last-child { margin-bottom: 0; }
+.orch-bubble-text li { margin-bottom: 3px; }
+.orch-label-block { margin: 0 0 10px; }
+.orch-label-block:last-child { margin-bottom: 0; }
+.orch-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--champagne-soft); font-weight: 600; margin-bottom: 3px; }
+.orch-label-value { font-size: 12.5px; color: var(--text-primary); line-height: 1.6; }
 
 .orch-typing { display: flex; gap: 4px; padding: 9px 12px; }
 .orch-typing span {
