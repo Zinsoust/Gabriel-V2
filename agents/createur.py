@@ -414,7 +414,9 @@ _SYSTEM_PROMPTS['publicite'] = _SYSTEM_PROMPTS['ad']
 
 def _call_mistral(prompt, max_tokens=3000):
     from mistralai import Mistral
-    key    = os.environ.get("MISTRAL_API_KEY")
+    key = os.environ.get("MISTRAL_API_KEY")
+    if not key:
+        raise RuntimeError("MISTRAL_API_KEY manquante — configurez-la dans les variables d'environnement Render.")
     client = Mistral(api_key=key, timeout_ms=120_000)
     for attempt in range(2):
         try:

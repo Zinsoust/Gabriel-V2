@@ -150,8 +150,12 @@ def _build_psycho_summary(psycho_data):
 
 def _call_mistral(prompt, max_tokens=5000):
     from mistralai import Mistral
-    key    = os.environ.get("MISTRAL_API_KEY")
-    client = Mistral(api_key=key, timeout_ms=300_000)
+    key = os.environ.get("MISTRAL_API_KEY")
+    if not key:
+        raise RuntimeError("MISTRAL_API_KEY manquante — configurez-la dans les variables d'environnement Render.")
+    # 270s < timeout Gunicorn (300s) : garantit une erreur propre plutôt qu'un
+    # worker tué par Gunicorn si l'appel Mistral traîne. /strategize est synchrone.
+    client = Mistral(api_key=key, timeout_ms=270_000)
     for attempt in range(2):
         try:
             response = client.chat.complete(

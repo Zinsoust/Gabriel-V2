@@ -241,11 +241,23 @@ def _index_path(agent: str) -> Path:
 
 
 def _hash_dir(agent_dir: Path) -> str:
+    """Hash basé sur le CONTENU des fichiers (et non le mtime).
+
+    Sur Render, chaque déploiement fait un `git clone` frais : tous les mtimes
+    valent la date du déploiement et ne correspondent jamais à ceux d'origine.
+    Un hash basé sur mtime forcerait donc un rebuild complet de l'index à chaque
+    redémarrage (chargement du modèle + ré-encodage → pic mémoire, lenteur).
+    Le hash de contenu est déterministe entre machines : l'index .pkl committé
+    est réutilisé tel quel sur Render.
+    """
     h = hashlib.md5()
     for f in sorted(agent_dir.glob("**/*")):
         if f.is_file() and f.suffix.lower() in (".md", ".txt", ".pdf", ".epub", ".json"):
             h.update(f.name.encode())
-            h.update(str(f.stat().st_mtime).encode())
+            try:
+                h.update(f.read_bytes())
+            except Exception:
+                h.update(str(f.stat().st_size).encode())
     return h.hexdigest()
 
 
