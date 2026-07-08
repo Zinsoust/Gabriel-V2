@@ -1,305 +1,1119 @@
-{% extends "base.html" %}
-{% block title %}Gabriel — Dossiers Stratégiques{% endblock %}
-{% block page_name %}Dossiers{% endblock %}
-
-{% block head %}
-<style>
-  /* ─── En-tête ─────────────────────────────────────────────── */
-  .ds-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
-  .ds-title  { font-size:22px; font-weight:600; color:var(--text-primary); letter-spacing:-0.02em; }
-  .ds-subtitle { font-size:13px; color:var(--text-muted); margin-top:4px; }
-
-  /* ─── Bouton créer ────────────────────────────────────────── */
-  .ds-btn-create { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:var(--radius-md); border:1px solid rgba(216,185,130,0.35); background:rgba(216,185,130,0.1); color:#D8B982; font-size:13px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:inherit; }
-  .ds-btn-create:hover { background:rgba(216,185,130,0.18); border-color:rgba(216,185,130,0.5); }
-  .ds-btn-create svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-
-  /* ─── Grille de dossiers ──────────────────────────────────── */
-  .ds-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:14px; }
-
-  /* ─── Carte dossier ───────────────────────────────────────── */
-  .ds-card { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:20px; cursor:pointer; transition:border-color 0.2s, transform 0.15s; text-decoration:none; display:flex; flex-direction:column; gap:12px; animation:gb-slide-up 0.3s cubic-bezier(0.22,1,.36,1) both; }
-  .ds-card:hover { border-color:rgba(216,185,130,0.25); transform:translateY(-1px); }
-  .ds-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
-  .ds-card-icon { width:36px; height:36px; border-radius:10px; background:rgba(216,185,130,0.1); border:1px solid rgba(216,185,130,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-  .ds-card-icon svg { width:16px; height:16px; stroke:#D8B982; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  .ds-card-title { font-size:14px; font-weight:500; color:var(--text-primary); line-height:1.4; }
-  .ds-card-obj   { font-size:12px; color:var(--text-muted); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .ds-card-meta  { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:auto; }
-  .ds-card-date  { font-size:11px; color:var(--text-disabled); }
-
-  /* ─── Badge étape ─────────────────────────────────────────── */
-  .ds-step { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:500; letter-spacing:0.03em; }
-  .ds-step.source       { background:rgba(255,255,255,0.04); border:1px solid var(--border-soft); color:var(--text-muted); }
-  .ds-step.psychologue  { background:rgba(100,160,255,0.08); border:1px solid rgba(100,160,255,0.2); color:rgba(130,180,255,0.9); }
-  .ds-step.stratege     { background:rgba(216,185,130,0.08); border:1px solid rgba(216,185,130,0.22); color:#D8B982; }
-  .ds-step.createur     { background:rgba(120,200,140,0.08); border:1px solid rgba(120,200,140,0.22); color:rgba(130,210,150,0.9); }
-  .ds-step.verification { background:rgba(180,120,255,0.08); border:1px solid rgba(180,120,255,0.2); color:rgba(190,140,255,0.9); }
-  .ds-step .dot { width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0; }
-
-  /* ─── Badge type ──────────────────────────────────────────── */
-  .ds-type { display:inline-flex; padding:3px 8px; border-radius:20px; font-size:10px; font-weight:500; background:rgba(255,255,255,0.04); border:1px solid var(--border-soft); color:var(--text-muted); }
-
-  /* ─── Bouton suppr ────────────────────────────────────────── */
-  .ds-card-del { width:28px; height:28px; border-radius:8px; border:1px solid transparent; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s; color:var(--text-disabled); }
-  .ds-card-del:hover { border-color:rgba(255,100,100,0.3); color:rgba(255,130,130,0.8); background:rgba(255,100,100,0.06); }
-  .ds-card-del svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
-
-  /* ─── État vide ───────────────────────────────────────────── */
-  .ds-empty { text-align:center; padding:80px 24px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); }
-  .ds-empty-icon { width:56px; height:56px; margin:0 auto 20px; border-radius:16px; background:rgba(216,185,130,0.08); border:1px solid rgba(216,185,130,0.15); display:flex; align-items:center; justify-content:center; }
-  .ds-empty-icon svg { width:24px; height:24px; stroke:rgba(216,185,130,0.5); fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
-  .ds-empty-title { font-size:16px; font-weight:500; color:var(--text-primary); margin-bottom:8px; }
-  .ds-empty-desc  { font-size:13px; color:var(--text-muted); max-width:340px; margin:0 auto 24px; line-height:1.6; }
-
-  /* ─── Chargement ──────────────────────────────────────────── */
-  .ds-loading { display:flex; align-items:center; justify-content:center; padding:60px; color:var(--text-muted); font-size:13px; gap:10px; }
-  .ds-spinner { width:18px; height:18px; border:2px solid rgba(216,185,130,0.15); border-top-color:rgba(216,185,130,0.6); border-radius:50%; animation:spin 0.7s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
-
-  /* ─── Modal création ──────────────────────────────────────── */
-  .ds-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px; }
-  .ds-modal-overlay.open { display:flex; }
-  .ds-modal { background:var(--bg-panel); border:1px solid var(--border-soft); border-radius:var(--radius-xl); padding:28px; width:100%; max-width:480px; animation:gb-slide-up 0.25s cubic-bezier(0.22,1,.36,1); }
-  .ds-modal-title { font-size:17px; font-weight:600; color:var(--text-primary); margin-bottom:4px; }
-  .ds-modal-sub   { font-size:13px; color:var(--text-muted); margin-bottom:22px; }
-
-  .ds-field { margin-bottom:16px; }
-  .ds-label { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); display:block; margin-bottom:7px; }
-  .ds-input { width:100%; background:var(--bg-input,rgba(255,255,255,0.05)); border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:10px 14px; font-size:13px; color:var(--text-primary); font-family:inherit; transition:border-color 0.15s; box-sizing:border-box; }
-  .ds-input:focus { outline:none; border-color:rgba(216,185,130,0.4); }
-  .ds-input::placeholder { color:var(--text-disabled); }
-  .ds-select { appearance:none; cursor:pointer; }
-
-  .ds-modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:22px; }
-  .ds-modal-cancel { padding:9px 18px; border-radius:var(--radius-md); border:1px solid var(--border-soft); background:transparent; color:var(--text-secondary); font-size:13px; cursor:pointer; font-family:inherit; transition:all 0.15s; }
-  .ds-modal-cancel:hover { border-color:rgba(255,255,255,0.15); color:var(--text-primary); }
-  .ds-modal-submit { padding:9px 20px; border-radius:var(--radius-md); border:1px solid rgba(216,185,130,0.35); background:rgba(216,185,130,0.12); color:#D8B982; font-size:13px; font-weight:500; cursor:pointer; font-family:inherit; transition:all 0.15s; }
-  .ds-modal-submit:hover { background:rgba(216,185,130,0.2); }
-  .ds-modal-submit:disabled { opacity:0.5; cursor:not-allowed; }
-
-  .ds-err { font-size:12px; color:rgba(255,130,130,0.85); margin-top:10px; display:none; }
-  .ds-err.show { display:block; }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="ds-header">
-  <div>
-    <div class="ds-title">Dossiers</div>
-    <div class="ds-subtitle">Chaque dossier est un espace de décision complet — analyse, stratégie, création.</div>
-  </div>
-  <button class="ds-btn-create" onclick="openModal()">
-    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Nouveau dossier
-  </button>
-</div>
-
-<div id="ds-content">
-  <div class="ds-loading">
-    <div class="ds-spinner"></div>
-    <span>Chargement des dossiers…</span>
-  </div>
-</div>
-
-<!-- Modal création -->
-<div class="ds-modal-overlay" id="ds-modal" role="dialog" aria-modal="true" aria-label="Créer un dossier">
-  <div class="ds-modal">
-    <div class="ds-modal-title">Nouveau dossier</div>
-    <div class="ds-modal-sub">Un espace pour centraliser votre analyse de décision.</div>
-
-    <div class="ds-field">
-      <label class="ds-label" for="ds-f-title">Nom du dossier</label>
-      <input id="ds-f-title" class="ds-input" type="text" placeholder="Ex : Lancement offre Premium — Août 2026" maxlength="200" autocomplete="off" />
-    </div>
-
-    <div class="ds-field">
-      <label class="ds-label" for="ds-f-objective">Objectif (optionnel)</label>
-      <input id="ds-f-objective" class="ds-input" type="text" placeholder="Ex : Décider si lancer l'offre à 297€ ou 497€" maxlength="500" autocomplete="off" />
-    </div>
-
-    <div class="ds-field">
-      <label class="ds-label" for="ds-f-type">Type d'analyse</label>
-      <select id="ds-f-type" class="ds-input ds-select">
-        <option value="audience">Audience — comprendre qui vous écoute</option>
-        <option value="offre">Offre — évaluer une proposition de valeur</option>
-        <option value="concurrent">Concurrent — analyser la concurrence</option>
-        <option value="avis">Avis — analyser des retours clients</option>
-        <option value="campagne">Campagne — évaluer une campagne</option>
-        <option value="autre">Autre</option>
-      </select>
-    </div>
-
-    <div class="ds-err" id="ds-form-err"></div>
-
-    <div class="ds-modal-actions">
-      <button class="ds-modal-cancel" onclick="closeModal()">Annuler</button>
-      <button class="ds-modal-submit" id="ds-submit-btn" onclick="submitCreate()">Créer le dossier</button>
-    </div>
-  </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-(function () {
-  const STEP_LABELS = {
-    source:       'Source',
-    psychologue:  'Psychologue',
-    stratege:     'Stratège',
-    createur:     'Créateur',
-    verification: 'Vérification',
-  };
-  const TYPE_LABELS = {
-    audience:   'Audience',
-    offre:      'Offre',
-    concurrent: 'Concurrent',
-    avis:       'Avis',
-    campagne:   'Campagne',
-    autre:      'Autre',
-  };
-
-  function fmtDate(s) {
-    if (!s) return '';
-    const d = new Date(s);
-    if (isNaN(d)) return '';
-    return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
-  }
-
-  async function load() {
-    try {
-      const r = await fetch('/api/folders');
-      const j = await r.json();
-      render(j.folders || []);
-    } catch {
-      document.getElementById('ds-content').innerHTML =
-        '<div class="ds-loading" style="color:rgba(255,130,130,0.8)">Erreur de chargement. Rechargez la page.</div>';
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gabriel — Dossiers stratégiques</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030303;
+      --ink: #f8f5ef;
+      --muted: rgba(248,245,239,.52);
+      --soft: rgba(248,245,239,.18);
+      --line: rgba(248,245,239,.10);
+      --gold: #d8bd82;
+      --gold-soft: #f0dcad;
+      --panel: rgba(255,255,255,.035);
+      --panel-strong: rgba(255,255,255,.065);
+      --danger: rgba(255,128,128,.88);
     }
-  }
 
-  function render(folders) {
-    const el = document.getElementById('ds-content');
-    if (!folders.length) {
-      el.innerHTML = `
-        <div class="ds-empty">
-          <div class="ds-empty-icon">
-            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-          </div>
-          <div class="ds-empty-title">Aucun dossier pour l'instant</div>
-          <div class="ds-empty-desc">Créez votre premier dossier pour centraliser une analyse de décision complète.</div>
-          <button class="ds-btn-create" onclick="openModal()">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Créer mon premier dossier
+    * { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(circle at 50% 22%, rgba(255,255,255,.025), transparent 34%),
+        radial-gradient(circle at 50% 68%, rgba(216,189,130,.045), transparent 30%),
+        #030303;
+      color: var(--ink);
+      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body.ds-modal-open {
+      overflow: hidden;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .ds-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 26px clamp(18px, 4vw, 52px) 34px;
+      isolation: isolate;
+      position: relative;
+    }
+
+    .ds-page::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 112px 112px;
+      mask-image: radial-gradient(circle at 50% 48%, rgba(0,0,0,.42), transparent 55%);
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    .ds-page::after {
+      content: "";
+      position: fixed;
+      width: min(560px, 52vw);
+      height: 1px;
+      left: 50%;
+      top: 56%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, transparent, rgba(240,220,173,.26), transparent);
+      box-shadow: 0 0 42px rgba(216,189,130,.15);
+      opacity: .55;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .ds-nav {
+      position: sticky;
+      top: 18px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      background: rgba(3,3,3,.58);
+      padding: 10px 12px 10px 18px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      animation: dsFade .7s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .ds-logo {
+      color: rgba(255,255,255,.93);
+      text-decoration: none;
+      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -.045em;
+      white-space: nowrap;
+    }
+
+    .ds-logo:focus-visible,
+    .ds-nav-link:focus-visible,
+    .ds-pill:focus-visible,
+    .ds-create:focus-visible,
+    .ds-card-link:focus-visible,
+    .ds-card-del:focus-visible,
+    .ds-modal-cancel:focus-visible,
+    .ds-modal-submit:focus-visible,
+    .ds-input:focus-visible {
+      outline: 1px solid rgba(240,220,173,.62);
+      outline-offset: 4px;
+    }
+
+    .ds-nav-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(14px, 2.4vw, 28px);
+    }
+
+    .ds-nav-link {
+      color: rgba(255,255,255,.54);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: -.015em;
+      white-space: nowrap;
+      transition: color .18s ease, background .18s ease;
+      border-radius: 999px;
+      padding: 7px 9px;
+    }
+
+    .ds-nav-link:hover,
+    .ds-nav-link.active {
+      color: rgba(255,255,255,.92);
+      background: rgba(255,255,255,.045);
+    }
+
+    .ds-nav-link.is-disabled {
+      color: rgba(255,255,255,.24);
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .ds-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ds-pill {
+      border: 1px solid rgba(255,255,255,.17);
+      border-radius: 999px;
+      background: rgba(255,255,255,.025);
+      color: rgba(255,255,255,.86);
+      text-decoration: none;
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 300;
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease, color .2s ease, transform .2s ease;
+    }
+
+    .ds-pill:hover {
+      border-color: rgba(240,220,173,.42);
+      background: rgba(255,255,255,.055);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .ds-main {
+      flex: 1;
+      width: min(100%, 1120px);
+      margin: 0 auto;
+      padding: clamp(68px, 11vh, 118px) 0 54px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .ds-hero {
+      text-align: center;
+      margin-bottom: clamp(48px, 7vh, 76px);
+      animation: dsReveal .9s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .ds-kicker {
+      margin: 0 0 18px;
+      color: rgba(240,220,173,.62);
+      font-family: "DM Mono", ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+
+    .ds-title {
+      max-width: 820px;
+      margin: 0 auto;
+      color: var(--ink);
+      font-size: clamp(28px, 3.7vw, 48px);
+      line-height: 1.08;
+      font-weight: 300;
+      letter-spacing: -.058em;
+    }
+
+    .ds-title em {
+      color: rgba(240,220,173,.95);
+      font-family: "Instrument Serif", Georgia, serif;
+      font-weight: 400;
+      font-style: italic;
+      letter-spacing: -.055em;
+    }
+
+    .ds-subtitle {
+      max-width: 560px;
+      margin: 20px auto 0;
+      color: rgba(248,245,239,.42);
+      font-size: 11px;
+      font-weight: 300;
+      line-height: 1.8;
+    }
+
+    .ds-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .ds-create {
+      border: 1px solid rgba(240,220,173,.34);
+      border-radius: 999px;
+      background: rgba(240,220,173,.075);
+      color: rgba(255,247,224,.94);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      font-size: 12px;
+      font-weight: 400;
+      transition: transform .22s cubic-bezier(.22,1,.36,1), border-color .2s ease, background .2s ease;
+    }
+
+    .ds-create:hover {
+      transform: translateY(-2px);
+      border-color: rgba(240,220,173,.58);
+      background: rgba(240,220,173,.11);
+    }
+
+    .ds-create svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+    }
+
+    .ds-content {
+      min-height: 228px;
+    }
+
+    .ds-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: clamp(28px, 4.5vw, 62px);
+      align-items: start;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .ds-card {
+      position: relative;
+      display: block;
+      min-width: 0;
+      color: inherit;
+      text-align: center;
+      text-decoration: none;
+      animation: dsFolderIn .78s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .ds-card-link {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+      border-radius: 30px;
+      padding: 4px 4px 10px;
+    }
+
+    .ds-card-visual {
+      width: 100%;
+      max-width: 158px;
+      min-height: 134px;
+      margin: 0 auto;
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 20px 34px rgba(0,0,0,.48));
+      transition: transform .42s cubic-bezier(.22,1,.36,1), filter .42s ease;
+    }
+
+    .ds-card:hover .ds-card-visual {
+      transform: translateY(-7px) scale(1.018);
+      filter: drop-shadow(0 28px 42px rgba(0,0,0,.58));
+    }
+
+    .ds-card-link:focus-visible .ds-card-visual {
+      transform: translateY(-5px) scale(1.012);
+      filter: drop-shadow(0 26px 40px rgba(0,0,0,.56));
+    }
+
+    .ds-folder-img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .ds-card-title {
+      margin-top: 14px;
+      color: rgba(248,245,239,.78);
+      font-size: 12px;
+      font-weight: 300;
+      line-height: 1.35;
+      letter-spacing: -.025em;
+    }
+
+    .ds-card-objective {
+      max-width: 210px;
+      min-height: 30px;
+      margin: 7px auto 0;
+      color: rgba(248,245,239,.36);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-size: 10px;
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    .ds-card-meta {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ds-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: rgba(248,245,239,.38);
+      background: rgba(255,255,255,.025);
+      font-family: "DM Mono", ui-monospace, monospace;
+      font-size: 8px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .ds-chip.step-stratege,
+    .ds-chip.step-createur {
+      color: rgba(240,220,173,.62);
+      border-color: rgba(240,220,173,.16);
+    }
+
+    .ds-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .ds-card-del {
+      position: absolute;
+      top: 5px;
+      right: 50%;
+      transform: translateX(92px);
+      width: 26px;
+      height: 26px;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.30);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      transition: opacity .2s ease, color .2s ease, border-color .2s ease, background .2s ease;
+    }
+
+    .ds-card:hover .ds-card-del,
+    .ds-card-del:focus-visible {
+      opacity: 1;
+    }
+
+    .ds-card-del:hover {
+      color: var(--danger);
+      border-color: rgba(255,128,128,.26);
+      background: rgba(255,128,128,.07);
+    }
+
+    .ds-card-del.is-busy {
+      opacity: .55;
+      cursor: wait;
+      pointer-events: none;
+    }
+
+    .ds-card-del svg {
+      width: 12px;
+      height: 12px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+
+    .ds-loading,
+    .ds-empty {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      text-align: center;
+      color: rgba(248,245,239,.42);
+      animation: dsReveal .65s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .ds-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 160px;
+      font-size: 12px;
+      font-weight: 300;
+    }
+
+    .ds-spinner {
+      width: 16px;
+      height: 16px;
+      border: 1px solid rgba(240,220,173,.14);
+      border-top-color: rgba(240,220,173,.62);
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+
+    .ds-empty {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 28px;
+      padding: 42px 28px;
+      background: rgba(255,255,255,.025);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .ds-empty-title {
+      color: rgba(248,245,239,.82);
+      font-size: 15px;
+      font-weight: 400;
+      letter-spacing: -.025em;
+    }
+
+    .ds-empty-desc {
+      max-width: 360px;
+      margin: 10px auto 22px;
+      color: rgba(248,245,239,.42);
+      font-size: 12px;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    .ds-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .ds-modal-overlay.open {
+      display: flex;
+    }
+
+    .ds-modal {
+      width: min(100%, 470px);
+      max-height: min(86vh, 720px);
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(24,24,24,.94), rgba(10,10,10,.94));
+      box-shadow: 0 30px 100px rgba(0,0,0,.55);
+      padding: 30px;
+      animation: dsModal .34s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .ds-modal-title {
+      color: rgba(248,245,239,.92);
+      font-size: 18px;
+      font-weight: 400;
+      letter-spacing: -.035em;
+    }
+
+    .ds-modal-sub {
+      margin-top: 7px;
+      color: rgba(248,245,239,.42);
+      font-size: 12px;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    .ds-form {
+      margin-top: 24px;
+    }
+
+    .ds-field {
+      margin-bottom: 15px;
+    }
+
+    .ds-label {
+      display: block;
+      margin-bottom: 7px;
+      color: rgba(240,220,173,.48);
+      font-family: "DM Mono", ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .ds-input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 16px;
+      background: rgba(255,255,255,.045);
+      color: rgba(248,245,239,.9);
+      padding: 12px 14px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color .2s ease, background .2s ease;
+    }
+
+    .ds-input:focus {
+      border-color: rgba(240,220,173,.38);
+      background: rgba(255,255,255,.07);
+    }
+
+    .ds-input::placeholder {
+      color: rgba(248,245,239,.24);
+    }
+
+    .ds-select {
+      appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(240,220,173,.58) 50%),
+        linear-gradient(135deg, rgba(240,220,173,.58) 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) 52%,
+        calc(100% - 13px) 52%;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 38px;
+      cursor: pointer;
+    }
+
+    .ds-err {
+      display: none;
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .ds-err.show {
+      display: block;
+    }
+
+    .ds-status {
+      display: none;
+      margin-top: 18px;
+      color: rgba(248,245,239,.46);
+      font-size: 11px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .ds-status.show {
+      display: block;
+    }
+
+    .ds-status.is-error {
+      color: var(--danger);
+    }
+
+    .ds-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .ds-modal-cancel,
+    .ds-modal-submit {
+      border-radius: 999px;
+      padding: 10px 17px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color .2s ease, background .2s ease, color .2s ease, opacity .2s ease;
+    }
+
+    .ds-modal-cancel {
+      border: 1px solid rgba(255,255,255,.13);
+      background: transparent;
+      color: rgba(248,245,239,.58);
+    }
+
+    .ds-modal-cancel:hover {
+      color: rgba(248,245,239,.9);
+      border-color: rgba(255,255,255,.24);
+    }
+
+    .ds-modal-submit {
+      border: 1px solid rgba(240,220,173,.35);
+      background: rgba(240,220,173,.10);
+      color: rgba(255,247,224,.94);
+    }
+
+    .ds-modal-submit:hover {
+      background: rgba(240,220,173,.16);
+    }
+
+    .ds-modal-submit:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+
+    .ds-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      color: rgba(248,245,239,.25);
+      font-size: 11px;
+      font-weight: 300;
+      animation: dsFade .9s cubic-bezier(.22,1,.36,1) .12s both;
+    }
+
+    .ds-footer a {
+      color: rgba(248,245,239,.58);
+      text-decoration: none;
+    }
+
+    @keyframes dsFade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes dsReveal {
+      from { opacity: 0; transform: translateY(16px); filter: blur(10px); }
+      to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+
+    @keyframes dsFolderIn {
+      from { opacity: 0; transform: translateY(24px) scale(.985); filter: blur(10px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+
+    @keyframes dsModal {
+      from { opacity: 0; transform: translateY(18px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 840px) {
+      .ds-nav {
+        top: 10px;
+        border-radius: 22px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .ds-nav-center {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 18px;
+        overflow-x: auto;
+        padding: 2px 0 4px;
+        scrollbar-width: none;
+      }
+      .ds-nav-center::-webkit-scrollbar { display: none; }
+      .ds-main { padding-top: 64px; }
+      .ds-title { font-size: clamp(28px, 8vw, 42px); }
+      .ds-grid { grid-template-columns: repeat(2, minmax(135px, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .ds-page { padding-inline: 17px; }
+      .ds-nav-actions .ds-pill:first-child { display: none; }
+      .ds-nav-center { gap: 14px; }
+      .ds-nav-link { font-size: 11px; white-space: nowrap; }
+      .ds-grid { grid-template-columns: 1fr; gap: 34px; }
+      .ds-card-visual { max-width: 190px; }
+      .ds-card-del {
+        opacity: 1;
+        right: calc(50% - 112px);
+        transform: none;
+      }
+      .ds-modal { padding: 24px; border-radius: 24px; }
+      .ds-footer { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ds-page">
+    <nav class="ds-nav" aria-label="Navigation principale">
+      <a class="ds-logo" href="/dossiers">Gabriel.ai</a>
+      <div class="ds-nav-center">
+        <a class="ds-nav-link active" href="/dossiers">Dossiers</a>
+        <a class="ds-nav-link is-disabled" href="/dossiers" data-agent-link="/psychologue" aria-disabled="true" tabindex="-1">Le Psychologue</a>
+        <a class="ds-nav-link is-disabled" href="/dossiers" data-agent-link="/stratege" aria-disabled="true" tabindex="-1">Le Stratège</a>
+        <a class="ds-nav-link is-disabled" href="/dossiers" data-agent-link="/createur" aria-disabled="true" tabindex="-1">Le Créateur</a>
+      </div>
+      <div class="ds-nav-actions">
+        <a class="ds-pill" href="/profil">Profil</a>
+        <a class="ds-pill" href="/logout">Sortir</a>
+      </div>
+    </nav>
+
+    <main class="ds-main">
+      <header class="ds-hero">
+        <p class="ds-kicker">Dossiers stratégiques</p>
+        <h1 class="ds-title">
+          Crée ton <em>environnement de travail</em>, ton espace pour prendre les meilleures décisions business.
+        </h1>
+        <p class="ds-subtitle">
+          Chaque dossier rassemble la mémoire du Psychologue, du Stratège et du Créateur autour d’un sujet précis.
+        </p>
+        <div class="ds-toolbar">
+          <button class="ds-create" type="button" onclick="openModal()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nouveau dossier
           </button>
-        </div>`;
-      return;
-    }
+        </div>
+      </header>
 
-    const cards = folders.map((f, i) => {
-      const step = f.step || 'source';
-      const type = TYPE_LABELS[f.folder_type] || f.folder_type || '';
-      return `
-        <a href="/dossiers/${f.folder_id}" class="ds-card" style="animation-delay:${i * 40}ms">
-          <div class="ds-card-top">
-            <div class="ds-card-icon">
-              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-            </div>
-            <div style="flex:1;min-width:0;">
-              <div class="ds-card-title">${esc(f.title)}</div>
-              ${f.objective ? `<div class="ds-card-obj">${esc(f.objective)}</div>` : ''}
-            </div>
-            <button class="ds-card-del" title="Supprimer" data-fid="${esc(f.folder_id)}" onclick="deleteFolder(event, this)">
-              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            </button>
-          </div>
-          <div class="ds-card-meta">
-            <span class="ds-step ${step}"><span class="dot"></span>${STEP_LABELS[step] || step}</span>
-            ${type ? `<span class="ds-type">${esc(type)}</span>` : ''}
-            <span class="ds-card-date">${fmtDate(f.updated_at || f.created_at)}</span>
-          </div>
-        </a>`;
-    }).join('');
+      <section id="ds-content" class="ds-content" aria-live="polite">
+        <div class="ds-loading">
+          <div class="ds-spinner"></div>
+          <span>Chargement des dossiers…</span>
+        </div>
+      </section>
+      <div class="ds-status" id="ds-page-status" role="status" aria-live="polite"></div>
+    </main>
 
-    el.innerHTML = `<div class="ds-grid">${cards}</div>`;
-  }
+    <footer class="ds-footer">
+      <a href="/">retour à l’accueil</a>
+      <span>Un dossier = un contexte, une mémoire, une décision.</span>
+    </footer>
+  </div>
 
-  function esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  <div class="ds-modal-overlay" id="ds-modal" role="dialog" aria-modal="true" aria-label="Créer un dossier">
+    <div class="ds-modal">
+      <div class="ds-modal-title">Nouveau dossier</div>
+      <div class="ds-modal-sub">Crée un espace dédié à une offre, une campagne, une audience ou une décision à clarifier.</div>
 
-  window.openModal = function () {
-    document.getElementById('ds-modal').classList.add('open');
-    setTimeout(() => document.getElementById('ds-f-title').focus(), 50);
-  };
+      <div class="ds-form">
+        <div class="ds-field">
+          <label class="ds-label" for="ds-f-title">Nom du dossier</label>
+          <input id="ds-f-title" class="ds-input" type="text" placeholder="Ex : Lancement offre Premium" maxlength="200" autocomplete="off">
+        </div>
 
-  window.closeModal = function () {
-    document.getElementById('ds-modal').classList.remove('open');
-    document.getElementById('ds-form-err').classList.remove('show');
-    document.getElementById('ds-submit-btn').disabled = false;
-  };
+        <div class="ds-field">
+          <label class="ds-label" for="ds-f-objective">Objectif</label>
+          <input id="ds-f-objective" class="ds-input" type="text" placeholder="Ex : Choisir le bon angle de vente" maxlength="500" autocomplete="off">
+        </div>
 
-  window.submitCreate = async function () {
-    const title     = document.getElementById('ds-f-title').value.trim();
-    const objective = document.getElementById('ds-f-objective').value.trim();
-    const type      = document.getElementById('ds-f-type').value;
-    const errEl     = document.getElementById('ds-form-err');
-    const btn       = document.getElementById('ds-submit-btn');
+        <div class="ds-field">
+          <label class="ds-label" for="ds-f-type">Type d’analyse</label>
+          <select id="ds-f-type" class="ds-input ds-select">
+            <option value="audience">Audience — comprendre qui écoute</option>
+            <option value="offre">Offre — évaluer une proposition</option>
+            <option value="concurrent">Concurrent — analyser le marché</option>
+            <option value="avis">Avis — lire les retours clients</option>
+            <option value="campagne">Campagne — évaluer une prise de parole</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
 
-    errEl.classList.remove('show');
-    if (!title) { errEl.textContent = 'Le nom du dossier est requis.'; errEl.classList.add('show'); return; }
+        <div class="ds-err" id="ds-form-err"></div>
 
-    btn.disabled = true;
-    btn.textContent = 'Création…';
-    try {
-      const r = await fetch('/api/folders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, objective, folder_type: type }),
-      });
-      const j = await r.json();
-      if (j.success) {
-        window.location.href = '/dossiers/' + j.folder.folder_id;
-      } else {
-        errEl.textContent = j.error || 'Erreur lors de la création.';
-        errEl.classList.add('show');
+        <div class="ds-modal-actions">
+          <button class="ds-modal-cancel" type="button" onclick="closeModal()">Annuler</button>
+          <button class="ds-modal-submit" type="button" id="ds-submit-btn" onclick="submitCreate()">Créer le dossier</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      let lastFocusedElement = null;
+
+      const STEP_LABELS = {
+        source:       'Source',
+        psychologue:  'Le Psychologue',
+        stratege:     'Le Stratège',
+        createur:     'Le Créateur',
+        verification: 'Vérification',
+      };
+
+      const TYPE_LABELS = {
+        audience:   'Audience',
+        offre:      'Offre',
+        concurrent: 'Concurrent',
+        avis:       'Avis',
+        campagne:   'Campagne',
+        autre:      'Autre',
+      };
+
+      function fmtDate(s) {
+        if (!s) return '';
+        const d = new Date(s);
+        if (Number.isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+      }
+
+      function esc(s) {
+        return String(s || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function normalizeClass(value) {
+        return String(value || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]+/g, '-')
+          .replace(/^-+|-+$/g, '') || 'source';
+      }
+
+      function showStatus(message, isError = false) {
+        const status = document.getElementById('ds-page-status');
+        status.textContent = message || '';
+        status.classList.toggle('show', Boolean(message));
+        status.classList.toggle('is-error', Boolean(isError));
+      }
+
+      function resetForm() {
+        document.getElementById('ds-f-title').value = '';
+        document.getElementById('ds-f-objective').value = '';
+        document.getElementById('ds-f-type').value = 'audience';
+        document.getElementById('ds-form-err').classList.remove('show');
+        showStatus('');
+      }
+
+      async function readJsonResponse(response) {
+        try {
+          return await response.json();
+        } catch {
+          return {};
+        }
+      }
+
+      function updateAgentLinks(folderId) {
+        document.querySelectorAll('[data-agent-link]').forEach((link) => {
+          const base = link.dataset.agentLink;
+          if (!folderId) {
+            link.href = '/dossiers';
+            link.classList.add('is-disabled');
+            link.setAttribute('aria-disabled', 'true');
+            link.setAttribute('tabindex', '-1');
+            return;
+          }
+          link.href = `${base}?folder_id=${encodeURIComponent(folderId)}`;
+          link.classList.remove('is-disabled');
+          link.removeAttribute('aria-disabled');
+          link.removeAttribute('tabindex');
+        });
+      }
+
+      async function load() {
+        try {
+          const r = await fetch('/api/folders', { headers: { 'Accept': 'application/json' } });
+          const j = await readJsonResponse(r);
+          if (r.status === 401 || j.redirect) {
+            window.location.href = j.redirect || '/login';
+            return;
+          }
+          if (!r.ok) throw new Error(j.error || 'load_failed');
+          render(j.folders || []);
+        } catch {
+          document.getElementById('ds-content').innerHTML =
+            '<div class="ds-empty"><div class="ds-empty-title">Chargement impossible</div><div class="ds-empty-desc">La connexion aux dossiers n’a pas répondu. Recharge la page dans un instant.</div><button class="ds-create" type="button" onclick="location.reload()">Recharger</button></div>';
+        }
+      }
+
+      function render(folders) {
+        const el = document.getElementById('ds-content');
+        updateAgentLinks(folders[0] && folders[0].folder_id);
+
+        if (!folders.length) {
+          el.innerHTML = `
+            <div class="ds-empty">
+              <div class="ds-empty-title">Aucun dossier pour l’instant</div>
+              <div class="ds-empty-desc">Commence par créer un espace de travail. Gabriel y attachera les analyses, stratégies et contenus liés à ce sujet.</div>
+              <button class="ds-create" type="button" onclick="openModal()">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Créer mon premier dossier
+              </button>
+            </div>`;
+          return;
+        }
+
+        const cards = folders.map((f, i) => {
+          const step = f.step || 'source';
+          const stepLabel = STEP_LABELS[step] || step;
+          const type = TYPE_LABELS[f.folder_type] || f.folder_type || '';
+          const date = fmtDate(f.updated_at || f.created_at);
+          const folderHref = `/dossiers/${encodeURIComponent(f.folder_id)}`;
+          const safeStepClass = normalizeClass(step);
+
+          return `
+            <article class="ds-card" style="animation-delay:${i * 55}ms">
+              <button class="ds-card-del" title="Supprimer" data-fid="${esc(f.folder_id)}" onclick="deleteFolder(event, this)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+              <a href="${folderHref}" class="ds-card-link" aria-label="Ouvrir le dossier ${esc(f.title)}">
+                <div class="ds-card-visual" aria-hidden="true">
+                  <img class="ds-folder-img" src="/static/img/gabriel-folder-glass-platinum-gold.png" alt="" loading="lazy">
+                </div>
+                <div class="ds-card-title">${esc(f.title)}</div>
+                ${f.objective ? `<div class="ds-card-objective">${esc(f.objective)}</div>` : '<div class="ds-card-objective">Espace de décision Gabriel</div>'}
+                <div class="ds-card-meta">
+                  <span class="ds-chip step-${safeStepClass}"><span class="ds-dot"></span>${esc(stepLabel)}</span>
+                  ${type ? `<span class="ds-chip">${esc(type)}</span>` : ''}
+                  ${date ? `<span class="ds-chip">${esc(date)}</span>` : ''}
+                </div>
+              </a>
+            </article>`;
+        }).join('');
+
+        el.innerHTML = `<div class="ds-grid">${cards}</div>`;
+      }
+
+      window.openModal = function () {
+        lastFocusedElement = document.activeElement;
+        document.body.classList.add('ds-modal-open');
+        const modal = document.getElementById('ds-modal');
+        modal.classList.add('open');
+        setTimeout(() => document.getElementById('ds-f-title').focus(), 70);
+      };
+
+      window.closeModal = function (clear = false) {
+        const btn = document.getElementById('ds-submit-btn');
+        document.getElementById('ds-modal').classList.remove('open');
+        document.body.classList.remove('ds-modal-open');
+        document.getElementById('ds-form-err').classList.remove('show');
         btn.disabled = false;
         btn.textContent = 'Créer le dossier';
-      }
-    } catch {
-      errEl.textContent = 'Erreur réseau. Réessayez.';
-      errEl.classList.add('show');
-      btn.disabled = false;
-      btn.textContent = 'Créer le dossier';
-    }
-  };
+        if (clear) resetForm();
+        if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+          lastFocusedElement.focus();
+        }
+      };
 
-  window.deleteFolder = async function (e, btn) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!confirm('Supprimer ce dossier ? Les analyses liées resteront dans l\'historique.')) return;
-    const fid = btn.dataset.fid;
-    try {
-      await fetch('/api/folders/' + fid, { method: 'DELETE' });
+      window.submitCreate = async function () {
+        const title = document.getElementById('ds-f-title').value.trim();
+        const objective = document.getElementById('ds-f-objective').value.trim();
+        const type = document.getElementById('ds-f-type').value;
+        const errEl = document.getElementById('ds-form-err');
+        const btn = document.getElementById('ds-submit-btn');
+
+        if (btn.disabled) return;
+        errEl.classList.remove('show');
+        showStatus('');
+        if (!title) {
+          errEl.textContent = 'Le nom du dossier est requis.';
+          errEl.classList.add('show');
+          document.getElementById('ds-f-title').focus();
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Création…';
+
+        try {
+          const r = await fetch('/api/folders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ title, objective, folder_type: type }),
+          });
+          const j = await readJsonResponse(r);
+          if (r.status === 401 || j.redirect) {
+            window.location.href = j.redirect || '/login';
+            return;
+          }
+          if (j.success && j.folder && j.folder.folder_id) {
+            window.location.href = '/dossiers/' + encodeURIComponent(j.folder.folder_id);
+          } else {
+            errEl.textContent = j.error || 'Erreur lors de la création.';
+            errEl.classList.add('show');
+            btn.disabled = false;
+            btn.textContent = 'Créer le dossier';
+          }
+        } catch {
+          errEl.textContent = 'Erreur réseau. Réessaie.';
+          errEl.classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Créer le dossier';
+        }
+      };
+
+      window.deleteFolder = async function (event, btn) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!confirm('Supprimer ce dossier ? Les analyses liées resteront dans l’historique.')) return;
+        const fid = btn.dataset.fid;
+        btn.classList.add('is-busy');
+        btn.setAttribute('aria-busy', 'true');
+        try {
+          const r = await fetch('/api/folders/' + encodeURIComponent(fid), {
+            method: 'DELETE',
+            headers: { 'Accept': 'application/json' },
+          });
+          const j = await readJsonResponse(r);
+          if (r.status === 401 || j.redirect) {
+            window.location.href = j.redirect || '/login';
+            return;
+          }
+          if (!r.ok || j.success === false) throw new Error(j.error || 'delete_failed');
+          showStatus('Dossier supprimé.');
+          load();
+        } catch {
+          showStatus('Impossible de supprimer ce dossier pour le moment.', true);
+          load();
+        } finally {
+          btn.classList.remove('is-busy');
+          btn.removeAttribute('aria-busy');
+        }
+      };
+
+      document.getElementById('ds-modal').addEventListener('click', function (event) {
+        if (event.target === this) closeModal();
+      });
+
+      document.addEventListener('keydown', function (event) {
+        const modal = document.getElementById('ds-modal');
+        if (event.key === 'Escape' && modal.classList.contains('open')) closeModal();
+        if (event.key === 'Tab' && modal.classList.contains('open')) {
+          const focusables = modal.querySelectorAll('button, input, select, [href], [tabindex]:not([tabindex="-1"])');
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (!first || !last) return;
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
+      });
+
+      ['ds-f-title', 'ds-f-objective'].forEach((id) => {
+        document.getElementById(id).addEventListener('keydown', function (event) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            submitCreate();
+          }
+        });
+      });
+
       load();
-    } catch { /* silently ignore */ }
-  };
-
-  // Close modal on overlay click
-  document.getElementById('ds-modal').addEventListener('click', function (e) {
-    if (e.target === this) closeModal();
-  });
-  // Close modal on Escape
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeModal();
-  });
-  // Submit on Enter in inputs
-  ['ds-f-title','ds-f-objective'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') submitCreate();
-    });
-  });
-
-  load();
-})();
-</script>
-{% endblock %}
+    })();
+  </script>
+</body>
+</html>

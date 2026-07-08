@@ -87,8 +87,6 @@ _JSON_GET_PREFIXES = (
     '/satisfaction', '/performance', '/stripe/',
 )
 
-_AUTH_DISABLED = os.environ.get('AUTH_ENABLED', 'false').lower() != 'true'
-
 _AUTH_401_PAYLOAD = {
     'success':    False,
     'error':      'Votre session a expiré. Veuillez vous reconnecter.',
@@ -285,7 +283,7 @@ def _save_json_users(users):
 @auth_bp.route('/login')
 def login_page():
     if session.get('user_id'):
-        return redirect('/psychologue')
+        return redirect('/dossiers')
     error          = request.args.get('error')
     mode           = request.args.get('mode', 'login')
     error_msg = {
@@ -301,28 +299,29 @@ def login_email():
     password = request.form.get('password', '')
     user, err = verify_email_user(email, password)
     if err:
-        return render_template('login.html', error=err, mode='email', prefill_email=email)
+        return render_template('login.html', error=err, mode='email', prefill_email=email,
+                               google_enabled=_google_enabled)
     _open_session(user)
-    return redirect('/psychologue')
+    return redirect('/dossiers')
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('login.html', mode='register')
+        return render_template('login.html', mode='register', google_enabled=_google_enabled)
     name     = request.form.get('name', '')
     email    = request.form.get('email', '')
     password = request.form.get('password', '')
     confirm  = request.form.get('confirm', '')
     if password != confirm:
         return render_template('login.html', error='Les mots de passe ne correspondent pas.', mode='register',
-                               prefill_email=email, prefill_name=name)
+                               prefill_email=email, prefill_name=name, google_enabled=_google_enabled)
     user, err = register_email_user(email, password, name)
     if err:
         return render_template('login.html', error=err, mode='register',
-                               prefill_email=email, prefill_name=name)
+                               prefill_email=email, prefill_name=name, google_enabled=_google_enabled)
     _open_session(user)
-    return redirect('/psychologue')
+    return redirect('/dossiers')
 
 
 @auth_bp.route('/auth/google')
@@ -342,7 +341,7 @@ def auth_google_callback():
             return redirect('/login?error=auth_failed')
         user = get_or_create_user(user_info)
         _open_session(user)
-        return redirect('/psychologue')
+        return redirect('/dossiers')
     except Exception as e:
         print(f'[AUTH] Erreur OAuth callback : {e}')
         return redirect('/login?error=auth_failed')

@@ -1,0 +1,377 @@
+{# ── Gabriel — Prototype UI : sélection des dossiers stratégiques ────────────
+   Page design-only, pensée pour être branchée plus tard à Supabase.
+
+   Convention future :
+   - chaque carte porte data-dossier-id
+   - le bouton nouveau dossier porte data-action="create-folder"
+   - si Claude branche une route, il peut passer `dossiers` au template :
+     [{ id/folder_id, title, subtitle, updated_at }]
+   - aucune dépendance backend requise dans ce prototype
+#}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gabriel — Créer ton environnement de travail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030303;
+      --ink: #f7f4ee;
+      --muted: rgba(247,244,238,.54);
+      --faint: rgba(247,244,238,.22);
+      --gold: #c7ab73;
+      --gold-soft: #ead7ad;
+      --platinum: #f6f0df;
+    }
+
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg); scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(circle at 50% 60%, rgba(199,171,115,.038), transparent 32%),
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,.018), transparent 30%),
+        #030303;
+      color: var(--ink);
+      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .ds-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 26px 36px 38px;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .ds-shell::after {
+      content: "";
+      position: fixed;
+      width: 24vw;
+      height: 1px;
+      left: 38vw;
+      top: 58%;
+      background: linear-gradient(90deg, transparent, rgba(234,215,173,.24), transparent);
+      box-shadow: 0 0 34px rgba(199,171,115,.14);
+      opacity: .34;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .ds-nav { display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+    .ds-logo {
+      display: flex; align-items: center; text-decoration: none;
+      font-family: "DM Mono", "DM Sans", ui-monospace, monospace;
+      font-size: 15px; font-weight: 500; letter-spacing: .01em;
+      color: rgba(255,255,255,.92);
+    }
+    .ds-logo-dot { color: rgba(234,215,173,.9); }
+    .ds-nav-center { display: flex; gap: 32px; align-items: center; }
+    .ds-nav-link {
+      color: rgba(255,255,255,.62); text-decoration: none;
+      font-size: 13px; font-weight: 400;
+      transition: color .18s;
+    }
+    .ds-nav-link:hover { color: var(--platinum); }
+    .ds-login {
+      color: rgba(255,255,255,.90); text-decoration: none; font-size: 13px;
+      border: 1px solid rgba(255,255,255,.22); border-radius: 999px;
+      padding: 8px 22px; background: rgba(255,255,255,.025);
+      transition: border-color .18s, background .18s, color .18s;
+    }
+    .ds-login:hover { border-color: rgba(255,255,255,.48); background: rgba(255,255,255,.08); color: #fff; }
+
+    .ds-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: min(100%, 1120px);
+      margin: 0 auto;
+      padding: clamp(92px, 13vh, 148px) 0 80px;
+    }
+
+    .ds-title-wrap {
+      text-align: center;
+      margin-bottom: clamp(78px, 10vh, 118px);
+      animation: dsReveal .9s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .ds-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(39px, 5vw, 72px);
+      line-height: .98;
+      font-weight: 300;
+      letter-spacing: -.07em;
+    }
+
+    .ds-title em {
+      display: block;
+      color: rgba(234,215,173,.94);
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: .76em;
+      font-weight: 400;
+      letter-spacing: -.055em;
+      transform: translateX(-4.7rem);
+    }
+
+    .ds-title span {
+      display: block;
+      margin-top: -.08em;
+    }
+
+    .ds-sub {
+      max-width: 500px;
+      margin: 30px auto 0;
+      color: rgba(247,244,238,.38);
+      font-size: 12px;
+      line-height: 1.8;
+      font-weight: 300;
+    }
+
+    .ds-folders {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: clamp(38px, 5vw, 76px);
+      align-items: start;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .ds-folder-card {
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: center;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: none;
+      animation: dsFolderIn .9s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .ds-folder-card:nth-child(1) { animation-delay: .08s; }
+    .ds-folder-card:nth-child(2) { animation-delay: .16s; }
+    .ds-folder-card:nth-child(3) { animation-delay: .24s; }
+    .ds-folder-card:nth-child(4) { animation-delay: .32s; }
+
+    .ds-folder-visual {
+      position: relative;
+      width: 100%;
+      min-height: 140px;
+      max-width: 168px;
+      margin: 0 auto;
+      display: grid;
+      place-items: center;
+      filter: drop-shadow(0 18px 30px rgba(0,0,0,.46));
+      transition: transform .42s cubic-bezier(.22,1,.36,1), filter .42s ease, opacity .35s ease;
+    }
+
+    .ds-folder-card:hover .ds-folder-visual {
+      transform: translateY(-7px) scale(1.018);
+      filter: drop-shadow(0 25px 38px rgba(0,0,0,.54));
+    }
+
+    .ds-folder-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transform: translateZ(0);
+      transition: opacity .35s ease, transform .42s cubic-bezier(.22,1,.36,1);
+    }
+
+    .ds-folder-card:hover .ds-folder-img {
+      transform: translateY(-1px);
+    }
+
+    .ds-folder-name {
+      margin-top: 18px;
+      color: rgba(247,244,238,.70);
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: -.035em;
+    }
+
+    .ds-folder-meta {
+      margin-top: 5px;
+      color: rgba(199,171,115,.32);
+      font-size: 8px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .ds-new {
+      align-self: stretch;
+    }
+
+    .ds-new-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1.82 / 1;
+      max-width: 152px;
+      margin: 0 auto;
+      border: 1px solid rgba(234,215,173,.30);
+      border-radius: 18px;
+      background: rgba(255,255,255,.012);
+      display: grid;
+      place-items: center;
+      transition: transform .42s cubic-bezier(.22,1,.36,1), border-color .35s ease, background .35s ease;
+    }
+
+    .ds-new:hover .ds-new-box {
+      transform: translateY(-8px);
+      border-color: rgba(234,215,173,.56);
+      background: rgba(255,255,255,.026);
+    }
+
+    .ds-plus {
+      width: 42px;
+      height: 42px;
+      position: relative;
+    }
+
+    .ds-plus::before,
+    .ds-plus::after {
+      content: "";
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: 100%;
+      height: 2px;
+      background: rgba(234,215,173,.78);
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 18px rgba(199,171,115,.20);
+    }
+
+    .ds-plus::after { transform: translate(-50%, -50%) rotate(90deg); }
+
+    .ds-bottom {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .ds-return {
+      color: var(--ink);
+      text-decoration: none;
+      font-size: clamp(16px, 1.35vw, 23px);
+      font-weight: 300;
+      letter-spacing: -.045em;
+      opacity: .9;
+    }
+
+    .ds-hint {
+      max-width: 340px;
+      color: rgba(247,244,238,.26);
+      font-size: 11px;
+      line-height: 1.7;
+      text-align: right;
+      font-weight: 300;
+    }
+
+    @keyframes dsReveal {
+      from { opacity: 0; transform: translateY(18px); filter: blur(10px); }
+      to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+
+    @keyframes dsFolderIn {
+      from { opacity: 0; transform: translateY(28px) scale(.98); filter: blur(10px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+
+    @media (max-width: 980px) {
+      .ds-nav-center { display: none; }
+      .ds-main { padding-top: 86px; }
+      .ds-title em { transform: none; }
+      .ds-folders { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      .ds-shell { padding: 30px 18px; }
+      .ds-login { font-size: 15px !important; }
+      .ds-title { font-size: clamp(38px, 12vw, 56px); }
+      .ds-sub { font-size: 12px; }
+      .ds-folders { grid-template-columns: 1fr; gap: 44px; }
+      .ds-folder-visual,
+      .ds-new-box { max-width: 240px; margin: 0 auto; }
+      .ds-bottom { align-items: flex-start; flex-direction: column; }
+      .ds-hint { text-align: left; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  {% set demo_dossiers = dossiers if dossiers is defined and dossiers else [
+    {"id": "demo-offre-coaching", "title": "offre coaching", "subtitle": "mémoire stratégique"},
+    {"id": "demo-decisions-1", "title": "décisions d’entreprise", "subtitle": "analyse · stratégie · création"},
+    {"id": "demo-decisions-2", "title": "décisions d’entreprise", "subtitle": "dossier actif"}
+  ] %}
+
+  <div class="ds-shell">
+    <nav class="ds-nav" aria-label="Navigation principale">
+      <a class="ds-logo" href="/">Gabriel.ai</a>
+      <div class="ds-nav-center">
+        <a href="/#fonctionnalites" class="ds-nav-link">Fonctionnalités.</a>
+        <a href="/#comment-ca-marche" class="ds-nav-link">Comment ça marche</a>
+        <a href="/en-savoir-plus" class="ds-nav-link">En savoir plus</a>
+      </div>
+      <a class="ds-login" href="/login">Connection</a>
+    </nav>
+
+    <main class="ds-main">
+      <header class="ds-title-wrap">
+        <h1 class="ds-title">
+          <em>Créer ton environnement de travail</em>
+          <span>ton espace pour prendre les meilleures décisions business</span>
+        </h1>
+        <p class="ds-sub">Chaque dossier concentre la mémoire du Psychologue, du Stratège et du Créateur autour d’un sujet précis.</p>
+      </header>
+
+      <section class="ds-folders" aria-label="Dossiers stratégiques">
+        {% for dossier in demo_dossiers %}
+          {% set dossier_id = dossier.id|default(dossier.folder_id|default('')) %}
+          <a class="ds-folder-card" href="#" data-dossier-id="{{ dossier_id }}" aria-label="Ouvrir le dossier {{ dossier.title }}">
+            <div class="ds-folder-visual" aria-hidden="true">
+              <img class="ds-folder-img" src="/static/img/gabriel-folder-glass-platinum-gold.png" alt="">
+            </div>
+            <div class="ds-folder-name">{{ dossier.title }}</div>
+            <div class="ds-folder-meta">{{ dossier.subtitle|default('dossier stratégique') }}</div>
+          </a>
+        {% endfor %}
+
+        <button class="ds-folder-card ds-new" type="button" data-action="create-folder" aria-label="Créer un nouveau dossier">
+          <div class="ds-new-box" aria-hidden="true">
+            <span class="ds-plus"></span>
+          </div>
+          <div class="ds-folder-name">nouveau dossier</div>
+          <div class="ds-folder-meta">créer un espace</div>
+        </button>
+      </section>
+    </main>
+
+    <footer class="ds-bottom">
+      <a class="ds-return" href="/">retour</a>
+      <p class="ds-hint">Prototype d’interface. Les cartes sont prêtes à recevoir les futurs identifiants Supabase des dossiers.</p>
+    </footer>
+  </div>
+</body>
+</html>

@@ -252,7 +252,7 @@ def test_analyze_with_file_source(monkeypatch):
 
     monkeypatch.setattr(type(_app.gabriel), 'run_psycho', fake_run_psycho)
     monkeypatch.setattr(_db, 'check_usage_limit', lambda uid, email=None: {'allowed': True})
-    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid: None)
+    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid, folder_id=None: None)
 
     comments = [
         {'text': 'Très bon service client', 'likes': 12},
@@ -292,7 +292,7 @@ def test_analyze_file_source_sanitizes_payload(monkeypatch):
 
     monkeypatch.setattr(type(_app.gabriel), 'run_psycho', fake_run_psycho)
     monkeypatch.setattr(_db, 'check_usage_limit', lambda uid, email=None: {'allowed': True})
-    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid: None)
+    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid, folder_id=None: None)
 
     comments = [
         {'text': '=HYPERLINK("http://evil") cliquez ici', 'likes': 'not_a_number'},
@@ -332,7 +332,7 @@ def test_manual_paste_still_works(monkeypatch):
 
     monkeypatch.setattr(type(_app.gabriel), 'run_psycho', fake_run_psycho)
     monkeypatch.setattr(_db, 'check_usage_limit', lambda uid, email=None: {'allowed': True})
-    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid: None)
+    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid, folder_id=None: None)
 
     r = _client().post('/analyze',
                        data=json.dumps({'source': 'text',

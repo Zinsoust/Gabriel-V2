@@ -181,7 +181,7 @@ def test_analyze_creates_job_100_comments(monkeypatch):
     monkeypatch.setattr(type(_app.gabriel), 'run_psycho', fake_run_psycho)
     monkeypatch.setattr(_db, 'check_usage_limit',
                         lambda uid, email=None: {'allowed': True})
-    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid: None)
+    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid, folder_id=None: None)
 
     c = _client()
     r = c.post('/analyze', data=json.dumps({'source': 'text', 'content': comments}),
@@ -222,7 +222,7 @@ def test_progress_cb_updates_job(monkeypatch):
     monkeypatch.setattr(type(_app.gabriel), 'run_psycho', fake_run_psycho)
     monkeypatch.setattr(_db, 'check_usage_limit',
                         lambda uid, email=None: {'allowed': True})
-    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid: None)
+    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid, folder_id=None: None)
 
     c = _client()
     r = c.post('/analyze',

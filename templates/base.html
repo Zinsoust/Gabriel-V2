@@ -15,7 +15,7 @@
   <aside class="app-sidebar">
     <div class="sidebar-logo">
       <a href="/dossiers" class="sidebar-logo-mark">
-        <img src="{{ url_for('static', filename='images/gabriel_logo.png') }}" alt="Gabriel" />
+        <span class="sidebar-logo-text">Gabriel.ai</span>
       </a>
     </div>
 
@@ -24,13 +24,13 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       </a>
       {% if has_active_folder %}
-      <a href="/psychologue" class="sidebar-item {% if active_page == 'psychologue' %}active{% endif %}" title="Analyse">
+      <a href="/psychologue" class="sidebar-item {% if active_page == 'psychologue' %}active{% endif %}" title="Le Psychologue">
         <svg viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44l-1.7-7.23A2 2 0 0 1 7.29 9.5H9.5V2Z"/><path d="M14.5 2v7.5h2.21a2 2 0 0 1 1.95 2.33l-1.7 7.23A2.5 2.5 0 0 1 12 19.5"/></svg>
       </a>
-      <a href="/stratege" class="sidebar-item {% if active_page == 'stratege' %}active{% endif %}" title="Stratégie">
+      <a href="/stratege" class="sidebar-item {% if active_page == 'stratege' %}active{% endif %}" title="Le Stratège">
         <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </a>
-      <a href="/createur" class="sidebar-item {% if active_page == 'createur' %}active{% endif %}" title="Créateur">
+      <a href="/createur" class="sidebar-item {% if active_page == 'createur' %}active{% endif %}" title="Le Créateur">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
       </a>
       <a href="/mes-strategies" class="sidebar-item {% if active_page == 'strategies' %}active{% endif %}" title="Mes Stratégies">
@@ -66,7 +66,7 @@
 
     <header class="app-header">
       <div class="header-title">
-        <img src="{{ url_for('static', filename='images/gabriel_logo.png') }}" alt="Gabriel" class="brand-logo" />
+        <span class="brand-logo-text">Gabriel.ai</span>
         <span class="sep">/</span>
         <span class="page">{% block page_name %}{% endblock %}</span>
       </div>
