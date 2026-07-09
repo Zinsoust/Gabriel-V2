@@ -2,6 +2,7 @@ import os
 import re
 import json
 import math
+import time
 from collections import Counter
 try:
     from mistralai import Mistral
@@ -2347,6 +2348,14 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
 
     nb_total = len(comments)
     _target  = title or video_context
+    _t_start = time.perf_counter()
+    _timing  = {}
+
+    def _mark(label, t0):
+        elapsed = time.perf_counter() - t0
+        _timing[label] = round(elapsed, 2)
+        print(f"[PSYCHO_TIMING] {label}={elapsed:.2f}s")
+        return time.perf_counter()
 
     def _progress(step, pct):
         if progress_cb:
@@ -2360,6 +2369,7 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
 
     # ── NLP d'abord (fournit les relevance_scores pour le scoring mathématique)
     print("[GABRIEL] NLP pipeline...")
+    _t = time.perf_counter()
     nlp_data = None
     if _NLP_AVAILABLE:
         try:
@@ -2368,6 +2378,7 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
                   f"clusters={len(nlp_data.get('cluster_summary', []))}")
         except Exception as e:
             print(f"[GABRIEL] NLP ERREUR (non bloquant) : {e}")
+    _t = _mark('nlp', _t)
     print("[ANALYZE] nlp_done")
     _progress('scoring', 20)
 
@@ -2395,10 +2406,12 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
             print(f"[GABRIEL] Stat deliverables OK — {list(stat_deliverables.keys())}")
         except Exception as e:
             print(f"[GABRIEL] Stat deliverables ERREUR (non bloquant) : {e}")
+    _t = _mark('scoring', _t)
 
     # ── DASHBOARD (avant les appels LLM — sert de contexte aux personas et à l'analyse)
     dashboard = _compute_dashboard(layer1, nlp_data, nb_total, title=_target)
     print(f"[GABRIEL] Dashboard OK — emotion={dashboard.get('dominant_emotion')} | stance={dashboard.get('dominant_stance')} | opp={dashboard.get('opportunity_score')}")
+    _t = _mark('dashboard', _t)
 
     # ── RAG — enrichissement base de connaissances psychologiques + sous-RAGs avec concept cards
     print("[ANALYZE] rag_start")
@@ -2408,6 +2421,10 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
     rag_socio_context  = ""
     try:
         from core import rag as _rag
+        _loaded_any = False
+        for _agent in ("psychologue", "psychologue_psycho", "psychologue_socio"):
+            _loaded_any = _rag.ensure_loaded(_agent) or _loaded_any
+        _t = _mark('rag_load', _t)
         dominant_emotion = dashboard.get("dominant_emotion", "")
         dominant_stance  = dashboard.get("dominant_stance", "")
         # RAG principal psychologue
@@ -2443,6 +2460,7 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
         print(f"[GABRIEL] RAG psycho : {len(r_psycho)} extraits + {len(psycho_cards_filtered)} cartes | RAG socio : {len(r_socio)} extraits + {len(socio_cards_filtered)} cartes")
     except Exception as _e:
         print(f"[GABRIEL] RAG non disponible (non bloquant) : {_e}")
+    _t = _mark('rag_retrieve', _t)
     print("[ANALYZE] rag_done")
 
     # ── COUCHE 3A : Analyse qualitative principale (Sonnet — profond)
@@ -2460,6 +2478,7 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
     except Exception as e:
         print(f"[GABRIEL] 3A ERREUR : {e}")
         raise
+    _t = _mark('llm_main', _t)
 
     # Injection des descriptions Claude dans les KPIs calculés
     kpi_desc = main_data.pop("kpi_descriptions", {})
@@ -2476,6 +2495,8 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
     livrables_ia = {}
     interp_psycho = {}
     interp_socio  = {}
+
+    _t_block = time.perf_counter()
 
     with ThreadPoolExecutor(max_workers=6) as executor:
         fut_personas = executor.submit(
@@ -2500,37 +2521,44 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
             print(f"[GABRIEL] Personas OK — {len(personas)}")
         except Exception as e:
             print(f"[GABRIEL] Personas ERREUR : {e}")
+        print(f"[PSYCHO_TIMING] personas={time.perf_counter()-_t_block:.2f}s")
 
         try:
             recommandations = fut_reco.result()
             print(f"[GABRIEL] Reco OK — {list(recommandations.keys())}")
         except Exception as e:
             print(f"[GABRIEL] Reco ERREUR : {e}")
+        print(f"[PSYCHO_TIMING] recommandations={time.perf_counter()-_t_block:.2f}s")
 
         try:
             brief = fut_brief.result()
             print(f"[GABRIEL] Brief OK")
         except Exception as e:
             print(f"[GABRIEL] Brief ERREUR : {e}")
+        print(f"[PSYCHO_TIMING] brief={time.perf_counter()-_t_block:.2f}s")
 
         try:
             livrables_ia = fut_livrables.result()
             print(f"[GABRIEL] Livrables IA OK — {list(livrables_ia.keys())}")
         except Exception as e:
             print(f"[GABRIEL] Livrables IA ERREUR (non bloquant) : {e}")
+        print(f"[PSYCHO_TIMING] livrables_ia={time.perf_counter()-_t_block:.2f}s")
 
         try:
             interp_psycho = fut_interp_psycho.result() or {}
             print(f"[GABRIEL] Interprétation psychologique OK")
         except Exception as e:
             print(f"[GABRIEL] Interprétation psychologique ERREUR (non bloquant) : {e}")
+        print(f"[PSYCHO_TIMING] llm_interpretation_psycho={time.perf_counter()-_t_block:.2f}s")
 
         try:
             interp_socio = fut_interp_socio.result() or {}
             print(f"[GABRIEL] Interprétation socio-culturelle OK")
         except Exception as e:
             print(f"[GABRIEL] Interprétation socio-culturelle ERREUR (non bloquant) : {e}")
+        print(f"[PSYCHO_TIMING] llm_interpretation_socio={time.perf_counter()-_t_block:.2f}s")
 
+    _t = _mark('llm_parallel_block', _t)
     print("[ANALYZE] llm_done")
     _progress('assemblage', 90)
 
@@ -2606,5 +2634,9 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
         'psychologique':    interp_psycho,
         'socio_culturelle': interp_socio,
     }
+
+    _timing['total'] = round(time.perf_counter() - _t_start, 2)
+    print(f"[PSYCHO_TIMING] total={_timing['total']:.2f}s")
+    result['_timing'] = _timing
 
     return result

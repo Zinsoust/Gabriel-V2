@@ -325,6 +325,15 @@ def load_all():
     print("[RAG] Tous les index chargés.")
 
 
+def ensure_loaded(agent: str) -> bool:
+    """Force le chargement de l'index si pas déjà en cache mémoire.
+    Retourne True si un chargement disque a eu lieu (utile pour le timing)."""
+    if agent in _indexes:
+        return False
+    _indexes[agent] = _load_or_build(agent)
+    return True
+
+
 def reload(agent: str):
     """Recharger l'index d'un agent (après ajout de fichiers dans agents/{agent}/rag/)."""
     idx_file = _index_path(agent)

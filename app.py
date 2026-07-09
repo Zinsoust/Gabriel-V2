@@ -1,6 +1,7 @@
 import os
 import io
 import json
+import time
 import uuid
 import datetime
 import threading
@@ -438,6 +439,7 @@ def analyze():
     Scrape les commentaires, lance Le Psychologue, retourne les insights audience.
     Retourne également un analysis_id pour appeler /strategize ensuite.
     """
+    _t_request_start = time.perf_counter()
     data = request.get_json(silent=True) or {}
     source  = data.get('source', 'text')
     content = data.get('content', '').strip()
@@ -447,7 +449,9 @@ def analyze():
     if not content:
         return jsonify({'error': 'Contenu vide — collez une URL ou des commentaires'}), 400
 
+    _t_validate = time.perf_counter()
     ok, err = validate_size(content, 'content', LIMITS['content_input_max_chars'])
+    print(f"[PSYCHO_TIMING] validation={time.perf_counter()-_t_validate:.2f}s")
     if not ok:
         return jsonify({'error': err}), 400
 
@@ -471,6 +475,7 @@ def analyze():
     video_title   = ""
     source_label  = source.capitalize()
 
+    _t_parse = time.perf_counter()
     try:
         video_info = {}
         if source == 'youtube':
@@ -503,6 +508,8 @@ def analyze():
         else:
             comments     = parse_manual_comments(content)
             source_label = 'Texte libre'
+
+        print(f"[PSYCHO_TIMING] parse_comments={time.perf_counter()-_t_parse:.2f}s")
 
         if not comments:
             return jsonify({'error': "Aucun commentaire trouvé. Vérifiez l'URL ou collez les commentaires manuellement."}), 400
@@ -567,6 +574,7 @@ def analyze():
                 result = gabriel.run_psycho(_comments, _video_context,
                                             title=_video_title,
                                             progress_cb=_on_progress)
+                print(f"[PSYCHO_TIMING] analyze_comments_total={(result.get('_timing') or {}).get('total')}s")
 
                 _psycho_cache[analysis_id] = {
                     'psycho':        result,
@@ -598,6 +606,7 @@ def analyze():
                     'has_data':        True,
                     'full_result':     result,
                 }
+                _t_save = time.perf_counter()
                 _db.save_analysis(entry, uid, folder_id=folder_id)
                 if folder_id:
                     _db.update_folder(folder_id, uid,
@@ -605,7 +614,9 @@ def analyze():
                                       source_type=_source_label,
                                       source_summary=(_video_title or _content)[:200],
                                       step='psychologue')
+                print(f"[PSYCHO_TIMING] supabase_save={time.perf_counter()-_t_save:.2f}s")
                 print("[ANALYZE] supabase_save_done")
+                print(f"[PSYCHO_TIMING] total_request={time.perf_counter()-_t_request_start:.2f}s")
 
                 if job_id in _jobs:
                     _jobs[job_id]['result'] = result

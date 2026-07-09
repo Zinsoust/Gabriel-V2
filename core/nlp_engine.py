@@ -16,6 +16,7 @@ Les sorties alimentent le pipeline d'interprétation IA :
 import re
 import math
 import os
+import time
 from collections import Counter
 
 # Limite les threads BLAS/OpenMP de PyTorch — évite un deadlock connu sur
@@ -569,9 +570,12 @@ def run_nlp_pipeline(comments, title=""):
     n = len(texts)
 
     print(f"[NLP] Pipeline NLP — {n} commentaires | sujet : '{(title or '')[:60]}'")
+    _t = time.perf_counter()
 
     # 1. Vectorisation + Context Relevance Scores
     relevance_scores, comment_vecs = compute_relevance_scores(title, texts)
+    _t_vec = time.perf_counter()
+    print(f"[PSYCHO_TIMING] nlp_vectorization={_t_vec-_t:.2f}s")
 
     if relevance_scores:
         rs = relevance_scores
@@ -591,11 +595,15 @@ def run_nlp_pipeline(comments, title=""):
     # 2. Signaux lexicaux
     lexical = extract_lexical_signals(texts)
     print(f"[NLP] Lexical — vocab={lexical['vocabulary_size']} | density={lexical['avg_tokens_per_comment']} tok/cmnt")
+    _t_lex = time.perf_counter()
+    print(f"[PSYCHO_TIMING] nlp_lexical={_t_lex-_t_vec:.2f}s")
 
     # 3. Clustering sémantique
     cluster_labels, vecs_used, cluster_summary = cluster_comments(texts, comment_vecs)
     n_clusters = max(cluster_labels) + 1 if cluster_labels else 0
     print(f"[NLP] Clustering — {n_clusters} clusters")
+    _t_clust = time.perf_counter()
+    print(f"[PSYCHO_TIMING] clustering={_t_clust-_t_lex:.2f}s")
 
     # 4. Diversité sémantique
     diversity = compute_semantic_diversity(vecs_used)
