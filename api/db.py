@@ -1007,3 +1007,42 @@ def delete_folder(folder_id, user_id):
         except Exception as e:
             print(f'[DB] delete_folder error: {e}')
     return False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SUPPRESSION DE COMPTE — purge complète, table par table
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Toutes les tables Supabase indexées par user_id, y compris les tables de
+# conformité (consentements, événements d'enquête) — suppression complète et
+# immédiate demandée explicitement, pas de conservation ni d'anonymisation.
+_ACCOUNT_DATA_TABLES = [
+    _T_FOLDERS, _T_JOBS, _T_ANALYSES, _T_STRATEGIES, _T_EXPORTS,
+    _T_FEEDBACKS, _T_SURVEY_EVT, _T_SURVEY_RESP, _T_CONSENT,
+    _T_CHAT_CONV, _T_CHAT_MSG, _T_TRAIN_CAND,
+]
+
+
+def delete_all_user_data(user_id):
+    """
+    Purge complète des données Supabase d'un utilisateur (suppression de compte).
+    Best-effort : une table qui échoue n'empêche pas les suivantes. Retourne la
+    liste des tables qui ont échoué (vide = tout est passé).
+    """
+    if not user_id:
+        return ['invalid_user_id']
+    failed = []
+    if _supabase:
+        for table in _ACCOUNT_DATA_TABLES:
+            try:
+                _supabase.table(table).delete().eq('user_id', user_id).execute()
+            except Exception as e:
+                print(f'[DB] delete_all_user_data error on {table}: {e}')
+                failed.append(table)
+        # La ligne du compte lui-même, en dernier
+        try:
+            _supabase.table(_T_USERS).delete().eq('user_id', user_id).execute()
+        except Exception as e:
+            print(f'[DB] delete_all_user_data error on {_T_USERS}: {e}')
+            failed.append(_T_USERS)
+    return failed

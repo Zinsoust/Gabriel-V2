@@ -1198,6 +1198,51 @@ def profil_data():
     return jsonify(_get_user_profile(uid))
 
 
+@app.route('/account/delete', methods=['POST'])
+@login_required
+def account_delete():
+    """Suppression définitive du compte et de toutes les données associées."""
+    cu    = current_user() or {}
+    uid   = cu.get('user_id')
+    email = (cu.get('email') or '').strip().lower()
+    data  = request.get_json(silent=True) or {}
+    confirm_email = (data.get('confirm_email') or '').strip().lower()
+
+    if not uid:
+        return jsonify({'success': False, 'error': 'Session invalide.'}), 400
+    if not confirm_email or confirm_email != email:
+        return jsonify({'success': False, 'error': "L'email ne correspond pas à votre compte."}), 400
+
+    failed_tables = _db.delete_all_user_data(uid)
+
+    # Fichiers locaux par utilisateur (profil, contexte, conversations, mémoire)
+    for path in (
+        os.path.join(_PROFILES_DIR, f"{uid}.json"),
+        os.path.join(_CONTEXTS_DIR, f"{uid}.json"),
+        os.path.join(_CONVOS_DIR, f"{uid}.json"),
+    ):
+        try:
+            if os.path.exists(path):
+                os.remove(path)
+        except Exception as e:
+            print(f"[ACCOUNT_DELETE] fichier local non supprimé ({path}) : {e}")
+
+    try:
+        from core.memory import _memory_file
+        mem_path = _memory_file(uid)
+        if os.path.exists(mem_path):
+            os.remove(mem_path)
+    except Exception as e:
+        print(f"[ACCOUNT_DELETE] mémoire non supprimée : {e}")
+
+    safe_log_event('account_deleted', user_id=uid, metadata={'failed_tables': failed_tables})
+    session.clear()
+
+    if failed_tables:
+        return jsonify({'success': True, 'partial': True, 'failed_tables': failed_tables})
+    return jsonify({'success': True})
+
+
 @app.route('/mes-analyses')
 @login_required
 @_requires_folder

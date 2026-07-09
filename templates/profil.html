@@ -424,6 +424,26 @@
       </div>
       <a class="pro-btn-ghost" href="/logout">Se déconnecter</a>
     </div>
+
+    <div class="pro-account-action-row danger" id="pro-delete-row">
+      <div>
+        <div class="pro-account-action-label">Supprimer mon compte</div>
+        <div class="pro-account-action-desc">Suppression définitive et immédiate — dossiers, analyses, stratégies, contenus créés</div>
+      </div>
+      <button class="pro-btn-danger" onclick="showDeleteConfirm()" id="pro-delete-btn">Supprimer mon compte</button>
+    </div>
+
+    <div class="pro-account-action-row danger" id="pro-delete-confirm" style="display:none;flex-direction:column;align-items:stretch;gap:10px;">
+      <div class="pro-account-action-label">Confirmer la suppression</div>
+      <div class="pro-account-action-desc">Cette action est irréversible. Retapez votre email (<strong>{{ current_user.email or '' }}</strong>) pour confirmer.</div>
+      <input class="pro-input" id="pro-delete-email" type="email" placeholder="{{ current_user.email or 'votre@email.com' }}"
+        style="background:rgba(255,255,255,0.03);border:1px solid rgba(220,90,90,0.2);border-radius:8px;padding:8px 12px;"
+        oninput="checkDeleteConfirmMatch()" />
+      <div style="display:flex;gap:8px;">
+        <button class="pro-btn-danger" id="pro-delete-confirm-btn" disabled onclick="confirmDeleteAccount()">Supprimer définitivement</button>
+        <button class="pro-btn-ghost" onclick="cancelDeleteConfirm()">Annuler</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -565,6 +585,53 @@ function toast(msg, isErr = false) {
   t.classList.add('on');
   if (_tt) clearTimeout(_tt);
   _tt = setTimeout(() => t.classList.remove('on'), 2500);
+}
+
+/* ─── Suppression de compte ───────────────────────────────────────────────── */
+const ACCOUNT_EMAIL = {{ (current_user.email or '') | tojson }};
+
+function showDeleteConfirm() {
+  document.getElementById('pro-delete-row').style.display = 'none';
+  document.getElementById('pro-delete-confirm').style.display = 'flex';
+  document.getElementById('pro-delete-email').focus();
+}
+
+function cancelDeleteConfirm() {
+  document.getElementById('pro-delete-confirm').style.display = 'none';
+  document.getElementById('pro-delete-row').style.display = 'flex';
+  document.getElementById('pro-delete-email').value = '';
+  document.getElementById('pro-delete-confirm-btn').disabled = true;
+}
+
+function checkDeleteConfirmMatch() {
+  const val = document.getElementById('pro-delete-email').value.trim().toLowerCase();
+  document.getElementById('pro-delete-confirm-btn').disabled = !(val && ACCOUNT_EMAIL && val === ACCOUNT_EMAIL.toLowerCase());
+}
+
+async function confirmDeleteAccount() {
+  const btn = document.getElementById('pro-delete-confirm-btn');
+  const email = document.getElementById('pro-delete-email').value.trim();
+  btn.disabled = true;
+  btn.textContent = 'Suppression…';
+  try {
+    const r = await fetch('/account/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm_email: email }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      window.location.href = '/';
+      return;
+    }
+    toast(d.error || 'Erreur lors de la suppression', true);
+    btn.disabled = false;
+    btn.textContent = 'Supprimer définitivement';
+  } catch (e) {
+    toast('Erreur réseau', true);
+    btn.disabled = false;
+    btn.textContent = 'Supprimer définitivement';
+  }
 }
 </script>
 {% endblock %}
