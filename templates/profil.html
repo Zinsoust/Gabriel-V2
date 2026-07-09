@@ -192,16 +192,105 @@
 }
 .pro-toast.on { opacity: 1; transform: translateY(0); }
 
+/* ── Compte ───────────────────────────────────────────────────────────────── */
+.pro-account-card {
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px; padding: 16px 20px; margin-bottom: 16px;
+}
+.pro-account-avatar {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(216,185,130,0.12); border: 1px solid rgba(216,185,130,0.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 600; color: #D8B982; overflow: hidden;
+}
+.pro-account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.pro-account-meta { flex: 1; min-width: 0; }
+.pro-account-name { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+.pro-account-email { font-size: 12px; color: var(--text-muted); }
+.pro-account-badge {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+  padding: 3px 9px; border-radius: 20px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08); color: var(--text-muted); flex-shrink: 0;
+}
+
+/* ── Plan et consommation ─────────────────────────────────────────────────── */
+.pro-plan-card {
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px; padding: 18px 20px; margin-bottom: 24px;
+}
+.pro-plan-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.pro-plan-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.pro-plan-badge {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.04em; padding: 3px 11px;
+  border-radius: 20px; background: rgba(216,185,130,0.1); border: 1px solid rgba(216,185,130,0.25); color: #D8B982;
+}
+.pro-plan-badge.free { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); color: var(--text-muted); }
+.pro-usage-row { margin-bottom: 12px; }
+.pro-usage-row:last-child { margin-bottom: 0; }
+.pro-usage-label { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+.pro-usage-label span:last-child { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+.pro-plan-upgrade { display: inline-block; margin-top: 6px; font-size: 11px; color: #D8B982; text-decoration: none; }
+.pro-plan-upgrade:hover { text-decoration: underline; }
+
+/* ── Gestion du compte ────────────────────────────────────────────────────── */
+.pro-account-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+.pro-account-action-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px;
+}
+.pro-account-action-row.danger { border-color: rgba(220,90,90,0.18); background: rgba(220,90,90,0.03); }
+.pro-account-action-label { font-size: 12px; color: var(--text-secondary); }
+.pro-account-action-desc { font-size: 10px; color: var(--text-disabled); margin-top: 2px; }
+.pro-btn-ghost {
+  padding: 7px 16px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.1); background: transparent;
+  color: var(--text-muted); font-size: 11px; font-family: inherit; cursor: pointer; transition: all 0.15s;
+}
+.pro-btn-ghost:hover { border-color: rgba(255,255,255,0.2); color: var(--text-secondary); }
+.pro-btn-danger {
+  padding: 7px 16px; border-radius: 9px; border: 1px solid rgba(220,90,90,0.3); background: rgba(220,90,90,0.06);
+  color: rgba(235,120,120,0.85); font-size: 11px; font-family: inherit; cursor: pointer; transition: all 0.15s;
+}
+.pro-btn-danger:hover { background: rgba(220,90,90,0.12); border-color: rgba(220,90,90,0.45); }
+
 /* ── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 680px) {
   .pro-page { padding: 20px 0 60px; }
   .pro-h1   { font-size: 18px; }
+  .pro-account-action-row { flex-direction: column; align-items: flex-start; gap: 10px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="pro-page">
+
+  <div class="pro-account-card">
+    <div class="pro-account-avatar">
+      {% if current_user.picture %}<img src="{{ current_user.picture }}" alt="" />
+      {% else %}{{ (current_user.name or current_user.email or 'G')[0].upper() }}{% endif %}
+    </div>
+    <div class="pro-account-meta">
+      <div class="pro-account-name">{{ current_user.name or 'Votre compte' }}</div>
+      <div class="pro-account-email">{{ current_user.email or '' }}</div>
+    </div>
+    <div class="pro-account-badge">{% if current_user.picture %}Google{% else %}Email{% endif %}</div>
+  </div>
+
+  <div class="pro-plan-card" id="pro-plan-card">
+    <div class="pro-plan-head">
+      <span class="pro-plan-title">Plan et consommation</span>
+      <span class="pro-plan-badge free" id="pro-plan-badge">…</span>
+    </div>
+    <div class="pro-usage-row">
+      <div class="pro-usage-label"><span>Analyses ce mois</span><span id="pro-usage-analyses">—</span></div>
+      <div class="pro-bar-track"><div class="pro-bar-fill" id="pro-usage-bar" style="width:0%;background:rgba(216,185,130,0.5);"></div></div>
+    </div>
+    <div class="pro-usage-row">
+      <div class="pro-usage-label"><span>Dossiers créés</span><span id="pro-usage-folders">—</span></div>
+    </div>
+    <a class="pro-plan-upgrade" href="/upgrade">Voir les plans →</a>
+  </div>
 
   <div class="pro-head">
     <h1 class="pro-h1">Profil business</h1>
@@ -327,6 +416,16 @@
     </button>
   </div>
 
+  <div class="pro-account-actions">
+    <div class="pro-account-action-row">
+      <div>
+        <div class="pro-account-action-label">Déconnexion</div>
+        <div class="pro-account-action-desc">Fermer votre session sur cet appareil</div>
+      </div>
+      <a class="pro-btn-ghost" href="/logout">Se déconnecter</a>
+    </div>
+  </div>
+
 </div>
 
 <div class="pro-toast" id="pro-toast"></div>
@@ -355,6 +454,36 @@ const REQUIRED = [
     });
   } catch(e) {}
   updateStatus();
+})();
+
+/* ─── Plan et consommation ───────────────────────────────────────────────── */
+(async function loadPlanUsage() {
+  const badge = document.getElementById('pro-plan-badge');
+  try {
+    const r = await fetch('/usage');
+    const d = await r.json();
+    const plan  = d.plan || 'free';
+    const used  = d.used  || 0;
+    const limit = d.limit || 0;
+    if (badge) {
+      badge.textContent = plan === 'free' ? 'Gratuit' : plan.charAt(0).toUpperCase() + plan.slice(1);
+      badge.classList.toggle('free', plan === 'free');
+    }
+    document.getElementById('pro-usage-analyses').textContent = limit ? `${used} / ${limit}` : `${used}`;
+    const bar = document.getElementById('pro-usage-bar');
+    if (bar && limit) bar.style.width = Math.min(100, Math.round(used / limit * 100)) + '%';
+  } catch(e) {
+    if (badge) badge.textContent = 'Gratuit';
+  }
+
+  try {
+    const rf = await fetch('/api/folders');
+    const df = await rf.json();
+    const count = (df.folders || []).length;
+    document.getElementById('pro-usage-folders').textContent = String(count);
+  } catch(e) {
+    document.getElementById('pro-usage-folders').textContent = '—';
+  }
 })();
 
 /* ─── Statut complétion ───────────────────────────────────────────────────── */
