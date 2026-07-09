@@ -222,11 +222,6 @@
 .psycho-pills{display:flex;flex-direction:column;gap:5px;}
 .psycho-pill{padding:7px 10px;border-radius:7px;background:rgba(255,255,255,.015);border:1px solid var(--border-soft);font-size:11px;color:var(--text-secondary);line-height:1.5;}
 
-/* ─── Action items ───────────────────────────────────────────────────── */
-.action-item{display:flex;gap:10px;padding:10px 12px;border-radius:var(--radius-md);background:rgba(255,255,255,.015);border:1px solid var(--border-soft);margin-bottom:6px;}
-.action-num{width:20px;height:20px;border-radius:50%;background:rgba(216,185,130,.07);border:1px solid rgba(216,185,130,.15);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--champagne-soft);flex-shrink:0;}
-.action-text{font-size:11px;color:var(--text-secondary);line-height:1.6;}
-
 /* ─── Persona cards v2 ───────────────────────────────────────────────── */
 .persona-card-v2{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:18px;margin-bottom:12px;}
 .persona-header-v2{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.05);}
@@ -654,12 +649,8 @@
           </div>
         </div>
         <div class="card">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:8px;">Actions prioritaires</div>
-          <div id="reco-actions"></div>
-          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-soft);">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:7px;">Prochaines étapes</div>
-            <ul class="items-list" id="reco-etapes"></ul>
-          </div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:8px;">Prochaines étapes</div>
+          <ul class="items-list" id="reco-etapes"></ul>
         </div>
       </div>
     </div>
@@ -694,29 +685,6 @@
       <div class="rag-interp-grid">
         <div class="rag-card" id="rag-psycho-card"></div>
         <div class="rag-card" id="rag-socio-card"></div>
-      </div>
-    </div>
-
-    <!-- Recommandations -->
-    <div>
-      <div class="sec-hdr"><div class="sec-ico">→</div><div class="sec-title">Recommandations stratégiques</div></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="card">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:8px;">Vérité de l'audience</div>
-          <p style="font-size:12px;color:var(--text-secondary);line-height:1.7;" id="reco-verite"></p>
-          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-soft);">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:7px;">Message central</div>
-            <p class="comment-quote" id="reco-message"></p>
-          </div>
-        </div>
-        <div class="card">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:8px;">Actions prioritaires</div>
-          <div id="reco-actions"></div>
-          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-soft);">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:7px;">Prochaines étapes</div>
-            <ul class="items-list" id="reco-etapes"></ul>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -1899,10 +1867,6 @@ function renderTabInterpretation(d) {
   /* Recos */
   const rv=document.getElementById('reco-verite');   if(rv) rv.textContent=recos.verite_de_l_audience||'—';
   const rm=document.getElementById('reco-message');  if(rm) rm.textContent=recos.message_central||'—';
-  const ra=document.getElementById('reco-actions');  ra.innerHTML='';
-  asArray(recos.actions_prioritaires).forEach((a,i)=>{
-    ra.innerHTML+=`<div class="action-item"><div class="action-num">${i+1}</div><div class="action-text">${esc(itemText(a))}</div></div>`;
-  });
   const re=document.getElementById('reco-etapes'); re.innerHTML='';
   asArray(recos.prochaines_etapes).forEach(e=>{re.innerHTML+=`<li>${esc(itemText(e))}</li>`;});
 }
