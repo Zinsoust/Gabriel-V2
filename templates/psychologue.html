@@ -521,10 +521,6 @@
     </div>
     <div class="dash-actions">
       <button class="btn btn-ghost btn-sm" onclick="resetToInput()">← Nouvelle analyse</button>
-      <button class="btn btn-ghost btn-sm" id="export-pdf-btn" onclick="exportCurrentPdf()" title="Exporter en PDF">
-        <svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        PDF
-      </button>
       <button class="btn btn-primary btn-sm" onclick="goToStratege()">Stratège →</button>
     </div>
   </div>
@@ -2071,27 +2067,6 @@ function goToStratege() {
     }));
   }
   window.location.href = '/stratege' + (_currentFolderId ? ('?folder_id=' + encodeURIComponent(_currentFolderId)) : '');
-}
-
-async function exportCurrentPdf() {
-  if (!_currentAnalysisId) { alert('Lancez une analyse avant d\'exporter.'); return; }
-  const btn = document.getElementById('export-pdf-btn');
-  const orig = btn.innerHTML;
-  btn.disabled = true; btn.textContent = '…';
-  try {
-    const r = await fetch(`/export/pdf/${_currentAnalysisId}`);
-    if (!r.ok) { alert('Erreur lors de la génération du PDF.'); return; }
-    const blob = await r.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = `gabriel_${_currentAnalysisId}.pdf`;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-  } catch(e) {
-    alert('Erreur PDF : ' + e.message);
-  } finally {
-    btn.disabled = false; btn.innerHTML = orig;
-  }
 }
 
 // ── Restauration depuis l'historique ─────────────────────────────────────

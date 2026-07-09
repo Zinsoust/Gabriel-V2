@@ -1212,10 +1212,6 @@ function renderStrat(d) {
     <button class="regen-btn" onclick="regenStrategie()">
       <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.45"/></svg>
       Régénérer
-    </button>
-    <button class="export-btn" id="export-pdf-btn" onclick="exportPDF()">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Exporter PDF
     </button>`;
   add(bar);
 
@@ -1661,30 +1657,6 @@ function regenStrategie() {
 function switchPhase(idx) {
   document.querySelectorAll('.plan-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
   document.querySelectorAll('.plan-phase').forEach((p, i) => p.classList.toggle('active', i === idx));
-}
-
-/* ── Export PDF ─────────────────────────────────────── */
-async function exportPDF() {
-  const btn = document.getElementById('export-pdf-btn');
-  if (!btn || !_lastStratData || !Object.keys(_lastStratData).length) return;
-  btn.classList.add('loading'); btn.textContent = 'Génération…';
-  try {
-    const r = await fetch('/export/strategy_pdf', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({strategy_data: _lastStratData})
-    });
-    if (!r.ok) { alert('Erreur lors de la génération PDF'); return; }
-    const blob = await r.blob();
-    const url  = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'gabriel_strategie.pdf';
-    a.click(); URL.revokeObjectURL(url);
-  } catch(e) {
-    alert('Erreur : ' + e.message);
-  } finally {
-    btn.classList.remove('loading');
-    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Exporter PDF`;
-  }
 }
 
 /* ── Consultant Stratégique chatbot ─────────────────── */
