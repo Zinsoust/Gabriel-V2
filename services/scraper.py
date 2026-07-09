@@ -25,15 +25,22 @@ def extract_youtube_id(url_or_id):
         match = re.search(pattern, url_or_id)
         if match:
             return match.group(1)
-    return url_or_id.strip()
+    return None  # aucun ID de vidéo valide (chaîne, playlist, handle…)
 
 
 def scrape_youtube(url_or_id):
     api_key = os.environ.get("YOUTUBE_API_KEY")
     if not api_key:
-        raise ValueError("YOUTUBE_API_KEY manquante dans .env")
+        # Erreur de configuration serveur (pas une faute utilisateur) → 500 + log
+        raise RuntimeError("YOUTUBE_API_KEY manquante — configurez-la dans les variables d'environnement Render.")
 
     video_id = extract_youtube_id(url_or_id)
+    if not video_id:
+        # URL de chaîne (@handle, /channel/, /c/, /user/), playlist ou lien invalide
+        raise ValueError(
+            "Ce lien n'est pas une vidéo. Collez l'URL d'une vidéo YouTube précise "
+            "(ex. youtube.com/watch?v=…), pas d'une chaîne ou d'une playlist."
+        )
     youtube = build('youtube', 'v3', developerKey=api_key)
 
     # Récupère aussi le titre de la vidéo pour contexte

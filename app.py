@@ -640,6 +640,9 @@ def analyze():
                      "Gabriel (pas un problème avec votre lien). Réessayez plus tard ou collez vos "
                      "commentaires manuellement.",
         }), 503
+    except ValueError as e:
+        # Erreur d'entrée utilisateur (URL de chaîne/playlist, lien invalide…) — message explicite
+        return jsonify({'error': str(e)}), 400
     except Exception as e:
         import traceback
         traceback.print_exc()
