@@ -106,12 +106,6 @@
 .lf-pct{font-size:10px;color:var(--text-muted);margin-bottom:6px;}
 .lf-ex{font-size:10px;color:var(--text-muted);font-style:italic;line-height:1.4;border-left:2px solid rgba(216,185,130,.15);padding-left:8px;}
 
-/* ─── Tendances ─────────────────────────────────────────────────────── */
-.tendance-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.tendance-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px;}
-.tendance-label{font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:8px;}
-.tendance-value{font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.45;text-transform:capitalize;}
-
 /* ─── Positions ─────────────────────────────────────────────────────── */
 .pos-row{display:flex;align-items:center;gap:12px;margin-bottom:9px;}
 .pos-label{font-size:11px;color:var(--text-secondary);width:90px;flex-shrink:0;text-transform:capitalize;}
@@ -249,7 +243,7 @@
 .comment-quote{padding:10px 14px;border-left:2px solid rgba(216,185,130,.18);background:rgba(255,255,255,.015);border-radius:0 6px 6px 0;font-size:11px;color:var(--text-secondary);line-height:1.65;font-style:italic;margin-bottom:5px;}
 
 /* ─── Persona card v3 ────────────────────────────────────────────── */
-.persona-card-v3{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:16px;display:grid;grid-template-columns:210px 1fr 215px;overflow:hidden;margin-bottom:20px;}
+.persona-card-v3{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:16px;display:grid;grid-template-columns:210px 1fr 260px;align-items:start;overflow:hidden;margin-bottom:20px;}
 .pc3-left{background:linear-gradient(160deg,rgba(216,185,130,.08) 0%,rgba(13,13,16,1) 65%);border-right:1px solid rgba(255,255,255,.05);padding:26px 18px;display:flex;flex-direction:column;align-items:center;}
 .pc3-avatar{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,rgba(216,185,130,.2) 0%,rgba(216,185,130,.04) 100%);border:2px solid rgba(216,185,130,.28);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:600;color:#F1D7A8;letter-spacing:-.02em;margin-bottom:14px;flex-shrink:0;}
 .pc3-avatar-img{width:90px;height:90px;border-radius:50%;border:2px solid rgba(216,185,130,.28);object-fit:cover;object-position:top center;margin-bottom:14px;flex-shrink:0;background:rgba(216,185,130,.04);}
@@ -274,8 +268,8 @@
 .pc3-msg{background:rgba(90,200,125,.04);border:1px solid rgba(90,200,125,.12);border-radius:8px;padding:12px 15px;margin-top:6px;}
 .pc3-msg-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.13em;color:rgba(90,200,125,.6);font-weight:600;margin-bottom:5px;}
 .pc3-msg-txt{font-size:12px;color:var(--text-secondary);line-height:1.65;font-style:italic;}
-.pc3-right{border-left:1px solid rgba(255,255,255,.04);background:rgba(255,255,255,.01);padding:22px 18px;overflow:hidden;}
-.pc3-stat{margin-bottom:16px;}
+.pc3-right{border-left:1px solid rgba(255,255,255,.04);background:rgba(255,255,255,.01);padding:22px 16px;display:grid;grid-template-columns:1fr 1fr;gap:0 14px;align-content:start;overflow:hidden;}
+.pc3-stat{margin-bottom:14px;min-width:0;}
 .pc3-stat-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:600;margin-bottom:4px;}
 .pc3-stat-val{font-size:11px;color:var(--text-secondary);line-height:1.55;}
 .pc3-conf-num{font-size:20px;font-weight:500;color:#F1D7A8;letter-spacing:-.03em;line-height:1.1;}
@@ -286,12 +280,12 @@
   .persona-card-v3{grid-template-columns:1fr;}
   .pc3-left{border-right:none;border-bottom:1px solid rgba(255,255,255,.05);flex-direction:row;flex-wrap:wrap;gap:16px;align-items:flex-start;padding:18px;}
   .pc3-avatar{margin-bottom:0;flex-shrink:0;}
-  .pc3-right{border-left:none;border-top:1px solid rgba(255,255,255,.04);}
+  .pc3-right{border-left:none;border-top:1px solid rgba(255,255,255,.04);grid-template-columns:1fr;}
   .pc3-2col{grid-template-columns:1fr;}
 }
 @media(max-width:768px){
   .snap-grid,.charts-row,.grille-grid,.persona-data-grid,.brief-cols,
-  .tendance-cards,.groupes-grid{grid-template-columns:1fr;}
+  .groupes-grid{grid-template-columns:1fr;}
   .nlp-nums{grid-template-columns:repeat(2,1fr);}
   .sujet-row{flex-direction:column;gap:6px;}
 }
@@ -567,12 +561,6 @@
       <div class="demog-row" id="demographics-grid"></div>
     </div>
 
-    <!-- 1. Résumé des tendances -->
-    <div class="db-section">
-      <div class="db-header"><div class="db-ico">◎</div><div class="db-title">Résumé des tendances</div></div>
-      <div class="tendance-cards" id="tendances-grid"></div>
-    </div>
-
     <!-- 2. Émotions détectées -->
     <div class="db-section">
       <div class="db-header"><div class="db-ico">◐</div><div class="db-title">Émotions détectées</div></div>
@@ -652,6 +640,29 @@
   <!-- ONGLET 2 — INTERPRÉTATION                                          -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <div id="tab-interpretation-content" class="dashboard hidden">
+
+    <!-- Recommandations — en tête, c'est la décision qui compte d'abord -->
+    <div>
+      <div class="sec-hdr"><div class="sec-ico">→</div><div class="sec-title">Recommandations stratégiques</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;">
+        <div class="card" style="border-color:rgba(216,185,130,.18);background:rgba(216,185,130,.03);">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:rgba(216,185,130,.6);font-weight:600;margin-bottom:8px;">Vérité de l'audience</div>
+          <p style="font-size:13px;color:var(--text-primary);line-height:1.75;" id="reco-verite"></p>
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(216,185,130,.12);">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:rgba(216,185,130,.6);font-weight:600;margin-bottom:7px;">Message central</div>
+            <p class="comment-quote" id="reco-message"></p>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:8px;">Actions prioritaires</div>
+          <div id="reco-actions"></div>
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border-soft);">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:500;margin-bottom:7px;">Prochaines étapes</div>
+            <ul class="items-list" id="reco-etapes"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Brief Gabriel -->
     <div>
@@ -1460,23 +1471,6 @@ function renderTabDashboard(d) {
   // Sujet analysé — affiché comme référence dans les sections de position
   const sujet = rt.sujet || d.video_context || '';
 
-  /* 1. Résumé des tendances */
-  const TENDANCES = [
-    {label:'Tendance dominante',  value: rt.tendance_dominante || '—'},
-    {label:'Émotion dominante',   value: rt.emotion_dominante  || '—'},
-    {label:'Signal dominant',     value: rt.signal_dominant    || '—'},
-    {label:'Tension principale',  value: rt.tension_principale || '—'},
-  ];
-  const sujetBadge = sujet
-    ? `<div style="margin-bottom:12px;padding:8px 12px;background:rgba(216,185,130,.05);border:1px solid rgba(216,185,130,.15);border-radius:8px;font-size:10px;color:rgba(216,185,130,.7);">
-        <span style="text-transform:uppercase;letter-spacing:.08em;opacity:.6;">Sujet analysé · </span>${esc(sujet)}</div>`
-    : '';
-  document.getElementById('tendances-grid').innerHTML = sujetBadge + TENDANCES.map(t=>`
-    <div class="tendance-card">
-      <div class="tendance-label">${esc(t.label)}</div>
-      <div class="tendance-value">${esc(t.value)}</div>
-    </div>`).join('');
-
   /* 2. Émotions — donut camembert */
   const EMO_COLORS = {
     'joie':        'rgba(255,210,75,.9)',
@@ -1990,7 +1984,7 @@ function renderTabPersonas(d) {
 
     /* ── Col droite : profondeur psychologique ── */
     const right = `<div class="pc3-right">
-      ${confPct!==null?`<div class="pc3-stat">
+      ${confPct!==null?`<div class="pc3-stat" style="grid-column:1/-1;">
         <div class="pc3-stat-lbl">Fiabilité du persona</div>
         <div class="pc3-conf-num">${confPct}%</div>
         <div class="pc3-conf-bar"><div class="pc3-conf-fill" style="width:${confPct}%"></div></div>
