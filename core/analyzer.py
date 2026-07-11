@@ -162,6 +162,18 @@ def _parse_json(text):
     raise ValueError("Impossible de parser le JSON")
 
 
+def _check_completeness(data, expected_keys, label):
+    """Verifie que les cles top-level attendues sont presentes et non vides.
+    Une cle manquante/vide apres une reponse tronquee-et-reparee (repair_json)
+    passe inapercue autrement — ce log rend le degat visible."""
+    missing = [k for k in expected_keys if not data.get(k)]
+    if missing:
+        print(f"[PSYCHO_COMPLETENESS] label={label} clefs manquantes/vides={missing} "
+              f"(sur {len(expected_keys)} attendues) — JSON probablement tronque puis repare")
+    else:
+        print(f"[PSYCHO_COMPLETENESS] label={label} OK — {len(expected_keys)}/{len(expected_keys)} clefs presentes")
+
+
 # ─── LEXICONS ÉMOTIONNELS & SIGNAUX ──────────────────────────────────────────
 
 _EMOTION_LEXICONS = {
@@ -496,8 +508,10 @@ def score_comments_math(comments, nlp_data, title=""):
     return results
 
 
-def _call_claude(prompt, max_tokens=5000, fast=False):
-    """fast=True utilise mistral-small (rapide) — fast=False utilise mistral-large (profond)."""
+def _call_claude(prompt, max_tokens=5000, fast=False, label=""):
+    """fast=True utilise mistral-small (rapide) — fast=False utilise mistral-large (profond).
+    label : identifiant court du site d'appel, utilisé uniquement pour les logs
+    [PSYCHO_TOKENS]/[PSYCHO_TRUNCATION] (permet de savoir quel prompt tronque)."""
     client = _get_client()
     model = "mistral-small-latest" if fast else "mistral-large-latest"
     for attempt in range(2):
@@ -507,6 +521,17 @@ def _call_claude(prompt, max_tokens=5000, fast=False):
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}]
             )
+            choice = response.choices[0]
+            usage  = response.usage
+            finish_reason = getattr(choice, 'finish_reason', None)
+            if usage:
+                print(f"[PSYCHO_TOKENS] label={label or '?'} model={model} "
+                      f"prompt_tokens={usage.prompt_tokens} completion_tokens={usage.completion_tokens} "
+                      f"max_tokens={max_tokens} finish_reason={finish_reason}")
+            if finish_reason in ('length', 'model_length'):
+                print(f"[PSYCHO_TRUNCATION] label={label or '?'} model={model} max_tokens={max_tokens} "
+                      f"completion_tokens={getattr(usage, 'completion_tokens', '?')} "
+                      f"— reponse coupee avant la fin, JSON probablement incomplet")
             return response.choices[0].message.content.strip()
         except Exception as e:
             status = getattr(e, 'status_code', None) or getattr(e, 'http_status', None)
@@ -1093,10 +1118,15 @@ Reponds UNIQUEMENT avec ce JSON :
 }}"""
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        fut_a = executor.submit(_call_claude, prompt_a, max_tokens=5000)
-        fut_b = executor.submit(_call_claude, prompt_b, max_tokens=5000)
+        fut_a = executor.submit(_call_claude, prompt_a, max_tokens=5000, label="main_a")
+        fut_b = executor.submit(_call_claude, prompt_b, max_tokens=7500, label="main_b")
         data_a = _parse_json(fut_a.result())
         data_b = _parse_json(fut_b.result())
+
+    _check_completeness(data_a, ["kpi_descriptions", "emotions", "psychologie",
+                                  "aspirations", "identitaire", "transformation"], "main_a")
+    _check_completeness(data_b, ["culturel", "marketing", "demographique",
+                                  "marches_caches", "grille_psychologique"], "main_b")
 
     return {**data_a, **data_b}
 
@@ -1231,8 +1261,13 @@ Reponds UNIQUEMENT avec ce JSON (un seul persona) :
 
     def _one_persona(cluster_source, mission):
         prompt = f"{shared}\nTA MISSION : {mission}\n{persona_schema.format(cluster_source=cluster_source)}"
-        text = _call_claude(prompt, max_tokens=2000)
-        return _parse_json(text)
+        text = _call_claude(prompt, max_tokens=3000, label=f"persona[{cluster_source}]")
+        data = _parse_json(text)
+        # Champs en toute fin de schéma — les premiers perdus si la réponse est tronquée
+        _check_completeness(data, ["nom", "mission_cachee", "besoin_d_appartenance",
+                                    "desir_de_legacy", "tension_existentielle"],
+                            f"persona[{cluster_source}]")
+        return data
 
     personas = []
     with ThreadPoolExecutor(max_workers=3) as executor:
@@ -1312,7 +1347,7 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
-    text = _call_claude(prompt, max_tokens=2500)
+    text = _call_claude(prompt, max_tokens=2500, label="recommandations")
     data = _parse_json(text)
     return data.get('recommandations', {})
 
@@ -1364,7 +1399,7 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
-    text = _call_claude(prompt, max_tokens=400, fast=True)
+    text = _call_claude(prompt, max_tokens=400, fast=True, label="brief")
     data = _parse_json(text)
     return data.get('brief', {})
 
@@ -1512,7 +1547,7 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
-    text = _call_claude(prompt, max_tokens=2000)
+    text = _call_claude(prompt, max_tokens=2000, label="livrables_ia")
     try:
         return _parse_json(text)
     except Exception as e:
@@ -1583,7 +1618,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
 }}"""
 
     try:
-        text = _call_claude(prompt, max_tokens=900, fast=True)
+        text = _call_claude(prompt, max_tokens=900, fast=True, label="interp_psycho")
         data = _parse_json(text)
         if data and not data.get("parse_error"):
             print(f"[GABRIEL] Interprétation psychologique OK — insight: {str(data.get('main_insight',''))[:60]}")
@@ -1646,7 +1681,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
 }}"""
 
     try:
-        text = _call_claude(prompt, max_tokens=900, fast=True)
+        text = _call_claude(prompt, max_tokens=900, fast=True, label="interp_socio")
         data = _parse_json(text)
         if data and not data.get("parse_error"):
             print(f"[GABRIEL] Interprétation socio-culturelle OK — insight: {str(data.get('main_insight',''))[:60]}")
