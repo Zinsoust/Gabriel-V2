@@ -13,6 +13,7 @@ class Psychologue(BaseAgent):
             ctx.video_context,
             ctx.title,
             progress_cb=getattr(ctx, 'progress_cb', None),
+            partial_cb=getattr(ctx, 'partial_cb', None),
         )
         ctx.add(self.AGENT_ID, result)
         return ctx

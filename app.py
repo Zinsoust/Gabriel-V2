@@ -566,6 +566,29 @@ def analyze():
                     _db.update_job(job_id, user_id=uid, status='running',
                                    progress=pct, step=step)
 
+            def _on_partial(key, data):
+                """Callback appelé dès qu'un bloc de résultat (dashboard/personas/
+                interpretation) est prêt — permet l'affichage progressif côté frontend.
+                Uniquement en mémoire (pas persisté en DB) : si le serveur redémarre
+                pendant l'analyse, le job est de toute façon marqué 'interrupted'."""
+                if job_id not in _jobs:
+                    return
+                payload = data
+                if key == 'dashboard':
+                    payload = {
+                        **data,
+                        'analysis_id':       analysis_id,
+                        'source_label':      _source_label,
+                        'video_context':     _video_context,
+                        'video_description': _video_description,
+                        'top_comments': sorted(
+                            [c for c in _comments if c.get('text')],
+                            key=lambda c: c.get('likes', 0), reverse=True
+                        )[:10],
+                    }
+                _jobs[job_id].setdefault('partial', {})[key] = payload
+                print(f"[JOB] partial_ready key={key} job_id={job_id}")
+
             try:
                 print(f"[JOB] running job_id={job_id}")
                 if _job_in_db:
@@ -573,7 +596,8 @@ def analyze():
                                    progress=1, step='demarrage')
                 result = gabriel.run_psycho(_comments, _video_context,
                                             title=_video_title,
-                                            progress_cb=_on_progress)
+                                            progress_cb=_on_progress,
+                                            partial_cb=_on_partial)
                 print(f"[PSYCHO_TIMING] analyze_comments_total={(result.get('_timing') or {}).get('total')}s")
 
                 _psycho_cache[analysis_id] = {
@@ -753,6 +777,7 @@ def job_status(job_id):
             'status':   status,
             'step':     job.get('step', ''),
             'progress': job.get('progress', 0),
+            'partial':  job.get('partial', {}),
         })
 
     # ── Job absent de la mémoire → chercher en base (redémarrage serveur) ────

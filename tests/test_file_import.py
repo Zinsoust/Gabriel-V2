@@ -246,7 +246,7 @@ def test_forced_column():
 def test_analyze_with_file_source(monkeypatch):
     captured = {}
 
-    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None):
+    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
         captured['comments'] = comments
         return {'kpis': {}, 'meta': {'total_commentaires': len(comments)}}
 
@@ -286,7 +286,7 @@ def test_analyze_with_file_source(monkeypatch):
 def test_analyze_file_source_sanitizes_payload(monkeypatch):
     captured = {}
 
-    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None):
+    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
         captured['comments'] = comments
         return {'kpis': {}, 'meta': {'total_commentaires': len(comments)}}
 
@@ -327,7 +327,7 @@ def test_analyze_file_source_sanitizes_payload(monkeypatch):
 # 17. Mode copier-coller toujours fonctionnel (non-régression)
 # ════════════════════════════════════════════════════════════════════════════
 def test_manual_paste_still_works(monkeypatch):
-    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None):
+    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
         return {'kpis': {}, 'meta': {'total_commentaires': len(comments)}}
 
     monkeypatch.setattr(type(_app.gabriel), 'run_psycho', fake_run_psycho)

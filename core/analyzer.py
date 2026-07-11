@@ -2344,7 +2344,7 @@ def _compute_dashboard(layer1, nlp_data, n_total, title=""):
 # ─── PIPELINE PRINCIPAL ───────────────────────────────────────────────────────
 
 def analyze_comments(comments, brain_context="", video_context="", title="",
-                     progress_cb=None):
+                     progress_cb=None, partial_cb=None):
 
     nb_total = len(comments)
     _target  = title or video_context
@@ -2363,6 +2363,14 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
                 progress_cb(step, pct)
             except Exception as e:
                 print(f"[ANALYZE] progress_cb erreur (non bloquant) : {e}")
+
+    def _partial(key, data):
+        if partial_cb:
+            try:
+                partial_cb(key, data)
+                print(f"[ANALYZE] partial_ready key={key}")
+            except Exception as e:
+                print(f"[ANALYZE] partial_cb erreur (non bloquant) : {e}")
 
     print(f"[ANALYZE] comments_count={nb_total}")
     _progress('nlp', 5)
@@ -2412,6 +2420,38 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
     dashboard = _compute_dashboard(layer1, nlp_data, nb_total, title=_target)
     print(f"[GABRIEL] Dashboard OK — emotion={dashboard.get('dominant_emotion')} | stance={dashboard.get('dominant_stance')} | opp={dashboard.get('opportunity_score')}")
     _t = _mark('dashboard', _t)
+
+    # ── Meta + nlp_signals calculables dès maintenant (zéro LLM) — réutilisés
+    # pour le résultat final ET pour le partial dashboard envoyé au frontend.
+    _nlp_signals = {
+        "relevance_distribution": (nlp_data or {}).get("relevance_distribution"),
+        "semantic_diversity":     (nlp_data or {}).get("semantic_diversity"),
+        "cluster_summary":        (nlp_data or {}).get("cluster_summary", []),
+        "top_tfidf":              (nlp_data or {}).get("lexical", {}).get("top_tfidf", [])[:12],
+        "top_bigrams":            (nlp_data or {}).get("lexical", {}).get("top_bigrams", [])[:8],
+        "vocabulary_size":        (nlp_data or {}).get("lexical", {}).get("vocabulary_size"),
+        "avg_tokens":             (nlp_data or {}).get("lexical", {}).get("avg_tokens_per_comment"),
+    } if nlp_data else {}
+
+    _meta = {
+        'total_commentaires':    nb_total,
+        'commentaires_analyses': nb_filtered,
+        'taux_filtrage':         round(nb_filtered / max(nb_total, 1) * 100, 1),
+        'nlp_active':            _NLP_AVAILABLE and nlp_data is not None,
+        'noise_ratio':           dashboard.get('noise_ratio', 0),
+        'confidence_score':      dashboard.get('confidence_score', 0),
+        'dominant_emotion':      dashboard.get('dominant_emotion', ''),
+        'dominant_stance':       dashboard.get('dominant_stance', ''),
+    }
+
+    _partial('dashboard', {
+        'dashboard':             dashboard,
+        'kpis':                  kpis,
+        'distribution':          distribution,
+        'nlp_signals':           _nlp_signals,
+        'meta':                  _meta,
+        'livrables_statistiques': stat_deliverables,
+    })
 
     # ── RAG — enrichissement base de connaissances psychologiques + sous-RAGs avec concept cards
     print("[ANALYZE] rag_start")
@@ -2519,6 +2559,7 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
         try:
             personas = fut_personas.result()
             print(f"[GABRIEL] Personas OK — {len(personas)}")
+            _partial('personas', personas)
         except Exception as e:
             print(f"[GABRIEL] Personas ERREUR : {e}")
         print(f"[PSYCHO_TIMING] personas={time.perf_counter()-_t_block:.2f}s")
@@ -2572,28 +2613,9 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
     result['kpis']                   = kpis
     result['distribution']           = distribution
     result['livrables_statistiques'] = livrables_statistiques
-    result['nlp_signals'] = {
-        "relevance_distribution": (nlp_data or {}).get("relevance_distribution"),
-        "semantic_diversity":     (nlp_data or {}).get("semantic_diversity"),
-        "cluster_summary":        (nlp_data or {}).get("cluster_summary", []),
-        "top_tfidf":              (nlp_data or {}).get("lexical", {}).get("top_tfidf", [])[:12],
-        "top_bigrams":            (nlp_data or {}).get("lexical", {}).get("top_bigrams", [])[:8],
-        "vocabulary_size":        (nlp_data or {}).get("lexical", {}).get("vocabulary_size"),
-        "avg_tokens":             (nlp_data or {}).get("lexical", {}).get("avg_tokens_per_comment"),
-    } if nlp_data else {}
-
-    result['dashboard'] = dashboard
-
-    result['meta'] = {
-        'total_commentaires':    nb_total,
-        'commentaires_analyses': nb_filtered,
-        'taux_filtrage':         round(nb_filtered / max(nb_total, 1) * 100, 1),
-        'nlp_active':            _NLP_AVAILABLE and nlp_data is not None,
-        'noise_ratio':           dashboard.get('noise_ratio', 0),
-        'confidence_score':      dashboard.get('confidence_score', 0),
-        'dominant_emotion':      dashboard.get('dominant_emotion', ''),
-        'dominant_stance':       dashboard.get('dominant_stance', ''),
-    }
+    result['nlp_signals']            = _nlp_signals
+    result['dashboard']              = dashboard
+    result['meta']                   = _meta
 
     # ── Clé interpretation — assemblage depuis données existantes (zéro LLM)
     _livr  = result.get('livrables_statistiques', {})
@@ -2634,6 +2656,15 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
         'psychologique':    interp_psycho,
         'socio_culturelle': interp_socio,
     }
+
+    _partial('interpretation', {
+        'brief':                  result.get('brief', {}),
+        'grille_psychologique':   result.get('grille_psychologique', {}),
+        'livrables_statistiques': result.get('livrables_statistiques', {}),
+        'psychologie':            result.get('psychologie', {}),
+        'recommandations':        result.get('recommandations', {}),
+        'interpretation':         result['interpretation'],
+    })
 
     _timing['total'] = round(time.perf_counter() - _t_start, 2)
     print(f"[PSYCHO_TIMING] total={_timing['total']:.2f}s")

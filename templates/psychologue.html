@@ -45,6 +45,20 @@
 .result-tab.active{color:#D8B982;}
 .result-tab.active::after{left:0;right:0;}
 .result-tab:hover:not(.active){color:rgba(255,255,255,.5);transform:scale(1.04);}
+.result-tab-pct{font-size:9px;color:rgba(216,185,130,.55);margin-left:6px;font-variant-numeric:tabular-nums;}
+
+/* ─── Chargement progressif par onglet ──────────────────────────────── */
+.tab-loading-anchor{position:relative;min-height:240px;}
+.tab-loading-overlay{
+  position:absolute;inset:0;z-index:5;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  background:var(--bg-base,#0d0d10);text-align:center;padding:60px 20px;
+}
+.tab-loading-overlay.hidden{display:none;}
+.tab-loading-pct{font-size:30px;font-weight:600;color:#D8B982;letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
+.tab-loading-label{font-size:12px;color:var(--text-secondary);max-width:280px;line-height:1.6;}
+.tab-loading-bar-track{width:180px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:2px;}
+.tab-loading-bar-fill{height:100%;background:linear-gradient(90deg,rgba(216,185,130,.4),rgba(216,185,130,.75));border-radius:2px;transition:width .3s ease;}
 
 /* ─── Section header ─────────────────────────────────────────────────── */
 .sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
@@ -511,13 +525,13 @@
     </div>
   </div>
 
-  <div class="complete-msg">Analyse terminée. Gabriel a détecté les principaux signaux de votre audience.</div>
+  <div class="complete-msg" id="complete-msg">Dashboard prêt. Gabriel prépare l'interprétation et les personas…</div>
 
   <!-- Navigation onglets -->
   <div class="result-tabs">
     <button class="result-tab active" data-rtab="dashboard"      onclick="switchResultTab('dashboard')">Dashboard</button>
-    <button class="result-tab"        data-rtab="interpretation" onclick="switchResultTab('interpretation')">Interprétation</button>
-    <button class="result-tab"        data-rtab="personas"       onclick="switchResultTab('personas')">Personas</button>
+    <button class="result-tab"        data-rtab="interpretation" onclick="switchResultTab('interpretation')">Interprétation<span class="result-tab-pct" id="rtab-pct-interpretation"></span></button>
+    <button class="result-tab"        data-rtab="personas"       onclick="switchResultTab('personas')">Personas<span class="result-tab-pct" id="rtab-pct-personas"></span></button>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -631,7 +645,13 @@
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <!-- ONGLET 2 — INTERPRÉTATION                                          -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <div id="tab-interpretation-content" class="dashboard hidden">
+  <div id="tab-interpretation-content" class="dashboard tab-loading-anchor hidden">
+
+    <div class="tab-loading-overlay hidden" id="interp-loading-overlay">
+      <div class="tab-loading-pct" id="interp-loading-pct">0%</div>
+      <div class="tab-loading-bar-track"><div class="tab-loading-bar-fill" id="interp-loading-bar" style="width:0%;"></div></div>
+      <div class="tab-loading-label">Gabriel prépare l'interprétation approfondie — grille psychologique, recommandations, lecture stratégique.</div>
+    </div>
 
     <!-- Recommandations — en tête, c'est la décision qui compte d'abord -->
     <div>
@@ -690,7 +710,12 @@
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <!-- ONGLET 3 — PERSONAS                                                -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <div id="tab-personas-content" class="dashboard hidden">
+  <div id="tab-personas-content" class="dashboard tab-loading-anchor hidden">
+    <div class="tab-loading-overlay hidden" id="personas-loading-overlay">
+      <div class="tab-loading-pct" id="personas-loading-pct">0%</div>
+      <div class="tab-loading-bar-track"><div class="tab-loading-bar-fill" id="personas-loading-bar" style="width:0%;"></div></div>
+      <div class="tab-loading-label">Gabriel construit les personas — profils psychologiques détaillés de votre audience.</div>
+    </div>
     <div>
       <div class="sec-hdr"><div class="sec-ico">◈</div><div class="sec-title">Segments d'audience</div></div>
       <div id="personas-list"></div>
@@ -921,14 +946,15 @@ async function startAnalysis() {
   // si l'utilisateur visite Stratège/Créateur puis revient ici.
   try { localStorage.setItem(PENDING_JOB_KEY, JSON.stringify({id: jobId, t0})); } catch(_) {}
 
-  await pollAnalysis(jobId, timer, pctTimer);
+  await pollAnalysis(jobId, timer, pctTimer, t0);
 }
 
-async function pollAnalysis(jobId, timer, pctTimer) {
+async function pollAnalysis(jobId, timer, pctTimer, t0) {
   const stop = () => {
     clearInterval(timer); clearInterval(pctTimer);
     try { localStorage.removeItem(PENDING_JOB_KEY); } catch(_) {}
   };
+  const revealed = {dashboard: false, interpretation: false, personas: false};
 
   // ── Phase 2 : polling jusqu'à 'done' (max 8 min — 100+ commentaires) ─────
   const MAX_POLLS = 160;  // 160 × 3s = 8 min
@@ -969,11 +995,40 @@ async function pollAnalysis(jobId, timer, pctTimer) {
     }
     notFoundStreak = 0;
 
+    // ── Affichage progressif : dès qu'un bloc de résultat est prêt, on le montre ──
+    const partial = poll.partial || {};
+    if (partial.dashboard && !revealed.dashboard) {
+      revealed.dashboard = true;
+      clearInterval(timer); clearInterval(pctTimer);
+      revealDashboardPartial(partial.dashboard, t0 || Date.now());
+    }
+    if (partial.personas && !revealed.personas) {
+      revealed.personas = true;
+      revealPersonasPartial(partial.personas);
+    }
+    if (partial.interpretation && !revealed.interpretation) {
+      revealed.interpretation = true;
+      revealInterpretationPartial(partial.interpretation);
+    }
+
     if (poll.status === 'done') {
       const pctEl = document.getElementById('loading-percent');
       if (pctEl) pctEl.textContent = '100%';
       stop();
-      try { renderDashboard(poll.data || {}); loadUsageCounter(); }
+      const fullData = poll.data || {};
+      try {
+        if (revealed.dashboard) {
+          // Le dashboard est déjà affiché (l'utilisateur navigue peut-être déjà
+          // sur un autre onglet) — on complète les données sans changer d'onglet.
+          renderTabDashboard(fullData);
+          renderTabInterpretation(fullData);
+          renderTabPersonas(fullData);
+          finishAllTabLoading();
+        } else {
+          renderDashboard(fullData);
+        }
+        loadUsageCounter();
+      }
       catch(e) { showError("Analyse terminée mais affichage échoué. Rechargez."); }
       if (typeof GabrielSurvey !== 'undefined') {
         GabrielSurvey.trigger({
@@ -1008,7 +1063,7 @@ function resumePendingAnalysis() {
   show('loading-section'); hide('input-section'); hide('error-section'); hide('dashboard-section');
   const timer = animateSteps();
   const pctTimer = startPercent(job.t0 || Date.now());
-  pollAnalysis(job.id, timer, pctTimer);
+  pollAnalysis(job.id, timer, pctTimer, job.t0 || Date.now());
   return true;
 }
 
@@ -1131,9 +1186,15 @@ function renderDashboard(d) {
   show('dashboard-section');
   switchResultTab('dashboard');
 
-  // Stagger entrance for dashboard cards
+  animateCardsIn('#dashboard-section');
+}
+
+/* ── Affichage progressif : Dashboard → Interprétation/Personas en chargement ── */
+let _tabTimers = {};
+
+function animateCardsIn(containerSelector) {
   requestAnimationFrame(() => {
-    document.querySelectorAll('#dashboard-section .card').forEach((card, i) => {
+    document.querySelectorAll(containerSelector + ' .card').forEach((card, i) => {
       card.style.opacity = '0';
       card.style.transform = 'translateY(10px)';
       card.style.transition = 'none';
@@ -1145,6 +1206,89 @@ function renderDashboard(d) {
       });
     });
   });
+}
+
+function startTabPct(t0, estMs, pctElId, barElId, badgeElId) {
+  const pctEl   = document.getElementById(pctElId);
+  const barEl   = document.getElementById(barElId);
+  const badgeEl = document.getElementById(badgeElId);
+  const tick = () => {
+    const pct = Math.min(95, Math.round((Date.now() - t0) / estMs * 100));
+    if (pctEl)   pctEl.textContent = pct + '%';
+    if (barEl)   barEl.style.width = pct + '%';
+    if (badgeEl) badgeEl.textContent = '· ' + pct + '%';
+  };
+  tick();
+  return setInterval(tick, 1000);
+}
+
+function finishTabPct(key, pctElId, barElId, badgeElId) {
+  if (_tabTimers[key]) { clearInterval(_tabTimers[key]); delete _tabTimers[key]; }
+  const pctEl   = document.getElementById(pctElId);
+  const barEl   = document.getElementById(barElId);
+  const badgeEl = document.getElementById(badgeElId);
+  if (pctEl)   pctEl.textContent = '100%';
+  if (barEl)   barEl.style.width = '100%';
+  if (badgeEl) badgeEl.textContent = '';
+}
+
+function updateCompleteMsg() {
+  const io = document.getElementById('interp-loading-overlay');
+  const po = document.getElementById('personas-loading-overlay');
+  const interpDone = io && io.classList.contains('hidden');
+  const persoDone  = po && po.classList.contains('hidden');
+  const msg = document.getElementById('complete-msg');
+  if (msg && interpDone && persoDone) {
+    msg.textContent = "Analyse terminée. Gabriel a détecté les principaux signaux de votre audience.";
+  }
+}
+
+function revealDashboardPartial(data, t0) {
+  document.getElementById('dash-id').textContent =
+    `ID ${data.analysis_id||'—'} · ${(data.meta||{}).commentaires_analyses||0} commentaires analysés`;
+  renderTabDashboard(data);
+
+  hide('loading-section');
+  show('dashboard-section');
+  switchResultTab('dashboard');
+  animateCardsIn('#tab-dashboard-content');
+
+  const io = document.getElementById('interp-loading-overlay');
+  const po = document.getElementById('personas-loading-overlay');
+  if (io) io.classList.remove('hidden');
+  if (po) po.classList.remove('hidden');
+  // Estimation basée sur le temps moyen mesuré du pipeline complet (~130s) —
+  // le vrai % arrive dès que le bloc correspondant est effectivement prêt.
+  _tabTimers.interpretation = startTabPct(t0, 130000, 'interp-loading-pct', 'interp-loading-bar', 'rtab-pct-interpretation');
+  _tabTimers.personas       = startTabPct(t0, 130000, 'personas-loading-pct', 'personas-loading-bar', 'rtab-pct-personas');
+}
+
+function revealInterpretationPartial(data) {
+  renderTabInterpretation(data);
+  finishTabPct('interpretation', 'interp-loading-pct', 'interp-loading-bar', 'rtab-pct-interpretation');
+  const io = document.getElementById('interp-loading-overlay');
+  if (io) io.classList.add('hidden');
+  updateCompleteMsg();
+}
+
+function revealPersonasPartial(personas) {
+  renderTabPersonas({personas: personas});
+  finishTabPct('personas', 'personas-loading-pct', 'personas-loading-bar', 'rtab-pct-personas');
+  const po = document.getElementById('personas-loading-overlay');
+  if (po) po.classList.add('hidden');
+  updateCompleteMsg();
+}
+
+function finishAllTabLoading() {
+  Object.keys(_tabTimers).forEach(k => clearInterval(_tabTimers[k]));
+  _tabTimers = {};
+  const io = document.getElementById('interp-loading-overlay');
+  const po = document.getElementById('personas-loading-overlay');
+  if (io) io.classList.add('hidden');
+  if (po) po.classList.add('hidden');
+  const ib = document.getElementById('rtab-pct-interpretation'); if (ib) ib.textContent = '';
+  const pb = document.getElementById('rtab-pct-personas');       if (pb) pb.textContent = '';
+  updateCompleteMsg();
 }
 
 /* ── ONGLET 1 : Dashboard ─────────────────────────────────────────────── */

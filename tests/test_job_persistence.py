@@ -172,7 +172,7 @@ def test_analyze_creates_job_100_comments(monkeypatch):
     # 100 commentaires — la promesse produit minimum
     comments = '\n'.join(f'Commentaire numéro {i} vraiment intéressant' for i in range(100))
 
-    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None):
+    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
         if progress_cb:
             progress_cb('nlp', 5)
             progress_cb('llm_principal', 40)
@@ -210,7 +210,7 @@ def test_analyze_creates_job_100_comments(monkeypatch):
 def test_progress_cb_updates_job(monkeypatch):
     captured = {}
 
-    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None):
+    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
         if progress_cb:
             progress_cb('rag', 30)
         # Capturer l'état du job au moment du callback
@@ -240,3 +240,60 @@ def test_progress_cb_updates_job(monkeypatch):
         time.sleep(0.1)
     assert captured.get('progress') == 30
     _app._jobs.pop(d['job_id'], None)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 12. /status expose 'partial' pendant qu'un job est encore en cours
+# ════════════════════════════════════════════════════════════════════════════
+def test_status_running_exposes_partial():
+    _app._jobs['job-mem-partial'] = {
+        'status': 'running', 'user_id': UID,
+        'step': 'llm_paralleles', 'progress': 65,
+        'partial': {'dashboard': {'dashboard': {'dominant_emotion': 'joie'}, 'meta': {}}},
+    }
+    r = _client().get('/status/job-mem-partial')
+    d = r.get_json()
+    assert r.status_code == 200
+    assert d['status'] == 'running'
+    assert d['partial']['dashboard']['dashboard']['dominant_emotion'] == 'joie'
+    assert 'personas' not in d['partial']
+    _app._jobs.pop('job-mem-partial', None)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 13. partial_cb du pipeline alimente bien _jobs[id]['partial'] via /analyze
+# ════════════════════════════════════════════════════════════════════════════
+def test_partial_cb_updates_job(monkeypatch):
+    captured = {}
+
+    def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
+        if partial_cb:
+            partial_cb('dashboard', {'dashboard': {'dominant_emotion': 'joie'}, 'meta': {}})
+            for jid, j in _app._jobs.items():
+                if j.get('partial', {}).get('dashboard'):
+                    captured['seen_before_done'] = True
+        return {'kpis': {}, 'meta': {'total_commentaires': 3}}
+
+    monkeypatch.setattr(type(_app.gabriel), 'run_psycho', fake_run_psycho)
+    monkeypatch.setattr(_db, 'check_usage_limit',
+                        lambda uid, email=None: {'allowed': True})
+    monkeypatch.setattr(_db, 'save_analysis', lambda entry, uid, folder_id=None: None)
+
+    c = _client()
+    r = c.post('/analyze',
+               data=json.dumps({'source': 'text',
+                                'content': 'Un commentaire\nDeux commentaires\nTrois commentaires'}),
+               content_type='application/json')
+    d = r.get_json()
+    assert r.status_code == 200
+    job_id = d['job_id']
+
+    import time
+    for _ in range(50):
+        job = _app._jobs.get(job_id)
+        if job and job['status'] in ('done', 'error'):
+            break
+        time.sleep(0.1)
+
+    assert captured.get('seen_before_done') is True
+    _app._jobs.pop(job_id, None)
