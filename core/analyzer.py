@@ -3,6 +3,8 @@ import re
 import json
 import math
 import time
+import random
+import threading
 from collections import Counter
 try:
     from mistralai import Mistral
@@ -508,19 +510,52 @@ def score_comments_math(comments, nlp_data, title=""):
     return results
 
 
+# Rate-limit Mistral — deux garde-fous complémentaires :
+#  1. _MISTRAL_SEMAPHORE : plafonne le nombre d'appels SIMULTANÉS.
+#  2. _mistral_throttle() : espace les LANCEMENTS d'au moins MISTRAL_MIN_INTERVAL
+#     secondes (le vrai levier contre une limite « requêtes/seconde »).
+# Sans ça, l'étape parallèle du Psychologue tirait ~8 requêtes d'un coup
+# (personas ×3 + reco + brief + livrables + 2 interprétations) → 429 systématique
+# sur l'une d'elles, alors abandonnée (perte silencieuse d'un persona).
+_MISTRAL_MAX_CONCURRENCY = int(os.environ.get('MISTRAL_MAX_CONCURRENCY', '4'))
+_MISTRAL_SEMAPHORE = threading.Semaphore(_MISTRAL_MAX_CONCURRENCY)
+_MISTRAL_MIN_INTERVAL = float(os.environ.get('MISTRAL_MIN_INTERVAL', '0.5'))
+_mistral_rate_lock = threading.Lock()
+_mistral_last_launch = [0.0]
+
+
+def _mistral_throttle():
+    """Garantit un espacement minimum entre deux lancements de requêtes Mistral,
+    tous threads confondus. Appelé AVANT d'acquérir le sémaphore pour ne pas
+    consommer un créneau de concurrence pendant l'attente d'espacement."""
+    with _mistral_rate_lock:
+        now = time.time()
+        wait = _MISTRAL_MIN_INTERVAL - (now - _mistral_last_launch[0])
+        if wait > 0:
+            time.sleep(wait)
+            now = time.time()
+        _mistral_last_launch[0] = now
+
+
 def _call_claude(prompt, max_tokens=5000, fast=False, label=""):
     """fast=True utilise mistral-small (rapide) — fast=False utilise mistral-large (profond).
     label : identifiant court du site d'appel, utilisé uniquement pour les logs
-    [PSYCHO_TOKENS]/[PSYCHO_TRUNCATION] (permet de savoir quel prompt tronque)."""
+    [PSYCHO_TOKENS]/[PSYCHO_TRUNCATION] (permet de savoir quel prompt tronque).
+
+    Robustesse rate-limit : espacement des lancements + plafond de concurrence
+    + retry avec backoff exponentiel et jitter sur 429/529."""
     client = _get_client()
     model = "mistral-small-latest" if fast else "mistral-large-latest"
-    for attempt in range(2):
+    max_attempts = 6
+    for attempt in range(max_attempts):
         try:
-            response = client.chat.complete(
-                model=model,
-                max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}]
-            )
+            _mistral_throttle()
+            with _MISTRAL_SEMAPHORE:
+                response = client.chat.complete(
+                    model=model,
+                    max_tokens=max_tokens,
+                    messages=[{"role": "user", "content": prompt}]
+                )
             choice = response.choices[0]
             usage  = response.usage
             finish_reason = getattr(choice, 'finish_reason', None)
@@ -535,8 +570,13 @@ def _call_claude(prompt, max_tokens=5000, fast=False, label=""):
             return response.choices[0].message.content.strip()
         except Exception as e:
             status = getattr(e, 'status_code', None) or getattr(e, 'http_status', None)
-            if attempt == 0 and status in (429, 529):
-                import time; time.sleep(4); continue
+            if status in (429, 529) and attempt < max_attempts - 1:
+                # Backoff exponentiel + jitter : ~1, 2, 4, 8 s (plafonné à 16 s).
+                delay = min(2 ** attempt, 16) + random.uniform(0, 1.5)
+                print(f"[PSYCHO_RATELIMIT] label={label or '?'} status={status} "
+                      f"tentative={attempt + 1}/{max_attempts} → nouvel essai dans {delay:.1f}s")
+                time.sleep(delay)
+                continue
             raise
 
 
