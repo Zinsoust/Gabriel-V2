@@ -1,0 +1,167 @@
+/* ─── Gabriel onboarding tour ───────────────────────────────────────────── */
+.gb-tour-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3990;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at var(--gb-tour-x, 50%) var(--gb-tour-y, 50%), transparent 0 120px, rgba(0,0,0,.46) 260px),
+    rgba(0,0,0,.18);
+  opacity: 0;
+  transition: opacity .22s ease;
+}
+.gb-tour-backdrop.is-visible { opacity: 1; }
+
+.gb-tour-card {
+  position: fixed;
+  z-index: 4000;
+  width: min(390px, calc(100vw - 32px));
+  padding: 18px;
+  border: 1px solid rgba(216,185,130,.24);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(216,185,130,.10), transparent 38%),
+    linear-gradient(180deg, rgba(20,20,22,.96), rgba(10,10,11,.96));
+  box-shadow: 0 28px 90px rgba(0,0,0,.52), inset 0 1px 0 rgba(255,255,255,.05);
+  color: rgba(245,245,245,.88);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  opacity: 0;
+  transform: translateY(8px) scale(.98);
+  transition: opacity .22s ease, transform .22s cubic-bezier(.22,1,.36,1);
+  pointer-events: auto;
+}
+.gb-tour-card.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.gb-tour-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.gb-tour-progress {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  color: rgba(216,185,130,.68);
+  font-weight: 650;
+}
+.gb-tour-close {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 50%;
+  background: rgba(255,255,255,.025);
+  color: rgba(255,255,255,.52);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+.gb-tour-close:hover {
+  color: rgba(255,255,255,.86);
+  border-color: rgba(216,185,130,.22);
+  background: rgba(216,185,130,.06);
+}
+.gb-tour-title {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -.035em;
+  color: #F4F0E8;
+  line-height: 1.18;
+  margin-bottom: 8px;
+}
+.gb-tour-text {
+  font-size: 13px;
+  line-height: 1.72;
+  color: rgba(245,245,245,.66);
+}
+.gb-tour-text p + p { margin-top: 8px; }
+.gb-tour-route-note {
+  color: rgba(216,185,130,.76);
+}
+.gb-tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 18px;
+}
+.gb-tour-actions-left,
+.gb-tour-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gb-tour-btn {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,.025);
+  color: rgba(245,245,245,.72);
+  min-height: 34px;
+  padding: 0 13px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 520;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+}
+.gb-tour-btn:hover {
+  color: rgba(245,245,245,.92);
+  border-color: rgba(216,185,130,.24);
+  background: rgba(216,185,130,.055);
+}
+.gb-tour-btn:active { transform: scale(.98); }
+.gb-tour-btn.primary {
+  background: rgba(216,185,130,.13);
+  border-color: rgba(216,185,130,.34);
+  color: #F1D7A8;
+}
+.gb-tour-btn.primary:hover { background: rgba(216,185,130,.19); }
+.gb-tour-btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: rgba(245,245,245,.42);
+}
+.gb-tour-btn.ghost:hover {
+  color: rgba(245,245,245,.70);
+  background: rgba(255,255,255,.025);
+}
+.gb-tour-highlight {
+  position: relative !important;
+  z-index: 3995 !important;
+  outline: 1px solid rgba(216,185,130,.70) !important;
+  outline-offset: 5px !important;
+  box-shadow: 0 0 0 8px rgba(216,185,130,.06), 0 0 40px rgba(216,185,130,.16) !important;
+  border-radius: 12px;
+  animation: gb-tour-pulse 2.2s ease-in-out infinite;
+}
+@keyframes gb-tour-pulse {
+  0%, 100% { box-shadow: 0 0 0 8px rgba(216,185,130,.055), 0 0 38px rgba(216,185,130,.14); }
+  50% { box-shadow: 0 0 0 12px rgba(216,185,130,.085), 0 0 48px rgba(216,185,130,.20); }
+}
+.gb-help-btn { white-space: nowrap; }
+
+@media (max-width: 720px) {
+  .gb-tour-card {
+    left: 16px !important;
+    right: 16px !important;
+    top: auto !important;
+    bottom: 16px !important;
+    width: auto;
+  }
+  .gb-tour-backdrop {
+    background: rgba(0,0,0,.38);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gb-tour-card,
+  .gb-tour-backdrop,
+  .gb-tour-highlight {
+    transition: none !important;
+    animation: none !important;
+  }
+}

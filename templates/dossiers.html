@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gabriel · Dossiers stratégiques</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/gabriel-onboarding.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -762,6 +763,7 @@
         <a class="ds-nav-link is-disabled" href="/dossiers" data-agent-link="/createur" aria-disabled="true" tabindex="-1">Le Créateur</a>
       </div>
       <div class="ds-nav-actions">
+        <button class="ds-pill gb-help-btn" type="button" onclick="window.GabrielOnboarding?.start(true)" style="font-family:inherit;">Aide</button>
         <a class="ds-pill" href="/profil">Profil</a>
         <a class="ds-pill" href="/logout">Sortir</a>
       </div>
@@ -777,7 +779,7 @@
           Chaque dossier rassemble la mémoire du Psychologue, du Stratège et du Créateur autour d’un sujet précis.
         </p>
         <div class="ds-toolbar">
-          <button class="ds-create" type="button" onclick="openModal()">
+          <button class="ds-create" type="button" onclick="openModal()" data-tour="create-folder">
             <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nouveau dossier
           </button>
@@ -807,12 +809,12 @@
       <div class="ds-form">
         <div class="ds-field">
           <label class="ds-label" for="ds-f-title">Nom du dossier</label>
-          <input id="ds-f-title" class="ds-input" type="text" placeholder="Ex : Lancement offre Premium" maxlength="200" autocomplete="off">
+          <input id="ds-f-title" data-tour="folder-title" class="ds-input" type="text" placeholder="Ex : Lancement offre Premium" maxlength="200" autocomplete="off">
         </div>
 
         <div class="ds-field">
           <label class="ds-label" for="ds-f-objective">Objectif</label>
-          <input id="ds-f-objective" class="ds-input" type="text" placeholder="Ex : Choisir le bon angle de vente" maxlength="500" autocomplete="off">
+          <input id="ds-f-objective" data-tour="folder-objective" class="ds-input" type="text" placeholder="Ex : Choisir le bon angle de vente" maxlength="500" autocomplete="off">
         </div>
 
         <div class="ds-field">
@@ -1115,5 +1117,6 @@
       load();
     })();
   </script>
+  <script src="{{ url_for('static', filename='js/gabriel-onboarding.js') }}" defer></script>
 </body>
 </html>

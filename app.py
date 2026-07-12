@@ -57,6 +57,28 @@ def _inject_active_folder():
     return {'has_active_folder': bool(session.get('active_folder_id'))}
 
 
+# ── Cache-busting des assets statiques ────────────────────────────────────────
+# Le navigateur met en cache css/js de façon agressive (aucune version dans l'URL
+# par défaut). Après une modif de gabriel.css, une copie périmée pouvait rester
+# servie → HTML neuf + CSS périmé = mise en page cassée. static_v() ajoute
+# ?v=<mtime> : l'URL change dès que le fichier change, forçant un rechargement.
+def _static_version(filename):
+    try:
+        path = os.path.join(app.static_folder, filename)
+        return str(int(os.path.getmtime(path)))
+    except OSError:
+        return ''
+
+
+@app.context_processor
+def _inject_static_v():
+    def static_v(filename):
+        url = url_for('static', filename=filename)
+        v = _static_version(filename)
+        return f"{url}?v={v}" if v else url
+    return {'static_v': static_v}
+
+
 # Précharge le modèle sémantique NLP au démarrage de CE process.
 # Sous Gunicorn, app.py est importé (jamais exécuté comme __main__), donc le
 # préchargement placé dans `if __name__ == '__main__'` ne tournait jamais en

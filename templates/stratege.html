@@ -217,6 +217,185 @@
   .price-fourchette-val { font-size:15px; font-weight:600; color:var(--text-primary); }
   .price-justification { margin-top:10px; font-size:11px; color:var(--text-muted); line-height:1.65; border-top:1px solid var(--border-soft); padding-top:10px; }
 
+  /* ─── Premium strategy cards override ───────────────── */
+  .strat-dashboard { gap:18px; }
+  .strat-card {
+    position:relative;
+    overflow:hidden;
+    padding:22px 24px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.028), rgba(255,255,255,0.012)),
+      var(--bg-card);
+    border-color:rgba(255,255,255,0.075);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.035);
+    animation:gb-slide-up .34s cubic-bezier(.22,1,.36,1) both;
+  }
+  .strat-card::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 18% 0%, rgba(216,185,130,.075), transparent 34%);
+    opacity:0;
+    transition:opacity .22s ease;
+    pointer-events:none;
+  }
+  .strat-card:hover::before { opacity:1; }
+  .strat-card--priority {
+    border-color:rgba(216,185,130,.22);
+    background:
+      linear-gradient(135deg, rgba(216,185,130,.065), rgba(245,239,224,.018) 38%, rgba(255,255,255,.012)),
+      var(--bg-card);
+  }
+  .strat-card--priority::after {
+    content:'';
+    position:absolute;
+    top:0;
+    left:24px;
+    right:24px;
+    height:1px;
+    background:linear-gradient(90deg, transparent, rgba(216,185,130,.58), transparent);
+    opacity:.58;
+    pointer-events:none;
+  }
+  .strat-card--offer,
+  .strat-card--social {
+    box-shadow:0 10px 44px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035);
+  }
+  .decision-card {
+    position:relative;
+    padding:28px 30px;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(216,185,130,.12), transparent 36%),
+      linear-gradient(135deg, rgba(216,185,130,0.085), rgba(216,185,130,0.025));
+    border-color:rgba(216,185,130,0.28);
+    box-shadow:0 14px 50px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.04);
+    overflow:hidden;
+    animation:gb-slide-up .34s cubic-bezier(.22,1,.36,1) both;
+  }
+  .decision-card::before {
+    content:'';
+    position:absolute;
+    top:0;
+    left:28px;
+    right:28px;
+    height:1px;
+    background:linear-gradient(90deg, transparent, rgba(216,185,130,.7), transparent);
+  }
+  .decision-label { color:rgba(216,185,130,0.62); font-weight:700; margin-bottom:12px; }
+  .decision-text { font-size:clamp(18px,2vw,24px); font-weight:650; line-height:1.48; letter-spacing:-0.035em; }
+  .dash-sec-head { gap:12px; margin-bottom:18px; padding-bottom:14px; border-bottom-color:rgba(255,255,255,0.055); }
+  .dash-sec-title { font-size:13px; font-weight:650; letter-spacing:-0.01em; }
+  .value-core {
+    font-size:clamp(18px,2vw,24px);
+    font-weight:650;
+    margin-bottom:16px;
+    padding-bottom:16px;
+    border-bottom-color:rgba(216,185,130,0.13);
+    line-height:1.45;
+    letter-spacing:-0.035em;
+  }
+  .value-rows { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .value-row {
+    padding:14px;
+    background:rgba(255,255,255,.018);
+    border:1px solid rgba(255,255,255,.055);
+    border-radius:10px;
+  }
+  .value-row-label { color:rgba(216,185,130,.58); font-weight:700; margin-bottom:5px; }
+  .value-gap {
+    padding:14px 16px;
+    background:rgba(216,185,130,0.04);
+    border-color:rgba(216,185,130,0.16);
+    border-left-color:rgba(216,185,130,0.42);
+    border-radius:10px;
+  }
+  .social-platform {
+    display:grid;
+    grid-template-columns:minmax(170px,.38fr) minmax(0,1fr);
+    gap:16px;
+    align-items:stretch;
+    padding:16px;
+    background:rgba(216,185,130,0.045);
+    border-radius:14px;
+    border-color:rgba(216,185,130,0.18);
+  }
+  .social-platform-badge {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:14px 16px;
+    border-radius:12px;
+    background:linear-gradient(135deg,rgba(216,185,130,0.18),rgba(216,185,130,0.07));
+    border-color:rgba(216,185,130,0.30);
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    text-align:center;
+  }
+  .social-platform-meta {
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .social-format {
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.10em;
+    color:rgba(216,185,130,.50);
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .social-angle { font-size:14px; line-height:1.65; }
+  .social-first-post {
+    padding:16px 18px;
+    border-radius:12px;
+    border-color:rgba(255,255,255,0.07);
+  }
+  .social-first-text { font-size:13px; line-height:1.7; }
+  .social-priority {
+    padding:6px 13px;
+    background:rgba(216,185,130,0.06);
+    border-color:rgba(216,185,130,0.16);
+    color:rgba(216,185,130,0.72);
+  }
+  .offer-card {
+    padding:24px;
+    background:linear-gradient(135deg,rgba(216,185,130,0.065),rgba(255,255,255,0.012));
+    border-color:rgba(216,185,130,0.18);
+    border-radius:16px;
+  }
+  .offer-name {
+    font-size:clamp(20px,2.4vw,28px);
+    font-weight:700;
+    letter-spacing:-0.045em;
+    margin-bottom:7px;
+    line-height:1.18;
+  }
+  .offer-block {
+    padding:14px 15px;
+    background:rgba(255,255,255,0.018);
+    border:1px solid rgba(255,255,255,.055);
+    border-radius:10px;
+  }
+  .offer-price-row {
+    padding:16px 18px;
+    background:rgba(216,185,130,0.075);
+    border-radius:12px;
+    border-color:rgba(216,185,130,0.24);
+  }
+  .reco-item {
+    padding:13px 14px;
+    border-radius:10px;
+    border-color:rgba(255,255,255,.06);
+    transition:border-color .18s ease, background .18s ease, transform .18s ease;
+  }
+  .reco-item:hover {
+    border-color:rgba(216,185,130,.18);
+    background:rgba(216,185,130,.025);
+    transform:translateX(2px);
+  }
+
   .content-row { display:flex; gap:12px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
   .content-row-label { font-size:10px; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); font-weight:600; min-width:130px; padding-top:2px; }
   .content-row-val { font-size:13px; color:var(--text-secondary); line-height:1.65; }
@@ -401,12 +580,75 @@
   .trace-assumption { font-size:11px; color:var(--text-muted); padding:3px 0; line-height:1.55; display:flex; gap:6px; }
   .trace-assumption::before { content:'~'; color:rgba(255,180,0,0.35); flex-shrink:0; }
 
+  /* ─── Final premium overrides, after all card rules ─── */
+  .strat-dashboard { gap:18px; }
+  .strat-card {
+    position:relative;
+    overflow:hidden;
+    padding:22px 24px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.028), rgba(255,255,255,0.012)),
+      var(--bg-card);
+    border-color:rgba(255,255,255,0.075);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.035);
+    animation:gb-slide-up .34s cubic-bezier(.22,1,.36,1) both;
+  }
+  .strat-card--priority {
+    border-color:rgba(216,185,130,.22);
+    background:
+      linear-gradient(135deg, rgba(216,185,130,.065), rgba(245,239,224,.018) 38%, rgba(255,255,255,.012)),
+      var(--bg-card);
+  }
+  .strat-card--priority::after {
+    content:'';
+    position:absolute;
+    top:0;
+    left:24px;
+    right:24px;
+    height:1px;
+    background:linear-gradient(90deg, transparent, rgba(216,185,130,.58), transparent);
+    opacity:.58;
+    pointer-events:none;
+  }
+  .value-rows { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .value-row {
+    padding:14px;
+    background:rgba(255,255,255,.018);
+    border:1px solid rgba(255,255,255,.055);
+    border-radius:10px;
+  }
+  .social-platform {
+    display:grid;
+    grid-template-columns:minmax(170px,.38fr) minmax(0,1fr);
+    gap:16px;
+    align-items:stretch;
+    padding:16px;
+    border-radius:14px;
+  }
+  .social-platform-badge {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:14px 16px;
+    border-radius:12px;
+    text-align:center;
+    white-space:normal;
+  }
+  .social-platform-meta { min-width:0; display:flex; flex-direction:column; justify-content:center; }
+  .social-angle { font-size:14px; line-height:1.65; }
+  .offer-card { padding:24px; border-radius:16px; }
+  .offer-name { font-size:clamp(20px,2.4vw,28px); font-weight:700; letter-spacing:-0.045em; line-height:1.18; }
+  .offer-block { padding:14px 15px; border:1px solid rgba(255,255,255,.055); border-radius:10px; }
+
+
   @media (max-width:900px) {
     .strat-layout { grid-template-columns:1fr; }
     .ctx-panel { position:static; }
     .createur-features { grid-template-columns:1fr 1fr; }
     .exec-meta { grid-template-columns:1fr; }
     .psycho-used-grid { grid-template-columns:1fr; }
+    .value-rows { grid-template-columns:1fr; }
+    .social-platform { grid-template-columns:1fr; }
     .opp-action-row { grid-template-columns:1fr; }
     .offer-grid { grid-template-columns:1fr; }
     .offer-block-full { grid-column:span 1; }
@@ -418,6 +660,10 @@
   @media (max-width:520px) {
     .createur-features { grid-template-columns:1fr; }
     .price-grid { grid-template-columns:1fr; }
+    .strat-card,
+    .decision-card,
+    .exec-hero { padding:18px; }
+    .social-platform-badge { justify-content:flex-start; }
   }
 </style>
 {% endblock %}
@@ -480,7 +726,7 @@
     </div>
 
     <div class="strat-cta">
-      <button class="strat-cta-btn locked" id="strat-launch-btn" onclick="launchStratege()" disabled>
+      <button class="strat-cta-btn locked" id="strat-launch-btn" onclick="launchStratege()" disabled data-tour="stratege-start">
         <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Générer la stratégie
       </button>
@@ -566,7 +812,7 @@
     </div>
 
     <!-- Dashboard -->
-    <div class="hidden strat-dashboard" id="strat-dashboard"></div>
+    <div class="hidden strat-dashboard" id="strat-dashboard" data-tour="stratege-result"></div>
 
   </div>
 </div>
@@ -1185,7 +1431,7 @@ function renderStrat(d) {
 
   const add = el => dash.appendChild(el);
   const div = (cls, html) => { const e = document.createElement('div'); e.className = cls; e.innerHTML = html; return e; };
-  const card = (html) => div('card', html);
+  const card = (html, cls = '') => div(`card strat-card ${cls}`.trim(), html);
   const SVG = {
     lightbulb: `<path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26A7 7 0 0 1 12 2z"/>`,
     diamond:   `<polygon points="12 2 19 9 12 16 5 9"/><line x1="12" y1="16" x2="12" y2="22"/>`,
@@ -1260,7 +1506,7 @@ function renderStrat(d) {
         ap.decision_drivers.forEach(dd => { html += `<span class="psycho-used-driver">${_esc(dd)}</span>`; });
         html += `</div>`;
       }
-      add(card(html));
+      add(card(html, 'strat-card--psychology'));
     }
   }
 
@@ -1276,7 +1522,7 @@ function renderStrat(d) {
     if (vtc.value_gap_in_current_business) {
       html += `<div class="value-gap"><div class="value-gap-label">Écart à combler</div><div class="value-gap-text">${_esc(vtc.value_gap_in_current_business)}</div></div>`;
     }
-    add(card(html));
+    add(card(html, 'strat-card--value strat-card--priority'));
   }
 
   // ── NEW-D. Décision réseau social ─────────────────────
@@ -1296,7 +1542,7 @@ function renderStrat(d) {
     if (sm.posting_priority_this_week) {
       html += `<span class="social-priority">Priorité cette semaine : ${_esc(sm.posting_priority_this_week)}</span>`;
     }
-    add(card(html));
+    add(card(html, 'strat-card--social strat-card--priority'));
   }
 
   // ── NEW-E. Plan monétisation immédiate ────────────────
@@ -1310,7 +1556,7 @@ function renderStrat(d) {
     if (imon.first_offer_to_test)    html += `<div class="mono-offer"><div class="mono-offer-label">Offre à tester</div><div class="mono-offer-val">${_esc(imon.first_offer_to_test)}</div></div>`;
     if (imon.first_call_to_action)   html += `<div class="mono-cta"><div class="mono-cta-label">Call to Action</div><div class="mono-cta-val">${_esc(imon.first_call_to_action)}</div></div>`;
     if (imon.metric_to_watch)        html += `<div class="mono-metric">Métrique clé : ${_esc(imon.metric_to_watch)}</div>`;
-    add(card(html));
+    add(card(html, 'strat-card--monetization'));
   }
 
   // ── 1. Décision centrale ───────────────────────────────
@@ -1336,7 +1582,7 @@ function renderStrat(d) {
     if (d.angle_positionnel) html += `
       <div class="pos-angle-label">Angle positionnel</div>
       <p class="pos-angle-text">${_esc(d.angle_positionnel)}</p>`;
-    add(card(html));
+    add(card(html, 'strat-card--positioning'));
   }
 
   // ── 4. Opportunités ────────────────────────────────────
@@ -1365,7 +1611,7 @@ function renderStrat(d) {
         </div>`;
     });
     html += '</div>';
-    add(card(html));
+    add(card(html, 'strat-card--opportunities'));
   }
 
   // ── 5. Recommandations ─────────────────────────────────
@@ -1388,7 +1634,7 @@ function renderStrat(d) {
         </div>`;
     });
     html += '</div>';
-    add(card(html));
+    add(card(html, 'strat-card--recommendations'));
   }
 
   // ── 6. Offre recommandée ───────────────────────────────
@@ -1422,7 +1668,7 @@ function renderStrat(d) {
       html += `</div>`;
     }
     html += `</div>`;
-    add(card(html));
+    add(card(html, 'strat-card--offer strat-card--priority'));
   }
 
   // ── 7. Pricing ─────────────────────────────────────────
@@ -1443,7 +1689,7 @@ function renderStrat(d) {
     html += `</div>`;
     if (pricing.justification) html += `<div class="price-justification">${_esc(pricing.justification)}</div>`;
     html += `</div>`;
-    add(card(html));
+    add(card(html, 'strat-card--pricing'));
   }
 
   // ── 8. Stratégie contenu ───────────────────────────────
@@ -1458,7 +1704,7 @@ function renderStrat(d) {
     });
     const eviter = Array.isArray(contenu.sujets_a_eviter) ? contenu.sujets_a_eviter : [];
     if (eviter.length) html += `<div class="content-avoid"><div class="content-avoid-label">À éviter</div>${eviter.map(s=>`<span class="content-avoid-tag">✕ ${_esc(s)}</span>`).join('')}</div>`;
-    add(card(html));
+    add(card(html, 'strat-card--content'));
   }
 
   // ── 9. Plan 90 jours ───────────────────────────────────
@@ -1492,7 +1738,7 @@ function renderStrat(d) {
       if (decs.length)    html += `<div class="plan-section-title">Décisions clés</div>${decs.map(dec=>`<div class="plan-decision">${_esc(dec)}</div>`).join('')}`;
       html += `</div>`;
     });
-    add(card(html));
+    add(card(html, 'strat-card--plan'));
   }
 
   // ── 10. Risques ────────────────────────────────────────
@@ -1508,14 +1754,14 @@ function renderStrat(d) {
       </div>`;
     });
     html += '</div>';
-    add(card(html));
+    add(card(html, 'strat-card--risks'));
   }
 
   // ── 11. Indicateurs de succès ──────────────────────────
   if (Array.isArray(d.indicateurs_succes) && d.indicateurs_succes.length) {
     let html = secHead('chart', 'Indicateurs de succès');
     html += `<div class="indic-row">${d.indicateurs_succes.map(k=>`<span class="plan-kpi">${_esc(k)}</span>`).join('')}</div>`;
-    add(card(html));
+    add(card(html, 'strat-card--indicators'));
   }
 
   // ── 12. Questions à clarifier ──────────────────────────
@@ -1524,7 +1770,7 @@ function renderStrat(d) {
     html += '<div class="clarify-card">';
     d.questions_a_clarifier.forEach(q => { html += `<div class="clarify-item">${_esc(q)}</div>`; });
     html += '</div>';
-    add(card(html));
+    add(card(html, 'strat-card--clarify'));
   }
 
   // ── NEW-F. Trace de raisonnement (collapsible) ────────
@@ -1659,6 +1905,7 @@ function switchPhase(idx) {
   document.querySelectorAll('.plan-phase').forEach((p, i) => p.classList.toggle('active', i === idx));
 }
 
+/* ── Export PDF ─────────────────────────────────────── */
 /* ── Consultant Stratégique chatbot ─────────────────── */
 let _scHistory = [];
 let _scWaiting = false;
