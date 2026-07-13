@@ -521,6 +521,68 @@
   .exec-meta-val { font-size:11px; color:var(--text-secondary); line-height:1.55; }
   .exec-conf { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:20px; background:rgba(120,200,140,0.07); border:1px solid rgba(120,200,140,0.18); font-size:10px; color:rgba(120,200,140,0.75); margin-top:12px; }
 
+  /* ─── Command center : héro décision unifié + KPI cards ─────────────── */
+  .strat-hero {
+    grid-column:1/-1;
+    display:grid;
+    grid-template-columns:248px 1fr;
+    gap:0;
+    border:1px solid rgba(216,185,130,0.22);
+    border-radius:22px;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 88% 0%, rgba(216,185,130,0.10), transparent 46%),
+      linear-gradient(135deg, rgba(216,185,130,0.07), rgba(255,255,255,0.012) 55%),
+      var(--bg-card);
+    box-shadow:0 24px 70px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.04);
+    animation:gb-slide-up 0.4s cubic-bezier(0.22,1,.36,1) both;
+  }
+  .strat-hero-photo {
+    background-image:var(--strat-photo);
+    background-size:cover;
+    background-position:center 22%;
+    min-height:230px;
+    border-right:1px solid rgba(216,185,130,0.14);
+    position:relative;
+  }
+  .strat-hero-photo::after {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(105deg, transparent 55%, rgba(13,13,16,0.55));
+  }
+  .strat-hero-body { padding:30px 34px; display:flex; flex-direction:column; }
+  .strat-hero-badge {
+    display:inline-flex; align-items:center; gap:6px; align-self:flex-start;
+    padding:4px 12px; border-radius:999px;
+    background:rgba(216,185,130,0.12); border:1px solid rgba(216,185,130,0.28);
+    font-size:10px; font-weight:600; letter-spacing:0.06em; color:rgba(216,185,130,0.9);
+    margin-bottom:16px;
+  }
+  .strat-hero-kicker { font-size:10px; text-transform:uppercase; letter-spacing:0.14em; color:rgba(216,185,130,0.5); font-weight:600; margin-bottom:10px; }
+  .strat-hero-decision { font-size:24px; font-weight:650; color:var(--text-primary); line-height:1.35; letter-spacing:-0.025em; }
+  .strat-hero-week { margin-top:18px; padding:14px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:12px; }
+  .strat-hero-week-label { font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(216,185,130,0.6); font-weight:700; margin-bottom:6px; }
+  .strat-hero-week-text { font-size:13px; color:var(--text-secondary); line-height:1.65; }
+
+  .kpi-row { grid-column:1/-1; display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .kpi-card {
+    padding:20px 22px; border-radius:18px;
+    background:linear-gradient(160deg, rgba(255,255,255,0.03), rgba(255,255,255,0.008)), var(--bg-card);
+    border:1px solid var(--border-soft);
+    position:relative; overflow:hidden;
+    transition:border-color 0.22s, transform 0.22s;
+  }
+  .kpi-card:hover { border-color:rgba(216,185,130,0.24); transform:translateY(-2px); }
+  .kpi-card.kpi-accent { border-color:rgba(216,185,130,0.2); background:linear-gradient(160deg, rgba(216,185,130,0.06), rgba(216,185,130,0.015)), var(--bg-card); }
+  .kpi-label { font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); font-weight:600; margin-bottom:12px; }
+  .kpi-value { font-size:30px; font-weight:650; color:var(--text-primary); letter-spacing:-0.03em; line-height:1.05; }
+  .kpi-value.kpi-gold { color:#F1D7A8; }
+  .kpi-value sup, .kpi-value .kpi-unit { font-size:15px; font-weight:500; color:var(--text-muted); margin-left:2px; letter-spacing:0; }
+  .kpi-value--text { font-size:14px; font-weight:500; line-height:1.5; color:var(--text-secondary); }
+  .kpi-sub { font-size:11px; color:var(--text-muted); margin-top:8px; line-height:1.5; }
+  .kpi-bar { height:4px; border-radius:3px; background:rgba(255,255,255,0.07); overflow:hidden; margin-top:12px; }
+  .kpi-bar-fill { height:100%; border-radius:3px; background:linear-gradient(90deg, rgba(216,185,130,0.5), rgba(216,185,130,0.85)); }
+  @media(max-width:860px){ .strat-hero{grid-template-columns:1fr;} .strat-hero-photo{min-height:150px;border-right:none;border-bottom:1px solid rgba(216,185,130,0.14);} .kpi-row{grid-template-columns:1fr;} }
+
   /* ─── Psychologie audience active ───────────────────── */
   .psycho-used-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .psycho-used-item { padding:11px 13px; border-radius:8px; background:rgba(255,255,255,0.018); border:1px solid rgba(255,255,255,0.05); }
@@ -581,7 +643,223 @@
   .trace-assumption::before { content:'~'; color:rgba(255,180,0,0.35); flex-shrink:0; }
 
   /* ─── Final premium overrides, after all card rules ─── */
+  body.page-stratege .app-content {
+    max-width:1440px;
+    padding-left:34px;
+    padding-right:34px;
+    overflow-x:hidden;
+  }
+  body.page-stratege .app-footer {
+    display:none;
+  }
   .strat-dashboard { gap:18px; }
+  .strat-layout.has-strategy {
+    display:block;
+  }
+  .strat-layout.has-strategy .ctx-panel {
+    position:fixed;
+    z-index:360;
+    top:86px;
+    right:34px;
+    width:auto;
+    max-width:min(300px, calc(100vw - 130px));
+    display:block;
+  }
+  .strat-layout.has-strategy .ctx-header {
+    padding:10px 13px;
+    border-radius:999px;
+    cursor:pointer;
+    background:rgba(18,18,19,.82);
+    border-color:rgba(216,185,130,.18);
+    backdrop-filter:blur(18px);
+    box-shadow:0 14px 44px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .strat-layout.has-strategy .ctx-header::before {
+    content:'Contexte business';
+    display:block;
+    color:rgba(216,185,130,.84);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.11em;
+    font-weight:700;
+  }
+  .strat-layout.has-strategy .ctx-header-label,
+  .strat-layout.has-strategy .ctx-header-title,
+  .strat-layout.has-strategy .ctx-progress,
+  .strat-layout.has-strategy .chat-window {
+    display:none;
+  }
+  .strat-layout.has-strategy .ctx-fields-panel {
+    display:none;
+  }
+  .strat-layout.has-strategy .strat-cta {
+    display:none;
+  }
+  .strat-layout.has-strategy .ctx-badge {
+    margin-top:6px;
+    padding:3px 8px;
+    font-size:9px;
+    white-space:nowrap;
+  }
+  .strat-layout.has-strategy .ctx-panel.is-open {
+    top:96px;
+    right:34px;
+    width:min(360px, calc(100vw - 140px));
+    max-width:min(360px, calc(100vw - 140px));
+    display:flex;
+    gap:10px;
+  }
+  .strat-layout.has-strategy .ctx-panel.is-open .ctx-header {
+    border-radius:var(--radius-lg);
+  }
+  .strat-layout.has-strategy .ctx-panel.is-open .ctx-header-label,
+  .strat-layout.has-strategy .ctx-panel.is-open .ctx-header-title,
+  .strat-layout.has-strategy .ctx-panel.is-open .ctx-progress {
+    display:block;
+  }
+  .strat-layout.has-strategy .ctx-panel.is-open .chat-window {
+    display:flex;
+    height:250px;
+  }
+  .strat-layout.has-strategy .ctx-panel.is-open .ctx-fields-panel {
+    display:block;
+    max-height:370px;
+    overflow:auto;
+  }
+  .strat-layout.has-strategy .ctx-panel.is-open .strat-cta {
+    display:flex;
+  }
+  #strat-dashboard.strat-cockpit-active {
+    display:grid;
+    grid-template-columns:repeat(12, minmax(0, 1fr));
+    gap:22px;
+    grid-auto-flow:row;
+    align-items:start;
+    grid-auto-rows:auto;
+    padding-bottom:190px;
+    width:100%;
+    max-width:100%;
+    overflow:visible;
+  }
+  #strat-dashboard.strat-cockpit-active > * {
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+    align-self:start;
+    grid-row:auto !important;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-action-bar {
+    grid-column:1 / -1;
+    margin-bottom:0;
+    min-height:42px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-action-bar::before {
+    content:'Dashboard stratégique';
+    margin-right:auto;
+    color:#F4F0E8;
+    font-size:clamp(28px,3.2vw,46px);
+    line-height:1;
+    letter-spacing:-.065em;
+    font-weight:650;
+  }
+  .strat-command-card {
+    grid-column:1 / span 3;
+    grid-row:auto;
+    min-height:420px;
+    border-radius:24px;
+    border:1px solid rgba(216,185,130,.20);
+    overflow:hidden;
+    position:relative;
+    background:
+      radial-gradient(circle at 30% 0%, rgba(216,185,130,.20), transparent 42%),
+      linear-gradient(160deg, rgba(216,185,130,.12), rgba(14,14,15,.96) 58%);
+    box-shadow:0 22px 70px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.055);
+    animation:gb-slide-up .34s cubic-bezier(.22,1,.36,1) both;
+  }
+  .strat-command-photo {
+    position:absolute;
+    inset:0;
+    background:var(--strat-photo) center 24% / cover no-repeat;
+    filter:grayscale(.15) contrast(1.04) saturate(.72);
+    opacity:.72;
+  }
+  .strat-command-card::after {
+    content:'';
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.88) 74%),
+      linear-gradient(90deg, rgba(0,0,0,.38), transparent 56%);
+    pointer-events:none;
+  }
+  .strat-command-content {
+    position:relative;
+    z-index:1;
+    min-height:420px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:24px;
+  }
+  .strat-command-kicker {
+    position:absolute;
+    top:20px;
+    left:20px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 12px;
+    border-radius:999px;
+    background:rgba(0,0,0,.42);
+    border:1px solid rgba(216,185,130,.22);
+    color:rgba(216,185,130,.86);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    font-weight:700;
+    backdrop-filter:blur(18px);
+  }
+  .strat-command-title {
+    font-size:clamp(26px,3vw,44px);
+    line-height:.94;
+    letter-spacing:-.07em;
+    color:#F7F3EA;
+    margin-bottom:16px;
+  }
+  .strat-command-title em {
+    display:block;
+    font-family:Georgia, 'Times New Roman', serif;
+    font-style:italic;
+    font-weight:300;
+    letter-spacing:-.08em;
+    color:#D8B982;
+  }
+  .strat-command-text {
+    max-width:420px;
+    color:rgba(245,245,245,.72);
+    font-size:12px;
+    line-height:1.75;
+    display:-webkit-box;
+    -webkit-line-clamp:5;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .strat-command-pills {
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:18px;
+  }
+  .strat-command-pill {
+    padding:7px 11px;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.10);
+    color:rgba(245,245,245,.78);
+    font-size:10px;
+    letter-spacing:.04em;
+    backdrop-filter:blur(14px);
+  }
   .strat-card {
     position:relative;
     overflow:hidden;
@@ -592,6 +870,35 @@
     border-color:rgba(255,255,255,0.075);
     box-shadow:inset 0 1px 0 rgba(255,255,255,0.035);
     animation:gb-slide-up .34s cubic-bezier(.22,1,.36,1) both;
+  }
+  #strat-dashboard.strat-cockpit-active .exec-hero,
+  #strat-dashboard.strat-cockpit-active .exec-hero-shell,
+  #strat-dashboard.strat-cockpit-active .strat-card,
+  #strat-dashboard.strat-cockpit-active .decision-card,
+  #strat-dashboard.strat-cockpit-active .obj-card {
+    height:auto;
+  }
+  #strat-dashboard.strat-cockpit-active .exec-hero-shell .exec-hero {
+    height:auto;
+  }
+  #strat-dashboard.strat-cockpit-active .dash-sec-head {
+    margin-bottom:14px;
+  }
+  #strat-dashboard.strat-cockpit-active .exec-decision {
+    font-size:clamp(19px,2vw,28px);
+    line-height:1.34;
+    display:-webkit-box;
+    -webkit-line-clamp:5;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  #strat-dashboard.strat-cockpit-active .exec-week-text,
+  #strat-dashboard.strat-cockpit-active .exec-meta-val,
+  #strat-dashboard.strat-cockpit-active .value-row-text,
+  #strat-dashboard.strat-cockpit-active .social-angle,
+  #strat-dashboard.strat-cockpit-active .mono-block-text {
+    display:block;
+    overflow:visible;
   }
   .strat-card--priority {
     border-color:rgba(216,185,130,.22);
@@ -636,14 +943,393 @@
   }
   .social-platform-meta { min-width:0; display:flex; flex-direction:column; justify-content:center; }
   .social-angle { font-size:14px; line-height:1.65; }
+  #strat-dashboard.strat-cockpit-active .strat-card--social .social-platform {
+    grid-template-columns:1fr;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--social .social-platform-badge {
+    justify-content:flex-start;
+    min-height:92px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--social .social-angle {
+    font-size:12px;
+    line-height:1.55;
+    word-break:normal;
+    overflow-wrap:anywhere;
+  }
   .offer-card { padding:24px; border-radius:16px; }
   .offer-name { font-size:clamp(20px,2.4vw,28px); font-weight:700; letter-spacing:-0.045em; line-height:1.18; }
   .offer-block { padding:14px 15px; border:1px solid rgba(255,255,255,.055); border-radius:10px; }
 
+  #strat-dashboard.strat-cockpit-active .exec-hero,
+  #strat-dashboard.strat-cockpit-active .exec-hero-shell,
+  #strat-dashboard.strat-cockpit-active .decision-card {
+    grid-column:4 / span 5;
+    min-height:0;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--psychology {
+    grid-column:4 / span 6;
+    min-height:0;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--value {
+    grid-column:9 / -1;
+    min-height:0;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--social {
+    grid-column:10 / -1;
+    min-height:0;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--offer,
+  #strat-dashboard.strat-cockpit-active .strat-card--pricing {
+    grid-column:span 6;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--monetization {
+    grid-column:4 / span 4;
+    min-height:0;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--offer {
+    grid-column:8 / -1;
+    min-height:0;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--positioning,
+  #strat-dashboard.strat-cockpit-active .strat-card--content,
+  #strat-dashboard.strat-cockpit-active .strat-card--risks,
+  #strat-dashboard.strat-cockpit-active .strat-card--indicators,
+  #strat-dashboard.strat-cockpit-active .strat-card--clarify,
+  #strat-dashboard.strat-cockpit-active .obj-card {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--opportunities,
+  #strat-dashboard.strat-cockpit-active .strat-card--recommendations,
+  #strat-dashboard.strat-cockpit-active .strat-card--plan,
+  #strat-dashboard.strat-cockpit-active .createur-bridge,
+  #strat-dashboard.strat-cockpit-active .fb-card,
+  #strat-dashboard.strat-cockpit-active .no-lift {
+    grid-column:1 / -1;
+  }
+
+  /* Rééquilibrage ergonomique : les cartes suivent le contenu,
+     sans grands vides forcés dans le cockpit du Stratège. */
+  #strat-dashboard.strat-cockpit-active .strat-card {
+    padding:20px;
+  }
+  #strat-dashboard.strat-cockpit-active .dash-sec-head {
+    min-height:34px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-command-card {
+    grid-column:span 3;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-command-title {
+    font-size:clamp(27px,2.75vw,42px);
+  }
+  #strat-dashboard.strat-cockpit-active .strat-command-text {
+    -webkit-line-clamp:3;
+  }
+  #strat-dashboard.strat-cockpit-active .offer-card,
+  #strat-dashboard.strat-cockpit-active .price-card {
+    padding:16px;
+  }
+  #strat-dashboard.strat-cockpit-active .exec-hero-shell {
+    grid-column:span 5;
+  }
+  #strat-dashboard.strat-cockpit-active .decision-card,
+  #strat-dashboard.strat-cockpit-active .obj-card {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--psychology {
+    grid-column:span 5;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--value,
+  #strat-dashboard.strat-cockpit-active .strat-card--social {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--pricing {
+    grid-column:span 3;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--offer {
+    grid-column:span 6;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--monetization,
+  #strat-dashboard.strat-cockpit-active .strat-card--positioning {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--content,
+  #strat-dashboard.strat-cockpit-active .strat-card--risks,
+  #strat-dashboard.strat-cockpit-active .strat-card--indicators,
+  #strat-dashboard.strat-cockpit-active .strat-card--clarify {
+    grid-column:span 3;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--opportunities,
+  #strat-dashboard.strat-cockpit-active .strat-card--recommendations {
+    grid-column:span 6;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--plan {
+    grid-column:span 8;
+  }
+  #strat-dashboard.strat-cockpit-active .offer-grid {
+    gap:8px;
+  }
+  #strat-dashboard.strat-cockpit-active .offer-block {
+    padding:12px;
+  }
+  #strat-dashboard.strat-cockpit-active .value-rows,
+  #strat-dashboard.strat-cockpit-active .psycho-used-grid,
+  #strat-dashboard.strat-cockpit-active .exec-meta {
+    gap:8px;
+  }
+  #strat-dashboard.strat-cockpit-active .value-row,
+  #strat-dashboard.strat-cockpit-active .psycho-used-item,
+  #strat-dashboard.strat-cockpit-active .exec-meta-item,
+  #strat-dashboard.strat-cockpit-active .mono-block,
+  #strat-dashboard.strat-cockpit-active .content-row,
+  #strat-dashboard.strat-cockpit-active .risk-item,
+  #strat-dashboard.strat-cockpit-active .clarify-item {
+    padding:12px;
+  }
+  #strat-dashboard.strat-cockpit-active .social-platform-badge {
+    min-height:0;
+  }
+
+  /* ─── Distribution conseil premium ─────────────────────
+     Les cartes sont dimensionnées selon leur rôle UX :
+     décision → compréhension → offre → action → contrôle. */
+  #strat-dashboard.strat-cockpit-active .strat-command-card {
+    grid-column:span 3;
+    min-height:430px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-command-content {
+    min-height:430px;
+  }
+  #strat-dashboard.strat-cockpit-active .exec-hero-shell {
+    grid-column:span 5;
+  }
+  #strat-dashboard.strat-cockpit-active .decision-card,
+  #strat-dashboard.strat-cockpit-active .obj-card {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--psychology,
+  #strat-dashboard.strat-cockpit-active .strat-card--value {
+    grid-column:span 6;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--offer {
+    grid-column:span 7;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--pricing {
+    grid-column:span 5;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--monetization {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--social {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--positioning {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--recommendations,
+  #strat-dashboard.strat-cockpit-active .strat-card--opportunities {
+    grid-column:span 6;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--plan {
+    grid-column:span 8;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--risks {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--content,
+  #strat-dashboard.strat-cockpit-active .strat-card--indicators,
+  #strat-dashboard.strat-cockpit-active .strat-card--clarify {
+    grid-column:span 4;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--trace,
+  #strat-dashboard.strat-cockpit-active .createur-bridge,
+  #strat-dashboard.strat-cockpit-active .fb-card {
+    grid-column:1 / -1;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--social .social-platform {
+    gap:10px;
+    padding:12px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--social .social-platform-badge {
+    padding:12px;
+    font-size:13px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--pricing .price-grid {
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--offer .offer-name {
+    font-size:clamp(24px,2.7vw,34px);
+  }
+
+  /* Correctif cockpit : on privilégie une grille stable et lisible.
+     Les cartes ne doivent jamais être rognées ni créer des colonnes mortes. */
+  #strat-dashboard.strat-cockpit-active .exec-hero,
+  #strat-dashboard.strat-cockpit-active .exec-hero-shell,
+  #strat-dashboard.strat-cockpit-active .strat-card,
+  #strat-dashboard.strat-cockpit-active .decision-card,
+  #strat-dashboard.strat-cockpit-active .obj-card,
+  #strat-dashboard.strat-cockpit-active .strat-command-card,
+  #strat-dashboard.strat-cockpit-active .createur-bridge,
+  #strat-dashboard.strat-cockpit-active .fb-card {
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
+  }
+  #strat-dashboard.strat-cockpit-active .exec-hero-shell {
+    min-height:360px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-command-card {
+    min-height:390px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-command-content {
+    min-height:390px;
+  }
+  #strat-dashboard.strat-cockpit-active .decision-text,
+  #strat-dashboard.strat-cockpit-active .obj-text,
+  #strat-dashboard.strat-cockpit-active .pos-message-text,
+  #strat-dashboard.strat-cockpit-active .pos-angle-text,
+  #strat-dashboard.strat-cockpit-active .social-angle,
+  #strat-dashboard.strat-cockpit-active .social-format,
+  #strat-dashboard.strat-cockpit-active .mono-block-text,
+  #strat-dashboard.strat-cockpit-active .offer-block-val,
+  #strat-dashboard.strat-cockpit-active .reco-action,
+  #strat-dashboard.strat-cockpit-active .risk-text,
+  #strat-dashboard.strat-cockpit-active .plan-phase,
+  #strat-dashboard.strat-cockpit-active .content-row-value {
+    overflow-wrap:anywhere;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--social .social-platform {
+    grid-template-columns:minmax(0, 1fr);
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--social .social-platform-badge {
+    min-height:74px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-card--content .content-row {
+    grid-template-columns:minmax(120px, .42fr) minmax(0, 1fr);
+  }
+
+  @media (max-width:1280px) {
+    #strat-dashboard.strat-cockpit-active .strat-card--pricing .price-grid {
+      grid-template-columns:1fr;
+    }
+    #strat-dashboard.strat-cockpit-active .strat-command-card,
+    #strat-dashboard.strat-cockpit-active .exec-hero-shell,
+    #strat-dashboard.strat-cockpit-active .decision-card,
+    #strat-dashboard.strat-cockpit-active .obj-card,
+    #strat-dashboard.strat-cockpit-active .strat-card--psychology,
+    #strat-dashboard.strat-cockpit-active .strat-card--value,
+    #strat-dashboard.strat-cockpit-active .strat-card--offer,
+    #strat-dashboard.strat-cockpit-active .strat-card--pricing,
+    #strat-dashboard.strat-cockpit-active .strat-card--monetization,
+    #strat-dashboard.strat-cockpit-active .strat-card--social,
+    #strat-dashboard.strat-cockpit-active .strat-card--positioning,
+    #strat-dashboard.strat-cockpit-active .strat-card--content,
+    #strat-dashboard.strat-cockpit-active .strat-card--indicators,
+    #strat-dashboard.strat-cockpit-active .strat-card--clarify,
+    #strat-dashboard.strat-cockpit-active .strat-card--risks {
+      grid-column:span 6;
+    }
+    #strat-dashboard.strat-cockpit-active .strat-card--plan,
+    #strat-dashboard.strat-cockpit-active .strat-card--recommendations,
+    #strat-dashboard.strat-cockpit-active .strat-card--opportunities {
+      grid-column:1 / -1;
+    }
+  }
+
+  body.page-stratege .orch-bubble {
+    right:34px;
+    bottom:34px;
+    width:58px;
+    height:58px;
+    background:
+      radial-gradient(circle at 30% 15%, rgba(216,185,130,.18), transparent 42%),
+      rgba(17,17,18,.92);
+    backdrop-filter:blur(18px);
+    box-shadow:0 18px 60px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.055);
+  }
+  body.page-stratege .orch-panel {
+    right:50%;
+    bottom:24px;
+    transform:translateX(50%);
+    width:min(560px, calc(100vw - 190px));
+    height:260px;
+    max-height:44vh;
+    border-radius:20px;
+    background:
+      linear-gradient(180deg, rgba(30,30,31,.82), rgba(13,13,14,.90)),
+      rgba(13,13,14,.92);
+    border-color:rgba(216,185,130,.20);
+    backdrop-filter:blur(24px);
+    box-shadow:0 24px 90px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  body.page-stratege .orch-panel.expanded {
+    right:50%;
+    bottom:24px;
+    transform:translateX(50%);
+    width:min(760px, calc(100vw - 190px));
+    height:min(620px, calc(100vh - 96px));
+    max-height:calc(100vh - 96px);
+  }
+  body.page-stratege .orch-header {
+    padding:10px 14px;
+    background:rgba(255,255,255,.025);
+  }
+  body.page-stratege .orch-title::before {
+    content:'';
+    display:inline-block;
+    width:6px;
+    height:6px;
+    margin-right:8px;
+    border-radius:50%;
+    background:#D8B982;
+    box-shadow:0 0 14px rgba(216,185,130,.7);
+    vertical-align:middle;
+  }
+  body.page-stratege .orch-messages {
+    padding:12px 14px;
+  }
+  body.page-stratege .orch-bubble-text {
+    font-size:12px;
+    max-width:92%;
+  }
+  .orch-suggestions {
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    padding:9px 12px 0;
+    border-top:1px solid rgba(255,255,255,.045);
+  }
+  .orch-suggestion {
+    flex:0 0 auto;
+    border:1px solid rgba(216,185,130,.16);
+    background:rgba(216,185,130,.055);
+    color:rgba(216,185,130,.82);
+    border-radius:999px;
+    padding:6px 10px;
+    font:inherit;
+    font-size:10px;
+    cursor:pointer;
+    transition:background .16s ease, border-color .16s ease, transform .16s ease;
+  }
+  .orch-suggestion:hover {
+    background:rgba(216,185,130,.11);
+    border-color:rgba(216,185,130,.28);
+    transform:translateY(-1px);
+  }
+
 
   @media (max-width:900px) {
     .strat-layout { grid-template-columns:1fr; }
+    .strat-layout.has-strategy { grid-template-columns:1fr; }
     .ctx-panel { position:static; }
+    #strat-dashboard.strat-cockpit-active { grid-template-columns:1fr; padding-bottom:210px; }
+    .strat-command-card,
+    #strat-dashboard.strat-cockpit-active .exec-hero,
+    #strat-dashboard.strat-cockpit-active .decision-card,
+    #strat-dashboard.strat-cockpit-active .strat-card,
+    #strat-dashboard.strat-cockpit-active .obj-card,
+    #strat-dashboard.strat-cockpit-active .createur-bridge,
+    #strat-dashboard.strat-cockpit-active .fb-card,
+    #strat-dashboard.strat-cockpit-active .no-lift { grid-column:1 / -1; }
     .createur-features { grid-template-columns:1fr 1fr; }
     .exec-meta { grid-template-columns:1fr; }
     .psycho-used-grid { grid-template-columns:1fr; }
@@ -660,10 +1346,88 @@
   @media (max-width:520px) {
     .createur-features { grid-template-columns:1fr; }
     .price-grid { grid-template-columns:1fr; }
+    .strat-command-card,
+    .strat-command-content { min-height:360px; }
     .strat-card,
     .decision-card,
     .exec-hero { padding:18px; }
     .social-platform-badge { justify-content:flex-start; }
+    body.page-stratege .orch-panel,
+    body.page-stratege .orch-panel.expanded {
+      right:12px;
+      left:12px;
+      bottom:12px;
+      transform:none;
+      width:auto;
+      height:300px;
+      max-height:54vh;
+    }
+  }
+
+  /* ─── Command center : masonry ────────────────────────────────────────
+     Remplace le bento 12-colonnes rigide par des colonnes masonry : les
+     cartes se compactent sans laisser de trou vertical sous les plus courtes,
+     et plus de carte orpheline. Les cartes "pleine largeur" (héro, KPI,
+     opportunités, recommandations…) traversent toutes les colonnes.
+     Placé en fin de <style> pour l'emporter sur les règles grid + media. */
+  #strat-dashboard.strat-cockpit-active {
+    display:block;
+    column-count:2;
+    column-gap:16px;
+  }
+  #strat-dashboard.strat-cockpit-active > * {
+    grid-column:auto;
+    width:auto;
+    break-inside:avoid;
+    margin:0 0 16px;
+  }
+  #strat-dashboard.strat-cockpit-active .strat-hero,
+  #strat-dashboard.strat-cockpit-active .kpi-row,
+  #strat-dashboard.strat-cockpit-active .strat-action-bar,
+  #strat-dashboard.strat-cockpit-active .strat-card--opportunities,
+  #strat-dashboard.strat-cockpit-active .strat-card--recommendations,
+  #strat-dashboard.strat-cockpit-active .createur-bridge,
+  #strat-dashboard.strat-cockpit-active .fb-card {
+    column-span:all;
+  }
+  @media (max-width:900px) {
+    #strat-dashboard.strat-cockpit-active { column-count:1; }
+  }
+
+  /* ─── Phase 3 : Orchestrateur en dock intégré (page Stratège uniquement) ──
+     Scopé à .page-stratege — les pages Psychologue/Créateur gardent la bulle
+     flottante. Le dock traverse toute la largeur du contenu, en bas, comme une
+     zone copilot. Le bouton fermer est masqué (un dock est permanent) ; le
+     bouton agrandir déploie le fil de réponses. */
+  .page-stratege .orch-bubble { display:none !important; }
+  .page-stratege .orch-panel,
+  .page-stratege .orch-panel.hidden {
+    display:flex !important;
+    position:fixed !important;
+    left:calc(var(--sidebar-w, 72px) + 56px) !important;
+    right:28px !important;
+    bottom:16px !important;
+    top:auto !important;
+    width:auto !important;
+    height:auto !important;
+    max-height:50vh !important;
+    transform:none !important;
+    border-radius:16px !important;
+    border:1px solid rgba(216,185,130,0.26) !important;
+    box-shadow:0 22px 60px rgba(0,0,0,0.5) !important;
+  }
+  .page-stratege .orch-messages { max-height:120px; }
+  .page-stratege .orch-panel.expanded { max-height:84vh !important; }
+  .page-stratege .orch-panel.expanded .orch-messages { max-height:64vh; }
+  .page-stratege .orch-header-actions .orch-icon-btn:last-child { display:none; }
+  .page-stratege #strat-dashboard.strat-cockpit-active { padding-bottom:270px; }
+  @media (max-width:640px) {
+    .page-stratege .orch-panel,
+    .page-stratege .orch-panel.hidden {
+      left:8px !important; right:8px !important; bottom:8px !important;
+      max-height:56vh !important;
+    }
+    .page-stratege #strat-dashboard.strat-cockpit-active { padding-bottom:250px; }
   }
 </style>
 {% endblock %}
@@ -697,7 +1461,7 @@
   <!-- ── Left: Context Builder ─────────────────────────── -->
   <div class="ctx-panel">
 
-    <div class="ctx-header">
+    <div class="ctx-header" onclick="toggleBusinessContextCompact()">
       <div class="ctx-header-label">Context Builder</div>
       <div class="ctx-header-title">Contexte business</div>
       <div class="ctx-badge empty" id="ctx-badge">
@@ -820,6 +1584,8 @@
 
 {% block scripts %}
 <script>
+document.body.classList.add('page-stratege');
+
 const REQUIRED_KEYS = ['user_role','activity','priority_offer','target_audience','business_model','current_results','main_objectives'];
 const FIELD_LABELS = {
   user_role:        'Rôle',
@@ -1235,6 +2001,9 @@ function renderFields(context) {
 
 /* ── Analyze section ────────────────────────────────── */
 function showAnalyzeSection() {
+  document.querySelector('.strat-layout')?.classList.remove('has-strategy');
+  document.querySelector('.ctx-panel')?.classList.remove('is-open');
+  document.getElementById('strat-dashboard')?.classList.remove('strat-cockpit-active');
   hide('strat-idle'); hide('strat-psycho-banner'); hide('strat-memory');
   show('strat-analyze-section');
   const wrap = document.getElementById('psycho-input-wrap');
@@ -1426,7 +2195,9 @@ function showStratErr(msg) {
 
 function renderStrat(d) {
   _lastStratData = d;
+  document.querySelector('.strat-layout')?.classList.add('has-strategy');
   const dash = document.getElementById('strat-dashboard');
+  dash.classList.add('strat-cockpit-active');
   dash.innerHTML = '';
 
   const add = el => dash.appendChild(el);
@@ -1461,26 +2232,60 @@ function renderStrat(d) {
     </button>`;
   add(bar);
 
-  // ── NEW-A. Executive Decision (héro) ──────────────────
-  const ed = d.executive_decision;
-  if (ed && typeof ed === 'object' && ed.one_sentence_decision) {
-    const conf = typeof ed.confidence_score === 'number' ? Math.round(ed.confidence_score * 100) : null;
-    let html = `<div class="exec-hero">
-      <div class="exec-hero-badge">⚡ Décision Prioritaire</div>
-      <div class="exec-question">Qu'est-ce que je dois faire maintenant ?</div>
-      <div class="exec-decision">${_esc(ed.one_sentence_decision)}</div>`;
-    if (ed.what_to_do_this_week) {
-      html += `<div class="exec-week"><div class="exec-week-label">Cette semaine</div><div class="exec-week-text">${_esc(ed.what_to_do_this_week)}</div></div>`;
-    }
-    if (ed.why_now || ed.expected_business_impact) {
-      html += `<div class="exec-meta">`;
-      if (ed.why_now)                  html += `<div class="exec-meta-item"><div class="exec-meta-label">Pourquoi maintenant</div><div class="exec-meta-val">${_esc(ed.why_now)}</div></div>`;
-      if (ed.expected_business_impact) html += `<div class="exec-meta-item"><div class="exec-meta-label">Impact attendu</div><div class="exec-meta-val">${_esc(ed.expected_business_impact)}</div></div>`;
-      html += `</div>`;
-    }
-    if (conf !== null) html += `<div class="exec-conf">Confiance ${conf}%</div>`;
-    html += `</div>`;
-    add(div('', html));
+  // ── Héro décision unifié (command center) ──────────────
+  const ed = d.executive_decision || {};
+  const heroDecision =
+    ed.one_sentence_decision || d.decision_centrale || d.message_central ||
+    "Gabriel organise les signaux du marché en décision prioritaire.";
+  const hero = document.createElement('section');
+  hero.className = 'strat-hero';
+  hero.style.setProperty('--strat-photo', `url("{{ url_for('static', filename='images/personas/p2.jpeg') }}")`);
+  let heroBody = `
+    <div class="strat-hero-photo" aria-hidden="true"></div>
+    <div class="strat-hero-body">
+      <div class="strat-hero-badge">⚡ Décision prioritaire</div>
+      <div class="strat-hero-kicker">Qu'est-ce que je dois faire maintenant ?</div>
+      <div class="strat-hero-decision">${_esc(heroDecision)}</div>`;
+  if (ed.what_to_do_this_week) {
+    heroBody += `<div class="strat-hero-week"><div class="strat-hero-week-label">Cette semaine</div><div class="strat-hero-week-text">${_esc(ed.what_to_do_this_week)}</div></div>`;
+  }
+  heroBody += `</div>`;
+  hero.innerHTML = heroBody;
+  add(hero);
+
+  // ── Rangée KPI (gros chiffres) ─────────────────────────
+  const kpis = [];
+  const conf = typeof ed.confidence_score === 'number' ? Math.round(ed.confidence_score * 100) : null;
+  if (conf !== null) {
+    kpis.push(`<div class="kpi-card kpi-accent"><div class="kpi-label">Confiance</div><div class="kpi-value kpi-gold">${conf}<span class="kpi-unit">%</span></div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${conf}%"></div></div></div>`);
+  }
+  const offreK = d.offre_recommandee;
+  if (offreK && typeof offreK === 'object' && offreK.prix_recommande) {
+    const posSub = (d.pricing_logic && d.pricing_logic.positionnement) || offreK.cible_precise || '';
+    kpis.push(`<div class="kpi-card"><div class="kpi-label">Prix recommandé</div><div class="kpi-value kpi-gold">${_esc(offreK.prix_recommande)}</div>${posSub ? `<div class="kpi-sub">${_esc(posSub)}</div>` : ''}</div>`);
+  }
+  if (ed.expected_business_impact) {
+    kpis.push(`<div class="kpi-card"><div class="kpi-label">Impact attendu</div><div class="kpi-value kpi-value--text">${_esc(ed.expected_business_impact)}</div></div>`);
+  }
+  if (kpis.length) {
+    const krow = document.createElement('div');
+    krow.className = 'kpi-row';
+    krow.innerHTML = kpis.join('');
+    add(krow);
+  }
+
+  // ── 1. Décision centrale ───────────────────────────────
+  if (d.decision_centrale) {
+    add(div('decision-card', `
+      <div class="decision-label">Décision centrale</div>
+      <div class="decision-text">${_esc(d.decision_centrale)}</div>`));
+  }
+
+  // ── 2. Objectif reformulé ──────────────────────────────
+  if (d.objectif_utilisateur_reformule) {
+    add(div('obj-card', `
+      <div class="obj-label">Objectif — tel que compris</div>
+      <div class="obj-text">${_esc(d.objectif_utilisateur_reformule)}</div>`));
   }
 
   // ── NEW-B. Psychologie audience active ─────────────────
@@ -1525,6 +2330,80 @@ function renderStrat(d) {
     add(card(html, 'strat-card--value strat-card--priority'));
   }
 
+  // ── Transformation business : offre + prix ─────────────
+  const offre = d.offre_recommandee;
+  if (offre && typeof offre === 'object') {
+    const livrables = Array.isArray(offre.livrables) ? offre.livrables : [];
+    const canaux    = Array.isArray(offre.canaux_acquisition) ? offre.canaux_acquisition : [];
+    const objecs    = Array.isArray(offre.objections_a_traiter) ? offre.objections_a_traiter : [];
+    let html = secHead('package', 'Offre recommandée');
+    html += `<div class="offer-card">`;
+    if (offre.nom)          html += `<div class="offer-name">${_esc(offre.nom)}</div>`;
+    if (offre.cible_precise)html += `<div class="offer-cible">→ ${_esc(offre.cible_precise)}</div>`;
+    html += `<div class="offer-grid">`;
+    if (offre.probleme_traite)  html += `<div class="offer-block"><div class="offer-block-label">Problème traité</div><div class="offer-block-val">${_esc(offre.probleme_traite)}</div></div>`;
+    if (offre.promesse)         html += `<div class="offer-block"><div class="offer-block-label">Promesse</div><div class="offer-block-val">${_esc(offre.promesse)}</div></div>`;
+    if (offre.resultat_attendu) html += `<div class="offer-block"><div class="offer-block-label">Résultat attendu</div><div class="offer-block-val">${_esc(offre.resultat_attendu)}</div></div>`;
+    if (offre.format)           html += `<div class="offer-block"><div class="offer-block-label">Format</div><div class="offer-block-val">${_esc(offre.format)}</div></div>`;
+    if (livrables.length)       html += `<div class="offer-block offer-block-full"><div class="offer-block-label">Livrables</div><div class="offer-block-val">${livrables.map(l=>`• ${_esc(l)}`).join('<br>')}</div></div>`;
+    if (offre.message_de_vente) html += `<div class="offer-block offer-block-full"><div class="offer-block-label">Message de vente</div><div class="offer-block-val" style="font-style:italic;">"${_esc(offre.message_de_vente)}"</div></div>`;
+    html += `</div>`;
+    if (offre.prix_recommande) {
+      html += `<div class="offer-price-row">
+        <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:rgba(216,185,130,0.4);font-weight:600;margin-bottom:3px;">Prix recommandé</div><div class="offer-price">${_esc(offre.prix_recommande)}</div></div>
+        ${offre.justification_prix?`<div class="offer-price-just">${_esc(offre.justification_prix)}</div>`:''}
+      </div>`;
+    }
+    if (canaux.length || objecs.length) {
+      html += `<div class="offer-tags">`;
+      canaux.forEach(c => html += `<span class="offer-tag">${_esc(c)}</span>`);
+      objecs.forEach(o => html += `<span class="offer-tag objection">⚠ ${_esc(o)}</span>`);
+      html += `</div>`;
+    }
+    html += `</div>`;
+    add(card(html, 'strat-card--offer strat-card--priority'));
+  }
+
+  const pricing = d.pricing_logic;
+  if (pricing && typeof pricing === 'object') {
+    const hasPricing =
+      pricing.fourchette || pricing.positionnement || pricing.valeur_percue ||
+      pricing.niveau_douleur || pricing.capacite_paiement || pricing.justification;
+    if (hasPricing) {
+      let html = secHead('dollar', 'Logique de prix');
+      html += `<div class="price-card">`;
+      if (pricing.fourchette || pricing.positionnement) {
+        html += `<div class="price-header-row">
+          <div>${pricing.fourchette?`<div class="price-fourchette-label">Fourchette</div><div class="price-fourchette-val">${_esc(pricing.fourchette)}</div>`:''}</div>
+          ${pricing.positionnement?`<span class="price-position-badge">${_esc(pricing.positionnement)}</span>`:''}
+        </div>`;
+      }
+      const hasPriceGrid = pricing.valeur_percue || pricing.niveau_douleur || pricing.capacite_paiement;
+      if (hasPriceGrid) {
+        html += `<div class="price-grid">`;
+        if (pricing.valeur_percue)     html += `<div class="price-item"><div class="price-val">${_esc(pricing.valeur_percue)}</div><div class="price-lbl">Valeur perçue</div></div>`;
+        if (pricing.niveau_douleur)    html += `<div class="price-item"><div class="price-val">${_esc(pricing.niveau_douleur)}</div><div class="price-lbl">Douleur marché</div></div>`;
+        if (pricing.capacite_paiement) html += `<div class="price-item"><div class="price-val">${_esc(pricing.capacite_paiement)}</div><div class="price-lbl">Budget cible</div></div>`;
+        html += `</div>`;
+      }
+      if (pricing.justification) html += `<div class="price-justification">${_esc(pricing.justification)}</div>`;
+      html += `</div>`;
+      add(card(html, 'strat-card--pricing'));
+    }
+  }
+
+  // ── Formulation stratégique ────────────────────────────
+  if (d.message_central || d.angle_positionnel) {
+    let html = secHead('lightbulb', 'Positionnement & message');
+    if (d.message_central) html += `
+      <div class="pos-message-label">Message central</div>
+      <div class="pos-message-text">${_esc(d.message_central)}</div>`;
+    if (d.angle_positionnel) html += `
+      <div class="pos-angle-label">Angle positionnel</div>
+      <p class="pos-angle-text">${_esc(d.angle_positionnel)}</p>`;
+    add(card(html, 'strat-card--positioning'));
+  }
+
   // ── NEW-D. Décision réseau social ─────────────────────
   const sm = d.social_media_decision;
   if (sm && typeof sm === 'object' && sm.best_platform) {
@@ -1557,32 +2436,6 @@ function renderStrat(d) {
     if (imon.first_call_to_action)   html += `<div class="mono-cta"><div class="mono-cta-label">Call to Action</div><div class="mono-cta-val">${_esc(imon.first_call_to_action)}</div></div>`;
     if (imon.metric_to_watch)        html += `<div class="mono-metric">Métrique clé : ${_esc(imon.metric_to_watch)}</div>`;
     add(card(html, 'strat-card--monetization'));
-  }
-
-  // ── 1. Décision centrale ───────────────────────────────
-  if (d.decision_centrale) {
-    add(div('decision-card', `
-      <div class="decision-label">Décision centrale</div>
-      <div class="decision-text">${_esc(d.decision_centrale)}</div>`));
-  }
-
-  // ── 2. Objectif reformulé ──────────────────────────────
-  if (d.objectif_utilisateur_reformule) {
-    add(div('obj-card', `
-      <div class="obj-label">Objectif — tel que compris</div>
-      <div class="obj-text">${_esc(d.objectif_utilisateur_reformule)}</div>`));
-  }
-
-  // ── 3. Message central + angle (le message — la décision — d'abord) ──
-  if (d.message_central || d.angle_positionnel) {
-    let html = secHead('lightbulb', 'Positionnement & message');
-    if (d.message_central) html += `
-      <div class="pos-message-label">Message central</div>
-      <div class="pos-message-text">${_esc(d.message_central)}</div>`;
-    if (d.angle_positionnel) html += `
-      <div class="pos-angle-label">Angle positionnel</div>
-      <p class="pos-angle-text">${_esc(d.angle_positionnel)}</p>`;
-    add(card(html, 'strat-card--positioning'));
   }
 
   // ── 4. Opportunités ────────────────────────────────────
@@ -1635,61 +2488,6 @@ function renderStrat(d) {
     });
     html += '</div>';
     add(card(html, 'strat-card--recommendations'));
-  }
-
-  // ── 6. Offre recommandée ───────────────────────────────
-  const offre = d.offre_recommandee;
-  if (offre && typeof offre === 'object') {
-    const livrables = Array.isArray(offre.livrables) ? offre.livrables : [];
-    const canaux    = Array.isArray(offre.canaux_acquisition) ? offre.canaux_acquisition : [];
-    const objecs    = Array.isArray(offre.objections_a_traiter) ? offre.objections_a_traiter : [];
-    let html = secHead('package', 'Offre recommandée');
-    html += `<div class="offer-card">`;
-    if (offre.nom)          html += `<div class="offer-name">${_esc(offre.nom)}</div>`;
-    if (offre.cible_precise)html += `<div class="offer-cible">→ ${_esc(offre.cible_precise)}</div>`;
-    html += `<div class="offer-grid">`;
-    if (offre.probleme_traite)  html += `<div class="offer-block"><div class="offer-block-label">Problème traité</div><div class="offer-block-val">${_esc(offre.probleme_traite)}</div></div>`;
-    if (offre.promesse)         html += `<div class="offer-block"><div class="offer-block-label">Promesse</div><div class="offer-block-val">${_esc(offre.promesse)}</div></div>`;
-    if (offre.resultat_attendu) html += `<div class="offer-block"><div class="offer-block-label">Résultat attendu</div><div class="offer-block-val">${_esc(offre.resultat_attendu)}</div></div>`;
-    if (offre.format)           html += `<div class="offer-block"><div class="offer-block-label">Format</div><div class="offer-block-val">${_esc(offre.format)}</div></div>`;
-    if (livrables.length)       html += `<div class="offer-block offer-block-full"><div class="offer-block-label">Livrables</div><div class="offer-block-val">${livrables.map(l=>`• ${_esc(l)}`).join('<br>')}</div></div>`;
-    if (offre.message_de_vente) html += `<div class="offer-block offer-block-full"><div class="offer-block-label">Message de vente</div><div class="offer-block-val" style="font-style:italic;">"${_esc(offre.message_de_vente)}"</div></div>`;
-    html += `</div>`;
-    if (offre.prix_recommande) {
-      html += `<div class="offer-price-row">
-        <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:rgba(216,185,130,0.4);font-weight:600;margin-bottom:3px;">Prix recommandé</div><div class="offer-price">${_esc(offre.prix_recommande)}</div></div>
-        ${offre.justification_prix?`<div class="offer-price-just">${_esc(offre.justification_prix)}</div>`:''}
-      </div>`;
-    }
-    if (canaux.length || objecs.length) {
-      html += `<div class="offer-tags">`;
-      canaux.forEach(c => html += `<span class="offer-tag">${_esc(c)}</span>`);
-      objecs.forEach(o => html += `<span class="offer-tag objection">⚠ ${_esc(o)}</span>`);
-      html += `</div>`;
-    }
-    html += `</div>`;
-    add(card(html, 'strat-card--offer strat-card--priority'));
-  }
-
-  // ── 7. Pricing ─────────────────────────────────────────
-  const pricing = d.pricing_logic;
-  if (pricing && typeof pricing === 'object') {
-    let html = secHead('dollar', 'Logique de prix');
-    html += `<div class="price-card">`;
-    if (pricing.fourchette) {
-      html += `<div class="price-header-row">
-        <div><div class="price-fourchette-label">Fourchette</div><div class="price-fourchette-val">${_esc(pricing.fourchette)}</div></div>
-        ${pricing.positionnement?`<span class="price-position-badge">${_esc(pricing.positionnement)}</span>`:''}
-      </div>`;
-    }
-    html += `<div class="price-grid">`;
-    if (pricing.valeur_percue)     html += `<div class="price-item"><div class="price-val">${_esc(pricing.valeur_percue)}</div><div class="price-lbl">Valeur perçue</div></div>`;
-    if (pricing.niveau_douleur)    html += `<div class="price-item"><div class="price-val">${_esc(pricing.niveau_douleur)}</div><div class="price-lbl">Douleur marché</div></div>`;
-    if (pricing.capacite_paiement) html += `<div class="price-item"><div class="price-val">${_esc(pricing.capacite_paiement)}</div><div class="price-lbl">Budget cible</div></div>`;
-    html += `</div>`;
-    if (pricing.justification) html += `<div class="price-justification">${_esc(pricing.justification)}</div>`;
-    html += `</div>`;
-    add(card(html, 'strat-card--pricing'));
   }
 
   // ── 8. Stratégie contenu ───────────────────────────────
@@ -1800,43 +2598,12 @@ function renderStrat(d) {
         html += `<div><div class="trace-section-label">Hypothèses</div>${rt.assumptions.map(a=>`<div class="trace-assumption">${_esc(a)}</div>`).join('')}</div>`;
       }
       html += `</div>`;
-      add(card(html));
+      add(card(html, 'strat-card--trace'));
     }
   }
 
-  // ── 13. Consultant Stratégique ─────────────────────────
-  const sc = document.createElement('div');
-  sc.className = 'card no-lift';
-  sc.innerHTML = `
-    <div class="sc-window">
-      <div class="sc-header">
-        <div class="sc-dot"></div>
-        <div class="sc-title">Consultant Stratégique</div>
-        <span class="sc-badge">McKinsey · Deloitte · BCG</span>
-      </div>
-      <div class="sc-messages" id="sc-messages">
-        <div class="sc-msg agent">
-          <div class="sc-bubble">J'ai accès à votre analyse d'audience complète et à votre stratégie. Posez-moi vos questions — offre, pricing, exécution, priorités, objections, canaux.</div>
-        </div>
-      </div>
-      <div class="sc-suggestions" id="sc-suggestions">
-        <button class="sc-chip" onclick="scChip(this)">Pourquoi cette décision est la priorité maintenant ?</button>
-        <button class="sc-chip" onclick="scChip(this)">Comment exécuter le plan de cette semaine ?</button>
-        <button class="sc-chip" onclick="scChip(this)">Comment optimiser l'offre pour cette audience ?</button>
-        <button class="sc-chip" onclick="scChip(this)">Comment fixer mon prix ?</button>
-        <button class="sc-chip" onclick="scChip(this)">Quel contenu créer en premier sur ce réseau ?</button>
-        <button class="sc-chip" onclick="scChip(this)">Quels sont les vrais risques à surveiller ?</button>
-      </div>
-      <div class="sc-input-row">
-        <textarea class="sc-input" id="sc-input" placeholder="Posez votre question stratégique…" rows="1"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();scSend();}"
-          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
-        <button class="sc-send" id="sc-send" onclick="scSend()">
-          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
-    </div>`;
-  add(sc);
+  // ── 13. Orchestrateur flottant ─────────────────────────
+  primeStrategyOrchestrator();
 
   // ── 14. Feedback ───────────────────────────────────────
   const fb = document.createElement('div');
@@ -1891,18 +2658,79 @@ function renderStrat(d) {
   add(bridge);
 
   show('strat-dashboard');
+  rebalanceStrategyDashboard();
+}
+
+function primeStrategyOrchestrator() {
+  const panel = document.getElementById('orch-panel');
+  const messages = document.getElementById('orch-messages');
+  const input = document.getElementById('orch-input');
+  if (!panel || !messages || !input) return;
+
+  const firstMessage = messages.querySelector('.orch-msg.agent .orch-bubble-text');
+  if (firstMessage && !panel.dataset.strategyPrimed) {
+    firstMessage.innerHTML = `<p>Je suis l’Orchestrateur. Je peux relier votre analyse, votre stratégie et vos prochaines actions. Posez-moi une question sur une carte, une décision, une offre ou un risque.</p>`;
+  }
+
+  if (!document.getElementById('orch-strategy-suggestions')) {
+    const suggestions = document.createElement('div');
+    suggestions.className = 'orch-suggestions';
+    suggestions.id = 'orch-strategy-suggestions';
+    suggestions.innerHTML = `
+      <button class="orch-suggestion" type="button" onclick="orchStrategyAsk('Pourquoi cette décision est prioritaire maintenant ?')">Pourquoi cette décision ?</button>
+      <button class="orch-suggestion" type="button" onclick="orchStrategyAsk('Quelle action dois-je faire dans les prochaines 24 heures ?')">Action 24 h</button>
+      <button class="orch-suggestion" type="button" onclick="orchStrategyAsk('Quel est le risque principal de cette stratégie ?')">Risque principal</button>
+      <button class="orch-suggestion" type="button" onclick="orchStrategyAsk('Comment transformer cette stratégie en contenu pour le Créateur ?')">Préparer le Créateur</button>`;
+    panel.insertBefore(suggestions, panel.querySelector('.orch-input-row'));
+  }
+
+  input.placeholder = "Questionner le Stratège via l’Orchestrateur…";
+  panel.dataset.strategyPrimed = '1';
+  if (typeof orchOpen === 'function') {
+    window.setTimeout(() => orchOpen(), 260);
+  }
+}
+
+function orchStrategyAsk(text) {
+  const input = document.getElementById('orch-input');
+  if (!input) return;
+  input.value = text;
+  input.focus();
+  if (typeof orchSend === 'function') orchSend();
+}
+
+function toggleBusinessContextCompact() {
+  const layout = document.querySelector('.strat-layout');
+  if (!layout?.classList.contains('has-strategy')) return;
+  document.querySelector('.ctx-panel')?.classList.toggle('is-open');
 }
 
 function regenStrategie() {
+  document.querySelector('.strat-layout')?.classList.remove('has-strategy');
+  document.querySelector('.ctx-panel')?.classList.remove('is-open');
+  document.getElementById('strat-dashboard')?.classList.remove('strat-cockpit-active');
   hide('strat-dashboard');
   showAnalyzeSection();
   document.getElementById('strat-analyze-section').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
+function rebalanceStrategyDashboard() {
+  const dash = document.getElementById('strat-dashboard');
+  if (!dash || !dash.classList.contains('strat-cockpit-active')) return;
+  Array.from(dash.children).forEach(item => { item.style.gridRowEnd = 'auto'; });
+}
+
+window.addEventListener('resize', () => {
+  window.clearTimeout(window.__gabrielStratRebalanceTimer);
+  window.__gabrielStratRebalanceTimer = window.setTimeout(rebalanceStrategyDashboard, 120);
+});
+window.addEventListener('load', rebalanceStrategyDashboard);
+
 /* ── Plan tabs ──────────────────────────────────────── */
 function switchPhase(idx) {
   document.querySelectorAll('.plan-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
   document.querySelectorAll('.plan-phase').forEach((p, i) => p.classList.toggle('active', i === idx));
+  rebalanceStrategyDashboard();
 }
 
 /* ── Export PDF ─────────────────────────────────────── */
@@ -2050,6 +2878,11 @@ const hide = id => document.getElementById(id)?.classList.add('hidden');
 
 function _esc(s) {
   if (!s) return '';
+  if (Array.isArray(s)) {
+    s = s.map(v => typeof v === 'object' && v !== null ? Object.values(v).filter(Boolean).join(' ') : v).filter(Boolean).join(', ');
+  } else if (typeof s === 'object') {
+    s = Object.values(s).filter(Boolean).map(v => Array.isArray(v) ? v.join(', ') : String(v)).join(' ');
+  }
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
@@ -2057,6 +2890,9 @@ async function resetContext() {
   if (!confirm('Réinitialiser le contexte business ?')) return;
   ctx = {};
   await fetch('/business-context', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+  document.querySelector('.strat-layout')?.classList.remove('has-strategy');
+  document.querySelector('.ctx-panel')?.classList.remove('is-open');
+  document.getElementById('strat-dashboard')?.classList.remove('strat-cockpit-active');
   document.getElementById('chat-messages').innerHTML = '';
   updateUI({}, 0, 0, false);
   hide('strat-analyze-section'); hide('strat-dashboard'); hide('strat-loading'); hide('strat-psycho-banner');
