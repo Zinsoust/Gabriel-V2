@@ -134,8 +134,34 @@ def _call_mistral(prompt, system, max_tokens=800):
     return resp.choices[0].message.content.strip()
 
 
+# Le prompt d'extraction demande déjà de rejeter les réponses vagues (règle 4),
+# mais rien ne vérifiait que ce soit vraiment appliqué — un LLM a tendance à
+# accepter trop facilement ("quelques clients" devient un champ "rempli").
+# Garde-fou déterministe : une valeur trop courte ou trop générique est
+# rejetée au niveau code, pas seulement laissée à l'appréciation du modèle.
+_VAGUE_PATTERNS = [
+    "je sais pas", "je ne sais pas", "pas grand chose", "pas encore",
+    "un peu de tout", "pas beaucoup", "rien de precis", "rien de précis",
+    "pas vraiment", "pas trop", "aucune idee", "aucune idée", "on verra",
+    "pas defini", "pas défini", "pas encore defini", "pas encore défini",
+]
+
+
+def _is_specific_enough(value: str) -> bool:
+    """Rejette les réponses trop courtes ou trop génériques pour être
+    exploitables par le Stratège — corrige le profil business "déclaratif,
+    non vérifié" identifié dans l'audit."""
+    v = value.strip().lower()
+    if len(v.split()) < 2:
+        return False
+    return not any(p in v for p in _VAGUE_PATTERNS)
+
+
 def extract_context(message: str, current_context: dict) -> dict:
-    """Extrait les champs business depuis le message utilisateur."""
+    """Extrait les champs business depuis le message utilisateur.
+    Retourne {"context": dict fusionné, "rejected_vague": [labels rejetés]} —
+    un champ rejeté reste "manquant" pour qu'on redemande une réponse précise
+    au lieu d'accepter une esquive comme si c'était une vraie information."""
     ctx_summary = ""
     if current_context:
         lines = [f"{FIELD_BY_KEY[k]['label']}: {v}" for k, v in current_context.items() if v and k in FIELD_BY_KEY]
@@ -153,11 +179,17 @@ def extract_context(message: str, current_context: dict) -> dict:
 
     # Fusionner avec le contexte existant (ne pas écraser)
     merged = dict(current_context or {})
+    rejected_vague = []
     for key, value in extracted.items():
-        if key in ALL_KEYS and value and isinstance(value, str) and value.strip():
-            merged[key] = value.strip()
+        if key not in ALL_KEYS or not value or not isinstance(value, str) or not value.strip():
+            continue
+        v = value.strip()
+        if _is_specific_enough(v):
+            merged[key] = v
+        else:
+            rejected_vague.append(FIELD_BY_KEY[key]['label'])
 
-    return merged
+    return {"context": merged, "rejected_vague": rejected_vague}
 
 
 def get_missing_fields(context: dict) -> list:
@@ -189,12 +221,14 @@ def is_ready(context: dict) -> bool:
     return compute_completion(context) >= 1.0
 
 
-def generate_response(message: str, updated_context: dict) -> str:
+def generate_response(message: str, updated_context: dict, rejected_vague: list = None) -> str:
     """
     Génère une réponse conversationnelle qui :
     - Reconnaît ce que l'utilisateur vient de dire
     - Demande naturellement la prochaine info manquante
     - Peut répondre à une question si nécessaire
+    Si rejected_vague est non-vide, la réponse relance sur une réponse plus
+    précise au lieu de répéter la question de base telle quelle.
     """
     missing_req = get_missing_required(updated_context)
     missing_opt = get_missing_fields(updated_context)
@@ -214,11 +248,20 @@ def generate_response(message: str, updated_context: dict) -> str:
     ]
     ctx_block = ("Contexte déjà connu :\n" + "\n".join(ctx_lines)) if ctx_lines else "Aucun contexte collecté pour l'instant."
 
+    vague_note = ""
+    if rejected_vague:
+        vague_note = (
+            f"\n\nATTENTION : la réponse de l'utilisateur sur \"{', '.join(rejected_vague)}\" "
+            "était trop vague pour être exploitée (ex: \"je sais pas\", \"un peu de tout\"). "
+            "Relance-le gentiment en lui demandant un exemple concret ou un chiffre, "
+            "sans répéter mot pour mot la question de base."
+        )
+
     prompt = (
         f"{ctx_block}\n\n"
         f"Prochain champ à collecter : {next_field['label']}\n"
         f"Question de base : {next_field['question']}\n\n"
-        f"Dernier message de l'utilisateur : \"{message}\"\n\n"
+        f"Dernier message de l'utilisateur : \"{message}\"{vague_note}\n\n"
         "Génère ta réponse conversationnelle (2-3 phrases max)."
     )
 
@@ -259,12 +302,14 @@ def process_message(message: str, current_context: dict) -> dict:
             "is_ready":         False,
         }
 
-    updated      = extract_context(message, current_context)
+    extraction     = extract_context(message, current_context)
+    updated        = extraction["context"]
+    rejected_vague = extraction["rejected_vague"]
     missing_req  = get_missing_required(updated)
     score        = compute_completion(updated)
     ready        = is_ready(updated)
     # Skip LLM call when context is complete — frontend shows its own completion message
-    response     = generate_response(message, updated) if not ready else "Parfait — j'ai tout ce qu'il me faut. Cliquez sur « Générer la stratégie »."
+    response     = generate_response(message, updated, rejected_vague) if not ready else "Parfait — j'ai tout ce qu'il me faut. Cliquez sur « Générer la stratégie »."
 
     filled_count = sum(
         1 for k in REQUIRED_KEYS if (updated.get(k) or "").strip()
@@ -278,4 +323,5 @@ def process_message(message: str, current_context: dict) -> dict:
         "filled_count":     filled_count,
         "total_required":   len(REQUIRED_KEYS),
         "is_ready":         ready,
+        "rejected_vague":   rejected_vague,
     }
