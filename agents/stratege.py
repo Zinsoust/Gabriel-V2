@@ -148,7 +148,7 @@ def _build_psycho_summary(psycho_data):
 
 # ── LLM call ─────────────────────────────────────────────────────────────────
 
-def _call_mistral(prompt, max_tokens=5000):
+def _call_mistral(prompt, max_tokens=5000, label=""):
     from mistralai import Mistral
     key = os.environ.get("MISTRAL_API_KEY")
     if not key:
@@ -163,6 +163,15 @@ def _call_mistral(prompt, max_tokens=5000):
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}],
             )
+            choice = response.choices[0]
+            usage  = response.usage
+            finish_reason = getattr(choice, 'finish_reason', None)
+            if usage:
+                print(f"[STRAT_TOKENS] label={label or '?'} prompt_tokens={usage.prompt_tokens} "
+                      f"completion_tokens={usage.completion_tokens} max_tokens={max_tokens} finish_reason={finish_reason}")
+            if finish_reason in ('length', 'model_length'):
+                print(f"[STRAT_TRUNCATION] label={label or '?'} max_tokens={max_tokens} "
+                      f"completion_tokens={getattr(usage, 'completion_tokens', '?')} — réponse coupée avant la fin")
             return response.choices[0].message.content.strip()
         except Exception as e:
             status = getattr(e, 'status_code', None) or getattr(e, 'http_status', None)
@@ -205,6 +214,77 @@ def _load_rag_rules(psycho_summary: str, brain_context: str) -> str:
     except Exception as e:
         print(f"[STRATÈGE] RAG non disponible : {e}")
     return ""
+
+
+# ── Relecture critique — 2ᵉ appel indépendant ─────────────────────────────────
+# Corrige un vrai angle mort de l'audit : sans ce 2ᵉ appel, le confidence_score
+# affiché est auto-déclaré par le même modèle qui vient d'inventer la stratégie
+# — aucun contrôle indépendant. Ici, un appel séparé, qui ne voit que la
+# stratégie déjà produite (pas le prompt qui l'a générée), doit trouver la
+# faille : point faible principal, angle contrarien, risque non couvert, et
+# sa PROPRE ré-estimation de la confiance — indépendante de celle du 1er appel.
+
+def _summarize_strategy_for_critique(strat: dict) -> str:
+    """Résumé compact de la stratégie déjà produite — juste ce qu'il faut
+    pour challenger, pas le prompt en entier (sinon le 2e appel ne fait que
+    confirmer ce qu'il vient de re-générer)."""
+    ed     = strat.get('executive_decision') or {}
+    offre  = strat.get('offer_recommendation') or strat.get('offre_recommandee') or {}
+    pricing = strat.get('pricing_logic') or {}
+    parts = [
+        f"Décision : {ed.get('one_sentence_decision', strat.get('decision_centrale', '—'))}",
+        f"Pourquoi maintenant : {ed.get('why_now', '—')}",
+        f"Impact attendu : {ed.get('expected_business_impact', '—')}",
+        f"Confiance auto-déclarée par la stratégie : {ed.get('confidence_score', '—')}",
+        f"Offre : {offre.get('recommended_offer_name') or offre.get('nom', '—')} — {offre.get('promise') or offre.get('promesse', '—')}",
+        f"Prix : {pricing.get('recommended_price_range') or pricing.get('fourchette', '—')}",
+        f"Message central : {strat.get('message_central', '—')}",
+    ]
+    risques = strat.get('risques') or []
+    if risques:
+        parts.append("Risques déjà identifiés : " + "; ".join(r.get('risque', '') for r in risques if isinstance(r, dict)))
+    return "\n".join(parts)
+
+
+def _critique_strategie(strat: dict, psycho_summary: str, brain_context: str) -> dict:
+    """2e appel indépendant : challenge la stratégie déjà produite. Non-bloquant
+    — si l'appel échoue, la stratégie reste utilisable sans relecture plutôt que
+    de faire échouer tout le Stratège pour un problème de contrôle qualité."""
+    summary = _summarize_strategy_for_critique(strat)
+    prompt = f"""Tu es un STRATÈGE SENIOR CONTRARIEN, spécialiste de la revue critique de décisions marketing.
+On te soumet une stratégie DÉJÀ PRODUITE par un autre analyste. Tu ne l'as pas écrite — ton rôle est de la challenger, pas de la valider par réflexe.
+
+━━━ PSYCHOLOGIE RÉELLE DE L'AUDIENCE (résumé) ━━━
+{psycho_summary[:1200]}
+
+━━━ CONTEXTE BUSINESS ━━━
+{brain_context[:500] or '(non renseigné)'}
+
+━━━ STRATÉGIE À CHALLENGER ━━━
+{summary}
+
+MISSION : trouve la faille. Ne complimente pas la stratégie — un stratège senior cherche toujours ce qui pourrait la faire échouer.
+
+Réponds UNIQUEMENT avec ce JSON valide (sans markdown) :
+{{
+  "point_faible_principal": "Le point le plus fragile de cette stratégie — sois précis, pas générique",
+  "angle_contrarien": "Ce qu'un stratège qui ferait le pari inverse recommanderait à la place, et pourquoi ça pourrait marcher",
+  "risque_non_couvert": "Un risque business réel que la liste de risques actuelle ne couvre pas",
+  "ajustement_recommande": "Le changement concret le plus utile à apporter à cette stratégie avant de l'exécuter",
+  "confidence_score_independant": 0.0,
+  "verdict": "solide" | "à ajuster" | "fragile"
+}}
+
+Le confidence_score_independant est TA propre estimation (0 à 1), indépendante de celle affichée dans la stratégie — ne la recopie pas, ré-évalue depuis zéro à partir des signaux d'audience et du contexte business ci-dessus."""
+
+    text = _call_mistral(prompt, max_tokens=1500, label="critique")
+    result = _parse_json(text)
+    expected = ["point_faible_principal", "angle_contrarien", "risque_non_couvert",
+                "ajustement_recommande", "confidence_score_independant", "verdict"]
+    missing = [k for k in expected if not result.get(k) and result.get(k) != 0]
+    if missing:
+        print(f"[STRATÈGE] Critique incomplète — clefs manquantes={missing} (JSON probablement tronqué puis réparé)")
+    return result
 
 
 # ── Agent ─────────────────────────────────────────────────────────────────────
@@ -258,7 +338,7 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown, sans texte avant ou apr�
       "what_to_do_this_week": "Action concrète et précise à réaliser dans les 7 prochains jours pour générer les premiers revenus",
       "why_now": "Pourquoi cette décision maintenant et pas dans 3 mois — ancré dans les signaux audience",
       "expected_business_impact": "Impact business réaliste attendu en 30-90 jours",
-      "confidence_score": 0.8
+      "confidence_score": 0.8  // Score d'alignement stratégie ↔ audience : mesure à quel point la décision, l'offre et le message s'appuient sur les signaux psychologiques réellement détectés.
     }},
     "audience_psychology_used": {{
       "main_problem": "Le vrai problème de l'audience (cause racine, pas symptôme)",
@@ -418,7 +498,7 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown, sans texte avant ou apr�
 RÈGLE FINALE : Si l'objectif utilisateur est flou, remplis questions_a_clarifier ET reasoning_trace.questions_to_clarify.
 Si les données d'audience sont insuffisantes, marque les hypothèses avec '(à valider)' dans les champs concernés."""
 
-        text = _call_mistral(prompt, max_tokens=5500)
+        text = _call_mistral(prompt, max_tokens=8000, label="strategie")
         data = _parse_json(text)
 
         # Normaliser : certains LLMs peuvent nommer le champ pricing_logic_legacy → pricing_logic
@@ -429,6 +509,14 @@ Si les données d'audience sont insuffisantes, marque les hypothèses avec '(à 
         elif strat and 'pricing_logic_legacy' in strat and 'pricing_logic' in strat:
             # Garder pricing_logic (enrichi), supprimer l'alias legacy
             strat.pop('pricing_logic_legacy', None)
+
+        # Relecture critique — 2e appel indépendant (non-bloquant)
+        if strat:
+            try:
+                strat['critique_strategique'] = _critique_strategie(strat, psycho_summary, brain_context)
+                print(f"[STRATÈGE] Critique OK — verdict={strat['critique_strategique'].get('verdict')}")
+            except Exception as e:
+                print(f"[STRATÈGE] Critique ERREUR (non bloquant) : {e}")
 
         ctx.add(self.AGENT_ID, data)
         return ctx

@@ -411,6 +411,21 @@
   .risk-text.has-mitigation { margin-bottom:5px; }
   .risk-mitigation { font-size:10px; color:var(--text-muted); font-style:italic; }
 
+  /* ─── Regard critique (2e avis indépendant) ────────────────────────── */
+  .strat-card--critique { border-color:rgba(120,170,235,0.18); }
+  .crit-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .crit-head-left .dash-sec-head { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+  .crit-verdict { font-size:10px; font-weight:600; padding:4px 11px; border-radius:999px; letter-spacing:0.03em; white-space:nowrap; }
+  .crit-verdict--solide { color:rgba(120,200,140,0.85); background:rgba(120,200,140,0.08); border:1px solid rgba(120,200,140,0.2); }
+  .crit-verdict--ajuster { color:rgba(216,185,130,0.85); background:rgba(216,185,130,0.09); border:1px solid rgba(216,185,130,0.22); }
+  .crit-verdict--fragile { color:rgba(226,96,96,0.85); background:rgba(226,96,96,0.09); border:1px solid rgba(226,96,96,0.22); }
+  .crit-row { margin-top:14px; padding:12px 14px; border-radius:9px; background:rgba(120,170,235,0.035); border:1px solid rgba(120,170,235,0.1); }
+  .crit-row--action { background:rgba(216,185,130,0.04); border-color:rgba(216,185,130,0.15); }
+  .crit-row-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:rgba(140,180,235,0.7); font-weight:600; margin-bottom:5px; }
+  .crit-row--action .crit-row-label { color:rgba(216,185,130,0.7); }
+  .crit-row-text { font-size:12.5px; color:var(--text-secondary); line-height:1.6; }
+  .crit-conf { margin-top:12px; font-size:11px; color:var(--text-muted); }
+
   .indic-row { display:flex; flex-wrap:wrap; gap:6px; }
 
   .plan-tabs { display:flex; gap:2px; background:rgba(255,255,255,0.03); border-radius:9px; padding:3px; margin-bottom:16px; }
@@ -2272,6 +2287,25 @@ function renderStrat(d) {
     krow.className = 'kpi-row';
     krow.innerHTML = kpis.join('');
     add(krow);
+  }
+
+  // ── Relecture critique — 2e avis indépendant ────────────
+  const crit = d.critique_strategique;
+  if (crit && typeof crit === 'object' && (crit.point_faible_principal || crit.angle_contrarien)) {
+    const verdict = (crit.verdict || '').toLowerCase();
+    const verdictClass = verdict.includes('fragile') ? 'fragile' : verdict.includes('ajust') ? 'ajuster' : 'solide';
+    const verdictLabel = verdict.includes('fragile') ? 'Fragile' : verdict.includes('ajust') ? 'À ajuster' : 'Solide';
+    const critConf = typeof crit.confidence_score_independant === 'number' ? Math.round(crit.confidence_score_independant * 100) : null;
+    let html = `<div class="crit-head">
+      <div class="crit-head-left">${secHead('help', 'Regard critique — 2ᵉ avis indépendant')}</div>
+      <span class="crit-verdict crit-verdict--${verdictClass}">${verdictLabel}</span>
+    </div>`;
+    if (crit.point_faible_principal) html += `<div class="crit-row"><div class="crit-row-label">Point faible principal</div><div class="crit-row-text">${_esc(crit.point_faible_principal)}</div></div>`;
+    if (crit.angle_contrarien) html += `<div class="crit-row"><div class="crit-row-label">Ce qu'un contrarien ferait</div><div class="crit-row-text">${_esc(crit.angle_contrarien)}</div></div>`;
+    if (crit.risque_non_couvert) html += `<div class="crit-row"><div class="crit-row-label">Risque non couvert</div><div class="crit-row-text">${_esc(crit.risque_non_couvert)}</div></div>`;
+    if (crit.ajustement_recommande) html += `<div class="crit-row crit-row--action"><div class="crit-row-label">Ajustement recommandé</div><div class="crit-row-text">${_esc(crit.ajustement_recommande)}</div></div>`;
+    if (critConf !== null) html += `<div class="crit-conf">Confiance indépendante : ${critConf}%</div>`;
+    add(card(html, 'strat-card--critique'));
   }
 
   // ── 1. Décision centrale ───────────────────────────────
