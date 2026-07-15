@@ -202,18 +202,84 @@ def _parse_json(text):
 
 
 # ── RAG stratégique ───────────────────────────────────────────────────────────
+# router_rules.json existait déjà (max_rules_method, max_principles_business,
+# max_patterns_market, query_triggers, priority_sources) mais aucun code ne le
+# lisait jamais — et core/rag.py l'exclut explicitement de l'indexation. La
+# recherche était un seul search(top_k=6) générique mélangeant tout. Ici : un
+# vrai routeur — 3 catégories ciblées via search_filtered, budgets tirés du
+# fichier de config lui-même (il devient enfin utile), + détection des
+# query_triggers présents dans l'audience/le contexte pour orienter la requête.
+
+_RAG_CATEGORIES = {
+    # groupe : (sources = stems de fichiers sans extension, clé de config pour le top_k)
+    "méthode stratégique":     (["audience_to_offer_rules", "immediate_decision_rules",
+                                  "social_format_rules", "pricing_logic"], "max_rules_method"),
+    "principes business":      (["offer_design", "conversion"], "max_principles_business"),
+    "schémas de marché":       (["winning_patterns", "failed_patterns"], "max_patterns_market"),
+}
+
+_router_rules_cache = None
+
+
+def _load_router_rules() -> dict:
+    global _router_rules_cache
+    if _router_rules_cache is None:
+        try:
+            path = os.path.join(os.path.dirname(__file__), "stratege", "rag", "router_rules.json")
+            with open(path, "r", encoding="utf-8") as f:
+                _router_rules_cache = json.load(f)
+        except Exception as e:
+            print(f"[STRATÈGE] router_rules.json illisible, valeurs par défaut utilisées : {e}")
+            _router_rules_cache = {}
+    return _router_rules_cache
+
 
 def _load_rag_rules(psycho_summary: str, brain_context: str) -> str:
-    """Charge les règles RAG les plus pertinentes (max 3+5+5 règles)."""
+    """Recherche RAG routée par catégorie (méthode / principes / marché),
+    au lieu d'un seul top_k générique. Non-bloquant : si le RAG est
+    indisponible, le prompt principal continue sans (dégradation gracieuse
+    déjà en place ailleurs dans le pipeline)."""
     try:
         from core import rag as _rag
-        rag_query = f"{psycho_summary[:300]} {brain_context[:100]}"
-        results   = _rag.search(rag_query, "stratege", top_k=6)
-        if results:
-            return "\n━━━ BASE DE CONNAISSANCES STRATÉGIQUES ━━━\n" + _rag.format_context(results, max_chars=2500) + "\n"
     except Exception as e:
         print(f"[STRATÈGE] RAG non disponible : {e}")
-    return ""
+        return ""
+
+    rules = _load_router_rules()
+    base_text = f"{psycho_summary[:400]} {brain_context[:150]}".lower()
+    triggers  = [t for t in rules.get("query_triggers", []) if t.lower() in base_text]
+    trigger_hint = " ".join(triggers[:8])
+
+    sections = []
+    for label, (sources, limit_key) in _RAG_CATEGORIES.items():
+        top_k = rules.get(limit_key, 4)
+        query = f"{psycho_summary[:300]} {brain_context[:100]} {trigger_hint}".strip()
+        try:
+            results = _rag.search_filtered(query, "stratege", sources, top_k=top_k)
+        except Exception as e:
+            print(f"[STRATÈGE] RAG catégorie '{label}' échouée (non bloquant) : {e}")
+            continue
+        if results:
+            print(f"[STRATÈGE_RAG] catégorie={label} sources={sources} top_k={top_k} trouvés={len(results)}")
+            sections.append(f"── {label.upper()} ──\n" + _rag.format_context(results, max_chars=900))
+
+    # Base conceptuelle générale (Porter, SWOT, positionnement, Océan Bleu…) —
+    # pas liée à une catégorie d'action précise, cherchée une seule fois.
+    try:
+        general = _rag.search_filtered(
+            f"{psycho_summary[:200]} {brain_context[:100]}",
+            "stratege", ["decision_strategique", "strategie_marketing"], top_k=2,
+        )
+        if general:
+            sections.append("── CADRES CONCEPTUELS ──\n" + _rag.format_context(general, max_chars=700))
+    except Exception as e:
+        print(f"[STRATÈGE] RAG cadres conceptuels échoué (non bloquant) : {e}")
+
+    if not sections:
+        return ""
+    if triggers:
+        print(f"[STRATÈGE_RAG] triggers détectés : {triggers}")
+    return "\n━━━ BASE DE CONNAISSANCES STRATÉGIQUES (routée) ━━━\n" + "\n\n".join(sections) + "\n"
 
 
 # ── Relecture critique — 2ᵉ appel indépendant ─────────────────────────────────
