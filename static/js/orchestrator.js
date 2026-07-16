@@ -1,7 +1,33 @@
 /* ── Orchestrateur — widget flottant présent sur Psychologue / Stratège / Créateur ── */
-let _orchHistory = [];
-let _orchWaiting = false;
+let _orchHistory  = [];
+let _orchWaiting  = false;
 let _orchExpanded = false;
+let _orchFadeTimer = null;
+
+/* ── Gestion opacité : actif (100%) au survol ou en conversation, sinon 75% après 8.2s ── */
+function _orchSetActive(force) {
+  const panel = document.getElementById('orch-panel');
+  if (!panel) return;
+  if (_orchFadeTimer) { clearTimeout(_orchFadeTimer); _orchFadeTimer = null; }
+  panel.classList.add('orch-active');
+  if (!force) {
+    _orchFadeTimer = setTimeout(() => {
+      // Ne réduit l'opacité que si le curseur n'est pas sur le panel
+      // et qu'aucune conversation n'est en attente
+      if (!_orchWaiting && !(document.getElementById('orch-input')?.value?.trim())) {
+        panel.classList.remove('orch-active');
+      }
+    }, 8200);
+  }
+}
+
+function _orchInitOpacity() {
+  const panel = document.getElementById('orch-panel');
+  if (!panel) return;
+  panel.addEventListener('mouseenter', () => _orchSetActive(true));
+  panel.addEventListener('mouseleave', () => _orchSetActive(false));
+  document.getElementById('orch-input')?.addEventListener('input', () => _orchSetActive(true));
+}
 
 function _orchVar(name) {
   try { return eval('typeof ' + name + " !== 'undefined' ? " + name + ' : null'); }
@@ -9,20 +35,34 @@ function _orchVar(name) {
 }
 
 function _orchGetContext() {
-  const psycho = _orchVar('_lastAnalysisData') || _orchVar('_linkedPsychoData') || _orchVar('_psycho') || null;
-  const strategie = _orchVar('_lastStratData') || _orchVar('_strategy') || null;
-  const createur = _orchVar('_lastResult') || null;
+  const psycho    = _orchVar('_lastAnalysisData') || _orchVar('_linkedPsychoData') || _orchVar('_psycho') || null;
+  const strategie = _orchVar('_lastStratData')    || _orchVar('_strategy') || null;
+  const createur  = _orchVar('_lastResult')        || null;
+
+  // Tente de récupérer le folder_id depuis l'URL ou un attribut data
+  let folderId = null;
+  const urlMatch = window.location.search.match(/[?&]folder_id=([^&]+)/);
+  if (urlMatch) folderId = decodeURIComponent(urlMatch[1]);
+  if (!folderId) {
+    const el = document.querySelector('[data-folder-id]');
+    if (el) folderId = el.dataset.folderId;
+  }
+
   return {
-    psycho_data:   (psycho && Object.keys(psycho).length) ? psycho : {},
+    psycho_data:   (psycho    && Object.keys(psycho).length)    ? psycho    : {},
     strategy_data: (strategie && Object.keys(strategie).length) ? strategie : {},
-    createur_data: (createur && Object.keys(createur).length) ? createur : {},
+    createur_data: (createur  && Object.keys(createur).length)  ? createur  : {},
+    folder_id:     folderId || null,
   };
 }
 
 function orchOpen() {
   document.getElementById('orch-bubble')?.classList.add('hidden');
-  document.getElementById('orch-panel')?.classList.remove('hidden');
+  const panel = document.getElementById('orch-panel');
+  panel?.classList.remove('hidden');
   document.getElementById('orch-input')?.focus();
+  _orchSetActive(true);   // ouverture = actif immédiatement
+  _orchInitOpacity();     // attache les listeners une seule fois
 }
 
 function orchClose() {
@@ -72,6 +112,13 @@ function _orchFormat(rawText) {
     const line = _orchEsc(rawLine.trim());
     if (!line) { flushList(); flushPara(); return; }
 
+    const headingMatch = line.match(/^#{1,6}\s+(.+)$/);
+    if (headingMatch) {
+      flushList(); flushPara();
+      html += `<p><strong>${_orchInline(headingMatch[1])}</strong></p>`;
+      return;
+    }
+
     const bulletMatch = line.match(/^[-*]\s+(.+)$/);
     if (bulletMatch) {
       flushPara();
@@ -99,7 +146,9 @@ function _orchAddMsg(role, text) {
   if (!msgs) return;
   const el = document.createElement('div');
   el.className = `orch-msg ${role}`;
-  const body = role === 'agent' ? _orchFormat(text) : `<p>${_orchInline(_orchEsc(text)).replace(/\n/g, '<br>')}</p>`;
+  const body = role === 'agent'
+    ? _orchFormat(text)
+    : `<p>${_orchInline(_orchEsc(text)).replace(/\n/g, '<br>')}</p>`;
   el.innerHTML = `<div class="orch-bubble-text">${body}</div>`;
   msgs.appendChild(el);
   requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
@@ -128,6 +177,12 @@ async function orchSend() {
   _orchWaiting = true;
   const btn = document.getElementById('orch-send');
   if (btn) btn.disabled = true;
+
+  // Masque les actions rapides pendant l'échange
+  const quickBar = document.getElementById('orch-quick-bar');
+  if (quickBar) quickBar.classList.add('orch-quick-hidden');
+
+  _orchSetActive(true);   // reste à 100% pendant l'attente
   _orchShowTyping();
   _orchHistory.push({ role: 'user', content: msg });
 
@@ -137,11 +192,12 @@ async function orchSend() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: msg,
-        history: _orchHistory.slice(-10),
-        psycho_data: ctx.psycho_data,
+        message:       msg,
+        history:       _orchHistory.slice(-12),
+        psycho_data:   ctx.psycho_data,
         strategy_data: ctx.strategy_data,
         createur_data: ctx.createur_data,
+        folder_id:     ctx.folder_id,
       }),
     });
     const d = await r.json();
@@ -151,9 +207,21 @@ async function orchSend() {
     _orchHistory.push({ role: 'assistant', content: reply });
   } catch (e) {
     _orchHideTyping();
-    _orchAddMsg('agent', 'Erreur de connexion — réessayez.');
+    _orchAddMsg('agent', 'Une erreur de connexion est survenue. Veuillez réessayer.');
   } finally {
     _orchWaiting = false;
     if (btn) btn.disabled = false;
+    // Réaffiche la barre d'actions rapides après chaque échange
+    const qb = document.getElementById('orch-quick-bar');
+    if (qb) qb.classList.remove('orch-quick-hidden');
+    _orchSetActive(false);  // relance le timer de 8.2s après la réponse
   }
+}
+
+/* Envoie une action rapide comme si l'utilisateur l'avait tapée */
+function orchQuick(text) {
+  const input = document.getElementById('orch-input');
+  if (!input) return;
+  input.value = text;
+  orchSend();
 }

@@ -297,3 +297,27 @@ def test_partial_cb_updates_job(monkeypatch):
 
     assert captured.get('seen_before_done') is True
     _app._jobs.pop(job_id, None)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 13. /analyze renvoie 403 + limit_reached quand check_usage_limit refuse
+# ════════════════════════════════════════════════════════════════════════════
+def test_analyze_blocked_at_usage_limit(monkeypatch):
+    monkeypatch.setattr(_db, 'check_usage_limit',
+                        lambda uid, email=None: {
+                            'allowed': False, 'reason': 'limit',
+                            'used': 3, 'limit': 3, 'plan': 'free',
+                        })
+
+    c = _client()
+    r = c.post('/analyze',
+               data=json.dumps({'source': 'text',
+                                'content': 'Un commentaire\nDeux commentaires\nTrois commentaires'}),
+               content_type='application/json')
+    d = r.get_json()
+    assert r.status_code == 403
+    assert d['error'] == 'limit_reached'
+    assert d['upgrade_required'] is True
+    assert d['analyses_used'] == 3
+    assert d['analyses_limit'] == 3
+    assert d['plan'] == 'free'

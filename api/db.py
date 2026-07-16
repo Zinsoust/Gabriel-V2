@@ -30,7 +30,7 @@ _T_CHAT_MSG    = 'gabriel_chat_messages'
 _T_TRAIN_CAND  = 'gabriel_training_candidates'
 _T_FOLDERS     = 'gabriel_folders'
 
-FREE_ANALYSES_LIMIT = 5
+FREE_ANALYSES_LIMIT = 3
 
 # Emails avec accès illimité (admin / fondateurs)
 ADMIN_EMAILS = frozenset({'outilsagencechretienne@gmail.com'})

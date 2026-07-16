@@ -3,6 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    (function() {
+      try {
+        if (localStorage.getItem('gabriel_theme') === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {}
+    })();
+  </script>
   <title>{% block title %}Gabriel{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="{{ static_v('css/gabriel.css') }}">
@@ -57,11 +66,21 @@
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         <span class="sidebar-label">En savoir plus</span>
       </a>
+      <a href="mailto:outilsagencechretienne@gmail.com?subject={{ 'Gabriel — Contact' | urlencode }}" class="sidebar-item">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span class="sidebar-label">Contact</span>
+      </a>
     </nav>
 
     <div class="sidebar-divider"></div>
 
     <div class="sidebar-bottom">
+      <button type="button" class="sidebar-item theme-toggle-btn" onclick="gabrielToggleTheme()" title="Changer de thème">
+        <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span class="sidebar-label theme-label-dark">Mode clair</span>
+        <span class="sidebar-label theme-label-light">Mode sombre</span>
+      </button>
       <a href="/profil" class="sidebar-item {% if active_page == 'profil' %}active{% endif %}">
         <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span class="sidebar-label">Profil</span>
@@ -74,6 +93,64 @@
       {% endif %}
     </div>
   </aside>
+
+  {% if active_page in ['psychologue', 'stratege', 'createur', 'dossiers'] %}
+  <div class="orch-dock">
+    <div id="orch-bubble" data-tour="orchestrator" class="orch-bubble hidden" onclick="orchOpen()" title="Orchestrateur">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    </div>
+
+    <div id="orch-panel" class="orch-panel">
+      <div class="orch-header">
+        <div class="orch-title">Orchestrateur</div>
+        <div class="orch-header-actions">
+          <button class="orch-icon-btn" onclick="orchToggleExpand()" title="Agrandir / réduire" id="orch-expand-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          </button>
+          <button class="orch-icon-btn" onclick="orchClose()" title="Réduire">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="orch-messages" id="orch-messages">
+        <div class="orch-msg agent"><div class="orch-bubble-text"><p>Bonjour. J'ai accès aux analyses disponibles sur ce dossier. Posez-moi une question — je vous aide à relier les points, clarifier une décision ou identifier ce qui mérite attention.</p></div></div>
+      </div>
+      <div id="orch-quick-bar" class="orch-quick-bar">
+        <button class="orch-quick-btn" onclick="orchQuick('Résumez ce dossier.')">Résumer ce dossier</button>
+        <button class="orch-quick-btn" onclick="orchQuick('Vérifiez la cohérence entre l\'analyse et la stratégie.')">Vérifier la cohérence</button>
+        <button class="orch-quick-btn" onclick="orchQuick('Identifiez le point le plus fragile de la stratégie actuelle.')">Identifier le point faible</button>
+        <button class="orch-quick-btn" onclick="orchQuick('Quelle est la prochaine action concrète à mener ?')">Prochaine action</button>
+        <button class="orch-quick-btn" onclick="orchQuick('Générez un prompt prêt à utiliser pour transformer cette stratégie en contenu.')">Préparer un prompt</button>
+        <button class="orch-quick-btn" onclick="orchQuick('Suis-je prêt à passer au Créateur ? Qu\'est-ce qui manque encore ?')">Clarifier la décision</button>
+      </div>
+      <div class="orch-input-row">
+        <textarea class="orch-input" id="orch-input" placeholder="Posez une question sur ce dossier…" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();orchSend();}"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+        <button class="orch-send" id="orch-send" onclick="orchSend()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <script src="{{ static_v('js/orchestrator.js') }}" defer></script>
+  <script defer>
+    document.addEventListener('DOMContentLoaded', function() {
+      var panel = document.getElementById('orch-panel');
+      var bubble = document.getElementById('orch-bubble');
+      if (!panel || !bubble) return;
+      if (window.matchMedia('(min-width: 1100px)').matches) {
+        // Colonne dockée (desktop large) : chat ouvert par défaut.
+        _orchSetActive(true);
+        _orchInitOpacity();
+      } else {
+        // Widget flottant (mobile/tablette) : comportement d'origine, fermé par défaut.
+        panel.classList.add('hidden');
+        bubble.classList.remove('hidden');
+      }
+    });
+  </script>
+  {% endif %}
 
   <div class="app-main">
 
@@ -107,39 +184,6 @@
   </div>
 </div>
 
-{% if active_page in ['psychologue', 'stratege', 'createur'] %}
-<div id="orch-bubble" data-tour="orchestrator" class="orch-bubble" onclick="orchOpen()" title="Orchestrateur">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-</div>
-
-<div id="orch-panel" class="orch-panel hidden">
-  <div class="orch-header">
-    <div class="orch-title">Orchestrateur</div>
-    <div class="orch-header-actions">
-      <button class="orch-icon-btn" onclick="orchToggleExpand()" title="Agrandir / réduire" id="orch-expand-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-      </button>
-      <button class="orch-icon-btn" onclick="orchClose()" title="Réduire">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </button>
-    </div>
-  </div>
-  <div class="orch-messages" id="orch-messages">
-    <div class="orch-msg agent"><div class="orch-bubble-text"><p>Bonjour ! Je vois ce que Psychologue, Stratège et Créateur ont déjà produit sur ce projet. Posez-moi une question — je relie les points.</p></div></div>
-  </div>
-  <div class="orch-input-row">
-    <textarea class="orch-input" id="orch-input" placeholder="Poser une question sur cette analyse…" rows="1"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();orchSend();}"
-      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
-    <button class="orch-send" id="orch-send" onclick="orchSend()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-    </button>
-  </div>
-</div>
-
-<script src="{{ static_v('js/orchestrator.js') }}" defer></script>
-{% endif %}
-
 {% block scripts %}{% endblock %}
 <script src="{{ static_v('js/gabriel-survey.js') }}" defer></script>
 <script src="{{ static_v('js/gabriel-onboarding.js') }}" defer></script>
@@ -152,7 +196,7 @@
 
   document.querySelectorAll('.app-sidebar a[href], .sidebar-bottom a[href]').forEach(a => {
     const href = a.getAttribute('href');
-    if (!href || href === '#' || a.classList.contains('active')) return;
+    if (!href || href === '#' || href.startsWith('mailto:') || href.startsWith('tel:') || a.classList.contains('active')) return;
     a.addEventListener('click', function(e) {
       if (e.metaKey || e.ctrlKey || e.shiftKey) return;
       e.preventDefault();
@@ -161,6 +205,18 @@
     });
   });
 })();
+
+/* ── Thème clair/sombre ───────────────────────────────────────────────────── */
+function gabrielToggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  if (isLight) {
+    document.documentElement.removeAttribute('data-theme');
+    try { localStorage.setItem('gabriel_theme', 'dark'); } catch (e) {}
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+    try { localStorage.setItem('gabriel_theme', 'light'); } catch (e) {}
+  }
+}
 </script>
 </body>
 </html>
