@@ -12,7 +12,9 @@ import datetime
 from functools import wraps
 from flask import Blueprint, session, redirect, url_for, request, jsonify, render_template
 from authlib.integrations.flask_client import OAuth
+from authlib.integrations.base_client.errors import MismatchingStateError, OAuthError
 from werkzeug.security import generate_password_hash, check_password_hash
+from core.security import safe_log_event
 
 auth_bp = Blueprint('auth', __name__)
 oauth   = OAuth()
@@ -329,21 +331,37 @@ def auth_google():
     if not os.environ.get('GOOGLE_CLIENT_ID'):
         return redirect('/login?error=not_configured')
     redirect_uri = url_for('auth.auth_google_callback', _external=True)
+    safe_log_event('oauth_start', metadata={'generated_redirect_uri': redirect_uri})
     return oauth.google.authorize_redirect(redirect_uri)
 
 
 @auth_bp.route('/auth/google/callback')
 def auth_google_callback():
+    safe_log_event('oauth_callback_received', metadata={'has_state': bool(request.args.get('state'))})
     try:
-        token     = oauth.google.authorize_access_token()
+        token = oauth.google.authorize_access_token()
+    except MismatchingStateError as e:
+        safe_log_event('state_valid', metadata={'valid': False}, error=e)
+        return redirect('/login?error=auth_failed')
+    except OAuthError as e:
+        safe_log_event('token_exchange_failure', metadata={'error_type': type(e).__name__}, error=e)
+        return redirect('/login?error=auth_failed')
+    except Exception as e:
+        safe_log_event('token_exchange_failure', metadata={'error_type': type(e).__name__}, error=e)
+        return redirect('/login?error=auth_failed')
+
+    safe_log_event('state_valid', metadata={'valid': True})
+    try:
         user_info = token.get('userinfo')
         if not user_info:
+            safe_log_event('token_exchange_failure', metadata={'error_type': 'no_userinfo'})
             return redirect('/login?error=auth_failed')
         user = get_or_create_user(user_info)
+        safe_log_event('token_exchange_success', user_id=user.get('user_id') if isinstance(user, dict) else None)
         _open_session(user)
         return redirect('/dossiers')
     except Exception as e:
-        print(f'[AUTH] Erreur OAuth callback : {e}')
+        safe_log_event('token_exchange_failure', metadata={'error_type': type(e).__name__}, error=e)
         return redirect('/login?error=auth_failed')
 
 

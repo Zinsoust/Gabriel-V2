@@ -4,8 +4,15 @@ import json
 import time
 import uuid
 import datetime
+import logging
 import threading
 from functools import wraps
+
+# Sans handler configuré, logger.info() (utilisé par safe_log_event, y compris
+# les logs OAuth) est silencieusement ignoré par le logging root de Python —
+# rien n'apparaît dans les logs Render ni en local. On configure explicitement
+# un handler stdout au niveau INFO pour tous les loggers de l'app.
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)s %(message)s')
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response, send_file
 from dotenv import load_dotenv
 
@@ -37,7 +44,16 @@ if not _flask_secret:
     raise RuntimeError("FLASK_SECRET_KEY manquant dans .env — démarrage refusé.")
 app.secret_key = _flask_secret
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=30)
-_is_production = os.environ.get('APP_URL', '').startswith('https://')
+# Détection prod : APP_URL explicite (https://...) OU présence des variables
+# que Render injecte automatiquement (RENDER, RENDER_EXTERNAL_URL). Ne pas
+# dépendre uniquement d'APP_URL — si cette variable est oubliée sur Render,
+# ProxyFix ne se monte jamais et Google OAuth reçoit un redirect_uri en http://
+# (redirect_uri_mismatch) au lieu de https://.
+_is_production = (
+    os.environ.get('APP_URL', '').startswith('https://')
+    or bool(os.environ.get('RENDER'))
+    or os.environ.get('RENDER_EXTERNAL_URL', '').startswith('https://')
+)
 app.config['SESSION_COOKIE_SECURE']   = _is_production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -47,6 +63,10 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 if _is_production:
     from werkzeug.middleware.proxy_fix import ProxyFix
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    # Filet de sécurité indépendant de ProxyFix/X-Forwarded-Proto : force le
+    # schéma https pour toute URL externe générée (url_for(_external=True),
+    # authorize_redirect), même si l'en-tête forwarded venait à manquer.
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
 
 init_auth(app)
 app.register_blueprint(auth_bp)
