@@ -154,6 +154,17 @@ def test_dossiers_page_authenticated():
     assert b'Dossiers' in r.data
 
 
+def test_dossiers_create_dialog_uses_accessible_form():
+    """La création doit rester utilisable au clic, au clavier et sur mobile."""
+    c = _client()
+    r = c.get('/dossiers')
+    html = r.data.decode('utf-8')
+    assert 'id="ds-create-form"' in html
+    assert 'data-open-modal' in html
+    assert 'type="submit" id="ds-submit-btn"' in html
+    assert 'aria-labelledby="ds-modal-title"' in html
+
+
 def test_dossier_detail_redirect_unknown():
     """GET /dossiers/<fid_inconnu> redirige vers /dossiers (dossier introuvable)."""
     c = _client()

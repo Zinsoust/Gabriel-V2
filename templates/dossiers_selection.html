@@ -14,6 +14,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gabriel · Créer ton environnement de travail</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='brand/gabriel-mark-gold.png') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -69,12 +70,10 @@
 
     .ds-nav { display: flex; align-items: center; justify-content: space-between; gap: 28px; }
     .ds-logo {
-      display: flex; align-items: center; text-decoration: none;
-      font-family: "DM Mono", "DM Sans", ui-monospace, monospace;
-      font-size: 15px; font-weight: 500; letter-spacing: .01em;
-      color: rgba(255,255,255,.92);
+      display: flex; align-items: center; justify-content: center;
+      width: 116px; height: 30px; text-decoration: none;
     }
-    .ds-logo-dot { color: rgba(234,215,173,.9); }
+    .ds-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .ds-nav-center { display: flex; gap: 32px; align-items: center; }
     .ds-nav-link {
       color: rgba(255,255,255,.62); text-decoration: none;
@@ -328,7 +327,9 @@
 
   <div class="ds-shell">
     <nav class="ds-nav" aria-label="Navigation principale">
-      <a class="ds-logo" href="/">Gabriel.ai</a>
+      <a class="ds-logo" href="/" aria-label="Gabriel AI, accueil">
+        <img src="{{ url_for('static', filename='brand/gabriel-wordmark-light.png') }}" alt="">
+      </a>
       <div class="ds-nav-center">
         <a href="/#fonctionnalites" class="ds-nav-link">Fonctionnalités.</a>
         <a href="/#comment-ca-marche" class="ds-nav-link">Comment ça marche</a>

@@ -64,86 +64,135 @@ Exemple CORRECT : "L'audience cherche de la clarté face à la complexité techn
 FORMAT OBLIGATOIRE : JSON valide uniquement, sans markdown."""
 
 
-# ── Extraction du résumé psychologique enrichi ───────────────────────────────
+# ── Extraction du contexte psychologique — format JSON structuré ─────────────
+#
+# Remplace l'ancien _build_psycho_summary() (texte plat, tronqué à quelques
+# lignes) par un vrai objet JSON envoyé tel quel au Stratège. Corrige au
+# passage 3 clés mortes trouvées en auditant la connexion Psychologue→
+# Stratège — aucune ne levait d'erreur, chacune renvoyait silencieusement une
+# valeur vide, donc invisible sans vérifier explicitement :
+#   - psychologie.objections        n'existe pas dans le schéma Psychologue
+#                                    → les vraies clés sont marketing.objections_visibles
+#                                      et marketing.objections_invisibles
+#   - aspirations.transformation_visee n'existe pas
+#                                    → remplacé par les 9 vrais champs du schéma aspirations
+#   - marketing.opportunites_cachees n'existe pas
+#                                    → les vraies clés sont opportunites_offre / opportunites_contenu
 
-def _build_psycho_summary(psycho_data):
-    emotions     = psycho_data.get('emotions', {})
-    psychologie  = psycho_data.get('psychologie', {})
-    aspirations  = psycho_data.get('aspirations', {})
-    marketing    = psycho_data.get('marketing', {})
-    brief        = psycho_data.get('brief', {})
-    kpis         = psycho_data.get('kpis', {})
-    distribution = psycho_data.get('distribution', {})
-    personas     = psycho_data.get('personas', [])
-    dashboard    = psycho_data.get('dashboard', {})
-    interpretation = psycho_data.get('interpretation', {})
+_PERSONA_FIELDS_FOR_STRATEGE = [
+    'nom', 'poids', 'emotion_dominante_mesuree',
+    'frustrations', 'peurs', 'desirs', 'aspirations',
+    'objection_principale', 'ce_qui_le_ferait_acheter',
+    'message_a_lui_dire', 'histoire_interieure',
+]
 
-    emo_rep  = [e.get('emotion', '') for e in emotions.get('repartition', [])[:4]]
-    motiv    = psychologie.get('motivations_profondes', [])[:4]
-    frustr   = psychologie.get('frustrations', [])[:4]
-    desirs   = psychologie.get('desirs_caches', [])[:4]
-    peurs    = psychologie.get('peurs_implicites', [])[:3]
-    objec    = psychologie.get('objections', [])[:3]
-    croyances = psychologie.get('croyances_limitantes', [])[:2]
-    hooks    = marketing.get('hooks_performants', [])[:3]
-    opps     = marketing.get('opportunites_cachees', [])[:3]
 
-    lines = [
-        f"ÉMOTIONS DOMINANTES : {', '.join(emo_rep)}",
-        f"ESPOIR DÉÇU : {emotions.get('espoir_decu', '')}",
-        f"ASPIRATION NOURRIE : {emotions.get('aspiration_nourrie', '')}",
-        f"MOTIVATIONS PROFONDES : {' | '.join(motiv)}",
-        f"FRUSTRATIONS CLÉS : {' | '.join(frustr)}",
-        f"PEURS IMPLICITES : {' | '.join(peurs)}",
-        f"DÉSIRS CACHÉS : {' | '.join(desirs)}",
-        f"OBJECTIONS FRÉQUENTES : {' | '.join(objec)}",
-        f"CROYANCES LIMITANTES : {' | '.join(croyances)}",
-        f"APPEL INTÉRIEUR : {aspirations.get('appel_interieur', '')}",
-        f"CE QU'ILS VEULENT DEVENIR : {aspirations.get('ce_qu_ils_veulent_devenir', '')}",
-        f"TRANSFORMATION VISÉE : {aspirations.get('transformation_visee', '')}",
-        f"POSITIONNEMENT RECOMMANDÉ : {marketing.get('positionnement_recommande', '')}",
-        f"HOOKS PERFORMANTS : {' | '.join(hooks)}",
-        f"OPPORTUNITÉS CACHÉES : {' | '.join(opps)}",
-        f"ENGAGEMENT : {kpis.get('engagement', {}).get('score', 0)}/100",
-        f"OPPORTUNITÉ : {kpis.get('opportunite', {}).get('score', 0)}/100",
-        f"POLARISATION : {kpis.get('polarisation', {}).get('score', 0)}/100",
-        f"DISTRIBUTION : {distribution.get('positif', 0)}% positif / {distribution.get('negatif', 0)}% negatif",
-    ]
+def _build_psycho_context(psycho_data: dict) -> dict:
+    """Construit le contexte psychologique structuré transmis au Stratège :
+    les 3 personas prioritaires, les peurs/douleurs/émotions de l'audience,
+    et la dimension aspirations complète (rêves, ce qu'ils veulent construire,
+    comment ils veulent que le problème soit résolu)."""
+    psychologie    = psycho_data.get('psychologie') or {}
+    emotions       = psycho_data.get('emotions') or {}
+    aspirations    = psycho_data.get('aspirations') or {}
+    marketing      = psycho_data.get('marketing') or {}
+    brief          = psycho_data.get('brief') or {}
+    kpis           = psycho_data.get('kpis') or {}
+    distribution   = psycho_data.get('distribution') or {}
+    personas       = psycho_data.get('personas') or []
+    dashboard      = psycho_data.get('dashboard') or {}
+    interpretation = psycho_data.get('interpretation') or {}
 
+    personas_prioritaires = []
+    for p in personas[:3]:
+        if isinstance(p, dict) and p.get('nom'):
+            personas_prioritaires.append({
+                k: p[k] for k in _PERSONA_FIELDS_FOR_STRATEGE if p.get(k)
+            })
+
+    context = {
+        "personas_prioritaires": personas_prioritaires,
+        "emotions_audience": {
+            "dominantes": [e.get('emotion', '') for e in emotions.get('repartition', [])[:4] if isinstance(e, dict)],
+            "espoir_decu": emotions.get('espoir_decu', ''),
+            "aspiration_nourrie": emotions.get('aspiration_nourrie', ''),
+        },
+        "peurs_et_douleurs": {
+            "frustrations":         psychologie.get('frustrations', [])[:4],
+            "peurs_implicites":     psychologie.get('peurs_implicites', [])[:4],
+            "croyances_limitantes": psychologie.get('croyances_limitantes', [])[:3],
+            "objections_visibles":  marketing.get('objections_visibles', [])[:3],
+            "objections_invisibles":marketing.get('objections_invisibles', [])[:3],
+        },
+        "aspirations": {
+            "ce_qu_ils_veulent_devenir":     aspirations.get('ce_qu_ils_veulent_devenir', ''),
+            "ce_qu_ils_veulent_construire":  aspirations.get('ce_qu_ils_veulent_construire', ''),
+            "ce_qu_ils_veulent_transmettre": aspirations.get('ce_qu_ils_veulent_transmettre', ''),
+            "ce_qu_ils_veulent_proteger":    aspirations.get('ce_qu_ils_veulent_proteger', ''),
+            "ce_qu_ils_veulent_eviter":      aspirations.get('ce_qu_ils_veulent_eviter', ''),
+            "ambitions":              aspirations.get('ambitions', [])[:3],
+            "freins_aux_aspirations": aspirations.get('freins_aux_aspirations', [])[:3],
+            "appel_interieur":            aspirations.get('appel_interieur', ''),
+            "vision_de_leur_meilleur_moi": aspirations.get('vision_de_leur_meilleur_moi', ''),
+        },
+        "motivations_profondes": psychologie.get('motivations_profondes', [])[:4],
+        "desirs_caches":         psychologie.get('desirs_caches', [])[:4],
+        "insights_cles": {
+            "synthese_audience":     brief.get('synthese', ''),
+            "insight_cle":           brief.get('insight_cle', ''),
+            "action_prioritaire":    brief.get('action_prioritaire', ''),
+            "insight_psychologique": (interpretation.get('psychologique') or {}).get('main_insight', ''),
+            "insight_socio_culturel":(interpretation.get('socio_culturelle') or {}).get('main_insight', ''),
+        },
+        "signaux_marketing": {
+            "hooks_performants":         marketing.get('hooks_performants', [])[:3],
+            "opportunites_offre":        marketing.get('opportunites_offre', [])[:3],
+            "opportunites_contenu":      marketing.get('opportunites_contenu', [])[:3],
+            "positionnement_recommande": marketing.get('positionnement_recommande', ''),
+        },
+        "kpis": {
+            "engagement":   (kpis.get('engagement') or {}).get('score', 0),
+            "opportunite":  (kpis.get('opportunite') or {}).get('score', 0),
+            "polarisation": (kpis.get('polarisation') or {}).get('score', 0),
+        },
+        "distribution": {
+            "positif_pct": distribution.get('positif', 0),
+            "negatif_pct": distribution.get('negatif', 0),
+        },
+    }
     if dashboard:
-        dominant_emotion = dashboard.get('dominant_emotion', '')
-        dominant_stance  = dashboard.get('dominant_stance', '')
-        if dominant_emotion:
-            lines.append(f"ÉMOTION DASHBOARD DOMINANTE : {dominant_emotion}")
-        if dominant_stance:
-            lines.append(f"POSTURE AUDIENCE : {dominant_stance}")
+        if dashboard.get('dominant_emotion'):
+            context["emotions_audience"]["dominante_dashboard"] = dashboard['dominant_emotion']
+        if dashboard.get('dominant_stance'):
+            context["posture_audience"] = dashboard['dominant_stance']
 
-    if brief:
-        lines.append(f"SYNTHÈSE AUDIENCE : {brief.get('synthese', '')}")
-        lines.append(f"INSIGHT CLÉ : {brief.get('insight_cle', '')}")
-        lines.append(f"ACTION PRIORITAIRE PSYCHOLOGUE : {brief.get('action_prioritaire', '')}")
+    return context
 
-    # Interprétations RAG spécialisées
-    interp_psy = interpretation.get('psychologique') or {}
-    interp_soc = interpretation.get('socio_culturelle') or {}
-    if interp_psy.get('main_insight'):
-        lines.append(f"INSIGHT PSYCHOLOGIQUE PROFOND : {interp_psy['main_insight']}")
-    if interp_soc.get('main_insight'):
-        lines.append(f"INSIGHT SOCIO-CULTUREL : {interp_soc['main_insight']}")
 
+def _psycho_query_text(psycho_context: dict) -> str:
+    """Résumé compact en texte, dérivé du contexte JSON — sert uniquement de
+    requête pour la recherche RAG et pour le prompt de relecture critique
+    (qui n'ont pas besoin de la fidélité complète, juste de la substance)."""
+    parts = []
+    peurs = psycho_context.get('peurs_et_douleurs', {})
+    asp   = psycho_context.get('aspirations', {})
+    insights = psycho_context.get('insights_cles', {})
+    if peurs.get('frustrations'):
+        parts.append('Frustrations : ' + ' | '.join(peurs['frustrations']))
+    if peurs.get('peurs_implicites'):
+        parts.append('Peurs : ' + ' | '.join(peurs['peurs_implicites']))
+    if psycho_context.get('desirs_caches'):
+        parts.append('Désirs : ' + ' | '.join(psycho_context['desirs_caches']))
+    if asp.get('ce_qu_ils_veulent_devenir'):
+        parts.append('Aspiration : ' + asp['ce_qu_ils_veulent_devenir'])
+    if insights.get('insight_cle'):
+        parts.append('Insight clé : ' + insights['insight_cle'])
+    personas = psycho_context.get('personas_prioritaires', [])
     if personas:
-        persona_summary = []
-        for p in personas[:3]:
-            if isinstance(p, dict):
-                nom = p.get('nom', '')
-                emo = p.get('emotion_dominante', '')
-                fru = (p.get('frustrations', []) or [])[:1]
-                if nom:
-                    persona_summary.append(f"{nom} ({emo}) — {fru[0] if fru else ''}")
-        if persona_summary:
-            lines.append(f"PERSONAS IDENTIFIÉS : {' | '.join(persona_summary)}")
-
-    return '\n'.join(l for l in lines if l.split(': ', 1)[-1].strip())
+        noms = ', '.join(p.get('nom', '') for p in personas if p.get('nom'))
+        if noms:
+            parts.append('Personas : ' + noms)
+    return '\n'.join(parts)
 
 
 # ── LLM call ─────────────────────────────────────────────────────────────────
@@ -365,7 +414,9 @@ class Stratege(BaseAgent):
         memory_context = ctx.memory_context
         title          = ctx.title
 
-        psycho_summary = _build_psycho_summary(psycho_data)
+        psycho_context = _build_psycho_context(psycho_data)
+        psycho_query   = _psycho_query_text(psycho_context)
+        psycho_json    = json.dumps(psycho_context, ensure_ascii=False, indent=2)
 
         memory_section = ""
         if memory_context:
@@ -373,15 +424,15 @@ class Stratege(BaseAgent):
 
         title_section = f"\nCONTENU ANALYSÉ : {title}\n" if title else ""
 
-        rag_section = _load_rag_rules(psycho_summary, brain_context)
+        rag_section = _load_rag_rules(psycho_query, brain_context)
 
         prompt = f"""{_STRATEGE_SYSTEM}
 
 ━━━ PROFIL BUSINESS DE L'UTILISATEUR ━━━
 {brain_context or '(non renseigné — raisonner par hypothèse et lister les questions à clarifier)'}
 {title_section}
-━━━ RAPPORT DU PSYCHOLOGUE — PSYCHOLOGIE RÉELLE DE L'AUDIENCE ━━━
-{psycho_summary}
+━━━ RAPPORT DU PSYCHOLOGUE — PSYCHOLOGIE RÉELLE DE L'AUDIENCE (JSON) ━━━
+{psycho_json}
 {memory_section}{rag_section}
 ━━━ MISSION — DÉCISION MARKETING IMMÉDIATE ━━━
 
@@ -579,7 +630,7 @@ Si les données d'audience sont insuffisantes, marque les hypothèses avec '(à 
         # Relecture critique — 2e appel indépendant (non-bloquant)
         if strat:
             try:
-                strat['critique_strategique'] = _critique_strategie(strat, psycho_summary, brain_context)
+                strat['critique_strategique'] = _critique_strategie(strat, psycho_query, brain_context)
                 print(f"[STRATÈGE] Critique OK — verdict={strat['critique_strategique'].get('verdict')}")
             except Exception as e:
                 print(f"[STRATÈGE] Critique ERREUR (non bloquant) : {e}")

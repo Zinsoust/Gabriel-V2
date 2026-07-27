@@ -3,9 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    try {
+      if (localStorage.getItem('gabriel_theme') === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } catch (e) {}
+  </script>
   <title>Gabriel — Connexion</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='brand/gabriel-mark-gold.png') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/gabriel.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/gabriel-light.css') }}">
   <style>
     body { background: var(--bg-main); display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .login-wrap {
@@ -14,15 +23,9 @@
     .login-logo {
       display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 48px;
     }
-    .login-logo-mark {
-      width: 48px; height: 48px;
-      background: linear-gradient(135deg, #D8B982, #8F7445);
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; font-weight: 700; color: var(--bg-main);
-      box-shadow: 0 0 40px rgba(216,185,130,0.25);
-    }
-    .login-logo-name { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
+    .login-logo-lockup { position: relative; width: 168px; height: 42px; }
+    .login-logo-lockup img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .login-logo-lockup .login-logo-dark { display: none; }
     .login-logo-sub { font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
     .login-card {
       background: linear-gradient(180deg, #151619, #101113);
@@ -75,13 +78,23 @@
       font-size: 13px; color: rgba(248,113,113,0.9);
       margin-bottom: 16px;
     }
+    [data-theme="light"] .login-logo-light { display: none; }
+    [data-theme="light"] .login-logo-lockup .login-logo-dark { display: block; }
+    [data-theme="light"] .login-card {
+      background: #FFFFFF;
+      border-color: rgba(17,19,24,.10);
+      box-shadow: 0 28px 70px rgba(17,19,24,.10);
+    }
+    [data-theme="light"] .btn-google { background: #F8F8F7; }
   </style>
 </head>
 <body>
 <div class="login-wrap">
   <div class="login-logo">
-    <div class="login-logo-mark">G</div>
-    <span class="login-logo-name">Gabriel</span>
+    <div class="login-logo-lockup" aria-label="Gabriel AI">
+      <img class="login-logo-light" src="{{ url_for('static', filename='brand/gabriel-wordmark-light.png') }}" alt="Gabriel AI">
+      <img class="login-logo-dark" src="{{ url_for('static', filename='brand/gabriel-wordmark-dark.png') }}" alt="">
+    </div>
     <span class="login-logo-sub">Intelligence Audience</span>
   </div>
 

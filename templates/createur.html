@@ -155,6 +155,21 @@
 }
 .cre-ctx-sep { width: 1px; height: 12px; background: color-mix(in srgb, var(--text-primary) 7%, transparent); flex-shrink: 0; }
 
+/* ── Historique des créations ─────────────────────────────────────────────── */
+.cre-history { margin: 22px 0 0; }
+.cre-history-head { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+.cre-history-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.cre-history-count { font-size: 10px; color: var(--champagne); background: color-mix(in srgb, var(--champagne) 10%, transparent); padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+.cre-history-toggle { font-size: 11px; color: var(--text-muted); transition: color 0.15s; }
+.cre-history-head:hover .cre-history-toggle { color: var(--text-secondary); }
+.cre-history-list { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; margin-top: 10px; }
+.cre-history-list.collapsed { display: none; }
+.cre-history-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: color-mix(in srgb, var(--text-primary) 1.8%, transparent); border: 1px solid color-mix(in srgb, var(--text-primary) 5%, transparent); border-radius: 4px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.cre-history-item:hover { border-color: color-mix(in srgb, var(--champagne) 30%, transparent); background: color-mix(in srgb, var(--champagne) 3%, transparent); }
+.cre-history-tag { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--champagne); background: color-mix(in srgb, var(--champagne) 10%, transparent); padding: 3px 7px; border-radius: 3px; flex-shrink: 0; font-weight: 600; }
+.cre-history-preview { flex: 1; font-size: 12px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cre-history-date { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+
 /* ── Carte de saisie ───────────────────────────────────────────────────────── */
 .cre-card {
   margin-top: 20px;
@@ -228,6 +243,25 @@
 .cre-select:focus { border-color: color-mix(in srgb, var(--champagne) 20%, transparent); }
 .cre-select option { background: #111214; }
 
+.cre-variant-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--text-primary) 32%, transparent);
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+}
+.cre-variant-toggle input {
+  accent-color: var(--champagne);
+  cursor: pointer;
+  width: 13px;
+  height: 13px;
+}
+.cre-variant-toggle:hover { color: color-mix(in srgb, var(--text-primary) 55%, transparent); }
+
 /* ── Ligne CTA ─────────────────────────────────────────────────────────────── */
 .cre-cta-row {
   display: flex;
@@ -262,12 +296,14 @@
     background  0.18s ease,
     border-color 0.18s ease,
     box-shadow   0.18s ease,
+    color        0.18s ease,
     transform    0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .cre-btn:hover {
-  background: color-mix(in srgb, var(--champagne) 17%, transparent);
-  border-color: color-mix(in srgb, var(--champagne) 42%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--champagne) 8%, transparent);
+  background: color-mix(in srgb, var(--champagne-accent) 17%, transparent);
+  border-color: color-mix(in srgb, var(--champagne-accent) 45%, transparent);
+  color: var(--champagne-accent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--champagne-accent) 16%, transparent);
 }
 .cre-btn:active { transform: scale(0.97); }
 .cre-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
@@ -588,6 +624,14 @@
       data-tone="emotional"
       data-desc="Empathie, vécu, identification, vérité humaine. Logique : vécu → tension → vérité → ouverture → action."
       onclick="selectTone(this)">Émotionnel</button>
+    <button class="cre-tone"
+      data-tone="storytelling"
+      data-desc="Narration, bascule, transformation. Logique : situation → conflit → bascule → transformation."
+      onclick="selectTone(this)">Storytelling</button>
+    <button class="cre-tone"
+      data-tone="autorite"
+      data-desc="Vision, prise de position, direction claire. Logique : constat → position → direction → action."
+      onclick="selectTone(this)">Autorité</button>
   </div>
   <div class="cre-desc" id="cre-desc">Diagnostic, précision, autorité, décision. Logique : signal → analyse → décision → action.</div>
 
@@ -604,6 +648,18 @@
       <span class="cre-ctx-label">Le Stratège</span>
       <span class="cre-ctx-val" id="ctx-s-val"></span>
     </div>
+  </div>
+
+  <!-- Historique des créations — masqué tant qu'il n'y a rien à montrer -->
+  <div class="cre-history hidden" id="cre-history">
+    <div class="cre-history-head" onclick="toggleHistory()">
+      <div class="cre-history-title">
+        Vos créations récentes
+        <span class="cre-history-count" id="cre-history-count">0</span>
+      </div>
+      <span class="cre-history-toggle" id="cre-history-toggle-label">Afficher ▾</span>
+    </div>
+    <div class="cre-history-list collapsed" id="cre-history-list"></div>
   </div>
 
   <!-- Carte formulaire -->
@@ -661,7 +717,18 @@
           <option value="launch">Lancement</option>
         </select>
       </div>
+      <div class="cre-opt hidden" id="cre-opt-persona">
+        <div class="cre-opt-lbl">Persona ciblé</div>
+        <select class="cre-select" id="cre-persona">
+          <option value="">Audience générale</option>
+        </select>
+      </div>
     </div>
+
+    <label class="cre-variant-toggle" for="cre-variant">
+      <input type="checkbox" id="cre-variant">
+      Générer aussi une variante avec un angle différent
+    </label>
   </div>
 
   <!-- CTA -->
@@ -733,6 +800,7 @@
 let _tone       = 'expert';
 let _psycho     = {};
 let _strategy   = {};
+let _businessContext = {};
 let _analysisId = '';
 let _folderId   = '';
 let _lastResult = null;
@@ -775,32 +843,188 @@ function _smartScrollToResults(elId) {
 /* ─── Init folder_id (arrivée depuis un dossier) ─────────────────────────────── */
 _folderId = new URLSearchParams(window.location.search).get('folder_id') || '';
 
-/* ─── Init sessionStorage ────────────────────────────────────────────────────── */
-(function init() {
+/* Affiche la barre de contexte (dots Psychologue/Stratège) — factorisé pour
+   être utilisé aussi bien par le handoff sessionStorage que par le
+   rechargement depuis un dossier existant. */
+function _showCtxBar({ psychoLinked, psychoLabel, stratLinked, stratLabel } = {}) {
+  const ctx = $('cre-ctx');
+  ctx.style.display = 'flex';
+  if (psychoLinked) {
+    $('ctx-p-dot').classList.remove('off');
+    $('ctx-p-val').textContent = psychoLabel || 'Analyse liée';
+  }
+  if (stratLinked) {
+    $('ctx-s-dot').classList.remove('off');
+    $('ctx-s-val').textContent = stratLabel || 'Stratégie liée';
+  }
+}
+
+/* ─── Historique des créations ────────────────────────────────────────────────
+   Le backend (/creator/history) et la sauvegarde (/creator/save) existaient
+   déjà, mais rien côté page ne les affichait jamais — chaque génération
+   sauvegardée disparaissait dans la base sans qu'on puisse la retrouver. */
+const _CRE_HIST_LABELS = {
+  hooks: 'Hooks', script: 'Script', tiktok: 'TikTok', reels: 'Reels', youtube: 'YouTube',
+  post: 'Post', linkedin: 'LinkedIn', instagram: 'Instagram', email: 'Email',
+  speech: 'Discours', discours: 'Discours', ad: 'Pub', publicite: 'Pub',
+  sales_page: 'Page de vente', angles: 'Angles',
+};
+let _historyItems = [];
+let _historyOpen  = false;
+
+async function loadCreatorHistory() {
+  try {
+    const r = await fetch('/creator/history');
+    const d = await r.json();
+    if (!d.success || !Array.isArray(d.items) || !d.items.length) return;
+    _historyItems = d.items.slice(0, 20);
+    $('cre-history-count').textContent = _historyItems.length;
+    $('cre-history-list').innerHTML = _historyItems.map((item, i) => {
+      const key   = item.content_type || item.export_type || '';
+      const label = _CRE_HIST_LABELS[key] || key || 'Contenu';
+      const preview = (item.full_text || '').replace(/\s+/g, ' ').trim().slice(0, 90);
+      return `<div class="cre-history-item" onclick="loadHistoryItem(${i})">
+        <span class="cre-history-tag">${esc(label)}</span>
+        <span class="cre-history-preview">${esc(preview)}</span>
+        <span class="cre-history-date">${_fmtHistDate(item.created_at)}</span>
+      </div>`;
+    }).join('');
+    sh('cre-history');
+  } catch (e) {}
+}
+
+function toggleHistory() {
+  _historyOpen = !_historyOpen;
+  $('cre-history-list').classList.toggle('collapsed', !_historyOpen);
+  $('cre-history-toggle-label').textContent = _historyOpen ? 'Masquer ▴' : 'Afficher ▾';
+}
+
+function loadHistoryItem(i) {
+  const item = _historyItems[i];
+  if (!item) return;
+  let content = {};
+  try { content = JSON.parse(item.content_json || '{}'); } catch (e) {}
+  renderResult({
+    writing_brief: {},
+    content,
+    full_text:    item.full_text || '',
+    content_type: item.content_type || item.export_type || '',
+    variant:      {},
+    success:      true,
+  });
+  sh('cre-out');
+  $('cre-out')?.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+function _fmtHistDate(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'});
+  } catch (e) { return ''; }
+}
+
+/* Peuple le sélecteur de persona quand le Psychologue en a détecté — la
+   section "PERSONA CIBLE" du brief d'écriture (agents/createur.py) n'était
+   jamais alimentée : aucune UI ne permettait de choisir un persona précis. */
+function _populatePersonaSelect() {
+  const personas = Array.isArray(_psycho.personas) ? _psycho.personas : [];
+  const wrap = $('cre-opt-persona');
+  const sel  = $('cre-persona');
+  if (!personas.length) { wrap.classList.add('hidden'); return; }
+  sel.innerHTML = '<option value="">Audience générale</option>';
+  personas.forEach((p, i) => {
+    if (!p || !p.nom) return;
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = p.poids ? `${p.nom} (${p.poids})` : p.nom;
+    sel.appendChild(opt);
+  });
+  wrap.classList.remove('hidden');
+}
+function _selectedPersona() {
+  const i = $('cre-persona')?.value;
+  if (i === undefined || i === '') return null;
+  const personas = Array.isArray(_psycho.personas) ? _psycho.personas : [];
+  return personas[parseInt(i, 10)] || null;
+}
+
+/* Recharge un contenu déjà généré pour ce dossier — corrige le cas où
+   dossier.html promet "Ouvrez le Créateur pour le consulter" alors que la
+   page n'avait jusqu'ici aucun moyen de retrouver ce qui avait été créé
+   (le handoff sessionStorage est à usage unique, perdu dès qu'on quitte
+   la page ou qu'on revient plus tard sur le dossier). */
+async function _loadFromFolder(folderId) {
+  try {
+    const r = await fetch(`/api/folders/${encodeURIComponent(folderId)}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    const folder = d.folder || {};
+    _analysisId = folder.analysis_id || '';
+
+    if (folder.analysis_id) {
+      try {
+        const rh = await fetch(`/history/${encodeURIComponent(folder.analysis_id)}/load`);
+        const dh = await rh.json();
+        if (dh.success) {
+          _psycho   = dh.full_result || {};
+          _strategy = dh.strategie_result || {};
+          _populatePersonaSelect();
+        }
+      } catch(e) {}
+    }
+
+    if (folder.analysis_id || folder.strategy_id) {
+      _showCtxBar({
+        psychoLinked: !!folder.analysis_id,
+        psychoLabel:  (_psycho.brief || {}).insight_cle ? (_psycho.brief.insight_cle.slice(0, 52) + '…') : '',
+        stratLinked:  !!folder.strategy_id,
+        stratLabel:   (_strategy.decision_centrale || '').slice(0, 52) + ((_strategy.decision_centrale || '').length > 52 ? '…' : ''),
+      });
+    }
+
+    if (folder.creator_output_id) {
+      const rs = await fetch(`/status/${encodeURIComponent(folder.creator_output_id)}`);
+      const ds = await rs.json();
+      if (ds.status === 'done' && ds.data) renderResult(ds.data);
+    }
+  } catch(e) {}
+}
+
+/* ─── Init sessionStorage (arrivée depuis Stratège) ou dossier existant ──────── */
+(async function init() {
+  loadCreatorHistory();  // indépendant du contexte Stratège/Psychologue — jamais bloquant
   const raw = sessionStorage.getItem('gabriel_for_createur');
-  if (!raw) return;
+  if (!raw) {
+    if (_folderId) await _loadFromFolder(_folderId);
+    // Arrivée directe sur /createur (pas de relais depuis Stratège) : le
+    // contexte business V1.1 est par utilisateur, pas par dossier — on le
+    // charge quand même, sinon le Créateur écrit sans savoir ce que vend
+    // l'utilisateur dès qu'on n'arrive pas depuis le bouton "Aller au Créateur".
+    try {
+      const r = await fetch('/business-context');
+      if (r.ok) { const d = await r.json(); _businessContext = d.updated_context || {}; }
+    } catch (e) {}
+    return;
+  }
   try {
     const d = JSON.parse(raw);
     sessionStorage.removeItem('gabriel_for_createur');
     _analysisId = d.analysis_id    || '';
     _strategy   = d.strategie_data || d.strategy || {};
     _psycho     = d.psycho_data    || {};
+    _businessContext = d.business_context || {};
     if (!_folderId) _folderId = d.folder_id || '';
-
-    const ctx = $('cre-ctx');
-    ctx.style.display = 'flex';
+    _populatePersonaSelect();
 
     const brief   = (_psycho.brief || {});
     const insight = brief.insight_cle || '';
-    if (_analysisId || insight) {
-      $('ctx-p-dot').classList.remove('off');
-      $('ctx-p-val').textContent = insight ? insight.slice(0, 52) + '…' : 'Analyse liée';
-    }
-    const dec = d.decision || _strategy.decision_centrale || '';
-    if (dec) {
-      $('ctx-s-dot').classList.remove('off');
-      $('ctx-s-val').textContent = dec.slice(0, 52) + (dec.length > 52 ? '…' : '');
-    }
+    const dec     = d.decision || _strategy.decision_centrale || '';
+    _showCtxBar({
+      psychoLinked: !!(_analysisId || insight),
+      psychoLabel:  insight ? insight.slice(0, 52) + '…' : '',
+      stratLinked:  !!dec,
+      stratLabel:   dec.slice(0, 52) + (dec.length > 52 ? '…' : ''),
+    });
   } catch(e) {}
 })();
 
@@ -811,6 +1035,22 @@ function selectTone(btn) {
   _tone = btn.dataset.tone;
   $('cre-desc').textContent = btn.dataset.desc || '';
 }
+
+/* ─── Canal suggéré selon le format ──────────────────────────────────────────
+   Certains couples Format/Canal sont contradictoires pour le LLM (ex: Format
+   "Email séquence" + Canal "TikTok" envoie des instructions incohérentes
+   dans le même prompt). On suggère le canal évident quand le format en a un,
+   sans jamais écraser un choix que l'utilisateur a fait lui-même. */
+const FORMAT_DEFAULT_CANAL = {
+  youtube: 'youtube', tiktok: 'tiktok', reels: 'instagram', instagram: 'instagram',
+  linkedin: 'linkedin', email: 'email', ad: 'ads',
+};
+$('cre-fmt').addEventListener('change', () => {
+  const chSel = $('cre-ch');
+  if (chSel.value !== '') return; // l'utilisateur a déjà choisi — ne pas écraser
+  const suggestion = FORMAT_DEFAULT_CANAL[$('cre-fmt').value];
+  if (suggestion) chSel.value = suggestion;
+});
 
 /* ─── Compteur chars ─────────────────────────────────────────────────────────── */
 function updateCount() {
@@ -855,7 +1095,9 @@ async function generate() {
     folder_id:     _folderId,
     psycho_data:   _psycho,
     strategy:      _strategy,
-    generate_variant: false,
+    business_context: _businessContext,
+    persona:       _selectedPersona(),
+    generate_variant: !!$('cre-variant')?.checked,
   };
 
   try {
@@ -923,9 +1165,11 @@ function renderResult(d) {
   const fmtLabel = fmtOpt.options[fmtOpt.selectedIndex].text;
   const br = $('cre-brief');
   br.innerHTML = '';
+  const persona = brief.target_persona && brief.target_persona !== 'Audience principale' ? brief.target_persona : '';
   const chips = [
     [brief.format || fmtLabel, true],
     [TONES[_tone]?.label || _tone, true],
+    [persona, true],
     [brief.channel  || '', false],
     [brief.objective|| '', false],
     [brief.emotion_dominante || '', false],
@@ -1089,6 +1333,8 @@ function reset() {
   $('cre-count').textContent = '0 / 2000';
   $('cre-count').className = 'cre-count';
   $('cre-ctx').style.display = 'none';
+  $('cre-opt-persona').classList.add('hidden');
+  $('cre-variant').checked = false;
   $('cre-gen').disabled = false;
   stopCrePercent();
   hd('cre-load'); hd('cre-out');

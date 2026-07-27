@@ -549,18 +549,34 @@ class Createur(BaseAgent):
             lines.append(f"OBJECTIF: {objective}")
 
         # ── Contexte business ──────────────────────────────────────────────────
+        # Deux formes possibles selon la provenance du contexte : le schéma
+        # V1.1 de l'Entretien stratégique (33 clés anglaises — offer, target,
+        # format...) ou l'ancien profil fichier par utilisateur (activite,
+        # offre, cible, ton_de_marque). Trouvé en conditions réelles :
+        # templates/createur.html n'envoyait jamais business_context, donc ce
+        # bloc restait toujours vide pour tout compte passé par l'Entretien
+        # stratégique — le Créateur écrivait sans jamais savoir ce que
+        # l'utilisateur vend, à qui, ni pourquoi. Voir app.py::_resolve_business_context.
         if business_context:
             bc = business_context
-            lines.append("\n── QUI PARLE (le créateur de contenu) ──")
-            if bc.get('activite'):
-                lines.append(f"Activité : {bc['activite']}")
-            if bc.get('offre'):
-                lines.append(f"Offre    : {bc['offre']}")
-            if bc.get('cible'):
-                lines.append(f"Cible    : {bc['cible']}")
-            tone_brand = bc.get('ton_de_marque') or bc.get('ton', '')
-            if tone_brand:
-                lines.append(f"Ton de marque : {tone_brand}")
+            is_v1 = any(k in bc for k in ('offer', 'target', 'long_term_goal', 'revenue_sources'))
+            if is_v1:
+                from agents.context_builder.schema import format_context_for_stratege
+                formatted = format_context_for_stratege(bc)
+                if formatted:
+                    lines.append("\n── QUI PARLE (le créateur de contenu) ──")
+                    lines.append(formatted)
+            else:
+                lines.append("\n── QUI PARLE (le créateur de contenu) ──")
+                if bc.get('activite'):
+                    lines.append(f"Activité : {bc['activite']}")
+                if bc.get('offre'):
+                    lines.append(f"Offre    : {bc['offre']}")
+                if bc.get('cible'):
+                    lines.append(f"Cible    : {bc['cible']}")
+                tone_brand = bc.get('ton_de_marque') or bc.get('ton', '')
+                if tone_brand:
+                    lines.append(f"Ton de marque : {tone_brand}")
 
         # ── Immersion persona — cœur de la méthode ────────────────────────────
         # On reconstruit la réalité intérieure du persona pour que le LLM
@@ -836,8 +852,25 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
             "JSON pur, sans markdown ni explication."
         )
 
-        # ── 5. Appel LLM ─────────────────────────────────────────────────────
-        raw = _call_mistral(prompt, max_tokens=3000)
+        # ── 5. Appel(s) LLM ────────────────────────────────────────────────────
+        # La variante (si demandée) est indépendante du contenu principal —
+        # même brief, discipline de tonalité différente — donc les deux appels
+        # tournent en parallèle plutôt qu'en séquence : le toggle "variante"
+        # n'ajoute quasiment aucun temps d'attente au lieu de le doubler.
+        variant = {}
+        if generate_variant:
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                main_future    = pool.submit(_call_mistral, prompt, 3000)
+                variant_future = pool.submit(self._generate_variant, content_type, brief_text, rag_block, tone, fmt_key)
+                raw = main_future.result()
+                try:
+                    variant = variant_future.result()
+                except Exception as e:
+                    print(f"[CREATEUR] Génération de variante échouée (non bloquant) : {e}")
+        else:
+            raw = _call_mistral(prompt, max_tokens=3000)
+
         content_result = _parse_json(raw)
         content_result['content_type'] = content_type
         content_result['success'] = not content_result.get('parse_error', False)
@@ -867,13 +900,6 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
             'emotion_dominante':    rep[0].get('emotion', '') if rep else '',
             'desired_action':       objective or 'engagement',
         }
-
-        # ── 9. Variante (si demandée) ─────────────────────────────────────────
-        variant = {}
-        if generate_variant:
-            variant = self._generate_variant(
-                content_type, brief_text, rag_block, tone, fmt_key
-            )
 
         # ── 10. RAGs utilisés (pour transparence) ────────────────────────────
         rags_used_list = [

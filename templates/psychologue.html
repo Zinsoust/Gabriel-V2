@@ -18,6 +18,13 @@
 #manualComments::placeholder{color:color-mix(in srgb, var(--text-primary) 18%, transparent);}
 #manualComments:focus{border-color:color-mix(in srgb, var(--champagne) 28%, transparent);}
 .url-hint{font-size:10px;color:color-mix(in srgb, var(--text-primary) 20%, transparent);margin-top:7px;}
+.url-hint.is-busy{color:var(--text-muted);}
+.url-hint.is-success{color:var(--champagne-soft);}
+.url-hint.is-error{color:rgba(220,100,100,.82);}
+.url-input-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:stretch;}
+.url-check-btn{min-height:44px;padding:0 16px;border-radius:4px;border:1px solid color-mix(in srgb, var(--champagne) 24%, transparent);background:color-mix(in srgb, var(--champagne) 8%, transparent);color:var(--champagne);font-size:12px;font-weight:500;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease;}
+.url-check-btn:hover{background:color-mix(in srgb, var(--champagne-accent) 14%, transparent);border-color:color-mix(in srgb, var(--champagne-accent) 40%, transparent);transform:translateY(-1px);}
+.url-check-btn:disabled{opacity:.55;cursor:wait;transform:none;}
 .input{background:color-mix(in srgb, var(--text-primary) 2%, transparent);border:1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);border-radius:4px;padding:10px 13px;font-size:12px;color:color-mix(in srgb, var(--text-primary) 65%, transparent);outline:none;transition:border-color .2s;font-family:inherit;}
 .input:focus{border-color:color-mix(in srgb, var(--champagne) 28%, transparent);}
 .comment-meta{display:flex;align-items:center;justify-content:space-between;margin-top:7px;}
@@ -27,10 +34,16 @@
 .status-msg{font-size:10px;color:color-mix(in srgb, var(--text-primary) 20%, transparent);letter-spacing:.03em;}
 .analyse-btn{display:flex;align-items:center;gap:7px;padding:8px 20px;border-radius:3px;background:color-mix(in srgb, var(--champagne) 10%, transparent);border:1px solid color-mix(in srgb, var(--champagne) 22%, transparent);color:var(--champagne);font-size:11px;font-weight:500;letter-spacing:.05em;cursor:pointer;transition:all 0.2s cubic-bezier(0.22,1,.36,1);position:relative;overflow:hidden;}
 .analyse-btn::after{content:'';position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(90deg,transparent,color-mix(in srgb, var(--champagne) 18%, transparent),transparent);transform:skewX(-20deg);pointer-events:none;}
-.analyse-btn:hover{background:color-mix(in srgb, var(--champagne) 16%, transparent);border-color:color-mix(in srgb, var(--champagne) 35%, transparent);box-shadow:0 2px 14px color-mix(in srgb, var(--champagne) 12%, transparent);transform:translateY(-1px);}
+.analyse-btn:hover{background:color-mix(in srgb, var(--champagne-accent) 16%, transparent);border-color:color-mix(in srgb, var(--champagne-accent) 40%, transparent);color:var(--champagne-accent);box-shadow:0 2px 14px color-mix(in srgb, var(--champagne-accent) 18%, transparent);transform:translateY(-1px);}
 .analyse-btn:hover::after{animation:gb-shimmer .5s ease;}
 .analyse-btn:active{transform:scale(.97) translateY(0);}
 .analyse-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+@media(max-width:560px){
+  .url-input-row{grid-template-columns:1fr;}
+  .url-check-btn{width:100%;}
+  .card-footer{align-items:stretch;flex-direction:column;gap:10px;}
+  .analyse-btn{width:100%;justify-content:center;}
+}
 
 /* ─── Result header ──────────────────────────────────────────────────── */
 .dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
@@ -590,13 +603,13 @@
 }
 
 /* ─── Carte contexte vidéo (champagne) ──────────────────────────────────── */
-.video-ctx-card{background:linear-gradient(135deg,var(--champagne) 0%,#C4A05C 100%);border-radius:6px;padding:20px 22px;margin-bottom:0;}
+.video-ctx-card{background:linear-gradient(135deg,var(--champagne) 0%,var(--champagne-soft) 100%);border-radius:6px;padding:20px 22px;margin-bottom:0;}
 .vcx-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.vcx-source{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:color-mix(in srgb, var(--bg-card) 50%, transparent);font-weight:600;padding:2px 8px;border-radius:3px;background:color-mix(in srgb, var(--bg-card) 8%, transparent);}
+.vcx-source{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:color-mix(in srgb, #0D0D10 50%, transparent);font-weight:600;padding:2px 8px;border-radius:3px;background:color-mix(in srgb, #0D0D10 8%, transparent);}
 .vcx-title{font-size:16px;font-weight:600;color:#0D0D10;line-height:1.35;margin-bottom:8px;letter-spacing:-.02em;}
-.vcx-desc{font-size:11px;color:color-mix(in srgb, var(--bg-card) 68%, transparent);line-height:1.65;}
+.vcx-desc{font-size:11px;color:color-mix(in srgb, #0D0D10 68%, transparent);line-height:1.65;}
 .vcx-meta{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
-.vcx-tag{font-size:9px;padding:2px 8px;border-radius:3px;background:color-mix(in srgb, var(--bg-card) 10%, transparent);color:color-mix(in srgb, var(--bg-card) 60%, transparent);font-weight:500;}
+.vcx-tag{font-size:9px;padding:2px 8px;border-radius:3px;background:color-mix(in srgb, #0D0D10 10%, transparent);color:color-mix(in srgb, #0D0D10 60%, transparent);font-weight:500;}
 
 /* ─── Stat chips (audience overview) ────────────────────────────────────── */
 .stat-chips-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
@@ -715,8 +728,11 @@
         </div>
       </div>
       <div id="tab-youtube" class="hidden">
-        <input type="url" id="youtubeUrl" class="input" placeholder="https://youtube.com/watch?v=…" style="width:100%;box-sizing:border-box;" onchange="scrapeYoutube()">
-        <div id="yt-status" class="url-hint"></div>
+        <div class="url-input-row">
+          <input type="url" id="youtubeUrl" class="input" placeholder="https://youtube.com/watch?v=…" inputmode="url" autocomplete="url">
+          <button class="url-check-btn" id="youtube-check-btn" type="button" onclick="scrapeYoutube()">Vérifier le lien</button>
+        </div>
+        <div id="yt-status" class="url-hint" role="status" aria-live="polite">Collez le lien d’une vidéo YouTube.</div>
       </div>
       <div id="tab-file" class="hidden">
         <div id="file-dropzone"
@@ -1125,11 +1141,25 @@ function updateCount() {
 }
 
 /* ── Scrapers ─────────────────────────────────────────────────────────── */
-function setStatus(id, html) { const el=document.getElementById(id); if(el) el.innerHTML=html; }
+function setStatus(id, message, tone='') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = message;
+  el.className = `url-hint${tone ? ` is-${tone}` : ''}`;
+}
 
 async function doScrapePreview(url, source, statusId) {
-  if (!url) return;
-  setStatus(statusId, '<span style="font-size:10px;color:var(--text-muted);">Récupération…</span>');
+  if (!url) {
+    setStatus(statusId, 'Collez d’abord le lien d’une vidéo YouTube.', 'error');
+    document.getElementById('youtubeUrl')?.focus();
+    return;
+  }
+  const checkBtn = document.getElementById(`${source}-check-btn`);
+  if (checkBtn) {
+    checkBtn.disabled = true;
+    checkBtn.textContent = 'Vérification…';
+  }
+  setStatus(statusId, 'Vérification du lien et détection des commentaires…', 'busy');
   try {
     const r = await fetch('/analyze', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -1137,16 +1167,41 @@ async function doScrapePreview(url, source, statusId) {
     });
     const d = await r.json();
     if (d.comments_preview) {
-      document.getElementById('manualComments').value = d.comments_preview.join('\n');
-      updateCount(); switchTab('manual'); setStatus(statusId, '');
+      const count = Number(d.comments_count || d.comments_preview.length || 0);
+      _sourcePreviewCounts[source] = count;
+      setStatus(
+        statusId,
+        `${count} commentaire${count === 1 ? '' : 's'} détecté${count === 1 ? '' : 's'}. Le lien est prêt à analyser.`,
+        'success'
+      );
+      document.getElementById('analyzeHint').textContent = 'Lien YouTube prêt à analyser';
     } else if (d.error) {
-      setStatus(statusId, `<span style="font-size:10px;color:rgba(220,100,100,.7);">${d.error}</span>`);
+      setStatus(statusId, d.error, 'error');
     } else {
-      setStatus(statusId, '<span style="font-size:10px;color:var(--champagne-soft);">URL enregistrée — cliquez sur Analyser.</span>');
+      setStatus(statusId, 'Lien enregistré. Vous pouvez lancer l’analyse.', 'success');
     }
-  } catch(e) { setStatus(statusId, '<span style="font-size:10px;color:rgba(220,100,100,.7);">Erreur réseau</span>'); }
+  } catch(e) {
+    setStatus(statusId, 'Impossible de vérifier le lien. Vérifiez votre connexion.', 'error');
+  } finally {
+    if (checkBtn) {
+      checkBtn.disabled = false;
+      checkBtn.textContent = 'Vérifier le lien';
+    }
+  }
 }
+const _sourcePreviewCounts = {youtube: 0};
 const scrapeYoutube   = () => doScrapePreview(document.getElementById('youtubeUrl').value.trim(),   'youtube',   'yt-status');
+document.getElementById('youtubeUrl')?.addEventListener('input', () => {
+  _sourcePreviewCounts.youtube = 0;
+  setStatus('yt-status', 'Vérifiez le lien pour connaître le nombre de commentaires disponibles.');
+  document.getElementById('analyzeHint').textContent = 'Lien à vérifier';
+});
+document.getElementById('youtubeUrl')?.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    scrapeYoutube();
+  }
+});
 
 function hydrateFromLanding() {
   const source = sessionStorage.getItem('gabriel_source');
@@ -1171,7 +1226,7 @@ function getActiveSource() {
     const text = document.getElementById('manualComments').value.trim();
     return {source:'text', content:text, count:text.split('\n').filter(l=>l.trim()).length};
   }
-  if (tab === 'youtube')   return {source:'youtube',   content:document.getElementById('youtubeUrl').value.trim(),   count:999};
+  if (tab === 'youtube')   return {source:'youtube', content:document.getElementById('youtubeUrl').value.trim(), count:_sourcePreviewCounts.youtube};
   if (tab === 'file') {
     const name = (_lastFile && _lastFile.name) || 'fichier importé';
     return {source:'file', content:_fileComments.length ? name : '', count:_fileComments.length, comments:_fileComments};
@@ -1218,7 +1273,10 @@ async function startAnalysis() {
     const r = await fetch('/analyze', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(source === 'file' ? {source, content, comments} : {source, content}),
+      body: JSON.stringify(Object.assign(
+        source === 'file' ? {source, content, comments} : {source, content},
+        _currentFolderId ? {folder_id: _currentFolderId} : {}
+      )),
     });
     let d;
     try { d = await r.json(); } catch(_) {
@@ -1475,9 +1533,19 @@ function confBar(score) {
 }
 
 /* ── Render principal ────────────────────────────────────────────────── */
+function analysisScopeText(d) {
+  const meta = d.meta || {};
+  const total = Number(meta.total_commentaires || 0);
+  const qualified = Number(meta.commentaires_analyses || 0);
+  const collectedLabel = `${total} commentaire${total === 1 ? '' : 's'} collecté${total === 1 ? '' : 's'}`;
+  return qualified > 0 && qualified < total
+    ? `${collectedLabel} · ${qualified} signal${qualified === 1 ? '' : 's'} qualifié${qualified === 1 ? '' : 's'}`
+    : collectedLabel;
+}
+
 function renderDashboard(d) {
   document.getElementById('dash-id').textContent =
-    `ID ${d.analysis_id||'—'} · ${(d.meta||{}).commentaires_analyses||0} commentaires analysés`;
+    `ID ${d.analysis_id||'—'} · ${analysisScopeText(d)}`;
 
   renderTabDashboard(d);
   renderTabInterpretation(d);
@@ -1546,7 +1614,7 @@ function updateCompleteMsg() {
 
 function revealDashboardPartial(data, t0) {
   document.getElementById('dash-id').textContent =
-    `ID ${data.analysis_id||'—'} · ${(data.meta||{}).commentaires_analyses||0} commentaires analysés`;
+    `ID ${data.analysis_id||'—'} · ${analysisScopeText(data)}`;
   renderTabDashboard(data);
 
   hide('loading-section');
@@ -1699,9 +1767,9 @@ function renderTabDashboard(d) {
     const bruitD  = posData.hors_sujet || {pct:0, count:0};
     document.getElementById('stat-chips-grid').innerHTML = `
       <div class="stat-chip">
-        <div class="stat-chip-val chip-total">${analysed}</div>
-        <div class="stat-chip-count">/ ${totalC}</div>
-        <div class="stat-chip-lbl">Analysés</div>
+        <div class="stat-chip-val chip-total">${totalC}</div>
+        <div class="stat-chip-count">${analysed} signal${analysed === 1 ? '' : 's'} qualifié${analysed === 1 ? '' : 's'}</div>
+        <div class="stat-chip-lbl">Collectés</div>
       </div>
       <div class="stat-chip">
         <div class="stat-chip-val chip-pos">${favD.pct}%</div>
@@ -2118,11 +2186,11 @@ function renderTabDashboard(d) {
   document.getElementById('fiabilite-grid').innerHTML = `
     <div class="nlp-num-card">
       <div class="nlp-val">${fib.total_commentaires||meta.total_commentaires||0}</div>
-      <div class="nlp-lbl">Commentaires reçus</div>
+      <div class="nlp-lbl">Commentaires collectés</div>
     </div>
     <div class="nlp-num-card">
       <div class="nlp-val">${fib.commentaires_analyses||meta.commentaires_analyses||0}</div>
-      <div class="nlp-lbl">Analysés</div>
+      <div class="nlp-lbl">Signaux qualifiés</div>
     </div>
     <div class="nlp-num-card">
       <div class="nlp-val">${fib.pct_hors_sujet||meta.noise_ratio||0}%</div>
@@ -2513,6 +2581,9 @@ function tryRestoreFromHistory() {
   } catch(e) {}
 }
 
+/* ID d'analyse lié au dossier actif — injecté par Flask */
+const _folderAnalysisId = '{{ folder_analysis_id|default("") }}';
+
 // ── Restauration depuis un hash d'analyse (ex: lien "Ouvrir dans Psychologue" d'un dossier) ──
 async function tryRestoreFromHash() {
   const id = (window.location.hash || '').replace('#', '').trim();
@@ -2528,10 +2599,25 @@ async function tryRestoreFromHash() {
   return false;
 }
 
+// ── Auto-chargement de l'analyse liée au dossier ──
+async function tryLoadFolderAnalysis() {
+  if (!_folderAnalysisId) return false;
+  try {
+    const r = await fetch('/history/' + encodeURIComponent(_folderAnalysisId) + '/load');
+    const d = await r.json();
+    if (d.success && d.full_result) {
+      renderDashboard(d.full_result);
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   updateCount();
   if (resumePendingAnalysis()) return;  // une analyse tourne encore → reprendre le suivi
   if (await tryRestoreFromHash()) return;
+  if (await tryLoadFolderAnalysis()) return;
   hydrateFromLanding();
   tryRestoreFromHistory();
 });

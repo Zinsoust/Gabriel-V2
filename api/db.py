@@ -29,11 +29,16 @@ _T_CHAT_CONV   = 'gabriel_chat_conversations'
 _T_CHAT_MSG    = 'gabriel_chat_messages'
 _T_TRAIN_CAND  = 'gabriel_training_candidates'
 _T_FOLDERS     = 'gabriel_folders'
+_T_CTX_SESSIONS = 'gabriel_context_sessions'
+_T_CTX_MESSAGES = 'gabriel_context_messages'
+_T_CTX_FIELDS   = 'gabriel_context_fields'
 
 FREE_ANALYSES_LIMIT = 3
 
 # Emails avec accès illimité (admin / fondateurs)
-ADMIN_EMAILS = frozenset({'outilsagencechretienne@gmail.com'})
+# Configurable via ADMIN_EMAILS dans l'environnement (séparés par des virgules)
+_admin_env = os.environ.get('ADMIN_EMAILS', 'outilsagencechretienne@gmail.com')
+ADMIN_EMAILS = frozenset(e.strip().lower() for e in _admin_env.split(',') if e.strip())
 
 _supabase = None
 
@@ -47,18 +52,19 @@ def init_db(client):
 # ANALYSES
 # ─────────────────────────────────────────────────────────────────────────────
 
-def get_history(user_id=None, limit=50):
-    """Liste des analyses (métadonnées only, pas le full_result)."""
+def get_history(user_id=None, limit=50, folder_id=None):
+    """Liste des analyses (métadonnées only, pas le full_result).
+    Si folder_id fourni, filtre par dossier pour isoler les espaces de travail."""
     if _supabase and user_id:
         try:
-            res = (
+            q = (
                 _supabase.table(_T_ANALYSES)
                 .select('analysis_id,title,source,nb_commentaires,created_at,has_strategy')
                 .eq('user_id', user_id)
-                .order('created_at', desc=True)
-                .limit(limit)
-                .execute()
             )
+            if folder_id:
+                q = q.eq('folder_id', folder_id)
+            res = q.order('created_at', desc=True).limit(limit).execute()
             return res.data or []
         except Exception as e:
             print(f'[DB] get_history error: {e}')
@@ -335,20 +341,21 @@ def _attach_feedback(item, fb_index):
     return item
 
 
-def get_strategies(user_id=None, limit=50):
-    """Liste des stratégies de l'utilisateur (métadonnées + statut feedback)."""
+def get_strategies(user_id=None, limit=50, folder_id=None):
+    """Liste des stratégies de l'utilisateur (métadonnées + statut feedback).
+    Si folder_id fourni, filtre par dossier pour isoler les espaces de travail."""
     fb_index = _feedback_index(user_id)
 
     if _supabase and user_id:
         try:
-            res = (
+            q = (
                 _supabase.table(_T_STRATEGIES)
                 .select('strategy_id,analysis_id,strategy_result,created_at')
                 .eq('user_id', user_id)
-                .order('created_at', desc=True)
-                .limit(limit)
-                .execute()
             )
+            if folder_id:
+                q = q.eq('folder_id', folder_id)
+            res = q.order('created_at', desc=True).limit(limit).execute()
             return [_attach_feedback({
                 'strategy_id': r.get('strategy_id'),
                 'analysis_id': r.get('analysis_id', ''),
@@ -642,7 +649,15 @@ def upgrade_user_plan(user_id, plan):
 
 def save_export(user_id, export_type='pdf', full_text='', extra=None,
                 analysis_id=None, strategy_id=None, pdf_path=None):
-    """Sauvegarde un export (PDF ou contenu créateur) dans Supabase."""
+    """Sauvegarde un export (PDF ou contenu créateur) dans Supabase.
+
+    `extra` va dans la colonne `metadata` (jsonb) — jamais éclaté en colonnes
+    top-level. Trouvé en conditions réelles : gabriel_exports n'a pas de
+    colonne `channel` (ni `content_type`/`tone`/`content_json`), donc chaque
+    sauvegarde du Créateur échouait sur Supabase (PGRST204) et retombait
+    silencieusement sur un fichier JSON local — perdu à chaque redéploiement
+    sur Render (disque éphémère). L'utilisateur voyait "✓ Sauvegardé" alors
+    que rien n'était réellement conservé."""
     if not user_id:
         return None
 
@@ -656,9 +671,7 @@ def save_export(user_id, export_type='pdf', full_text='', extra=None,
         'created_at':  datetime.datetime.utcnow().isoformat(),
     }
     if extra and isinstance(extra, dict):
-        for k, v in extra.items():
-            if k not in row:
-                row[k] = v
+        row['metadata'] = extra
 
     if _supabase:
         try:
@@ -1010,6 +1023,192 @@ def delete_folder(folder_id, user_id):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CONTEXT BUILDER ARCHITECTURE — V1.1 : Business Context Store
+#
+# Barrière de sécurité réelle : la clé Supabase utilisée ici (sb_secret_...)
+# contourne RLS par conception (voir supabase/context_builder_migration.sql).
+# CHAQUE fonction ci-dessous DOIT filtrer par user_id — c'est la seule
+# protection effective contre l'accès aux données d'un autre utilisateur.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def create_context_session(session_id, user_id, folder_id=''):
+    """Crée une session de conversation Context Builder. Retourne True si succès."""
+    if not (_supabase and session_id and user_id):
+        return False
+    try:
+        row = {
+            'session_id': session_id,
+            'user_id':    user_id,
+            'folder_id':  folder_id or '',
+            'status':     'active',
+        }
+        _supabase.table(_T_CTX_SESSIONS).insert(row).execute()
+        return True
+    except Exception as e:
+        print(f'[DB] create_context_session error: {e}')
+        return False
+
+
+def get_active_context_session(user_id):
+    """Retourne la session active la plus récente de l'utilisateur, ou None.
+    Permet la reprise de session : rouvrir la page continue là où on s'était arrêté."""
+    if not (_supabase and user_id):
+        return None
+    try:
+        res = (
+            _supabase.table(_T_CTX_SESSIONS)
+            .select('*')
+            .eq('user_id', user_id)
+            .eq('status', 'active')
+            .order('updated_at', desc=True)
+            .limit(1)
+            .execute()
+        )
+        rows = res.data or []
+        return rows[0] if rows else None
+    except Exception as e:
+        print(f'[DB] get_active_context_session error: {e}')
+        return None
+
+
+def update_context_session(session_id, user_id, **fields):
+    """Met à jour une session (status, current_dimension...). Retourne True si succès."""
+    if not (_supabase and session_id and user_id):
+        return False
+    allowed = {'status', 'current_dimension', 'folder_id', 'completed_at'}
+    payload = {k: v for k, v in fields.items() if k in allowed}
+    if not payload:
+        return False
+    payload['updated_at'] = datetime.datetime.utcnow().isoformat()
+    try:
+        _supabase.table(_T_CTX_SESSIONS)\
+            .update(payload)\
+            .eq('session_id', session_id)\
+            .eq('user_id', user_id)\
+            .execute()
+        return True
+    except Exception as e:
+        print(f'[DB] update_context_session error: {e}')
+        return False
+
+
+def save_context_message(session_id, user_id, role, content, dimension_key=''):
+    """Enregistre un message de la conversation (pour la reprise de session)."""
+    if not (_supabase and session_id and user_id and role and content):
+        return False
+    try:
+        row = {
+            'session_id':    session_id,
+            'user_id':       user_id,
+            'role':          role,
+            'content':       content,
+            'dimension_key': dimension_key or '',
+        }
+        _supabase.table(_T_CTX_MESSAGES).insert(row).execute()
+        return True
+    except Exception as e:
+        print(f'[DB] save_context_message error: {e}')
+        return False
+
+
+def get_context_messages(session_id, user_id, limit=200):
+    """Historique des messages d'une session, dans l'ordre chronologique."""
+    if not (_supabase and session_id and user_id):
+        return []
+    try:
+        res = (
+            _supabase.table(_T_CTX_MESSAGES)
+            .select('*')
+            .eq('session_id', session_id)
+            .eq('user_id', user_id)
+            .order('created_at')
+            .limit(limit)
+            .execute()
+        )
+        return res.data or []
+    except Exception as e:
+        print(f'[DB] get_context_messages error: {e}')
+        return []
+
+
+def get_context_fields(user_id):
+    """Retourne tous les champs du contexte business de l'utilisateur,
+    sous forme de dict {field_key: value} — la vue consommée par le Stratège."""
+    if not (_supabase and user_id):
+        return {}
+    try:
+        res = (
+            _supabase.table(_T_CTX_FIELDS)
+            .select('*')
+            .eq('user_id', user_id)
+            .execute()
+        )
+        rows = res.data or []
+        return {r['field_key']: r['value'] for r in rows if r.get('field_key')}
+    except Exception as e:
+        print(f'[DB] get_context_fields error: {e}')
+        return {}
+
+
+def get_context_fields_full(user_id):
+    """Comme get_context_fields, mais retourne les lignes complètes
+    (status, confidence, source_session_id...) — utile pour l'affichage
+    de la complétude et la traçabilité des sources."""
+    if not (_supabase and user_id):
+        return []
+    try:
+        res = (
+            _supabase.table(_T_CTX_FIELDS)
+            .select('*')
+            .eq('user_id', user_id)
+            .execute()
+        )
+        return res.data or []
+    except Exception as e:
+        print(f'[DB] get_context_fields_full error: {e}')
+        return []
+
+
+def delete_context_fields(user_id):
+    """Efface tous les champs du contexte business d'un utilisateur — réservé
+    à une action explicitement confirmée par l'utilisateur (reset)."""
+    if not (_supabase and user_id):
+        return False
+    try:
+        _supabase.table(_T_CTX_FIELDS).delete().eq('user_id', user_id).execute()
+        return True
+    except Exception as e:
+        print(f'[DB] delete_context_fields error: {e}')
+        return False
+
+
+def upsert_context_field(user_id, field_key, value, status='extracted',
+                          confidence=1.0, source_session_id=''):
+    """Insère ou met à jour un champ du contexte business (une valeur par
+    field_key et par utilisateur — contrainte UNIQUE(user_id, field_key))."""
+    if not (_supabase and user_id and field_key):
+        return False
+    try:
+        now = datetime.datetime.utcnow().isoformat()
+        row = {
+            'user_id':           user_id,
+            'field_key':         field_key,
+            'value':             str(value)[:5000],
+            'status':            status,
+            'confidence':        confidence,
+            'source_session_id': source_session_id or '',
+            'updated_at':        now,
+        }
+        _supabase.table(_T_CTX_FIELDS)\
+            .upsert(row, on_conflict='user_id,field_key')\
+            .execute()
+        return True
+    except Exception as e:
+        print(f'[DB] upsert_context_field error: {e}')
+        return False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # SUPPRESSION DE COMPTE — purge complète, table par table
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -1020,6 +1219,7 @@ _ACCOUNT_DATA_TABLES = [
     _T_FOLDERS, _T_JOBS, _T_ANALYSES, _T_STRATEGIES, _T_EXPORTS,
     _T_FEEDBACKS, _T_SURVEY_EVT, _T_SURVEY_RESP, _T_CONSENT,
     _T_CHAT_CONV, _T_CHAT_MSG, _T_TRAIN_CAND,
+    _T_CTX_SESSIONS, _T_CTX_MESSAGES, _T_CTX_FIELDS,
 ]
 
 

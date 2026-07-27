@@ -26,6 +26,7 @@ LIMITS = {
     'pdf_data_max_bytes':      5_000_000, # 5 MB base64
     'strategy_data_max_chars': 50_000,
     'title_max_chars':         150,
+    'voice_audio_max_bytes':   8_000_000,  # ~8 Mo, large pour une réponse vocale courte
 }
 
 

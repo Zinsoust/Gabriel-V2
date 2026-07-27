@@ -20,6 +20,11 @@
   --champagne-soft: #C7A66B;
   --champagne-dark: #8F7445;
   --gold-gradient:  linear-gradient(180deg, #F5E4A8 0%, #D8B96A 30%, #F0CF80 55%, #B8882E 80%, #8F6720 100%);
+  /* Couleur phare, invariante par thème (jamais redéfinie sous [data-theme="light"]) —
+     l'accent d'ambiance (--champagne) devient platine en clair, mais les moments
+     d'interaction (survol des actions principales) font toujours apparaître le
+     champagne véritable. */
+  --champagne-accent: #D8B982;
 
   --text-primary:   #F4F1EA;
   --text-secondary: #B8B1A6;
@@ -28,7 +33,10 @@
 
   --color-opportunity: #6BBF8A;
   --color-risk:        #D06A6A;
-  --color-tech-blue:   #7AA7FF;
+  --accent-blue:       #5B8ED0;
+  --accent-blue-soft:  rgba(91,142,208,0.12);
+  --accent-blue-border:rgba(91,142,208,0.28);
+  --color-tech-blue:   var(--accent-blue);
 
   --font-main:  'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
@@ -53,38 +61,35 @@
   --radius-xl: 8px;
 }
 
-/* ─── Thème clair — "blanc grisé", accent platine ────────────────────────────
-   Même noms de variables que le thème sombre : tout composant qui consomme
-   déjà var(--bg-card), var(--champagne), etc. se réthème automatiquement,
-   sans changement par composant. Activé via [data-theme="light"] sur <html>
-   (posé par un script inline dans <head> avant le premier paint pour éviter
-   le flash). Couvre la coquille partagée (sidebar, header, footer, dock
-   Orchestrateur, .card/.btn/.badge/.alert génériques) — les styles inline
-   propres à chaque page agent (Psychologue/Stratège/Créateur) utilisent des
-   couleurs codées en dur et ne sont PAS encore couverts par ce thème. ────── */
+/* ─── Thème clair — blanc, encre, champagne et bleu mat ───────────────────── */
 :root[data-theme="light"] {
-  --bg-main:        #F1F0ED;
-  --bg-sidebar:     #EAE8E4;
-  --bg-panel:       #F6F5F3;
-  --bg-card:        #FCFBFA;
-  --bg-card-hover:  #F3F2EF;
-  --bg-surface-soft:#E7E5E1;
-  --bg-header:      rgba(241,240,237,0.92);
+  --bg-main:        #FDFDFD;
+  --bg-sidebar:     #F7F7F5;
+  --bg-panel:       #FAFAF9;
+  --bg-card:        #FFFFFF;
+  --bg-card-hover:  #F5F7F9;
+  --bg-surface-soft:#EEF1F4;
+  --bg-header:      rgba(253,253,253,0.94);
 
-  --champagne:      #6E7079;
-  --champagne-light:#8C8E96;
-  --champagne-soft: #5B5D66;
-  --champagne-dark: #45474E;
-  --gold-gradient:  linear-gradient(180deg, #A8AAB1 0%, #6E7079 50%, #45474E 100%);
+  --champagne:      #A47D43;
+  --champagne-light:#B58D52;
+  --champagne-soft: #89652F;
+  --champagne-dark: #65491F;
+  --gold-gradient:  linear-gradient(180deg, #C8A66B 0%, #A47D43 48%, #765625 100%);
 
-  --text-primary:   #1C1B19;
-  --text-secondary: #55534E;
-  --text-muted:     #8A887F;
-  --text-disabled:  #9B988F;
+  --accent-blue:       #1466B8;
+  --accent-blue-soft:  rgba(20,102,184,0.08);
+  --accent-blue-border:rgba(20,102,184,0.24);
+  --color-tech-blue:   #1466B8;
 
-  --border-soft:     rgba(0,0,0,0.07);
-  --border-medium:   rgba(0,0,0,0.12);
-  --border-champagne:rgba(110,112,121,0.30);
+  --text-primary:   #111318;
+  --text-secondary: #434951;
+  --text-muted:     #6D747D;
+  --text-disabled:  #A0A5AC;
+
+  --border-soft:     rgba(17,19,24,0.08);
+  --border-medium:   rgba(17,19,24,0.14);
+  --border-champagne:rgba(164,125,67,0.30);
 }
 
 /* ─── Reset ───────────────────────────────────────────────────────────────── */
@@ -231,31 +236,36 @@ body.page-dossiers .app-footer {
 }
 .app-sidebar:hover .sidebar-logo-mark {
   justify-content: flex-start;
-  gap: 13px;
+  gap: 0;
   width: auto;
   padding: 0 12px;
 }
 .sidebar-logo-glyph {
-  width: 17px;
-  height: 17px;
+  width: 21px;
+  height: 21px;
+  object-fit: contain;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--champagne);
+  opacity: 1;
+  transition: width 0.18s ease, opacity 0.14s ease;
 }
-.sidebar-logo-glyph svg { width: 16px; height: 16px; }
-.sidebar-logo-text {
-  font-family: var(--font-main);
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  white-space: nowrap;
+.app-sidebar:hover .sidebar-logo-glyph { width: 0; opacity: 0; }
+.sidebar-logo-lockup {
+  position: relative;
+  display: block;
+  width: 112px;
+  height: 26px;
   opacity: 0;
   transition: opacity 0.22s ease 0.03s;
 }
-.app-sidebar:hover .sidebar-logo-text { opacity: 1; }
+.app-sidebar:hover .sidebar-logo-lockup { opacity: 1; }
+.brand-logo-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+.brand-logo-img--dark { display: none; }
 
 .sidebar-nav {
   flex: 1;
@@ -528,13 +538,20 @@ body.page-dossiers .app-footer {
   text-transform: uppercase;
   font-weight: 500;
 }
-.header-title .brand-logo-text {
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.055em;
-  text-transform: none;
+.header-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
   flex-shrink: 0;
+  text-decoration: none;
+}
+.header-brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .header-title .sep { color: var(--text-disabled); }
 .header-title .page { color: var(--text-muted); }
@@ -1053,7 +1070,8 @@ select option { background: var(--bg-card); }
 }
 .btn-primary:hover:not(:disabled) {
   opacity: 1;
-  box-shadow: 0 3px 18px color-mix(in srgb, var(--champagne) 20%, transparent);
+  background: linear-gradient(135deg, #F1D7A8, #C7A66B);
+  box-shadow: 0 3px 18px color-mix(in srgb, var(--champagne-accent) 30%, transparent);
   transform: translateY(-1px);
 }
 /* Champagne shimmer sweep */

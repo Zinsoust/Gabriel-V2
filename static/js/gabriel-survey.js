@@ -243,10 +243,11 @@
     style.textContent = `
 #gabriel-survey-widget {
   position: fixed;
-  bottom: 24px;
+  bottom: 200px;
   right: 24px;
   z-index: 9000;
   width: 320px;
+  max-width: calc(100vw - 48px);
   opacity: 0;
   transform: translateY(12px);
   transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.22,1,0.36,1);

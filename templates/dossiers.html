@@ -3,7 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('gabriel_theme') === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {}
+    })();
+    function dsToggleTheme(button) {
+      var root = document.documentElement;
+      var isLight = root.getAttribute('data-theme') === 'light';
+      if (isLight) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', 'light');
+      try { localStorage.setItem('gabriel_theme', isLight ? 'dark' : 'light'); } catch (e) {}
+      if (button) button.setAttribute('aria-label', isLight ? 'Activer le mode clair' : 'Activer le mode sombre');
+    }
+  </script>
   <title>Gabriel · Dossiers stratégiques</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='brand/gabriel-mark-gold.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/gabriel-onboarding.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +38,22 @@
       --panel: rgba(255,255,255,.035);
       --panel-strong: rgba(255,255,255,.065);
       --danger: rgba(255,128,128,.88);
+    }
+
+    :root[data-theme="light"] {
+      --bg: #FDFDFD;
+      --ink: #111318;
+      --muted: #6D747D;
+      --soft: #A0A5AC;
+      --line: rgba(17,19,24,.09);
+      --gold: #A47D43;
+      --gold-soft: #89652F;
+      --panel: #FFFFFF;
+      --panel-strong: #F4F6F8;
+      --danger: #B64E4E;
+      --champagne: #A47D43;
+      --champagne-soft: #89652F;
+      --accent-blue: #1466B8;
     }
 
     * { box-sizing: border-box; }
@@ -110,14 +144,16 @@
     }
 
     .ds-logo {
-      color: rgba(255,255,255,.93);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 112px;
+      height: 28px;
       text-decoration: none;
-      font-family: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: -.045em;
       white-space: nowrap;
     }
+    .ds-logo-img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .ds-logo-img--dark { display: none; }
 
     .ds-logo:focus-visible,
     .ds-nav-link:focus-visible,
@@ -125,6 +161,7 @@
     .ds-create:focus-visible,
     .ds-card-link:focus-visible,
     .ds-card-del:focus-visible,
+    .ds-modal-close:focus-visible,
     .ds-modal-cancel:focus-visible,
     .ds-modal-submit:focus-visible,
     .ds-input:focus-visible {
@@ -142,7 +179,7 @@
     .ds-nav-link {
       color: rgba(255,255,255,.54);
       text-decoration: none;
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 300;
       letter-spacing: -.015em;
       white-space: nowrap;
@@ -175,8 +212,8 @@
       background: rgba(255,255,255,.025);
       color: rgba(255,255,255,.86);
       text-decoration: none;
-      padding: 8px 16px;
-      font-size: 11px;
+      padding: 9px 17px;
+      font-size: 13px;
       font-weight: 300;
       cursor: pointer;
       transition: border-color .2s ease, background .2s ease, color .2s ease, transform .2s ease;
@@ -188,40 +225,53 @@
       color: #fff;
       transform: translateY(-1px);
     }
+    .ds-theme svg { width: 14px; height: 14px; stroke: currentColor; fill: none; }
+    .ds-theme .ds-theme-moon { display: none; }
+    [data-theme="light"] .ds-theme .ds-theme-sun { display: none; }
+    [data-theme="light"] .ds-theme .ds-theme-moon { display: block; }
 
     .ds-main {
       flex: 1;
-      width: min(100%, 1120px);
+      width: min(100%, 1180px);
       margin: 0 auto;
-      padding: clamp(68px, 11vh, 118px) 0 54px;
+      padding: clamp(52px, 7vh, 78px) 0 64px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
     }
 
     .ds-hero {
-      text-align: center;
-      margin-bottom: clamp(48px, 7vh, 76px);
+      text-align: left;
+      margin-bottom: 34px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--line);
       animation: dsReveal .9s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    .ds-hero-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 40px;
     }
 
     .ds-kicker {
       margin: 0 0 18px;
       color: rgba(240,220,173,.62);
       font-family: "DM Mono", ui-monospace, monospace;
-      font-size: 10px;
+      font-size: 11px;
       letter-spacing: .22em;
       text-transform: uppercase;
     }
 
     .ds-title {
-      max-width: 820px;
-      margin: 0 auto;
+      max-width: 720px;
+      margin: 0;
       color: var(--ink);
-      font-size: clamp(28px, 3.7vw, 48px);
-      line-height: 1.08;
-      font-weight: 300;
-      letter-spacing: -.058em;
+      font-size: clamp(30px, 3.2vw, 42px);
+      line-height: 1.06;
+      font-weight: 400;
+      letter-spacing: -.045em;
     }
 
     .ds-title em {
@@ -233,34 +283,37 @@
     }
 
     .ds-subtitle {
-      max-width: 560px;
-      margin: 20px auto 0;
+      max-width: 620px;
+      margin: 14px 0 0;
       color: rgba(248,245,239,.42);
-      font-size: 11px;
+      font-size: 15px;
       font-weight: 300;
-      line-height: 1.8;
+      line-height: 1.65;
     }
 
     .ds-toolbar {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
       gap: 10px;
-      margin-top: 26px;
+      margin: 0;
+      flex: 0 0 auto;
     }
 
     .ds-create {
       border: 1px solid rgba(240,220,173,.34);
-      border-radius: 999px;
+      border-radius: 7px;
       background: rgba(240,220,173,.075);
       color: rgba(255,247,224,.94);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 18px;
-      font-size: 12px;
+      min-height: 46px;
+      padding: 12px 20px;
+      font-size: 14px;
       font-weight: 400;
+      touch-action: manipulation;
       transition: transform .22s cubic-bezier(.22,1,.36,1), border-color .2s ease, background .2s ease;
     }
 
@@ -280,16 +333,16 @@
     }
 
     .ds-content {
-      min-height: 228px;
+      min-height: 180px;
     }
 
     .ds-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: clamp(28px, 4.5vw, 62px);
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
       align-items: start;
-      max-width: 920px;
-      margin: 0 auto;
+      width: 100%;
+      margin: 0;
     }
 
     .ds-card {
@@ -297,33 +350,48 @@
       display: block;
       min-width: 0;
       color: inherit;
-      text-align: center;
+      text-align: left;
       text-decoration: none;
       animation: dsFolderIn .78s cubic-bezier(.22,1,.36,1) both;
     }
 
     .ds-card-link {
-      display: block;
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      grid-template-rows: auto auto 1fr;
+      column-gap: 16px;
       color: inherit;
       text-decoration: none;
-      border-radius: 30px;
-      padding: 4px 4px 10px;
+      min-height: 148px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      background: var(--panel);
+      transition: transform .3s cubic-bezier(.22,1,.36,1), border-color .25s ease, box-shadow .3s ease, background .25s ease;
     }
 
     .ds-card-visual {
-      width: 100%;
-      max-width: 158px;
-      min-height: 134px;
-      margin: 0 auto;
+      grid-column: 1;
+      grid-row: 1 / span 3;
+      align-self: start;
+      width: 78px;
+      min-height: 64px;
+      margin: 0;
       display: grid;
       place-items: center;
-      filter: drop-shadow(0 20px 34px rgba(0,0,0,.48));
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,.28));
       transition: transform .42s cubic-bezier(.22,1,.36,1), filter .42s ease;
     }
 
     .ds-card:hover .ds-card-visual {
-      transform: translateY(-7px) scale(1.018);
-      filter: drop-shadow(0 28px 42px rgba(0,0,0,.58));
+      transform: translateY(-2px);
+      filter: drop-shadow(0 14px 20px rgba(0,0,0,.34));
+    }
+
+    .ds-card:hover .ds-card-link {
+      transform: translateY(-2px);
+      border-color: rgba(240,220,173,.24);
+      background: var(--panel-strong);
     }
 
     .ds-card-link:focus-visible .ds-card-visual {
@@ -338,32 +406,36 @@
     }
 
     .ds-card-title {
-      margin-top: 14px;
+      grid-column: 2;
+      margin-top: 2px;
+      padding-right: 26px;
       color: rgba(248,245,239,.78);
-      font-size: 12px;
-      font-weight: 300;
+      font-size: 16px;
+      font-weight: 500;
       line-height: 1.35;
       letter-spacing: -.025em;
     }
 
     .ds-card-objective {
-      max-width: 210px;
-      min-height: 30px;
-      margin: 7px auto 0;
+      grid-column: 2;
+      max-width: none;
+      min-height: 0;
+      margin: 6px 0 0;
       color: rgba(248,245,239,.36);
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      font-size: 10px;
+      font-size: 13px;
       font-weight: 300;
       line-height: 1.5;
     }
 
     .ds-card-meta {
-      margin-top: 10px;
+      grid-column: 2;
+      margin-top: 14px;
       display: flex;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       flex-wrap: wrap;
       gap: 6px;
@@ -374,12 +446,12 @@
       align-items: center;
       gap: 5px;
       border: 1px solid rgba(255,255,255,.09);
-      border-radius: 999px;
-      padding: 4px 8px;
+      border-radius: 5px;
+      padding: 5px 10px;
       color: rgba(248,245,239,.38);
       background: rgba(255,255,255,.025);
       font-family: "DM Mono", ui-monospace, monospace;
-      font-size: 8px;
+      font-size: 11px;
       letter-spacing: .06em;
       text-transform: uppercase;
     }
@@ -399,13 +471,13 @@
 
     .ds-card-del {
       position: absolute;
-      top: 5px;
-      right: 50%;
-      transform: translateX(92px);
+      top: 10px;
+      right: 10px;
+      transform: none;
       width: 26px;
       height: 26px;
       border: 1px solid rgba(255,255,255,.08);
-      border-radius: 999px;
+      border-radius: 6px;
       background: rgba(0,0,0,.18);
       color: rgba(255,255,255,.30);
       cursor: pointer;
@@ -458,7 +530,7 @@
       justify-content: center;
       gap: 10px;
       min-height: 160px;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 300;
     }
 
@@ -473,7 +545,7 @@
 
     .ds-empty {
       border: 1px solid rgba(255,255,255,.08);
-      border-radius: 28px;
+      border-radius: 8px;
       padding: 42px 28px;
       background: rgba(255,255,255,.025);
       backdrop-filter: blur(18px);
@@ -482,7 +554,7 @@
 
     .ds-empty-title {
       color: rgba(248,245,239,.82);
-      font-size: 15px;
+      font-size: 18px;
       font-weight: 400;
       letter-spacing: -.025em;
     }
@@ -491,7 +563,7 @@
       max-width: 360px;
       margin: 10px auto 22px;
       color: rgba(248,245,239,.42);
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 300;
       line-height: 1.7;
     }
@@ -500,34 +572,49 @@
       position: fixed;
       inset: 0;
       z-index: 1000;
-      display: none;
+      display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
       background: rgba(0,0,0,.62);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      -webkit-overflow-scrolling: touch;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .22s ease, visibility .22s ease;
     }
 
     .ds-modal-overlay.open {
-      display: flex;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
     }
 
     .ds-modal {
+      position: relative;
       width: min(100%, 470px);
       max-height: min(86vh, 720px);
       overflow: auto;
       border: 1px solid rgba(255,255,255,.12);
-      border-radius: 30px;
+      border-radius: 10px;
       background: linear-gradient(180deg, rgba(24,24,24,.94), rgba(10,10,10,.94));
       box-shadow: 0 30px 100px rgba(0,0,0,.55);
       padding: 30px;
-      animation: dsModal .34s cubic-bezier(.22,1,.36,1) both;
+      opacity: 0;
+      transform: translateY(14px) scale(.985);
+      transition: opacity .24s ease, transform .32s cubic-bezier(.22,1,.36,1);
+    }
+
+    .ds-modal-overlay.open .ds-modal {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
 
     .ds-modal-title {
       color: rgba(248,245,239,.92);
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 400;
       letter-spacing: -.035em;
     }
@@ -535,9 +622,10 @@
     .ds-modal-sub {
       margin-top: 7px;
       color: rgba(248,245,239,.42);
-      font-size: 12px;
+      font-size: 14px;
       line-height: 1.6;
       font-weight: 300;
+      padding-right: 38px;
     }
 
     .ds-form {
@@ -545,15 +633,15 @@
     }
 
     .ds-field {
-      margin-bottom: 15px;
+      margin-bottom: 18px;
     }
 
     .ds-label {
       display: block;
-      margin-bottom: 7px;
+      margin-bottom: 8px;
       color: rgba(240,220,173,.48);
       font-family: "DM Mono", ui-monospace, monospace;
-      font-size: 9px;
+      font-size: 11px;
       letter-spacing: .16em;
       text-transform: uppercase;
     }
@@ -561,12 +649,14 @@
     .ds-input {
       width: 100%;
       border: 1px solid rgba(255,255,255,.11);
-      border-radius: 16px;
+      border-radius: 6px;
       background: rgba(255,255,255,.045);
       color: rgba(248,245,239,.9);
-      padding: 12px 14px;
-      font-size: 13px;
+      padding: 14px 16px;
+      min-height: 48px;
+      font-size: 16px;
       outline: none;
+      touch-action: manipulation;
       transition: border-color .2s ease, background .2s ease;
     }
 
@@ -596,7 +686,7 @@
     .ds-err {
       display: none;
       color: var(--danger);
-      font-size: 12px;
+      font-size: 13px;
       margin-top: 10px;
     }
 
@@ -608,7 +698,7 @@
       display: none;
       margin-top: 18px;
       color: rgba(248,245,239,.46);
-      font-size: 11px;
+      font-size: 13px;
       line-height: 1.6;
       text-align: center;
     }
@@ -630,11 +720,42 @@
 
     .ds-modal-cancel,
     .ds-modal-submit {
-      border-radius: 999px;
-      padding: 10px 17px;
-      font-size: 12px;
+      border-radius: 6px;
+      padding: 13px 22px;
+      font-size: 14px;
       cursor: pointer;
+      touch-action: manipulation;
       transition: border-color .2s ease, background .2s ease, color .2s ease, opacity .2s ease;
+    }
+
+    .ds-modal-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 6px;
+      color: rgba(248,245,239,.64);
+      background: rgba(255,255,255,.035);
+      cursor: pointer;
+      transition: color .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .ds-modal-close:hover {
+      color: var(--ink);
+      border-color: rgba(240,220,173,.28);
+      background: rgba(240,220,173,.07);
+    }
+
+    .ds-modal-close svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
     }
 
     .ds-modal-cancel {
@@ -669,7 +790,7 @@
       justify-content: space-between;
       gap: 20px;
       color: rgba(248,245,239,.25);
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 300;
       animation: dsFade .9s cubic-bezier(.22,1,.36,1) .12s both;
     }
@@ -720,24 +841,37 @@
         scrollbar-width: none;
       }
       .ds-nav-center::-webkit-scrollbar { display: none; }
-      .ds-main { padding-top: 64px; }
-      .ds-title { font-size: clamp(28px, 8vw, 42px); }
-      .ds-grid { grid-template-columns: repeat(2, minmax(135px, 1fr)); }
+      .ds-main { padding-top: 48px; }
+      .ds-hero-row { align-items: flex-start; flex-direction: column; gap: 24px; }
+      .ds-title { font-size: clamp(28px, 6vw, 38px); }
+      .ds-toolbar { justify-content: flex-start; }
+      .ds-grid { grid-template-columns: repeat(2, minmax(240px, 1fr)); }
     }
 
     @media (max-width: 560px) {
       .ds-page { padding-inline: 17px; }
-      .ds-nav-actions .ds-pill:first-child { display: none; }
+      .ds-nav { padding: 9px 10px; gap: 12px; }
+      .ds-logo { width: 94px; }
+      .ds-nav-actions { gap: 6px; }
+      .ds-nav-actions .gb-help-btn { display: none; }
+      .ds-nav-actions a:last-child { display: none; }
+      .ds-pill { min-height: 38px; padding: 8px 11px; font-size: 12px; }
       .ds-nav-center { gap: 14px; }
       .ds-nav-link { font-size: 11px; white-space: nowrap; }
-      .ds-grid { grid-template-columns: 1fr; gap: 34px; }
-      .ds-card-visual { max-width: 190px; }
+      .ds-grid { grid-template-columns: 1fr; gap: 12px; }
+      .ds-hero { margin-bottom: 26px; padding-bottom: 26px; }
+      .ds-create { width: 100%; justify-content: center; }
+      .ds-card-link { grid-template-columns: 68px minmax(0, 1fr); padding: 16px; }
+      .ds-card-visual { width: 68px; min-height: 58px; }
       .ds-card-del {
         opacity: 1;
-        right: calc(50% - 112px);
-        transform: none;
+        right: 8px;
       }
-      .ds-modal { padding: 24px; border-radius: 24px; }
+      .ds-modal { padding: 24px; border-radius: 8px; }
+      .ds-modal-close { top: 14px; right: 14px; }
+      .ds-modal-actions { flex-direction: column-reverse; }
+      .ds-modal-cancel,
+      .ds-modal-submit { width: 100%; }
       .ds-footer { flex-direction: column; align-items: flex-start; }
     }
 
@@ -750,12 +884,144 @@
         scroll-behavior: auto !important;
       }
     }
+
+    /* Light mode: black content, blue actions, champagne brand details. */
+    [data-theme="light"] body {
+      background: #FDFDFD;
+    }
+    [data-theme="light"] .ds-page::before {
+      display: none;
+    }
+    [data-theme="light"] .ds-page::after { display: none; }
+    [data-theme="light"] .ds-nav {
+      border-color: rgba(17,19,24,.09);
+      background: rgba(253,253,253,.92);
+      box-shadow: 0 16px 42px rgba(17,19,24,.08);
+    }
+    [data-theme="light"] .ds-logo-img--light { display: none; }
+    [data-theme="light"] .ds-logo-img--dark { display: block; }
+    [data-theme="light"] .ds-nav-link { color: #69717A; }
+    [data-theme="light"] .ds-nav-link:hover,
+    [data-theme="light"] .ds-nav-link.active { color: #1466B8; }
+    [data-theme="light"] .ds-pill {
+      color: #555C65;
+      border-color: rgba(17,19,24,.10);
+      background: #FFFFFF;
+    }
+    [data-theme="light"] .ds-pill:hover {
+      color: #1466B8;
+      border-color: rgba(20,102,184,.24);
+      background: rgba(20,102,184,.06);
+    }
+    [data-theme="light"] .ds-title { color: #111318; }
+    [data-theme="light"] .ds-title em,
+    [data-theme="light"] .ds-kicker { color: var(--gold-soft); }
+    [data-theme="light"] .ds-subtitle,
+    [data-theme="light"] .ds-card-objective,
+    [data-theme="light"] .ds-card-meta,
+    [data-theme="light"] .ds-modal-sub { color: #6D747D; }
+    [data-theme="light"] .ds-create,
+    [data-theme="light"] .ds-modal-submit {
+      color: #FFFFFF;
+      border-color: #1466B8;
+      background: #1466B8;
+      box-shadow: 0 10px 26px rgba(20,102,184,.16);
+    }
+    [data-theme="light"] .ds-create:hover,
+    [data-theme="light"] .ds-modal-submit:hover { background: #10599F; border-color: #10599F; }
+    [data-theme="light"] .ds-card-title { color: #17191D; }
+    [data-theme="light"] .ds-card-link {
+      border-color: rgba(17,19,24,.09);
+      background: #FFFFFF;
+      box-shadow: 0 10px 28px rgba(17,19,24,.045);
+    }
+    [data-theme="light"] .ds-card-visual {
+      background: transparent;
+      box-shadow: none;
+      filter: drop-shadow(0 10px 15px rgba(137,101,47,.16));
+    }
+    [data-theme="light"] .ds-card:hover .ds-card-link {
+      border-color: rgba(164,125,67,.28);
+      background: #FFFFFF;
+      box-shadow: 0 14px 34px rgba(17,19,24,.075);
+    }
+    [data-theme="light"] .ds-card:hover .ds-card-visual {
+      filter: drop-shadow(0 13px 18px rgba(137,101,47,.21));
+    }
+    [data-theme="light"] .ds-chip {
+      color: #6D747D;
+      border-color: rgba(17,19,24,.09);
+      background: #F7F8F9;
+    }
+    [data-theme="light"] .ds-chip.step-source,
+    [data-theme="light"] .ds-chip.step-psychologue,
+    [data-theme="light"] .ds-chip.step-stratege,
+    [data-theme="light"] .ds-chip.step-createur {
+      color: #1466B8;
+      border-color: rgba(20,102,184,.18);
+      background: rgba(20,102,184,.055);
+    }
+    [data-theme="light"] .ds-modal-overlay { background: rgba(17,19,24,.28); }
+    [data-theme="light"] .ds-modal {
+      color: #111318;
+      border-color: rgba(17,19,24,.10);
+      background: #FFFFFF;
+      box-shadow: 0 30px 90px rgba(17,19,24,.18);
+    }
+    [data-theme="light"] .ds-modal-title,
+    [data-theme="light"] .ds-empty-title { color: #111318; }
+    [data-theme="light"] .ds-empty {
+      border-color: rgba(17,19,24,.09);
+      background: #FFFFFF;
+      box-shadow: 0 12px 32px rgba(17,19,24,.05);
+    }
+    [data-theme="light"] .ds-card-del {
+      color: #767D86;
+      border-color: rgba(17,19,24,.10);
+      background: rgba(255,255,255,.94);
+    }
+    [data-theme="light"] .ds-footer { color: #8B9199; }
+    [data-theme="light"] .ds-footer a { color: #555C65; }
+    [data-theme="light"] .ds-label { color: var(--gold-soft); }
+    [data-theme="light"] .ds-input {
+      color: #17191D;
+      border-color: rgba(17,19,24,.12);
+      background: #F8F9FA;
+    }
+    [data-theme="light"] .ds-input::placeholder { color: #969CA4; }
+    [data-theme="light"] .ds-input:focus {
+      border-color: rgba(20,102,184,.56);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(20,102,184,.08);
+    }
+    [data-theme="light"] .ds-modal-cancel {
+      color: #555C65;
+      border-color: rgba(17,19,24,.11);
+      background: #F5F6F7;
+    }
+    [data-theme="light"] .ds-modal-close {
+      color: #626972;
+      border-color: rgba(17,19,24,.11);
+      background: #F7F8F9;
+    }
+    [data-theme="light"] .gb-tour-card {
+      color: #252A31;
+      border-color: rgba(164,125,67,.28);
+      background: #FFFFFF;
+      box-shadow: 0 28px 90px rgba(17,19,24,.18);
+    }
+    [data-theme="light"] .gb-tour-title { color: #111318; }
+    [data-theme="light"] .gb-tour-text { color: #555C65; }
+    [data-theme="light"] .gb-tour-btn.primary { color: #FFFFFF; border-color: #1466B8; background: #1466B8; }
   </style>
 </head>
 <body>
   <div class="ds-page">
     <nav class="ds-nav" aria-label="Navigation principale">
-      <a class="ds-logo" href="/dossiers">Gabriel.ai</a>
+      <a class="ds-logo" href="/dossiers" aria-label="Gabriel AI, dossiers">
+        <img class="ds-logo-img ds-logo-img--light" src="{{ url_for('static', filename='brand/gabriel-wordmark-light.png') }}" alt="">
+        <img class="ds-logo-img ds-logo-img--dark" src="{{ url_for('static', filename='brand/gabriel-wordmark-dark.png') }}" alt="">
+      </a>
       <div class="ds-nav-center">
         <a class="ds-nav-link active" href="/dossiers">Dossiers</a>
         <a class="ds-nav-link is-disabled" href="/dossiers" data-agent-link="/psychologue" aria-disabled="true" tabindex="-1">Le Psychologue</a>
@@ -763,6 +1029,10 @@
         <a class="ds-nav-link is-disabled" href="/dossiers" data-agent-link="/createur" aria-disabled="true" tabindex="-1">Le Créateur</a>
       </div>
       <div class="ds-nav-actions">
+        <button class="ds-pill ds-theme" type="button" onclick="dsToggleTheme(this)" aria-label="Changer de thème" title="Changer de thème">
+          <svg class="ds-theme-sun" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+          <svg class="ds-theme-moon" viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+        </button>
         <button class="ds-pill gb-help-btn" type="button" onclick="window.GabrielOnboarding?.start(true)" style="font-family:inherit;">Aide</button>
         <a class="ds-pill" href="/profil">Profil</a>
         <a class="ds-pill" href="/logout">Sortir</a>
@@ -771,18 +1041,20 @@
 
     <main class="ds-main">
       <header class="ds-hero">
-        <p class="ds-kicker">Dossiers stratégiques</p>
-        <h1 class="ds-title">
-          Crée ton <em>environnement de travail</em>, ton espace pour prendre les meilleures décisions business.
-        </h1>
-        <p class="ds-subtitle">
-          Chaque dossier rassemble la mémoire du Psychologue, du Stratège et du Créateur autour d’un sujet précis.
-        </p>
-        <div class="ds-toolbar">
-          <button class="ds-create" type="button" onclick="openModal()" data-tour="create-folder">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Nouveau dossier
-          </button>
+        <p class="ds-kicker">Espace de travail</p>
+        <div class="ds-hero-row">
+          <div>
+            <h1 class="ds-title">Vos dossiers stratégiques</h1>
+            <p class="ds-subtitle">
+              Retrouvez le contexte, les analyses et les décisions de chaque projet dans un même espace.
+            </p>
+          </div>
+          <div class="ds-toolbar">
+            <button class="ds-create" type="button" data-open-modal data-tour="create-folder">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Créer un dossier
+            </button>
+          </div>
         </div>
       </header>
 
@@ -801,25 +1073,28 @@
     </footer>
   </div>
 
-  <div class="ds-modal-overlay" id="ds-modal" role="dialog" aria-modal="true" aria-label="Créer un dossier">
+  <div class="ds-modal-overlay" id="ds-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="ds-modal-title">
     <div class="ds-modal">
-      <div class="ds-modal-title">Nouveau dossier</div>
+      <button class="ds-modal-close" type="button" data-close-modal aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+      <div class="ds-modal-title" id="ds-modal-title">Nouveau dossier</div>
       <div class="ds-modal-sub">Crée un espace dédié à une offre, une campagne, une audience ou une décision à clarifier.</div>
 
-      <div class="ds-form">
+      <form class="ds-form" id="ds-create-form" novalidate>
         <div class="ds-field">
           <label class="ds-label" for="ds-f-title">Nom du dossier</label>
-          <input id="ds-f-title" data-tour="folder-title" class="ds-input" type="text" placeholder="Ex : Lancement offre Premium" maxlength="200" autocomplete="off">
+          <input id="ds-f-title" name="title" data-tour="folder-title" class="ds-input" type="text" placeholder="Ex : Lancement offre Premium" maxlength="200" autocomplete="off" required>
         </div>
 
         <div class="ds-field">
           <label class="ds-label" for="ds-f-objective">Objectif</label>
-          <input id="ds-f-objective" data-tour="folder-objective" class="ds-input" type="text" placeholder="Ex : Choisir le bon angle de vente" maxlength="500" autocomplete="off">
+          <input id="ds-f-objective" name="objective" data-tour="folder-objective" class="ds-input" type="text" placeholder="Ex : Choisir le bon angle de vente" maxlength="500" autocomplete="off">
         </div>
 
         <div class="ds-field">
           <label class="ds-label" for="ds-f-type">Type d’analyse</label>
-          <select id="ds-f-type" class="ds-input ds-select">
+          <select id="ds-f-type" name="folder_type" class="ds-input ds-select">
             <option value="audience">Audience, comprendre qui écoute</option>
             <option value="offre">Offre, évaluer une proposition</option>
             <option value="concurrent">Concurrent, analyser le marché</option>
@@ -829,13 +1104,13 @@
           </select>
         </div>
 
-        <div class="ds-err" id="ds-form-err"></div>
+        <div class="ds-err" id="ds-form-err" role="alert" aria-live="assertive"></div>
 
         <div class="ds-modal-actions">
-          <button class="ds-modal-cancel" type="button" onclick="closeModal()">Annuler</button>
-          <button class="ds-modal-submit" type="button" id="ds-submit-btn" onclick="submitCreate()">Créer le dossier</button>
+          <button class="ds-modal-cancel" type="button" data-close-modal>Annuler</button>
+          <button class="ds-modal-submit" type="submit" id="ds-submit-btn">Créer le dossier</button>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 
@@ -947,7 +1222,7 @@
             <div class="ds-empty">
               <div class="ds-empty-title">Aucun dossier pour l’instant</div>
               <div class="ds-empty-desc">Commence par créer un espace de travail. Gabriel y attachera les analyses, stratégies et contenus liés à ce sujet.</div>
-              <button class="ds-create" type="button" onclick="openModal()">
+              <button class="ds-create" type="button" data-open-modal>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Créer mon premier dossier
               </button>
@@ -990,13 +1265,18 @@
         lastFocusedElement = document.activeElement;
         document.body.classList.add('ds-modal-open');
         const modal = document.getElementById('ds-modal');
+        document.querySelector('.ds-page').inert = true;
+        modal.setAttribute('aria-hidden', 'false');
         modal.classList.add('open');
-        setTimeout(() => document.getElementById('ds-f-title').focus(), 70);
+        window.requestAnimationFrame(() => document.getElementById('ds-f-title').focus());
       };
 
       window.closeModal = function (clear = false) {
         const btn = document.getElementById('ds-submit-btn');
-        document.getElementById('ds-modal').classList.remove('open');
+        const modal = document.getElementById('ds-modal');
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.querySelector('.ds-page').inert = false;
         document.body.classList.remove('ds-modal-open');
         document.getElementById('ds-form-err').classList.remove('show');
         btn.disabled = false;
@@ -1007,7 +1287,8 @@
         }
       };
 
-      window.submitCreate = async function () {
+      window.submitCreate = async function (event) {
+        event?.preventDefault();
         const title = document.getElementById('ds-f-title').value.trim();
         const objective = document.getElementById('ds-f-objective').value.trim();
         const type = document.getElementById('ds-f-type').value;
@@ -1087,6 +1368,13 @@
         if (event.target === this) closeModal();
       });
 
+      document.addEventListener('click', function (event) {
+        if (event.target.closest('[data-open-modal]')) openModal();
+        if (event.target.closest('[data-close-modal]')) closeModal();
+      });
+
+      document.getElementById('ds-create-form').addEventListener('submit', submitCreate);
+
       document.addEventListener('keydown', function (event) {
         const modal = document.getElementById('ds-modal');
         if (event.key === 'Escape' && modal.classList.contains('open')) closeModal();
@@ -1103,15 +1391,6 @@
             first.focus();
           }
         }
-      });
-
-      ['ds-f-title', 'ds-f-objective'].forEach((id) => {
-        document.getElementById(id).addEventListener('keydown', function (event) {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            submitCreate();
-          }
-        });
       });
 
       load();

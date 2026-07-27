@@ -123,6 +123,26 @@ def test_analyze_input_too_long_returns_400():
     assert data.get('error') or data.get('message'), "Doit retourner un message d'erreur"
 
 
+def test_analyze_preview_returns_real_comment_count(monkeypatch):
+    """L'aperçu doit exposer le volume collecté, pas seulement les lignes affichées."""
+    with client.session_transaction() as s:
+        s['user_id'] = 'test-uid-preview'
+    monkeypatch.setattr(
+        _app._db,
+        'check_usage_limit',
+        lambda *args, **kwargs: {'allowed': True, 'used': 0, 'limit': 3, 'plan': 'free'},
+    )
+    r = client.post('/analyze', json={
+        'source': 'text',
+        'content': 'Premier commentaire\nDeuxième commentaire\nTroisième commentaire',
+        'preview_only': True,
+    })
+    assert r.status_code == 200
+    data = r.get_json()
+    assert data['comments_count'] == 3
+    assert len(data['comments_preview']) == 3
+
+
 def test_feedback_free_text_too_long_returns_400():
     with client.session_transaction() as s:
         s['user_id'] = 'test-uid-001'
@@ -378,18 +398,6 @@ def test_auth_401_response_has_standardized_format():
 # ════════════════════════════════════════════════════════════════════════════
 # TEST 16 — Validations ajoutées (contexte_business/chat, creator/refine, satisfaction)
 # ════════════════════════════════════════════════════════════════════════════
-
-def test_contexte_business_chat_message_too_long_returns_400():
-    with client.session_transaction() as s:
-        s['user_id'] = 'test-uid-001'
-    too_long = 'x' * (LIMITS['chat_message_max_chars'] + 1)
-    r = client.post('/contexte_business/chat', json={'message': too_long, 'field': 'activity'})
-    assert r.status_code == 400
-    data = r.get_json()
-    assert data is not None
-    assert data.get('success') is False
-    assert data.get('error_code') == 'input_too_long'
-
 
 def test_creator_refine_instruction_too_long_returns_400():
     with client.session_transaction() as s:

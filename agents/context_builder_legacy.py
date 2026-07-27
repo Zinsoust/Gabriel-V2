@@ -308,8 +308,13 @@ def process_message(message: str, current_context: dict) -> dict:
     missing_req  = get_missing_required(updated)
     score        = compute_completion(updated)
     ready        = is_ready(updated)
-    # Skip LLM call when context is complete — frontend shows its own completion message
-    response     = generate_response(message, updated, rejected_vague) if not ready else "Parfait — j'ai tout ce qu'il me faut. Cliquez sur « Générer la stratégie »."
+    # generate_response() a déjà son propre court-circuit (aucun appel LLM) quand
+    # required ET optional sont tous remplis — ne pas dupliquer cette condition ici
+    # avec `ready` (required seul) : ça ignorait silencieusement tout message envoyé
+    # une fois les champs requis complets alors que des champs optionnels restaient
+    # à collecter (ex: l'utilisateur dit "j'en ai un autre" et se fait répondre le
+    # même message générique en boucle).
+    response     = generate_response(message, updated, rejected_vague)
 
     filled_count = sum(
         1 for k in REQUIRED_KEYS if (updated.get(k) or "").strip()

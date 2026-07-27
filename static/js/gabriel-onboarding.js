@@ -9,85 +9,43 @@
   const steps = [
     {
       title: 'Bienvenue dans Gabriel',
-      body: `Bienvenue dans Gabriel. Ici, chaque projet commence par un dossier stratégique. Un dossier vous permet de centraliser une analyse, une stratégie, des contenus et vos décisions business.<p>Gabriel vous aide à transformer les réactions du marché en décisions business, stratégie et contenu.</p>`,
+      body: `Bienvenue dans Gabriel. Chaque projet devient un environnement de décision : une analyse psychologique, une stratégie business et des contenus alignés avec votre audience.<p>Ce parcours en 7 étapes vous montre l’essentiel. Vous pouvez l’ignorer à tout moment.</p>`,
       cta: 'Commencer le tutoriel',
     },
     {
       selector: '[data-tour="create-folder"]',
       path: '/dossiers',
-      title: 'Créer un dossier stratégique',
-      body: `Commencez par créer un dossier stratégique. Il représente une décision ou un projet à éclairer : lancer une offre, comprendre une audience, analyser un concurrent ou préparer une campagne.`,
+      title: '1. Créer votre dossier stratégique',
+      body: `Créez un dossier pour la décision ou le projet à éclairer, puis donnez-lui un nom et un objectif précis.<p>Exemple : “Comprendre les attentes de mon audience avant de lancer mon offre.”</p>`,
     },
     {
-      selector: '[data-tour="folder-title"]',
-      path: '/dossiers',
-      before: () => window.openModal?.(),
-      title: 'Nommer le dossier',
-      body: `Donnez un nom clair à votre dossier. Exemple : “Lancement offre coaching”, “Analyse audience YouTube”, “Benchmark concurrent”, “Nouvelle campagne Instagram”.`,
-    },
-    {
-      selector: '[data-tour="folder-objective"]',
-      path: '/dossiers',
-      before: () => window.openModal?.(),
-      title: 'Définir l’objectif',
-      body: `Ajoutez l’objectif du dossier. Plus l’objectif est clair, plus Gabriel peut vous aider à prendre une bonne décision.<p>Exemple : “Comprendre ce que mon audience attend avant de lancer mon offre.”</p>`,
-    },
-    {
-      selector: '[data-tour="source-section"]',
-      title: 'Ajouter une source',
-      body: `Ajoutez une source de marché : commentaires, fichier CSV/Excel/JSON, avis clients ou lien compatible. Gabriel utilise cette matière pour comprendre ce que votre marché dit réellement.`,
-    },
-    {
-      selector: ['#df-analyse-btn', '#step-btn-psychologue', '[data-tour="psychologue-start"]'],
+      selector: ['#youtubeUrl', '[data-tour="source-section"]', '.analyse-btn', '#df-analyse-btn'],
       path: '/psychologue',
-      title: 'Lancer le Psychologue',
-      body: `L’Agent Psychologue analyse les réactions. Il détecte les désirs, frustrations, objections, émotions et signaux dominants de votre audience.<p>Son rôle n’est pas de vendre. Son rôle est de comprendre.</p>`,
+      before: () => window.switchTab?.('youtube'),
+      title: '2. Comprendre votre audience',
+      body: `Collez une vidéo YouTube ou des commentaires, puis lancez le Psychologue. Il révèle les émotions, aspirations, douleurs, objections et segments dominants qui serviront de base aux décisions suivantes.`,
     },
     {
-      selector: '[data-tour="psychologue-dashboard"]',
-      path: '/psychologue',
-      title: 'Lire le Dashboard',
-      body: `Le Dashboard vous donne une première lecture rapide : tendances, signaux, clusters, émotions, objections et opportunités.`,
-    },
-    {
-      selector: '[data-tour="psychologue-interpretation"]',
-      path: '/psychologue',
-      title: 'Lire l’Interprétation',
-      body: `L’Interprétation explique ce que ces signaux signifient humainement. Elle vous aide à comprendre pourquoi votre audience réagit ainsi.`,
-    },
-    {
-      selector: '[data-tour="psychologue-personas"]',
-      path: '/psychologue',
-      title: 'Découvrir les Personas',
-      body: `Les Personas représentent les grands profils d’audience détectés. Ils vous aident à mieux adapter votre offre, votre message et votre contenu.`,
-    },
-    {
-      selector: ['#strat-launch-btn', '#step-btn-stratege', '[data-tour="stratege-start"]'],
+      selector: ['.ctx-panel', '#chat-input', '[data-tour="stratege-start"]'],
       path: '/stratege',
-      title: 'Lancer le Stratège',
-      body: `L’Agent Stratège transforme l’analyse en décision business. Il vous aide à savoir quoi vendre, à qui, avec quel positionnement et quelle action prioritaire.<p>Son rôle est de décider.</p>`,
+      title: '3. Décrire votre contexte business',
+      body: `Présentez votre situation réelle : offre, ressources, budget, équipe, audience, positionnement et objectif. Plus ce contexte est précis, plus les recommandations seront réalistes et directement applicables.`,
     },
     {
-      selector: '[data-tour="stratege-result"]',
+      selector: ['#strat-launch-btn', '[data-tour="stratege-result"]', '#strat-dashboard', '.strat-layout'],
       path: '/stratege',
-      title: 'Comprendre la décision recommandée',
-      body: `Lisez d’abord la décision recommandée. Gabriel ne vous donne pas seulement des idées : il vous aide à choisir la meilleure direction à prendre maintenant.`,
+      title: '4. Transformer l’analyse en décision',
+      body: `Générez la stratégie lorsque votre contexte est complet. Commencez par les décisions prioritaires, l’offre, le positionnement et les actions immédiates, puis consultez les risques et opportunités.`,
     },
     {
-      selector: ['#cre-gen', '#cre-card', '#step-btn-createur', '[data-tour="createur-start"]'],
+      selector: ['#cre-card', '#cre-req', '#cre-gen', '[data-tour="createur-start"]'],
       path: '/createur',
-      title: 'Lancer le Créateur',
-      body: `L’Agent Créateur transforme la stratégie en contenu concret : script, post, email, accroche ou message commercial.<p>Son rôle est d’écrire en respectant ce que le Psychologue a compris et ce que le Stratège a décidé.</p>`,
-    },
-    {
-      selector: '[data-tour="orchestrator"]',
-      path: '/createur',
-      title: 'Utiliser l’Orchestrateur',
-      body: `L’Orchestrateur est votre conseiller transversal. Il relie l’analyse, la stratégie et les contenus. Vous pouvez lui demander : “Quelle décision dois-je prendre ?”, “Est-ce que mon contenu est cohérent ?”, “Quelle est la prochaine action ?”.`,
+      title: '5. Créer des contenus alignés',
+      body: `Le Créateur combine l’analyse de l’audience et la stratégie. Choisissez votre intention, votre tonalité, votre format et votre canal, puis générez un contenu fondé sur les mots et besoins réels de votre marché.`,
     },
     {
       title: 'Vous êtes prêt',
-      body: `Vous êtes prêt. Créez un dossier, ajoutez une source, puis laissez Gabriel transformer les signaux du marché en décisions et en contenus exploitables.`,
+      body: `Vous connaissez maintenant le parcours Gabriel : créer un dossier, comprendre l’audience, décider une stratégie et produire les contenus qui l’exécutent.`,
       final: true,
     },
   ];
@@ -111,8 +69,9 @@
     return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
   }
 
-  function targetFor(step) {
-    if (!step.selector || !pathMatches(step)) return null;
+  function targetFor(step, options) {
+    const ignorePath = Boolean(options && options.ignorePath);
+    if (!step.selector || (!ignorePath && !pathMatches(step))) return null;
     const selectors = Array.isArray(step.selector) ? step.selector : [step.selector];
     for (const selector of selectors) {
       try {
@@ -121,6 +80,14 @@
       } catch (_) {}
     }
     return null;
+  }
+
+  function localRouteTargetFor(step) {
+    if (!step.selector) return null;
+    const selectors = (Array.isArray(step.selector) ? step.selector : [step.selector])
+      .filter(selector => typeof selector === 'string' && !selector.trim().startsWith('[data-tour='));
+    if (!selectors.length) return null;
+    return targetFor({ ...step, selector: selectors }, { ignorePath: true });
   }
 
   function ensureDom() {
@@ -206,8 +173,9 @@
     try { step.before?.(); } catch (_) {}
 
     window.setTimeout(() => {
-      const needsRoute = Boolean(step.path && !pathMatches(step));
-      const target = needsRoute ? null : targetFor(step);
+      const localTarget = pathMatches(step) ? targetFor(step) : localRouteTargetFor(step);
+      const needsRoute = Boolean(step.path && !pathMatches(step) && !localTarget);
+      const target = needsRoute ? null : localTarget;
       if (target) {
         highlighted = target;
         highlighted.classList.add(HIGHLIGHT_CLASS);
@@ -229,7 +197,7 @@
         <div class="gb-tour-text">${body}</div>
         <div class="gb-tour-actions">
           <div class="gb-tour-actions-left">
-            <button class="gb-tour-btn ghost" type="button" data-action="skip">Passer</button>
+            <button class="gb-tour-btn ghost" type="button" data-action="skip">Ignorer</button>
           </div>
           <div class="gb-tour-actions-right">
             <button class="gb-tour-btn" type="button" data-action="prev" ${prevDisabled}>Précédent</button>
@@ -259,7 +227,8 @@
   function next() {
     if (!active) return;
     const step = steps[current] || {};
-    if (step.path && !pathMatches(step)) {
+    const localTarget = pathMatches(step) ? targetFor(step) : localRouteTargetFor(step);
+    if (step.path && !pathMatches(step) && !localTarget) {
       localStorage.setItem(STORAGE_INDEX, String(current));
       window.location.href = step.path;
       return;
@@ -319,7 +288,8 @@
   });
 
   document.addEventListener('DOMContentLoaded', () => {
-    if (window.location.pathname === '/dossiers' || localStorage.getItem(STORAGE_INDEX)) {
+    const onboardingPaths = ['/dossiers', '/psychologue', '/stratege', '/createur'];
+    if (onboardingPaths.includes(window.location.pathname) || localStorage.getItem(STORAGE_INDEX)) {
       window.setTimeout(() => start(false), 450);
     }
   });

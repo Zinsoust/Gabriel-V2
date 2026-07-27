@@ -53,40 +53,45 @@ def scrape_youtube(url_or_id):
     except Exception:
         pass
 
-    comments = []
-    next_page_token = None
+    def _fetch_comments(order, target=200):
+        result = []
+        page_token = None
+        while len(result) < target:
+            batch = min(target - len(result), 100)
+            resp = youtube.commentThreads().list(
+                part='snippet',
+                videoId=video_id,
+                maxResults=batch,
+                pageToken=page_token,
+                textFormat='plainText',
+                order=order
+            ).execute()
+            for item in resp.get('items', []):
+                top = item['snippet']['topLevelComment']['snippet']
+                text = top.get('textDisplay', '').strip()
+                if text:
+                    result.append({
+                        'text':   text,
+                        'likes':  top.get('likeCount', 0),
+                        'author': top.get('authorDisplayName', '')
+                    })
+            page_token = resp.get('nextPageToken')
+            if not page_token or len(result) >= target:
+                break
+        return result
 
-    # Récupère 200 commentaires par pertinence YouTube
-    while len(comments) < 200:
-        batch = min(200 - len(comments), 100)
-        response = youtube.commentThreads().list(
-            part='snippet',
-            videoId=video_id,
-            maxResults=batch,
-            pageToken=next_page_token,
-            textFormat='plainText',
-            order='relevance'
-        ).execute()
-
-        for item in response.get('items', []):
-            top = item['snippet']['topLevelComment']['snippet']
-            text = top.get('textDisplay', '').strip()
-            if text:
-                comments.append({
-                    'text': text,
-                    'likes': top.get('likeCount', 0),
-                    'author': top.get('authorDisplayName', '')
-                })
-
-        next_page_token = response.get('nextPageToken')
-        if not next_page_token or len(comments) >= 200:
-            break
+    # Priorité : pertinence (meilleur signal), fallback temps si peu de résultats
+    comments = _fetch_comments('relevance', target=200)
+    if len(comments) < 20:
+        by_time = _fetch_comments('time', target=200)
+        if len(by_time) > len(comments):
+            comments = by_time
 
     # Trier par likes décroissants → les signaux les plus amplifiés d'abord
     comments.sort(key=lambda c: c.get('likes', 0), reverse=True)
 
-    # Garder les 100 plus likés = échantillon représentatif de haute valeur
-    return comments[:100], video_info
+    # Garder les 150 plus représentatifs (plus de données = meilleure analyse)
+    return comments[:150], video_info
 
 
 def scrape_instagram_rapidapi(url):

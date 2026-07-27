@@ -16,12 +16,32 @@
   .pipeline-step.next  .pipeline-step-num { background:color-mix(in srgb, var(--text-primary) 4%, transparent); color:var(--text-disabled); }
   .pipeline-arrow { font-size:11px; color:var(--border-soft); margin:0 2px; flex-shrink:0; }
 
-  .strat-layout { display:grid; grid-template-columns:310px 1fr; gap:18px; align-items:start; }
+  .strat-layout { display:grid; grid-template-columns:1fr; gap:18px; align-items:start; }
 
-  /* ─── Left panel ─────────────────────────────────────── */
-  .ctx-panel { position:sticky; top:20px; display:flex; flex-direction:column; gap:10px; }
+  /* ─── Conversation plein écran (avant génération) ─────
+     Le Context Builder V1.1 occupe toute la largeur de la Zone 3 — une vraie
+     conversation façon ChatGPT/Claude, pas un panneau latéral. Centré avec
+     une largeur de lecture confortable, cohérent avec le reste de l'app
+     (même logique que .cre-page dans createur.html). Une fois une stratégie
+     générée, .has-strategy (plus bas) réduit ce panneau en pastille flottante
+     — mécanisme déjà en place, non modifié. */
+  .ctx-panel { position:relative; top:0; display:flex; flex-direction:column; gap:14px; max-width:760px; margin:0 auto; width:100%; }
+
+  /* Identité visuelle du Stratège — Zone 3 (brief section 4.A) */
+  .ctx-identity { display:flex; align-items:center; gap:10px; padding:2px 2px 4px; }
+  .ctx-identity-avatar {
+    width:32px; height:32px; border-radius:50%; flex-shrink:0;
+    background:color-mix(in srgb, var(--champagne) 10%, transparent);
+    border:1px solid color-mix(in srgb, var(--champagne) 22%, transparent);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; color:var(--champagne);
+  }
+  .ctx-identity-name { font-size:13px; font-weight:600; color:var(--text-primary); line-height:1.3; }
+  .ctx-identity-role { font-size:10px; color:var(--text-muted); line-height:1.3; }
 
   .ctx-header { padding:14px 16px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); }
+  .ctx-header[role="button"] { cursor:pointer; }
+  .ctx-header[role="button"]:focus-visible { outline:2px solid color-mix(in srgb, var(--champagne) 58%, transparent); outline-offset:3px; }
   .ctx-header-label { font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-muted); font-weight:500; margin-bottom:5px; }
   .ctx-header-title { font-size:13px; font-weight:500; color:var(--text-primary); margin-bottom:10px; }
   .ctx-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:9px; font-size:10px; font-weight:500; letter-spacing:0.04em; }
@@ -34,45 +54,214 @@
   .ctx-progress-fill { height:100%; background:linear-gradient(90deg,rgba(199,166,107,0.5),var(--champagne-soft)); border-radius:2px; transition:width 0.6s cubic-bezier(0.22,1,.36,1); }
   .ctx-progress-label { font-size:10px; color:var(--text-muted); margin-top:5px; }
 
-  .chat-window { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); overflow:hidden; display:flex; flex-direction:column; height:400px; }
-  .chat-messages { flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:9px; scroll-behavior:smooth; }
-  .chat-messages::-webkit-scrollbar { width:3px; }
-  .chat-messages::-webkit-scrollbar-thumb { background:color-mix(in srgb, var(--text-primary) 7%, transparent); border-radius:2px; }
-  .msg { max-width:90%; display:flex; flex-direction:column; gap:2px; animation:gb-slide-up 0.25s cubic-bezier(0.22,1,.36,1) both; }
+  .chat-window { position:relative; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); overflow:hidden; display:flex; flex-direction:column; height:min(640px, calc(100vh - 320px)); min-height:420px; }
+  .chat-messages { flex:1; overflow-y:auto; padding:26px 28px; display:flex; flex-direction:column; gap:16px; scroll-behavior:smooth; }
+  .chat-messages::-webkit-scrollbar { width:4px; }
+  .chat-messages::-webkit-scrollbar-thumb { background:color-mix(in srgb, var(--text-primary) 8%, transparent); border-radius:2px; }
+  .msg { max-width:78%; display:flex; flex-direction:column; gap:4px; animation:ctx-msg-in 0.36s cubic-bezier(0.22,1,.36,1) both; }
+  @keyframes ctx-msg-in { from{opacity:0; transform:translateY(10px) scale(0.985);} to{opacity:1; transform:translateY(0) scale(1);} }
   .msg.agent { align-self:flex-start; }
   .msg.user  { align-self:flex-end; }
-  .msg-bubble { padding:8px 11px; border-radius:4px; font-size:12px; line-height:1.65; }
-  .msg.agent .msg-bubble { background:color-mix(in srgb, var(--text-primary) 3.2%, transparent); border:1px solid var(--border-soft); color:var(--text-secondary); border-radius:2px 10px 10px 10px; }
-  .msg.user  .msg-bubble { background:color-mix(in srgb, var(--champagne) 9%, transparent); border:1px solid color-mix(in srgb, var(--champagne) 15%, transparent); color:color-mix(in srgb, var(--champagne) 85%, transparent); border-radius:4px 4px 10px 10px; }
-  .msg-time { font-size:9px; color:var(--text-disabled); padding:0 2px; }
+  .msg-bubble { padding:13px 17px; border-radius:6px; font-size:14px; line-height:1.75; }
+  .msg.agent .msg-bubble { background:color-mix(in srgb, var(--text-primary) 3.2%, transparent); border:1px solid var(--border-soft); color:var(--text-secondary); border-radius:3px 14px 14px 14px; }
+  .msg.user  .msg-bubble { background:color-mix(in srgb, var(--champagne) 9%, transparent); border:1px solid color-mix(in srgb, var(--champagne) 15%, transparent); color:color-mix(in srgb, var(--champagne) 88%, transparent); border-radius:14px 14px 3px 14px; }
+  .msg-time { font-size:10px; color:var(--text-disabled); padding:0 3px; }
   .msg.user .msg-time { align-self:flex-end; }
-  .typing-dots { display:flex; gap:3px; padding:5px 2px; }
-  .typing-dots span { width:4px; height:4px; border-radius:50%; background:var(--text-muted); animation:blink 1.2s ease-in-out infinite; }
+  .typing-reflect { font-size:12px; color:var(--text-muted); font-style:italic; margin-bottom:6px; }
+  .typing-dots { display:flex; gap:4px; padding:6px 3px; }
+  .typing-dots span { width:5px; height:5px; border-radius:50%; background:var(--champagne-soft); animation:blink 1.2s ease-in-out infinite; }
   .typing-dots span:nth-child(2) { animation-delay:.2s; }
   .typing-dots span:nth-child(3) { animation-delay:.4s; }
-  @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
-  .chat-input-row { display:flex; gap:8px; padding:9px 11px; border-top:1px solid var(--border-soft); background:color-mix(in srgb, var(--text-primary) 1.2%, transparent); }
-  .chat-input { flex:1; background:transparent; border:none; outline:none; font-size:12px; color:var(--text-primary); font-family:inherit; resize:none; line-height:1.5; max-height:80px; }
+  @keyframes blink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+  /* Barre flottante façon GPT : un seul champ arrondi qui se détache de la
+     liste de messages, plutôt qu'une bande plate collée au bord de la carte.
+     La lueur au focus est le seul retour visuel nécessaire — pas besoin
+     d'un bouton "actif" en plus. */
+  .chat-input-row {
+    display:flex; align-items:flex-end; gap:8px;
+    margin:0 16px 16px; padding:10px 10px 10px 18px;
+    border:1px solid var(--border-soft); border-radius:26px;
+    background:var(--bg-card);
+    box-shadow:0 10px 28px rgba(0,0,0,0.16), inset 0 1px 0 color-mix(in srgb, var(--text-primary) 3%, transparent);
+    transition:border-color 0.18s, box-shadow 0.18s;
+  }
+  .chat-input-row:focus-within {
+    border-color:color-mix(in srgb, var(--champagne) 38%, transparent);
+    box-shadow:0 10px 28px rgba(0,0,0,0.16), 0 0 0 3px color-mix(in srgb, var(--champagne) 10%, transparent);
+  }
+  .chat-input { flex:1; background:transparent; border:none; outline:none; font-size:14.5px; color:var(--text-primary); font-family:inherit; resize:none; line-height:1.6; max-height:160px; padding:6px 2px; }
   .chat-input::placeholder { color:var(--text-disabled); }
   .chat-send { width:28px; height:28px; border:none; background:color-mix(in srgb, var(--champagne) 10%, transparent); border-radius:3px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; align-self:flex-end; transition:background 0.15s; }
   .chat-send:hover { background:color-mix(in srgb, var(--champagne) 20%, transparent); }
   .chat-send svg { width:12px; height:12px; stroke:var(--champagne-soft); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .chat-send:disabled { opacity:0.3; cursor:default; }
 
+  /* ── Entretien stratégique — mode vocal ─────────────────────────────── */
+  .voice-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 18px 0; }
+  .voice-toggle { display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:20px;
+    border:1px solid var(--border-soft); background:transparent; cursor:pointer; font-family:inherit;
+    font-size:10px; font-weight:500; letter-spacing:0.04em; color:var(--text-secondary); transition:all 0.18s; }
+  .voice-toggle:hover { border-color:color-mix(in srgb, var(--champagne) 30%, transparent); color:var(--text-primary); }
+  .voice-toggle.on { background:color-mix(in srgb, var(--champagne) 10%, transparent);
+    border-color:color-mix(in srgb, var(--champagne) 30%, transparent); color:var(--champagne); }
+  .voice-toggle-dot { width:6px; height:6px; border-radius:50%; background:var(--text-disabled); transition:background 0.18s; flex-shrink:0; }
+  .voice-toggle.on .voice-toggle-dot { background:var(--champagne); animation:gb-dot-beat 2.5s ease-in-out infinite; }
+
+  .voice-picker { appearance:none; -webkit-appearance:none; border:1px solid var(--border-soft); border-radius:20px;
+    background:transparent; color:var(--text-secondary); font-family:inherit; font-size:10px; font-weight:500;
+    padding:5px 22px 5px 11px; cursor:pointer; transition:border-color 0.18s, color 0.18s;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a89e8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 6px center; background-size:11px; }
+  .voice-picker:hover { border-color:color-mix(in srgb, var(--champagne) 30%, transparent); color:var(--text-primary); }
+  .voice-picker:focus, .voice-picker:focus-visible {
+    outline:none; border-color:color-mix(in srgb, var(--champagne) 45%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--champagne) 14%, transparent);
+  }
+  .voice-picker option { background:var(--bg-card); color:var(--text-primary); }
+
+  .voice-speaking-badge { display:none; align-items:center; gap:7px; padding:5px 12px; border-radius:20px;
+    background:color-mix(in srgb, var(--champagne) 8%, transparent); border:1px solid color-mix(in srgb, var(--champagne) 22%, transparent);
+    font-size:10px; color:var(--champagne); font-weight:500; letter-spacing:0.03em; }
+  .voice-speaking-badge.active { display:inline-flex; }
+  .voice-wave { display:flex; align-items:center; gap:2px; height:11px; }
+  .voice-wave span { width:2px; height:40%; background:var(--champagne); border-radius:1px; display:block; transition:height .09s ease-out; }
+  /* Repli si l'analyse audio de la lecture TTS échoue — même logique que
+     .wave-fallback plus haut : jamais en même temps que les vraies hauteurs. */
+  .voice-wave.wave-fallback span { animation:voice-wave-bar 0.9s ease-in-out infinite; }
+  .voice-wave.wave-fallback span:nth-child(1){ animation-delay:0s; }
+  .voice-wave.wave-fallback span:nth-child(2){ animation-delay:0.15s; }
+  .voice-wave.wave-fallback span:nth-child(3){ animation-delay:0.3s; }
+  .voice-wave.wave-fallback span:nth-child(4){ animation-delay:0.45s; }
+  @keyframes voice-wave-bar { 0%,100%{transform:scaleY(0.4);} 50%{transform:scaleY(1);} }
+
+  .mic-btn { width:28px; height:28px; border:none; background:color-mix(in srgb, var(--champagne) 10%, transparent);
+    border-radius:3px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    align-self:flex-end; transition:all 0.15s; position:relative; }
+  .mic-btn:hover { background:color-mix(in srgb, var(--champagne) 20%, transparent); }
+  .mic-btn svg { width:13px; height:13px; stroke:var(--champagne-soft); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .mic-btn.recording { background:color-mix(in srgb, #d65b5b 16%, transparent); }
+  .mic-btn.recording svg { stroke:#e07a7a; }
+  .mic-btn.recording::before { content:''; position:absolute; inset:-5px; border-radius:8px;
+    border:1.5px solid color-mix(in srgb, #d65b5b 45%, transparent); animation:mic-pulse 1.4s ease-out infinite; }
+  @keyframes mic-pulse { 0%{transform:scale(0.9); opacity:0.9;} 100%{transform:scale(1.6); opacity:0;} }
+  .mic-btn.processing svg { animation:mic-spin 0.9s linear infinite; }
+  @keyframes mic-spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+  .mic-btn:disabled { opacity:0.3; cursor:default; }
+  .voice-error-toast { position:absolute; bottom:64px; left:18px; right:18px; padding:9px 14px; border-radius:6px;
+    background:color-mix(in srgb, #d65b5b 12%, var(--bg-card)); border:1px solid color-mix(in srgb, #d65b5b 30%, transparent);
+    color:#e07a7a; font-size:11.5px; text-align:center; animation:gb-slide-up 0.22s cubic-bezier(0.22,1,.36,1) both; z-index:5; }
+
+  /* ── Grand écran d'écoute ───────────────────────────────────────────────
+     Recouvre toute la carte pendant l'enregistrement — un vrai moment,
+     pas un indicateur discret dans un coin. Le bleu y est pleinement
+     légitime : c'est exactement la "matière vocale" qu'il doit représenter. */
+  .listening-overlay {
+    position:absolute; inset:0; z-index:8; display:none;
+    flex-direction:column; align-items:center; justify-content:center; gap:26px;
+    padding:40px; text-align:center;
+    background:
+      radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--interview-blue) 8%, transparent), transparent 62%),
+      color-mix(in srgb, var(--bg-card) 97%, transparent);
+    backdrop-filter:blur(8px);
+    animation:gb-slide-up 0.28s cubic-bezier(0.22,1,.36,1) both;
+  }
+  .chat-window.is-recording .listening-overlay { display:flex; }
+
+  .listening-transcript {
+    font-size:18px; line-height:1.65; color:var(--text-muted); max-width:520px;
+    min-height:58px; transition:color 0.2s; text-wrap:balance;
+  }
+  .listening-transcript.has-text { color:var(--text-primary); }
+
+  .listening-mic-btn {
+    position:relative; width:92px; height:92px; border-radius:50%; cursor:pointer;
+    border:1px solid color-mix(in srgb, var(--interview-blue) 46%, transparent);
+    background:color-mix(in srgb, var(--interview-blue) 15%, var(--bg-card));
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition:transform 0.15s;
+  }
+  .listening-mic-btn:hover { transform:scale(1.04); }
+  .listening-mic-btn svg { width:32px; height:32px; stroke:var(--interview-blue); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .listening-mic-btn::before, .listening-mic-btn::after {
+    content:''; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+    border:1px solid color-mix(in srgb, var(--interview-blue) 42%, transparent);
+    animation:mic-pulse 2.4s ease-out infinite;
+  }
+  .listening-mic-btn::after { animation-delay:1.2s; }
+
+  .listening-wave { display:flex; align-items:center; justify-content:center; gap:3px; height:60px; width:min(100%, 420px); }
+  .listening-wave span {
+    width:3px; min-height:3px; border-radius:2px; height:16%;
+    background:color-mix(in srgb, var(--interview-blue) 68%, var(--champagne));
+    transition:height 0.09s ease-out;
+  }
+  .listening-wave.wave-fallback span { animation:voice-live-bar-fallback 1.6s ease-in-out infinite; }
+
+  .listening-hint { font-size:11px; color:var(--text-muted); letter-spacing:0.03em; }
+
+  @media (max-width:640px) {
+    .listening-mic-btn { width:76px; height:76px; }
+    .listening-transcript { font-size:16px; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    .listening-mic-btn::before, .listening-mic-btn::after { animation:none !important; }
+  }
+
+  /* ── Hero d'accueil de l'entretien — remplace le chat le temps que
+       l'utilisateur n'a pas encore répondu une seule fois. Objectif :
+       donner envie de cliquer plutôt que d'ouvrir sur un formulaire muet. */
+  #interview-hero { display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px;
+    padding:56px 32px 48px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+    animation:gb-slide-up 0.4s cubic-bezier(0.22,1,.36,1) both; }
+
+  /* Avatar — pas de photo générique : le sceau ◈ déjà utilisé comme identité
+     du Stratège (ctx-identity-avatar), agrandi et mis en scène. Reste dans
+     le système de marque plutôt que d'introduire un visage stock qui ne
+     représente personne. */
+  .hero-avatar { position:relative; width:72px; height:72px; display:flex; align-items:center; justify-content:center; margin-bottom:2px; }
+  .hero-avatar-mark { position:relative; z-index:1; width:100%; height:100%; border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:center;
+    font-size:26px; color:var(--champagne); background:linear-gradient(135deg,color-mix(in srgb, var(--champagne) 22%, transparent),color-mix(in srgb, var(--champagne) 8%, transparent));
+    border:1px solid color-mix(in srgb, var(--champagne) 38%, transparent); }
+  .hero-avatar-ring { position:absolute; inset:-9px; border-radius:calc(var(--radius-lg) + 9px); border:1px solid color-mix(in srgb, var(--champagne) 30%, transparent);
+    animation:hero-avatar-breathe 3.2s ease-in-out infinite; pointer-events:none; }
+  @keyframes hero-avatar-breathe { 0%,100%{ transform:scale(1); opacity:0.55; } 50%{ transform:scale(1.08); opacity:1; } }
+
+  .hero-kicker { font-size:10px; text-transform:uppercase; letter-spacing:0.16em; color:color-mix(in srgb, var(--champagne) 62%, transparent); font-weight:600; }
+  .hero-h1 { font-size:clamp(24px,3vw,34px); font-weight:600; color:var(--text-primary); line-height:1.28; max-width:580px; margin:0; }
+  .hero-sub { font-size:14px; color:var(--text-secondary); line-height:1.75; max-width:460px; margin-bottom:6px; }
+
+  /* CTA — une seule action forte (icône + libellé dans un même bouton),
+     pas une icône isolée avec sa légende à côté : plus direct, plus clair
+     sur ce qui va se passer au clic. */
+  .hero-cta { position:relative; display:inline-flex; align-items:center; gap:10px; padding:15px 28px 15px 20px;
+    border-radius:999px; cursor:pointer; font-family:inherit; font-size:14px; font-weight:500; letter-spacing:0.01em;
+    color:#1a1510; background:linear-gradient(135deg,var(--champagne),var(--champagne-soft));
+    border:1px solid color-mix(in srgb, var(--champagne) 60%, transparent); box-shadow:0 8px 28px color-mix(in srgb, var(--champagne) 22%, transparent);
+    transition:transform 0.2s, box-shadow 0.2s; }
+  .hero-cta:hover { transform:translateY(-2px); box-shadow:0 14px 38px color-mix(in srgb, var(--champagne) 32%, transparent); }
+  .hero-cta:active { transform:translateY(0); }
+  .hero-cta-icon { display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%;
+    background:color-mix(in srgb, #1a1510 12%, transparent); flex-shrink:0; }
+  .hero-cta-icon svg { width:13px; height:13px; stroke:#1a1510; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .hero-text-fallback { font-size:11.5px; color:var(--text-muted); background:none; border:none; cursor:pointer;
+    text-decoration:underline; text-underline-offset:3px; font-family:inherit; padding:2px; transition:color 0.15s; }
+  .hero-text-fallback:hover { color:var(--text-secondary); }
+
   .ctx-fields-panel { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:12px 14px; }
   .ctx-fields { display:flex; flex-direction:column; gap:4px; }
   .ctx-field { display:flex; align-items:flex-start; gap:7px; padding:5px 6px; border-radius:2px; }
   .ctx-field.filled { background:color-mix(in srgb, var(--text-primary) 1.2%, transparent); }
   .ctx-field-icon { width:14px; height:14px; border-radius:50%; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:600; }
-  .ctx-field-icon.ok   { background:rgba(120,200,140,0.15); color:rgba(120,200,140,0.7); }
-  .ctx-field-icon.miss { background:color-mix(in srgb, var(--text-primary) 4%, transparent); color:var(--text-disabled); }
+  .ctx-field-icon.ok      { background:rgba(120,200,140,0.15); color:rgba(120,200,140,0.7); }
+  .ctx-field-icon.partial { background:color-mix(in srgb, var(--champagne) 12%, transparent); color:var(--champagne); }
+  .ctx-field-icon.miss    { background:color-mix(in srgb, var(--text-primary) 4%, transparent); color:var(--text-disabled); }
   .ctx-field-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:500; line-height:1.3; }
   .ctx-field-val { font-size:10px; color:var(--text-secondary); line-height:1.5; margin-top:1px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
   .strat-cta { display:flex; flex-direction:column; gap:6px; }
   .strat-cta-btn { width:100%; padding:11px; font-size:12px; font-weight:500; letter-spacing:0.03em; border:none; border-radius:var(--radius-md); cursor:pointer; transition:all 0.2s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; }
   .strat-cta-btn.ready  { background:color-mix(in srgb, var(--champagne) 10%, transparent); color:var(--champagne); border:1px solid color-mix(in srgb, var(--champagne) 25%, transparent); }
-  .strat-cta-btn.ready:hover { background:color-mix(in srgb, var(--champagne) 17%, transparent); transform:translateY(-1px); box-shadow:0 4px 16px color-mix(in srgb, var(--champagne) 10%, transparent); }
+  .strat-cta-btn.ready:hover { background:color-mix(in srgb, var(--champagne-accent) 17%, transparent); color:var(--champagne-accent); border-color:color-mix(in srgb, var(--champagne-accent) 40%, transparent); transform:translateY(-1px); box-shadow:0 4px 16px color-mix(in srgb, var(--champagne-accent) 16%, transparent); }
   .strat-cta-btn.locked { background:color-mix(in srgb, var(--text-primary) 3%, transparent); color:var(--text-disabled); border:1px solid var(--border-soft); cursor:not-allowed; }
   .strat-cta-hint { font-size:10px; color:var(--text-disabled); text-align:center; }
 
@@ -778,7 +967,7 @@
     box-shadow:0 14px 44px rgba(0,0,0,0.32), inset 0 1px 0 color-mix(in srgb, var(--text-primary) 4%, transparent);
   }
   .strat-layout.has-strategy .ctx-header::before {
-    content:'Contexte business';
+    content:'Entretien stratégique';
     display:block;
     color:color-mix(in srgb, var(--champagne) 84%, transparent);
     font-size:10px;
@@ -1893,7 +2082,22 @@
     opacity:.86;
   }
 
-  .page-stratege .strat-layout,
+  /* Avant génération : conversation plein écran, une seule colonne — le
+     Context Builder V1.1 doit occuper toute la Zone 3 (pas un panneau de
+     360px à côté d'une colonne d'état). Cette règle avait une spécificité
+     plus forte (.page-stratege + !important) que la règle de base et
+     réimposait silencieusement 2 colonnes — trouvé en testant en direct. */
+  .page-stratege .strat-layout {
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:clamp(22px, 2.2vw, 34px) !important;
+    align-items:start;
+    min-height:calc(100vh - 132px);
+  }
+  /* Après génération : le mécanisme existant (.ctx-panel devient une pastille
+     flottante position:fixed) reste inchangé — on lui restaure ici le
+     comportement 2-colonnes qu'il avait avant, au cas où le dashboard interne
+     s'appuie sur cette largeur de conteneur. */
   .page-stratege .strat-layout.has-strategy {
     display:grid !important;
     grid-template-columns:minmax(300px, 360px) minmax(0, 1fr) !important;
@@ -1902,7 +2106,13 @@
     min-height:calc(100vh - 132px);
   }
 
-  .page-stratege .ctx-panel,
+  /* Réservé à l'état post-stratégie (bandeau latéral collé, hauteur de
+     viewport) — le premier sélecteur ".page-stratege .ctx-panel" seul,
+     sans ".has-strategy", l'appliquait aussi PENDANT l'entretien : le
+     panneau se retrouvait figé à une hauteur fixe avec un contenu plus haut
+     qui débordait sans pouvoir défiler, se superposant à ce qui suit
+     (trouvé en conditions réelles : le bouton "Générer la stratégie"
+     devenait à moitié caché derrière l'en-tête). */
   .page-stratege .strat-layout.has-strategy .ctx-panel,
   .page-stratege .strat-layout.has-strategy .ctx-panel.is-open {
     position:sticky !important;
@@ -1982,17 +2192,6 @@
   .page-stratege .msg-bubble {
     padding:10px 12px;
     border-radius:6px;
-  }
-
-  .page-stratege .chat-input-row {
-    padding:12px;
-    background:color-mix(in srgb, var(--text-primary) 1.8%, transparent);
-  }
-
-  .page-stratege .chat-send {
-    width:34px;
-    height:34px;
-    border-radius:4px;
   }
 
   .page-stratege .ctx-fields-panel {
@@ -2088,7 +2287,7 @@
   }
 
   .page-stratege .strat-layout.has-strategy .ctx-header::before {
-    content:'Contexte business' !important;
+    content:'Entretien stratégique' !important;
     display:block !important;
     color:color-mix(in srgb, var(--champagne) 86%, transparent);
     font-size:10px;
@@ -2182,7 +2381,7 @@
     border:1px solid color-mix(in srgb, var(--text-primary) 7.5%, transparent) !important;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--text-primary) 3.5%, transparent), color-mix(in srgb, var(--text-primary) 1.4%, transparent)),
-      #141416 !important;
+      var(--bg-card) !important;
     box-shadow:
       0 22px 70px rgba(0,0,0,0.22),
       inset 0 1px 0 color-mix(in srgb, var(--text-primary) 4%, transparent) !important;
@@ -2194,7 +2393,7 @@
     background:
       radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--champagne) 12%, transparent), transparent 34%),
       linear-gradient(150deg, color-mix(in srgb, var(--champagne) 7.5%, transparent), color-mix(in srgb, var(--text-primary) 1.4%, transparent) 44%),
-      #141416 !important;
+      var(--bg-card) !important;
   }
 
   .page-stratege #strat-dashboard.strat-cockpit-active .dash-sec-head {
@@ -2276,7 +2475,7 @@
     border-radius:8px !important;
     overflow:hidden;
     border-color:color-mix(in srgb, var(--champagne) 26%, transparent) !important;
-    background:#111112 !important;
+    background:var(--bg-card) !important;
   }
 
   .page-stratege #strat-dashboard.strat-cockpit-active .strat-card--offer .dash-sec-head {
@@ -2294,7 +2493,7 @@
     background:
       radial-gradient(ellipse at 50% 102%, rgba(245,232,204,.32) 0%, color-mix(in srgb, var(--champagne) 11%, transparent) 28%, transparent 58%),
       radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--text-primary) 6.5%, transparent), transparent 28%),
-      linear-gradient(145deg, #0D0D0E, #181819 58%, #0B0B0C) !important;
+      var(--bg-card) !important;
   }
 
   .page-stratege #strat-dashboard.strat-cockpit-active .offer-card::before {
@@ -2325,7 +2524,7 @@
     background:
       radial-gradient(circle at 16% 0%, rgba(232,224,204,.15), transparent 34%),
       linear-gradient(140deg, rgba(232,224,204,.06), color-mix(in srgb, var(--text-primary) 1.5%, transparent) 44%),
-      #151516 !important;
+      var(--bg-card) !important;
   }
 
   .page-stratege #strat-dashboard.strat-cockpit-active .mono-action-card {
@@ -2359,7 +2558,7 @@
   .page-stratege #strat-dashboard.strat-cockpit-active .createur-bridge {
     background:
       linear-gradient(135deg, color-mix(in srgb, var(--champagne) 7.5%, transparent), color-mix(in srgb, var(--text-primary) 1.4%, transparent) 45%),
-      #141416 !important;
+      var(--bg-card) !important;
     border-color:color-mix(in srgb, var(--champagne) 24%, transparent) !important;
   }
 
@@ -2375,6 +2574,1112 @@
       min-height:0;
     }
   }
+
+  /* ─── Zone 3 · entretien recentré ─────────────────────────────────────
+     Une surface de travail continue : identité, conversation, contexte.
+     Les sélecteurs restent volontairement limités à l'état pré-stratégie. */
+  .page-stratege {
+    /* Réservé à la matière vocale (onde, halo micro actif, indicateur "Gabriel
+       parle") — jamais aux boutons ou à l'interface générale, qui restent
+       champagne/ivoire/noir pour rester dans l'identité de Gabriel. */
+    --interview-blue:#5877FF;
+    --interview-blue-soft:color-mix(in srgb, var(--interview-blue) 10%, transparent);
+    --interview-line:color-mix(in srgb, var(--text-primary) 8%, transparent);
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) {
+    width:min(100%, 940px);
+    margin-inline:auto;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-panel {
+    max-width:none;
+    gap:0;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-identity {
+    min-height:48px;
+    padding:0 4px 16px;
+    margin-bottom:0;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-identity-avatar {
+    width:28px;
+    height:28px;
+    border-radius:5px;
+    font-size:11px;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-identity-name {
+    font-size:12px;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-header {
+    position:relative;
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label badge"
+      "title badge"
+      "progress progress";
+    align-items:center;
+    column-gap:22px;
+    min-height:92px;
+    padding:17px 20px 16px;
+    border-radius:7px 7px 0 0;
+    border-color:var(--interview-line);
+    background:color-mix(in srgb, var(--bg-card) 96%, transparent);
+    box-shadow:inset 0 1px 0 color-mix(in srgb, var(--text-primary) 3%, transparent);
+    cursor:default;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-header-label {
+    grid-area:label;
+    margin:0 0 3px;
+    color:var(--champagne);
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-header-title {
+    grid-area:title;
+    margin:0;
+    font-size:15px;
+    font-weight:550;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-badge {
+    grid-area:badge;
+    justify-self:end;
+    border-radius:999px;
+    padding:5px 10px;
+    max-width:260px;
+    text-align:right;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-progress {
+    grid-area:progress;
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+    align-items:center;
+    gap:12px;
+    margin:14px 0 0;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-progress-label {
+    margin:0;
+    white-space:nowrap;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) #interview-hero {
+    position:relative;
+    min-height:clamp(430px, 58vh, 590px);
+    justify-content:center;
+    gap:0;
+    padding:54px clamp(24px, 7vw, 82px) 50px;
+    overflow:hidden;
+    border-top:0;
+    border-radius:0 0 7px 7px;
+    border-color:var(--interview-line);
+    background:
+      radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--champagne) 13%, transparent), transparent 56%),
+      var(--bg-card);
+    box-shadow:0 28px 76px rgba(0,0,0,.18), inset 0 1px 0 color-mix(in srgb, var(--text-primary) 3%, transparent);
+  }
+
+  .page-stratege .hero-avatar {
+    width:48px;
+    height:48px;
+    margin:0 0 20px;
+  }
+
+  .page-stratege .hero-avatar-mark {
+    border-radius:6px;
+    font-size:17px;
+  }
+
+  .page-stratege .hero-avatar-ring {
+    display:none;
+  }
+
+  .page-stratege .hero-kicker {
+    margin-bottom:12px;
+    letter-spacing:.14em;
+  }
+
+  .page-stratege .hero-h1 {
+    max-width:660px;
+    margin-bottom:12px;
+    font-size:clamp(28px, 4vw, 42px);
+    font-weight:520;
+    letter-spacing:0;
+  }
+
+  .page-stratege .hero-sub {
+    max-width:560px;
+    margin:0;
+    color:var(--text-muted);
+  }
+
+  .interview-wave {
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    width:min(100%, 520px);
+    height:92px;
+    margin:26px auto 20px;
+  }
+
+  .interview-wave::before {
+    content:'';
+    position:absolute;
+    left:0;
+    right:0;
+    top:50%;
+    height:1px;
+    background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--interview-blue) 38%, transparent), transparent);
+  }
+
+  .interview-wave span {
+    position:relative;
+    width:3px;
+    height:var(--wave-height, 18%);
+    min-height:3px;
+    border-radius:2px;
+    background:color-mix(in srgb, var(--interview-blue) 70%, var(--champagne));
+    opacity:var(--wave-opacity, .48);
+    animation:interview-wave-idle 2.8s ease-in-out infinite;
+    animation-delay:var(--wave-delay, 0s);
+  }
+
+  @keyframes interview-wave-idle {
+    0%,100% { transform:scaleY(.62); opacity:.34; }
+    50% { transform:scaleY(1); opacity:.72; }
+  }
+
+  /* Le CTA reste champagne/ivoire — le bleu est réservé à la matière vocale
+     (onde, halo d'écoute) plus bas, jamais au bouton principal ni aux
+     contrôles d'interface : sinon Gabriel ressemble à un composant générique
+     greffé sur l'app plutôt qu'à sa propre identité. */
+  .page-stratege .hero-cta {
+    min-width:250px;
+    justify-content:center;
+    padding:12px 18px;
+    border-radius:6px;
+  }
+
+  .page-stratege .hero-text-fallback {
+    margin-top:13px;
+    text-decoration:none;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .chat-window {
+    min-height:min(610px, calc(100vh - 280px));
+    max-height:720px;
+    border-top:0;
+    border-radius:0 0 7px 7px;
+    border-color:var(--interview-line);
+    box-shadow:0 28px 76px rgba(0,0,0,.18);
+  }
+
+  .page-stratege .voice-toolbar {
+    min-height:48px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--interview-line);
+  }
+
+  .page-stratege .voice-toggle {
+    min-height:28px;
+    padding:5px 10px;
+    border-radius:999px;
+  }
+
+  .voice-live-status {
+    display:none;
+    align-items:center;
+    gap:9px;
+    min-width:0;
+    color:var(--text-secondary);
+    font-size:10px;
+  }
+
+  .voice-live-bars {
+    display:flex;
+    align-items:center;
+    gap:2px;
+    height:14px;
+  }
+
+  .voice-live-bars span {
+    width:2px;
+    height:35%;
+    border-radius:1px;
+    background:var(--interview-blue);
+  }
+
+  /* Visibilité pilotée en JS (.active), pas par .is-recording seul : ce
+     statut reste affiché pendant l'écoute ET la transcription ET la
+     relecture — trois phases, un seul indicateur textuel qui change de
+     libellé (voir _setVoiceLiveLabel). */
+  .voice-live-status.active {
+    display:flex;
+  }
+
+  .voice-live-bars span {
+    transition:height .09s ease-out;
+  }
+
+  /* Repli discret si l'analyse audio réelle échoue (navigateur restrictif) —
+     classe posée par JS uniquement quand la vraie réactivité n'a pas pu
+     démarrer, jamais en même temps que les hauteurs pilotées en direct
+     (sinon l'animation en carton écraserait le signal réel à chaque frame). */
+  .voice-live-bars.wave-fallback span {
+    animation:voice-live-bar-fallback 1.6s ease-in-out infinite;
+  }
+  .voice-live-bars.wave-fallback span:nth-child(2) { animation-delay:.1s; }
+  .voice-live-bars.wave-fallback span:nth-child(3) { animation-delay:.2s; }
+  .voice-live-bars.wave-fallback span:nth-child(4) { animation-delay:.3s; }
+  .voice-live-bars.wave-fallback span:nth-child(5) { animation-delay:.4s; }
+
+  @keyframes voice-live-bar-fallback {
+    0%,100% { height:30%; opacity:.4; }
+    50%     { height:55%; opacity:.7; }
+  }
+
+  .page-stratege .voice-speaking-badge.active {
+    color:var(--interview-blue);
+    border-color:color-mix(in srgb, var(--interview-blue) 24%, transparent);
+    background:var(--interview-blue-soft);
+  }
+
+  .page-stratege .voice-speaking-badge .voice-wave span {
+    background:var(--interview-blue);
+  }
+
+  .page-stratege .chat-messages {
+    padding:26px clamp(18px, 4vw, 38px);
+  }
+
+  .page-stratege .msg {
+    max-width:min(78%, 620px);
+  }
+
+  .page-stratege .msg.agent .msg-bubble,
+  .page-stratege .msg.user .msg-bubble {
+    border-radius:5px;
+  }
+
+  .page-stratege .mic-btn,
+  .page-stratege .chat-send {
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+
+  /* Micro au repos : champagne, comme le reste de l'interface. Le bleu
+     n'apparaît que lorsque le micro est réellement actif (::recording,
+     plus bas) — c'est là qu'il représente la voix en train de se passer,
+     pas un simple bouton. */
+
+  .page-stratege .mic-btn.recording {
+    background:var(--interview-blue);
+  }
+
+  .page-stratege .mic-btn.recording svg {
+    stroke:#FFFFFF;
+  }
+
+  .page-stratege .mic-btn.recording::before {
+    border-radius:50%;
+    border-color:color-mix(in srgb, var(--interview-blue) 42%, transparent);
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-fields-panel {
+    margin-top:16px;
+    padding:12px;
+    border-radius:7px;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-fields {
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0, 1fr));
+    gap:4px;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-field {
+    min-height:34px;
+    align-items:center;
+    padding:7px 8px;
+    border:1px solid transparent;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .ctx-field.filled {
+    border-color:var(--interview-line);
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .strat-cta {
+    width:min(100%, 420px);
+    margin:14px auto 0;
+  }
+
+  .page-stratege .strat-layout:not(.has-strategy) .strat-cta-btn {
+    min-height:42px;
+    border-radius:6px;
+  }
+
+  :root[data-theme="light"] .page-stratege .strat-layout:not(.has-strategy) #interview-hero,
+  :root[data-theme="light"] .page-stratege .strat-layout:not(.has-strategy) .chat-window {
+    box-shadow:0 24px 64px rgba(17,19,24,.09);
+  }
+
+  :root[data-theme="light"] .page-stratege .strat-layout:not(.has-strategy) #interview-hero {
+    background:
+      radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--champagne) 10%, transparent), transparent 56%),
+      #FFFFFF;
+  }
+
+  @media (max-width:700px) {
+    .page-stratege .strat-layout:not(.has-strategy) .ctx-header {
+      grid-template-columns:1fr;
+      grid-template-areas:"label" "title" "badge" "progress";
+      row-gap:5px;
+      padding:15px;
+    }
+
+    .page-stratege .strat-layout:not(.has-strategy) .ctx-badge {
+      justify-self:start;
+      text-align:left;
+      margin-top:4px !important;
+    }
+
+    .page-stratege .strat-layout:not(.has-strategy) .ctx-progress {
+      grid-template-columns:1fr;
+      gap:6px;
+      margin-top:10px;
+    }
+
+    .page-stratege .strat-layout:not(.has-strategy) #interview-hero {
+      min-height:440px;
+      padding:40px 20px 36px;
+    }
+
+    .page-stratege .hero-h1 {
+      font-size:30px;
+    }
+
+    .interview-wave {
+      height:72px;
+      margin:20px auto 16px;
+    }
+
+    .page-stratege .hero-cta {
+      width:100%;
+      min-width:0;
+    }
+
+    .page-stratege .strat-layout:not(.has-strategy) .ctx-fields {
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+
+    .page-stratege .msg {
+      max-width:90%;
+    }
+  }
+
+  @media (prefers-reduced-motion:reduce) {
+    .interview-wave span,
+    .chat-window.is-recording .voice-live-bars span {
+      animation:none !important;
+    }
+  }
+
+  /* ─── Introduction immersive · studio vocal Gabriel ───────────────── */
+  body.page-stratege.stratege-interview-intro .pipeline-bar { display:none; }
+  body.page-stratege.stratege-interview-intro .app-content {
+    padding-top:18px;
+    padding-bottom:18px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro {
+    position:relative;
+    height:clamp(640px, calc(100svh - 112px), 860px);
+    min-height:640px;
+    isolation:isolate;
+    overflow:hidden;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .strat-memory,
+  .page-stratege .ctx-panel.interview-intro .strat-idle,
+  .page-stratege .ctx-panel.interview-intro .psycho-banner {
+    display:none !important;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-identity {
+    position:absolute;
+    z-index:4;
+    top:22px;
+    left:22px;
+    right:auto;
+    width:230px;
+    min-height:48px;
+    margin:0;
+    padding:9px 11px;
+    border:1px solid var(--interview-line);
+    border-radius:6px;
+    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-header {
+    position:absolute;
+    z-index:4;
+    top:22px;
+    right:22px;
+    width:230px;
+    min-height:0;
+    display:block;
+    padding:10px 11px;
+    border-radius:6px;
+    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-header-label {
+    margin-bottom:3px;
+    font-size:8px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-header-title {
+    margin:0 0 7px;
+    font-size:11px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-badge {
+    display:inline-flex;
+    max-width:100%;
+    padding:3px 7px;
+    font-size:8px;
+    text-align:left;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-progress {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:4px;
+    margin-top:8px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-progress-label { font-size:8px; }
+
+  .page-stratege .ctx-panel.interview-intro #interview-hero {
+    width:100%;
+    height:100%;
+    min-height:0;
+    padding:112px clamp(24px, 6vw, 80px) 118px;
+    border:1px solid var(--interview-line);
+    border-radius:7px;
+    background:
+      radial-gradient(ellipse at 50% 54%, color-mix(in srgb, var(--champagne) 4%, transparent), transparent 36%),
+      color-mix(in srgb, var(--bg-main) 96%, #000);
+    box-shadow:inset 0 1px 0 color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-avatar { display:none; }
+  .page-stratege .ctx-panel.interview-intro .hero-kicker {
+    order:1;
+    margin-bottom:13px;
+    color:color-mix(in srgb, var(--champagne) 72%, transparent);
+  }
+  .page-stratege .ctx-panel.interview-intro .hero-sub {
+    order:2;
+    max-width:470px;
+    margin-bottom:22px;
+    font-size:12px;
+    color:var(--text-muted);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-cta {
+    order:3;
+    width:58px;
+    min-width:58px;
+    height:58px;
+    padding:0;
+    border-radius:50%;
+    font-size:0;
+    background:color-mix(in srgb, var(--bg-card) 92%, var(--text-primary));
+    color:var(--text-primary);
+    border:1px solid color-mix(in srgb, var(--champagne) 40%, transparent);
+    box-shadow:
+      0 0 0 6px color-mix(in srgb, var(--text-primary) 3%, transparent),
+      0 0 0 8px color-mix(in srgb, var(--champagne) 13%, transparent),
+      0 16px 42px rgba(0,0,0,.25);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-cta:hover {
+    transform:translateY(-1px);
+    box-shadow:
+      0 0 0 7px color-mix(in srgb, var(--text-primary) 4%, transparent),
+      0 0 0 9px color-mix(in srgb, var(--champagne) 20%, transparent),
+      0 20px 48px rgba(0,0,0,.30);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-cta-icon {
+    width:100%;
+    height:100%;
+    background:transparent;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-cta-icon svg {
+    width:20px;
+    height:20px;
+    stroke:var(--text-primary);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .interview-wave {
+    order:4;
+    height:62px;
+    margin:12px auto 14px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .interview-wave::before {
+    background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--champagne) 32%, transparent), transparent);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .interview-wave span {
+    width:2px;
+    background:color-mix(in srgb, var(--champagne) 74%, var(--text-primary));
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-h1 {
+    order:5;
+    max-width:440px;
+    margin:0;
+    font-size:clamp(22px, 2.5vw, 32px);
+    line-height:1.12;
+    font-weight:400;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-text-fallback { display:none; }
+
+  .page-stratege .ctx-panel.interview-intro .chat-window {
+    position:absolute !important;
+    z-index:5;
+    left:50%;
+    bottom:24px;
+    width:min(660px, calc(100% - 48px));
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none;
+    transform:translateX(-50%);
+    overflow:visible;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .voice-toolbar,
+  .page-stratege .ctx-panel.interview-intro .chat-messages {
+    display:none !important;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .chat-input-row {
+    min-height:50px;
+    padding:7px 8px 7px 16px;
+    border:1px solid color-mix(in srgb, var(--text-primary) 11%, transparent);
+    border-radius:8px;
+    background:color-mix(in srgb, var(--text-primary) 8%, var(--bg-main));
+    box-shadow:0 16px 44px rgba(0,0,0,.18);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .chat-input {
+    min-height:34px;
+    padding:6px 2px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .chat-send {
+    color:var(--champagne);
+    border:1px solid color-mix(in srgb, var(--champagne) 24%, transparent);
+    background:color-mix(in srgb, var(--champagne) 9%, transparent);
+  }
+
+  :root[data-theme="light"] .page-stratege .ctx-panel.interview-intro #interview-hero {
+    background:
+      radial-gradient(ellipse at 50% 54%, rgba(164,125,67,.04), transparent 36%),
+      #FDFDFD;
+    box-shadow:inset 0 1px 0 #FFFFFF;
+  }
+
+  :root[data-theme="light"] .page-stratege .ctx-panel.interview-intro .chat-input-row {
+    background:#F3F4F5;
+    border-color:rgba(17,19,24,.11);
+    box-shadow:0 16px 42px rgba(17,19,24,.08);
+  }
+
+  @media (max-width:900px) {
+    body.page-stratege.stratege-interview-intro .app-content { padding:14px; }
+    .page-stratege .ctx-panel.interview-intro {
+      height:auto;
+      min-height:auto;
+      overflow:visible;
+    }
+    .page-stratege .ctx-panel.interview-intro .ctx-identity,
+    .page-stratege .ctx-panel.interview-intro .ctx-header {
+      position:relative;
+      inset:auto;
+      width:100%;
+      border-radius:6px;
+    }
+    .page-stratege .ctx-panel.interview-intro .ctx-identity { margin-bottom:8px; }
+    .page-stratege .ctx-panel.interview-intro #interview-hero {
+      min-height:580px;
+      height:auto;
+      padding:70px 20px 112px;
+      border-radius:7px;
+    }
+    .page-stratege .ctx-panel.interview-intro .hero-sub { max-width:360px; }
+  }
+
+  @media (max-width:520px) {
+    .page-stratege .ctx-panel.interview-intro #interview-hero {
+      min-height:540px;
+      padding-top:54px;
+    }
+    .page-stratege .ctx-panel.interview-intro .hero-h1 { font-size:25px; }
+    .page-stratege .ctx-panel.interview-intro .chat-window {
+      bottom:18px;
+      width:calc(100% - 28px);
+    }
+  }
+
+  /* ─── Continuité de l'entretien après l'introduction ──────────────── */
+  body.page-stratege.stratege-interview-session .pipeline-bar { display:none; }
+  body.page-stratege.stratege-interview-session .app-content {
+    padding-top:18px;
+    padding-bottom:18px;
+  }
+
+  .page-stratege .ctx-panel.interview-session {
+    position:relative;
+    height:clamp(680px, calc(100svh - 112px), 900px);
+    min-height:680px;
+    max-width:none;
+    overflow:hidden;
+    isolation:isolate;
+    border:1px solid var(--interview-line);
+    border-radius:7px;
+    background:
+      radial-gradient(ellipse at 50% 34%, color-mix(in srgb, var(--champagne) 3.5%, transparent), transparent 40%),
+      color-mix(in srgb, var(--bg-main) 96%, #000);
+    box-shadow:inset 0 1px 0 color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+  }
+
+  .page-stratege .ctx-panel.interview-session .strat-memory,
+  .page-stratege .ctx-panel.interview-session .strat-idle,
+  .page-stratege .ctx-panel.interview-session .psycho-banner {
+    display:none !important;
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-identity {
+    position:absolute;
+    z-index:4;
+    top:20px;
+    left:22px;
+    width:230px;
+    min-height:48px;
+    margin:0;
+    padding:9px 11px;
+    border:1px solid var(--interview-line);
+    border-radius:6px;
+    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-header {
+    position:absolute;
+    z-index:4;
+    top:20px;
+    right:22px;
+    width:230px;
+    min-height:0;
+    display:block;
+    padding:10px 11px;
+    border-radius:6px;
+    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-header-label {
+    margin-bottom:3px;
+    font-size:8px;
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-header-title {
+    margin:0 0 7px;
+    font-size:11px;
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-badge {
+    display:inline-flex;
+    max-width:100%;
+    padding:3px 7px;
+    font-size:8px;
+    text-align:left;
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-progress {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:4px;
+    margin-top:8px;
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-progress-label {
+    margin:0;
+    font-size:8px;
+  }
+
+  .page-stratege .ctx-panel.interview-session .chat-window {
+    position:absolute !important;
+    z-index:2;
+    top:136px;
+    left:50%;
+    bottom:116px;
+    width:min(760px, calc(100% - 48px));
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none;
+    transform:translateX(-50%);
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+  }
+
+  .page-stratege .ctx-panel.interview-session .voice-toolbar {
+    min-height:42px;
+    padding:7px 2px;
+    border-bottom:1px solid var(--interview-line);
+  }
+
+  .page-stratege .ctx-panel.interview-session .chat-messages {
+    padding:24px 4px;
+    scrollbar-gutter:stable;
+  }
+
+  .page-stratege .ctx-panel.interview-session .msg {
+    max-width:min(82%, 620px);
+  }
+
+  .page-stratege .ctx-panel.interview-session .chat-input-row {
+    min-height:52px;
+    padding:7px 8px 7px 16px;
+    border:1px solid color-mix(in srgb, var(--text-primary) 11%, transparent);
+    border-radius:8px;
+    background:color-mix(in srgb, var(--text-primary) 8%, var(--bg-main));
+    box-shadow:0 16px 44px rgba(0,0,0,.18);
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-fields-panel {
+    position:absolute;
+    z-index:3;
+    left:22px;
+    bottom:18px;
+    width:calc(100% - 392px);
+    min-height:76px;
+    margin:0;
+    padding:8px;
+    overflow:hidden;
+    border-radius:6px;
+    background:color-mix(in srgb, var(--bg-card) 72%, transparent);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-fields {
+    display:grid;
+    grid-template-columns:repeat(4, minmax(0, 1fr));
+    gap:3px;
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-field {
+    min-height:27px;
+    align-items:center;
+    padding:4px 5px;
+  }
+
+  .page-stratege .ctx-panel.interview-session .ctx-field-label {
+    font-size:8px;
+  }
+
+  .page-stratege .ctx-panel.interview-session .strat-cta {
+    position:absolute;
+    z-index:3;
+    right:22px;
+    bottom:18px;
+    width:340px;
+    min-height:76px;
+    margin:0;
+    justify-content:center;
+    padding:9px;
+    border:1px solid var(--interview-line);
+    border-radius:6px;
+    background:color-mix(in srgb, var(--bg-card) 72%, transparent);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+
+  .page-stratege .ctx-panel.interview-session .strat-cta-btn {
+    min-height:36px;
+    border-radius:5px;
+  }
+
+  :root[data-theme="light"] .page-stratege .ctx-panel.interview-session {
+    background:
+      radial-gradient(ellipse at 50% 34%, rgba(164,125,67,.035), transparent 40%),
+      #FDFDFD;
+    box-shadow:inset 0 1px 0 #FFFFFF;
+  }
+
+  :root[data-theme="light"] .page-stratege .ctx-panel.interview-session .chat-input-row {
+    background:#F3F4F5;
+    border-color:rgba(17,19,24,.11);
+    box-shadow:0 16px 42px rgba(17,19,24,.08);
+  }
+
+  @media (max-width:900px) {
+    body.page-stratege.stratege-interview-session .app-content { padding:14px; }
+    .page-stratege .ctx-panel.interview-session {
+      height:auto;
+      min-height:0;
+      overflow:visible;
+      padding:12px;
+    }
+    .page-stratege .ctx-panel.interview-session .ctx-identity,
+    .page-stratege .ctx-panel.interview-session .ctx-header,
+    .page-stratege .ctx-panel.interview-session .chat-window,
+    .page-stratege .ctx-panel.interview-session .ctx-fields-panel,
+    .page-stratege .ctx-panel.interview-session .strat-cta {
+      position:relative !important;
+      inset:auto !important;
+      width:100%;
+      transform:none;
+    }
+    .page-stratege .ctx-panel.interview-session .ctx-identity,
+    .page-stratege .ctx-panel.interview-session .ctx-header {
+      margin-bottom:8px;
+    }
+    .page-stratege .ctx-panel.interview-session .chat-window {
+      height:clamp(460px, 62svh, 620px) !important;
+      margin-bottom:10px;
+    }
+    .page-stratege .ctx-panel.interview-session .ctx-fields-panel {
+      min-height:0;
+      margin-bottom:10px;
+    }
+    .page-stratege .ctx-panel.interview-session .strat-cta {
+      min-height:0;
+    }
+  }
+
+  @media (max-width:520px) {
+    .page-stratege .ctx-panel.interview-session {
+      padding:8px;
+    }
+    .page-stratege .ctx-panel.interview-session .ctx-fields {
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+    .page-stratege .ctx-panel.interview-session .msg {
+      max-width:92%;
+    }
+  }
+
+  /* ─── Hiérarchie finale : un rail, une conversation, une action ───── */
+  .page-stratege .ctx-panel.interview-intro::before,
+  .page-stratege .ctx-panel.interview-session::before {
+    content:'';
+    position:absolute;
+    z-index:3;
+    top:20px;
+    left:22px;
+    right:22px;
+    height:72px;
+    border:1px solid var(--interview-line);
+    border-radius:6px;
+    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-identity,
+  .page-stratege .ctx-panel.interview-session .ctx-identity {
+    top:20px;
+    left:22px;
+    width:310px;
+    height:72px;
+    min-height:72px;
+    padding:11px 14px;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-header,
+  .page-stratege .ctx-panel.interview-session .ctx-header {
+    top:20px;
+    right:22px;
+    width:430px;
+    height:72px;
+    min-height:72px;
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label badge"
+      "title badge"
+      "progress progress";
+    align-items:center;
+    column-gap:14px;
+    padding:10px 14px;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-header-label,
+  .page-stratege .ctx-panel.interview-session .ctx-header-label {
+    grid-area:label;
+    margin:0 0 2px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-header-title,
+  .page-stratege .ctx-panel.interview-session .ctx-header-title {
+    grid-area:title;
+    margin:0;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-badge,
+  .page-stratege .ctx-panel.interview-session .ctx-badge {
+    grid-area:badge;
+    justify-self:end;
+    margin:0 !important;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-progress,
+  .page-stratege .ctx-panel.interview-session .ctx-progress {
+    grid-area:progress;
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+    align-items:center;
+    gap:10px;
+    margin:7px 0 0;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .ctx-progress-label,
+  .page-stratege .ctx-panel.interview-session .ctx-progress-label {
+    white-space:nowrap;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-kicker { display:none; }
+
+  .page-stratege .ctx-panel.interview-intro .hero-h1 {
+    order:1;
+    margin:0 0 14px;
+    font-size:clamp(28px, 3.2vw, 42px);
+    font-weight:450;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-sub {
+    order:2;
+    max-width:590px;
+    margin-bottom:27px;
+    color:var(--text-secondary);
+    font-size:13.5px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-cta {
+    order:3;
+    width:68px;
+    min-width:68px;
+    height:68px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .hero-cta::after {
+    content:'Appuyez pour parler';
+    position:absolute;
+    top:calc(100% + 11px);
+    left:50%;
+    transform:translateX(-50%);
+    color:var(--text-muted);
+    font-family:var(--font-main);
+    font-size:10px;
+    font-weight:500;
+    letter-spacing:.02em;
+    white-space:nowrap;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .interview-wave {
+    order:4;
+    margin:30px auto 0;
+  }
+
+  .page-stratege .ctx-panel.interview-intro #interview-hero {
+    padding-top:124px;
+    padding-bottom:124px;
+  }
+
+  .page-stratege .ctx-panel.interview-intro .chat-input::placeholder {
+    color:color-mix(in srgb, var(--text-secondary) 70%, transparent);
+  }
+
+  @media (max-width:900px) {
+    .page-stratege .ctx-panel.interview-intro::before,
+    .page-stratege .ctx-panel.interview-session::before {
+      display:none;
+    }
+
+    .page-stratege .ctx-panel.interview-intro .ctx-identity,
+    .page-stratege .ctx-panel.interview-session .ctx-identity,
+    .page-stratege .ctx-panel.interview-intro .ctx-header,
+    .page-stratege .ctx-panel.interview-session .ctx-header {
+      width:100%;
+      height:auto;
+      min-height:0;
+      border:1px solid var(--interview-line);
+      border-radius:6px;
+      background:color-mix(in srgb, var(--bg-card) 84%, transparent);
+    }
+
+    .page-stratege .ctx-panel.interview-intro .ctx-header,
+    .page-stratege .ctx-panel.interview-session .ctx-header {
+      display:block;
+    }
+
+    .page-stratege .ctx-panel.interview-intro .ctx-progress,
+    .page-stratege .ctx-panel.interview-session .ctx-progress {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:4px;
+    }
+  }
+
+  @media (max-width:520px) {
+    .page-stratege .ctx-panel.interview-intro .hero-h1 {
+      font-size:29px;
+    }
+    .page-stratege .ctx-panel.interview-intro .hero-sub {
+      font-size:12px;
+    }
+  }
+
 </style>
 {% endblock %}
 
@@ -2407,48 +3712,18 @@
   <!-- ── Left: Context Builder ─────────────────────────── -->
   <div class="ctx-panel">
 
-    <div class="ctx-header" onclick="toggleBusinessContextCompact()">
-      <div class="ctx-header-label">Context Builder</div>
-      <div class="ctx-header-title">Contexte business</div>
-      <div class="ctx-badge empty" id="ctx-badge">
-        <div class="ctx-dot"></div>
-        <span id="ctx-badge-text">Contextualisation requise</span>
-      </div>
-      <div class="ctx-progress">
-        <div class="ctx-progress-bar"><div class="ctx-progress-fill" id="ctx-bar" style="width:0%"></div></div>
-        <div class="ctx-progress-label" id="ctx-label">0 / 7 informations collectées</div>
+    <div class="ctx-identity">
+      <div class="ctx-identity-avatar">◈</div>
+      <div>
+        <div class="ctx-identity-name">Le Stratège</div>
+        <div class="ctx-identity-role">Conseil, décision et développement d'entreprise</div>
       </div>
     </div>
 
-    <div class="chat-window">
-      <div class="chat-messages" id="chat-messages"></div>
-      <div class="chat-input-row">
-        <textarea class="chat-input" id="chat-input" placeholder="Répondez ici…" rows="1"
-          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-        <button class="chat-send" id="chat-send" onclick="sendMessage()" title="Envoyer">
-          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <div class="ctx-fields-panel">
-      <div class="ctx-fields" id="ctx-fields"></div>
-    </div>
-
-    <div class="strat-cta">
-      <button class="strat-cta-btn locked" id="strat-launch-btn" onclick="launchStratege()" disabled data-tour="stratege-start">
-        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Générer la stratégie
-      </button>
-      <div class="strat-cta-hint" id="strat-cta-hint">Complétez le contexte pour débloquer le Stratège</div>
-    </div>
-
-  </div>
-
-  <!-- ── Right: States ─────────────────────────────────── -->
-  <div id="strat-right">
-
-    <!-- Psycho banner — shown when analysis is available -->
+    <!-- Psycho banner — shown when analysis is available. Déplacé ici
+         (au-dessus de la conversation) pour que le Context Builder forme un
+         seul écran de conversation plein écran, plutôt qu'une colonne de
+         chat à côté d'une colonne d'état séparée. -->
     <div class="psycho-banner hidden" id="strat-psycho-banner">
       <div class="psycho-banner-top">
         <div class="psycho-banner-icon">🧠</div>
@@ -2471,7 +3746,8 @@
       </div>
     </div>
 
-    <!-- Mémoire stratégique : stratégies sauvegardées -->
+    <!-- Mémoire stratégique : stratégies sauvegardées — déplacée ici pour
+         la même raison que le psycho-banner ci-dessus. -->
     <div class="strat-memory hidden" id="strat-memory">
       <div class="strat-memory-head">
         <div class="strat-memory-title">
@@ -2483,12 +3759,129 @@
       <div class="strat-memory-list" id="strat-memory-list"></div>
     </div>
 
-    <!-- Idle -->
+    <!-- Idle / résumé d'analyse restaurée — déplacée ici pour la même raison.
+         Cette div sert aussi de zone de contenu réutilisée par
+         _showPsychoLinked() pour afficher le résumé d'une analyse restaurée
+         depuis l'historique (voir tryRestoreStratege()) — conservée intacte,
+         seulement repositionnée, jamais supprimée. -->
     <div class="strat-idle" id="strat-idle">
       <div class="strat-idle-glyph">◈</div>
       <div class="strat-idle-title">Le Stratège attend</div>
-      <div class="strat-idle-desc">Répondez aux questions à gauche pour construire votre contexte business. La stratégie se débloque dès que le contexte est complet.</div>
+      <div class="strat-idle-desc">Répondez aux questions ci-dessous pour construire votre contexte business. La stratégie se débloque dès que le contexte est complet.</div>
     </div>
+
+    <div class="ctx-header" role="button" tabindex="0" aria-expanded="false" aria-controls="chat-messages ctx-fields" onclick="toggleBusinessContextCompact()">
+      <div class="ctx-header-label">Entretien stratégique</div>
+      <div class="ctx-header-title">Comprendre votre entreprise</div>
+      <div class="ctx-badge empty" id="ctx-badge">
+        <div class="ctx-dot"></div>
+        <span id="ctx-badge-text">Contextualisation requise</span>
+      </div>
+      <div class="ctx-progress">
+        <div class="ctx-progress-bar"><div class="ctx-progress-fill" id="ctx-bar" style="width:0%"></div></div>
+        <div class="ctx-progress-label" id="ctx-label">0 / 7 dimensions couvertes</div>
+      </div>
+    </div>
+
+    <!-- Hero d'accueil — visible uniquement tant qu'aucune réponse
+         utilisateur n'existe encore (voir _maybeShowInterviewHero). Le but
+         est de déclencher l'entretien activement, pas de laisser
+         l'utilisateur découvrir tout seul qu'il peut écrire ou parler. -->
+    <div class="hidden" id="interview-hero">
+      <div class="hero-avatar">
+        <div class="hero-avatar-ring"></div>
+        <div class="hero-avatar-mark">◈</div>
+      </div>
+      <div class="hero-kicker">Entretien stratégique</div>
+      <h1 class="hero-h1">Apprenons à nous connaître.</h1>
+      <div class="hero-sub">Quelques questions, à votre rythme, pour que je comprenne votre entreprise comme vous la vivez — pas comme un formulaire la résumerait.</div>
+      <div class="interview-wave" aria-hidden="true">
+        <span style="--wave-height:8%;--wave-delay:-.1s"></span>
+        <span style="--wave-height:14%;--wave-delay:-.3s"></span>
+        <span style="--wave-height:22%;--wave-delay:-.5s"></span>
+        <span style="--wave-height:34%;--wave-delay:-.7s"></span>
+        <span style="--wave-height:48%;--wave-delay:-.9s"></span>
+        <span style="--wave-height:64%;--wave-delay:-1.1s"></span>
+        <span style="--wave-height:40%;--wave-delay:-1.3s"></span>
+        <span style="--wave-height:76%;--wave-delay:-1.5s"></span>
+        <span style="--wave-height:52%;--wave-delay:-1.7s"></span>
+        <span style="--wave-height:30%;--wave-delay:-1.9s"></span>
+        <span style="--wave-height:58%;--wave-delay:-2.1s"></span>
+        <span style="--wave-height:36%;--wave-delay:-2.3s"></span>
+        <span style="--wave-height:18%;--wave-delay:-2.5s"></span>
+        <span style="--wave-height:10%;--wave-delay:-2.7s"></span>
+      </div>
+      <button type="button" class="hero-cta" onclick="startInterviewVoice()">
+        <span class="hero-cta-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </span>
+        Racontez-moi votre parcours
+      </button>
+      <button type="button" class="hero-text-fallback" onclick="startInterviewText()">Je préfère écrire</button>
+    </div>
+
+    <div class="chat-window">
+      <!-- Grand écran d'écoute — recouvre toute la carte pendant
+           l'enregistrement (Gabriel "ferme le reste" pour se concentrer sur
+           vous). Transcription en direct via la reconnaissance vocale native
+           du navigateur (gratuite, purement visuelle) ; la version envoyée
+           reste toujours celle d'ElevenLabs, plus fiable — voir
+           _handleRecordingStop et la relecture éditable dans le champ. -->
+      <div class="listening-overlay" id="listening-overlay">
+        <div class="listening-transcript" id="listening-transcript">Je vous écoute…</div>
+        <button type="button" class="listening-mic-btn" id="listening-mic-btn" onclick="toggleRecording()" title="Terminer l'enregistrement">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <div class="listening-wave" id="listening-wave" aria-hidden="true"></div>
+        <div class="listening-hint">Je termine seul après 2 secondes de silence — ou appuyez sur le micro</div>
+      </div>
+      <div class="voice-toolbar">
+        <button type="button" class="voice-toggle" id="voice-toggle" onclick="toggleVoiceMode()" title="Parler et écouter Gabriel à voix haute">
+          <span class="voice-toggle-dot"></span>
+          <span id="voice-toggle-label">Mode vocal</span>
+        </button>
+        <select class="voice-picker hidden" id="voice-picker" onchange="onVoicePickerChange(this.value)" title="Voix de Gabriel"></select>
+        <div class="voice-live-status" id="voice-live-status" role="status" aria-live="polite">
+          <div class="voice-live-bars" id="voice-live-bars" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+          <span id="voice-live-label">Je vous écoute · appuyez sur le micro pour terminer</span>
+        </div>
+        <div class="voice-speaking-badge" id="voice-speaking-badge">
+          <div class="voice-wave" id="voice-speaking-wave"><span></span><span></span><span></span><span></span></div>
+          Gabriel parle…
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="chat-input" placeholder="Écrivez votre réponse ou utilisez le micro…" rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button type="button" class="mic-btn hidden" id="mic-btn" onclick="toggleRecording()" title="Parler">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button class="chat-send" id="chat-send" onclick="sendMessage()" title="Envoyer">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="ctx-fields-panel">
+      <div class="ctx-fields" id="ctx-fields"></div>
+    </div>
+
+    <div class="strat-cta">
+      <button class="strat-cta-btn locked" id="strat-launch-btn" onclick="launchStratege()" disabled data-tour="stratege-start">
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Générer la stratégie
+      </button>
+      <div class="strat-cta-hint" id="strat-cta-hint">Complétez le contexte pour débloquer le Stratège</div>
+    </div>
+
+  </div>
+
+  <!-- ── Right: States (génération + résultats uniquement — le psycho-banner
+       et la mémoire stratégique vivent maintenant dans .ctx-panel ci-dessus,
+       et l'état idle est retiré : redondant avec la conversation plein
+       écran qui communique déjà "en attente de vos réponses"). ──────── -->
+  <div id="strat-right">
 
     <!-- Analyze section -->
     <div class="strat-analyze-section hidden" id="strat-analyze-section">
@@ -2532,19 +3925,11 @@
 <script>
 document.body.classList.add('page-stratege');
 
-const REQUIRED_KEYS = ['user_role','activity','priority_offer','target_audience','business_model','current_results','main_objectives'];
-const FIELD_LABELS = {
-  user_role:        'Rôle',
-  activity:         'Activité',
-  priority_offer:   'Offre prioritaire',
-  target_audience:  'Cible',
-  business_model:   'Modèle économique',
-  current_results:  'Résultats actuels',
-  main_objectives:  'Objectif principal',
-  strategic_vision: 'Vision stratégique',
-  constraints:      'Contraintes',
-  resources:        'Ressources',
-};
+/* Le schéma des 7 dimensions (agents/context_builder/schema.py) vit côté
+   serveur — le Context Orchestrator renvoie déjà "progression" (une entrée
+   par dimension avec son statut) et "completion_score" à chaque réponse.
+   Le frontend ne duplique jamais ce schéma : il affiche ce que le serveur
+   calcule, point. */
 
 let ctx = {};
 let isReady = false;
@@ -2555,17 +3940,112 @@ let _linkedAnalysisId = null;
 let _linkedPsychoData = {};
 let _lastStratData    = {};
 let _pendingPsychoRaw = null;
-let _folderId         = new URLSearchParams(window.location.search).get('folder_id') || '';
+let _folderId         = new URLSearchParams(window.location.search).get('folder_id') || '{{ folder_id|default("") }}';
+/* IDs liés au dossier actif — injectés par Flask pour auto-charger l'espace de travail */
+const _folderStrategyId = '{{ folder_strategy_id|default("") }}';
+const _folderAnalysisId = '{{ folder_analysis_id|default("") }}';
 
-const FIRST_QUESTIONS = {
-  user_role:       'Quel est votre rôle dans ce projet ?',
-  activity:        'Quelle est votre activité principale ?',
-  priority_offer:  'Quelle offre voulez-vous développer ou vendre en priorité ?',
-  target_audience: "À qui s'adresse principalement votre offre ?",
-  business_model:  "Comment gagnez-vous de l'argent aujourd'hui ?",
-  current_results: 'Quels sont vos résultats actuels ?',
-  main_objectives: 'Quel est votre objectif prioritaire maintenant ?',
-};
+/* ── Chargement du Context Builder (état + historique de conversation) ─
+   Une seule fonction, utilisée partout où on doit (re)charger l'état — elle
+   affiche à la fois la progression par dimension ET les messages déjà
+   échangés (reprise de session, brief V1.1). */
+async function loadBusinessContext() {
+  try {
+    const r = await fetch('/business-context');
+    if (!r.ok) return null;
+    const state = await r.json();
+    ctx = state.updated_context || {};
+    updateUI(state);
+    if (Array.isArray(state.messages) && state.messages.length) {
+      renderMessages(state.messages);
+      // L'orchestrateur amorce toujours la conversation avec au moins un
+      // message d'accueil — la carte "Le Stratège attend" ferait doublon
+      // avec une conversation déjà visible juste en dessous.
+      hide('strat-idle');
+    }
+    return state;
+  } catch(e) { return null; }
+}
+
+function renderMessages(messages) {
+  const box = document.getElementById('chat-messages');
+  if (!box) return;
+  box.innerHTML = '';
+  messages.forEach(m => addMsg(m.role === 'user' ? 'user' : 'agent', m.content));
+}
+
+/* ── Hero d'accueil de l'entretien ─────────────────────
+   Tant que l'utilisateur n'a jamais répondu une seule fois, le chat reste
+   caché derrière un vrai écran d'invitation (H1 + gros bouton micro) plutôt
+   que de le laisser découvrir tout seul qu'il peut écrire ou parler. */
+function _hasUserReplied(messages) {
+  return Array.isArray(messages) && messages.some(m => m.role === 'user');
+}
+
+// .chat-window porte une règle CSS préexistante ".page-stratege .chat-window
+// { display:flex !important; ... }" (utilisée pour l'état post-stratégie) —
+// plus spécifique que ".hidden { display:none !important; }", donc classList
+// seul ne suffit pas à le cacher ici. setProperty(...,'important') sur le
+// style inline gagne face à n'importe quelle règle !important externe.
+function _forceHide(el)  { if (el) el.style.setProperty('display', 'none', 'important'); }
+function _forceShow(el)  { if (el) el.style.removeProperty('display'); }
+
+function _maybeShowInterviewHero(state) {
+  const panel = document.querySelector('.ctx-panel');
+  if (_hasUserReplied(state && state.messages)) {
+    hide('interview-hero');
+    panel?.classList.remove('interview-intro', 'interview-session');
+    document.body.classList.remove('stratege-interview-intro', 'stratege-interview-session');
+    _forceShow(document.querySelector('.chat-window'));
+    _forceShow(document.querySelector('.ctx-fields-panel'));
+    _forceShow(document.querySelector('.strat-cta'));
+    // Reprise d'une session déjà entamée : l'entretien est en cours, pas
+    // seulement au moment du clic initial — l'Orchestrateur doit rester
+    // replié tant que le contexte n'est pas prêt, pas seulement au démarrage.
+    if (!(state && state.is_ready)) _hideOrchestrateur();
+    return;
+  }
+  hide('strat-idle');
+  show('interview-hero');
+  panel?.classList.remove('interview-session');
+  panel?.classList.add('interview-intro');
+  document.body.classList.remove('stratege-interview-session');
+  document.body.classList.add('stratege-interview-intro');
+  _hideOrchestrateur();
+  // Le vrai champ texte reste disponible dès l'introduction. Le cadre est
+  // désormais de hauteur stable et lui réserve une zone basse dédiée.
+  _forceShow(document.querySelector('.chat-window'));
+  _forceHide(document.querySelector('.ctx-fields-panel'));
+  _forceHide(document.querySelector('.strat-cta'));
+}
+
+function _dismissInterviewHero() {
+  hide('interview-hero');
+  const panel = document.querySelector('.ctx-panel');
+  panel?.classList.remove('interview-intro', 'interview-session');
+  document.body.classList.remove('stratege-interview-intro', 'stratege-interview-session');
+  _forceShow(document.querySelector('.chat-window'));
+  _forceShow(document.querySelector('.ctx-fields-panel'));
+  _forceShow(document.querySelector('.strat-cta'));
+  _hideOrchestrateur();
+}
+
+function startInterviewVoice() {
+  _dismissInterviewHero();
+  if (!voiceModeOn) { voiceModeOn = true; localStorage.setItem('gabriel_voice_mode', '1'); _initVoiceUI(); }
+  _unlockAudioPlayback();
+  toggleRecording();
+}
+
+function startInterviewText() {
+  _dismissInterviewHero();
+  if (voiceModeOn) {
+    voiceModeOn = false;
+    localStorage.setItem('gabriel_voice_mode', '0');
+    _initVoiceUI();
+  }
+  document.getElementById('chat-input')?.focus();
+}
 
 /* ── Restauration depuis l'historique ───────────────── */
 async function tryRestoreStratege() {
@@ -2581,9 +4061,7 @@ async function tryRestoreStratege() {
     sessionStorage.removeItem('gabriel_restore_stratege');
     history.replaceState({}, '', '/stratege');
 
-    try { const r = await fetch('/business-context'); if (r.ok) ctx = await r.json(); } catch(e) {}
-    const filled = countFilled(ctx);
-    updateUI(ctx, filled);
+    const state = await loadBusinessContext();
 
     const full = stored.full_result || {};
     _linkedAnalysisId = restoreId;
@@ -2612,9 +4090,9 @@ async function tryRestoreStratege() {
       }
     }
 
-    addMsg('agent', filled >= REQUIRED_KEYS.length
+    addMsg('agent', (state && state.is_ready)
       ? "Analyse du Psychologue chargée ✓\n\nContexte complet — cliquez sur « Générer la stratégie »."
-      : `Analyse du Psychologue chargée ✓\n\nComplétez votre contexte business.\n\n${nextLocalQ() || ''}`);
+      : "Analyse du Psychologue chargée ✓\n\nComplétez votre contexte business ci-dessous.");
     return true;
   } catch(e) { return false; }
 }
@@ -2624,12 +4102,9 @@ async function init() {
   if (resumePendingStratege()) return;  // une génération tourne encore → reprendre le suivi
 
   // Ouverture directe d'une stratégie sauvegardée (depuis Mes Stratégies)
-  const directStrat = new URLSearchParams(window.location.search).get('strategy');
+  const directStrat = new URLSearchParams(window.location.search).get('strategy') || _folderStrategyId;
   if (directStrat) {
-    history.replaceState({}, '', '/stratege');
-    // Charger le contexte business en arrière-plan pour le panneau gauche
-    try { const r = await fetch('/business-context'); if (r.ok) ctx = await r.json(); } catch(e) {}
-    updateUI(ctx, countFilled(ctx));
+    await loadBusinessContext();
     openStrategy(directStrat);
     return;
   }
@@ -2649,25 +4124,15 @@ async function init() {
     } catch(e) {}
   }
 
-  try {
-    const r = await fetch('/business-context');
-    if (r.ok) ctx = await r.json();
-  } catch(e) {}
+  // loadBusinessContext() affiche déjà les messages : soit la reprise d'une
+  // session en cours, soit le message d'ouverture de l'orchestrateur pour
+  // une session neuve — jamais géré ici en dur.
+  const _cbState = await loadBusinessContext();
 
-  const filled = countFilled(ctx);
-  updateUI(ctx, filled);
-
-  if (!_pendingPsychoRaw) {
-    if (filled === 0) {
-      addMsg('agent', "Bonjour — je suis l'agent Context Builder de Gabriel.\n\nAvant de générer votre stratégie, j'ai besoin de comprendre votre contexte business.\n\nCommençons : Quel est votre rôle dans ce projet ?");
-    } else if (filled >= REQUIRED_KEYS.length) {
-      addMsg('agent', "Votre contexte business est complet. Vous pouvez lancer le Stratège directement, ou préciser certains points.");
-    } else {
-      const q = nextLocalQ();
-      addMsg('agent', `Contexte partiellement renseigné (${filled}/${REQUIRED_KEYS.length}). Continuons.\n\n${q}`);
-    }
-  } else {
+  if (_pendingPsychoRaw) {
     addMsg('agent', "Analyse du Psychologue détectée ✓\n\nCliquez sur « Recevoir l'analyse » à droite pour importer les insights d'audience, puis complétez le contexte business ici.");
+  } else {
+    _maybeShowInterviewHero(_cbState);
   }
 
   loadRecentStrategies();
@@ -2678,7 +4143,8 @@ async function loadRecentStrategies() {
   // Ne pas afficher si on est déjà sur une analyse liée ou un dashboard
   if (_pendingPsychoRaw) return;
   try {
-    const r = await fetch('/strategies');
+    const _stratUrl = '/strategies' + (_folderId ? '?folder_id=' + encodeURIComponent(_folderId) : '');
+    const r = await fetch(_stratUrl);
     if (!r.ok) return;
     const list = await r.json();
     if (!Array.isArray(list) || !list.length) return;
@@ -2734,7 +4200,8 @@ async function deleteStrategy(ev, strategyId) {
 
 async function loadRecentStrategies_refresh() {
   try {
-    const r = await fetch('/strategies');
+    const _stratUrl = '/strategies' + (_folderId ? '?folder_id=' + encodeURIComponent(_folderId) : '');
+    const r = await fetch(_stratUrl);
     const list = r.ok ? await r.json() : [];
     if (Array.isArray(list) && list.length) {
       renderRecentStrategies(list.slice(0, 6));
@@ -2792,8 +4259,7 @@ function skipPsychoImport() {
   _pendingPsychoRaw = null;
   sessionStorage.removeItem('gabriel_for_stratege');
   hide('strat-psycho-banner');
-  show('strat-idle');
-  addMsg('agent', "Analyse ignorée. Quel est votre rôle dans ce projet ?");
+  _maybeShowInterviewHero({messages: []});
 }
 
 function _showPsychoLinked(brief, aid) {
@@ -2819,17 +4285,6 @@ function _showPsychoLinked(brief, aid) {
 
 function showPsychoLink(brief, aid) { _showPsychoLinked(brief, aid); }
 
-function countFilled(c) {
-  return REQUIRED_KEYS.filter(k => (c[k]||'').trim()).length;
-}
-
-function nextLocalQ() {
-  for (const k of REQUIRED_KEYS) {
-    if (!(ctx[k]||'').trim()) return FIRST_QUESTIONS[k] || '';
-  }
-  return '';
-}
-
 /* ── Chat ───────────────────────────────────────────── */
 function addMsg(role, text) {
   const msgs = document.getElementById('chat-messages');
@@ -2841,20 +4296,46 @@ function addMsg(role, text) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
+/* Rotation de courtes formules pendant l'attente — remplace un simple
+   indicateur "chargement" par la sensation qu'une vraie réflexion est en
+   cours, comme demandé : "il faut que l'utilisateur sente que Gabriel
+   réfléchit". Générique (le contenu de la réponse n'est pas encore connu à
+   ce stade), mais casse l'effet purement mécanique des trois points seuls. */
+const _REFLECT_PHRASES = [
+  'Je relie ce qui vient d’être dit…',
+  'Je pèse ce qui compte vraiment…',
+  'Je resitue ça dans l’ensemble…',
+];
+let _reflectTimer = null;
+
 function showTyping() {
   const msgs = document.getElementById('chat-messages');
   const el = document.createElement('div');
   el.className = 'msg agent'; el.id = 'typing';
-  el.innerHTML = `<div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  el.innerHTML = `<div class="msg-bubble"><div class="typing-reflect" id="typing-reflect"></div><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
   msgs.appendChild(el); msgs.scrollTop = msgs.scrollHeight;
+
+  const label = document.getElementById('typing-reflect');
+  let i = 0;
+  const tick = () => { if (label) label.textContent = _REFLECT_PHRASES[i % _REFLECT_PHRASES.length]; i++; };
+  tick();
+  _reflectTimer = setInterval(tick, 1500);
 }
-function hideTyping() { document.getElementById('typing')?.remove(); }
+function hideTyping() {
+  if (_reflectTimer) { clearInterval(_reflectTimer); _reflectTimer = null; }
+  document.getElementById('typing')?.remove();
+}
 
 async function sendMessage() {
   if (isWaiting) return;
   const input = document.getElementById('chat-input');
   const msg = input.value.trim();
   if (!msg) return;
+  if (voiceModeOn) _unlockAudioPlayback();
+  if (!document.getElementById('interview-hero')?.classList.contains('hidden')) {
+    _dismissInterviewHero();
+  }
+  _hideVoiceLiveStatus();
   addMsg('user', msg);
   input.value = ''; input.style.height = 'auto';
   setWaiting(true); showTyping();
@@ -2863,7 +4344,7 @@ async function sendMessage() {
     const r = await fetch('/context-chat', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({message: msg, current_context: ctx})
+      body: JSON.stringify({message: msg})
     });
     const d = await r.json();
     hideTyping();
@@ -2872,11 +4353,10 @@ async function sendMessage() {
       addMsg('agent', "Une erreur est survenue. Réessayez dans un instant.");
     } else {
       ctx = d.updated_context || ctx;
-      updateUI(ctx, d.filled_count, d.completion_score, d.is_ready);
-      if (d.is_ready) {
-        addMsg('agent', "Parfait — contexte complet. Cliquez sur « Générer la stratégie ».");
-      } else if (d.next_question) {
-        addMsg('agent', d.next_question);
+      updateUI(d);
+      if (d.reply) {
+        addMsg('agent', d.reply);
+        if (voiceModeOn) speakReply(d.reply);
       }
     }
   } catch(e) {
@@ -2898,25 +4378,429 @@ function setWaiting(v) {
   document.getElementById('chat-input').disabled = v;
 }
 
-/* ── UI update ──────────────────────────────────────── */
-function updateUI(context, filled, score, ready) {
-  const total = REQUIRED_KEYS.length;
-  filled = filled !== undefined ? filled : countFilled(context);
-  score  = score  !== undefined ? score  : filled / total;
-  ready  = ready  !== undefined ? ready  : (filled >= total);
-  isReady = ready;
+/* ── Entretien stratégique — mode vocal ──────────────────────────────
+   Écoute (micro → texte) et parole (texte → audio) via ElevenLabs, derrière
+   /voice/transcribe et /voice/speak. Le mode vocal est un TOGGLE explicite
+   (jamais activé par défaut) : activer la voix déclenche une demande de
+   permission micro et fait parler chaque réponse de Gabriel, ce qui a un
+   coût — l'utilisateur doit le choisir consciemment. Le texte reste
+   toujours le chemin principal ; toute erreur vocale retombe silencieusement
+   sur le texte déjà affiché plutôt que de bloquer la conversation. */
+let voiceModeOn   = localStorage.getItem('gabriel_voice_mode') === '1';
+let mediaRecorder = null;
+let audioChunks   = [];
+let isRecording   = false;
+let _currentAudio = null;
+let _orchHiddenByInterview = false;
+let _speechRecog = null;
 
-  const pct = Math.round((filled / total) * 100);
+/* ── Transcription en direct (purement visuelle) ───────
+   Web Speech API du navigateur — gratuite, locale, mais moins fiable
+   qu'ElevenLabs sur des phrases longues ou un français chargé en jargon.
+   Elle ne sert JAMAIS à construire le message envoyé : uniquement à montrer,
+   pendant que la personne parle, qu'elle est bien comprise en direct. Le
+   texte réellement envoyé vient toujours d'ElevenLabs via /voice/transcribe
+   (voir _handleRecordingStop). Absente sur certains navigateurs (Firefox
+   notamment) — dans ce cas l'écran d'écoute reste simplement silencieux,
+   jamais une erreur affichée pour une amélioration purement cosmétique. */
+function _startLiveTranscript() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const el = document.getElementById('listening-transcript');
+  if (el) { el.textContent = 'Je vous écoute…'; el.classList.remove('has-text'); }
+  if (!SpeechRecognition) return;
+  try {
+    _speechRecog = new SpeechRecognition();
+    _speechRecog.lang = 'fr-FR';
+    _speechRecog.continuous = true;
+    _speechRecog.interimResults = true;
+    _speechRecog.onresult = (event) => {
+      let text = '';
+      for (let i = 0; i < event.results.length; i++) text += event.results[i][0].transcript;
+      if (el && text.trim()) { el.textContent = text.trim(); el.classList.add('has-text'); }
+    };
+    _speechRecog.onerror = () => {};  // silencieux — repli sur "Je vous écoute…"
+    _speechRecog.start();
+  } catch (e) { _speechRecog = null; }
+}
+
+function _stopLiveTranscript() {
+  if (_speechRecog) { try { _speechRecog.stop(); } catch (e) {} _speechRecog = null; }
+}
+const _reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── Onde réactive (Web Audio) ─────────────────────────
+   Un seul AudioContext réutilisé pour tout l'entretien (en créer un par tour
+   se heurte à la limite de contextes actifs de certains navigateurs). Sert
+   à la fois à faire vibrer les barres pendant l'écoute (source = micro) et
+   pendant que Gabriel parle (source = audio TTS) — même mécanisme, deux
+   sources différentes. */
+let _waveCtx = null, _waveAnalyser = null, _waveSource = null, _waveRAF = null;
+
+function _getWaveCtx() {
+  if (!_waveCtx) _waveCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_waveCtx.state === 'suspended') _waveCtx.resume();
+  return _waveCtx;
+}
+
+function _ensureWaveBars(container, count) {
+  if (!container || container.children.length === count) return container;
+  container.innerHTML = '';
+  for (let i = 0; i < count; i++) container.appendChild(document.createElement('span'));
+  return container;
+}
+
+/* Une seule boucle rAF anime TOUTES les cibles à la fois (barre du toolbar
+   + grande onde de l'écran d'écoute) à partir de la MÊME analyse audio —
+   deux boucles séparées sur la même variable _waveRAF s'écraseraient l'une
+   l'autre et fuiraient (l'une ne serait jamais annulée). */
+function _animateBars(analyser, barsEls) {
+  if (_reducedMotion) return;
+  const targets = barsEls.filter(Boolean).map(el => ({ el, bars: Array.from(el.children) })).filter(t => t.bars.length);
+  if (!targets.length) return;
+  const data = new Uint8Array(analyser.frequencyBinCount);
+  (function tick() {
+    analyser.getByteFrequencyData(data);
+    targets.forEach(({ bars }) => {
+      bars.forEach((bar, i) => {
+        const v = data[Math.floor((i / bars.length) * data.length)] / 255;
+        bar.style.height = Math.max(16, Math.round(v * 100)) + '%';
+      });
+    });
+    _waveRAF = requestAnimationFrame(tick);
+  })();
+}
+
+function _startReactiveWave(sourceInput, barsEls, isStream) {
+  barsEls = Array.isArray(barsEls) ? barsEls : [barsEls];
+  barsEls.forEach(el => el?.classList.remove('wave-fallback'));
+  try {
+    const ctx = _getWaveCtx();
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 64;
+    const source = isStream ? ctx.createMediaStreamSource(sourceInput) : ctx.createMediaElementSource(sourceInput);
+    source.connect(analyser);
+    if (!isStream) source.connect(ctx.destination);  // sinon l'audio TTS devient muet
+    _waveAnalyser = analyser; _waveSource = source;
+    _animateBars(analyser, barsEls);
+  } catch (e) {
+    // Analyse audio refusée par le navigateur : repli visuel plutôt que des
+    // barres figées, mais jamais en concurrence avec de vraies hauteurs —
+    // voir le commentaire CSS de .wave-fallback.
+    if (!_reducedMotion) barsEls.forEach(el => el?.classList.add('wave-fallback'));
+  }
+}
+
+function _stopReactiveWave(barsEls) {
+  barsEls = Array.isArray(barsEls) ? barsEls : [barsEls];
+  if (_waveRAF) { cancelAnimationFrame(_waveRAF); _waveRAF = null; }
+  if (_waveSource)   { try { _waveSource.disconnect(); }   catch(e) {} _waveSource = null; }
+  if (_waveAnalyser) { try { _waveAnalyser.disconnect(); } catch(e) {} _waveAnalyser = null; }
+  barsEls.forEach(el => {
+    el?.classList.remove('wave-fallback');
+    if (el) Array.from(el.children).forEach(b => b.style.height = '');
+  });
+}
+
+/* ── Statut vocal (texte au-dessus du champ) ───────────
+   Décorrélé de .is-recording : reste affiché pendant l'écoute ET la
+   transcription ET la relecture, avec un libellé différent à chaque étape —
+   c'est ce texte qui fait office d'état "vivant" plutôt qu'un silence entre
+   deux bulles de chat. */
+function _setVoiceLiveLabel(text) {
+  const status = document.getElementById('voice-live-status');
+  const label  = document.getElementById('voice-live-label');
+  if (label) label.textContent = text;
+  status?.classList.add('active');
+}
+function _hideVoiceLiveStatus() {
+  document.getElementById('voice-live-status')?.classList.remove('active');
+}
+
+/* ── Repli de l'Orchestrateur pendant l'entretien ──────
+   Deux présences actives en même temps (Gabriel qui pose des questions,
+   l'Orchestrateur qui reste visible en permanence) divisent l'attention.
+   Pendant l'entretien, Gabriel doit rester la seule présence à l'écran —
+   l'Orchestrateur redevient utile une fois le contexte prêt. */
+function _hideOrchestrateur() {
+  const bubble = document.getElementById('orch-bubble');
+  const panel  = document.getElementById('orch-panel');
+  _orchHiddenByInterview = true;
+  panel?.classList.add('hidden');
+  bubble?.classList.remove('hidden');
+}
+function _restoreOrchestrateur() {
+  if (!_orchHiddenByInterview) return;
+  _orchHiddenByInterview = false;
+  if (window.matchMedia('(min-width: 1100px)').matches) {
+    document.getElementById('orch-panel')?.classList.remove('hidden');
+  } else {
+    document.getElementById('orch-bubble')?.classList.remove('hidden');
+  }
+}
+
+function _initVoiceUI() {
+  const toggle = document.getElementById('voice-toggle');
+  const label  = document.getElementById('voice-toggle-label');
+  const mic    = document.getElementById('mic-btn');
+  const picker = document.getElementById('voice-picker');
+  if (!toggle) return;
+  toggle.classList.toggle('on', voiceModeOn);
+  toggle.setAttribute('aria-pressed', voiceModeOn ? 'true' : 'false');
+  if (label) label.textContent = voiceModeOn ? 'Mode vocal actif' : 'Mode vocal';
+  if (mic) mic.classList.toggle('hidden', !voiceModeOn);
+  if (picker) {
+    picker.classList.toggle('hidden', !voiceModeOn);
+    if (voiceModeOn) _loadVoicePicker();
+  }
+}
+
+/* ── Choix de la voix de Gabriel ────────────────────────
+   Le catalogue vient du serveur (une seule source de vérité — voir
+   agents.context_builder.voice_provider.VOICE_CATALOG) : uniquement des
+   voix déjà vérifiées comme utilisables par le compte ElevenLabs actif,
+   jamais une liste codée en dur côté client qui pourrait proposer une voix
+   payante et faire échouer la synthèse en silence. */
+let _voicesLoaded = false;
+async function _loadVoicePicker() {
+  if (_voicesLoaded) return;
+  const picker = document.getElementById('voice-picker');
+  if (!picker) return;
+  try {
+    const r = await fetch('/voice/voices');
+    const d = await r.json();
+    if (!d.available || !Array.isArray(d.voices) || !d.voices.length) return;
+    _voicesLoaded = true;
+    const saved = localStorage.getItem('gabriel_voice_id') || '';
+    picker.innerHTML = d.voices.map(v =>
+      `<option value="${v.id}">${v.label}</option>`
+    ).join('');
+    if (saved && d.voices.some(v => v.id === saved)) picker.value = saved;
+  } catch (e) { /* le sélecteur reste simplement vide — la voix par défaut du serveur continue de fonctionner */ }
+}
+
+function onVoicePickerChange(voiceId) {
+  localStorage.setItem('gabriel_voice_id', voiceId);
+}
+
+/* Certains navigateurs bloquent audio.play() si l'appel n'est plus assez
+   proche d'un vrai geste utilisateur — or la réponse de Gabriel arrive
+   après deux allers-retours réseau (transcription puis génération de la
+   réponse), largement après le clic initial. Jouer un son (même muet) de
+   façon synchrone au moment du geste "débloque" la lecture audio pour le
+   reste de la page — trouvé en conditions réelles : le texte de Gabriel
+   s'affichait mais sa voix restait silencieuse sans aucune erreur visible. */
+function _unlockAudioPlayback() {
+  try {
+    const a = new Audio();
+    a.muted = true;
+    const p = a.play();
+    if (p && p.catch) p.catch(() => {}).finally(() => { try { a.pause(); } catch (e) {} });
+  } catch (e) {}
+  try { _getWaveCtx(); } catch (e) {}
+}
+
+function toggleVoiceMode() {
+  voiceModeOn = !voiceModeOn;
+  localStorage.setItem('gabriel_voice_mode', voiceModeOn ? '1' : '0');
+  _initVoiceUI();
+  if (voiceModeOn) _unlockAudioPlayback();
+  if (!voiceModeOn && isRecording) toggleRecording();
+}
+
+function _showVoiceError(msg) {
+  const win = document.querySelector('.chat-window');
+  if (!win) return;
+  win.querySelector('.voice-error-toast')?.remove();
+  const el = document.createElement('div');
+  el.className = 'voice-error-toast';
+  el.textContent = msg;
+  win.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+async function toggleRecording() {
+  if (isRecording) { _stopRecording(); return; }
+
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) {
+    _showVoiceError("Micro indisponible — autorisez l'accès au micro dans votre navigateur.");
+    return;
+  }
+
+  audioChunks = [];
+  try {
+    mediaRecorder = new MediaRecorder(stream);
+  } catch (e) {
+    _showVoiceError("L'enregistrement audio n'est pas pris en charge par ce navigateur.");
+    stream.getTracks().forEach(t => t.stop());
+    return;
+  }
+  mediaRecorder.ondataavailable = (ev) => { if (ev.data.size > 0) audioChunks.push(ev.data); };
+  mediaRecorder.onstop = () => {
+    stream.getTracks().forEach(t => t.stop());
+    _handleRecordingStop();
+  };
+  mediaRecorder.start();
+  isRecording = true;
+  const micBtn = document.getElementById('mic-btn');
+  micBtn?.classList.add('recording');
+  micBtn?.setAttribute('aria-label', "Arrêter l'enregistrement");
+  micBtn?.setAttribute('title', "Arrêter l'enregistrement");
+  document.querySelector('.chat-window')?.classList.add('is-recording');
+  _setVoiceLiveLabel('Je vous écoute…');
+  _ensureWaveBars(document.getElementById('listening-wave'), 32);
+  _startReactiveWave(stream, [document.getElementById('voice-live-bars'), document.getElementById('listening-wave')], true);
+  _startLiveTranscript();
+  _startSilenceWatch();
+}
+
+function _stopRecording() {
+  isRecording = false;
+  const micBtn = document.getElementById('mic-btn');
+  micBtn?.classList.remove('recording');
+  micBtn?.setAttribute('aria-label', 'Parler');
+  micBtn?.setAttribute('title', 'Parler');
+  document.querySelector('.chat-window')?.classList.remove('is-recording');
+  _stopReactiveWave([document.getElementById('voice-live-bars'), document.getElementById('listening-wave')]);
+  _stopLiveTranscript();
+  _stopSilenceWatch();
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+}
+
+/* ── Arrêt automatique après 2 secondes de silence ─────
+   Réutilise la MÊME analyse audio que l'onde réactive (_waveAnalyser) —
+   pas une deuxième capture séparée. Le décompte ne démarre qu'APRÈS avoir
+   détecté une vraie prise de parole : sans ce garde-fou, une personne qui
+   réfléchit 2 secondes avant de commencer se ferait couper avant même
+   d'avoir parlé. */
+let _silenceTimer = null, _silenceSince = null, _hasSpokenYet = false;
+const _SILENCE_THRESHOLD = 6;      // niveau moyen 0-255 en dessous duquel on considère le silence
+const _SILENCE_STOP_MS   = 2000;
+
+function _startSilenceWatch() {
+  _hasSpokenYet = false;
+  _silenceSince = null;
+  if (_silenceTimer) clearInterval(_silenceTimer);
+  _silenceTimer = setInterval(() => {
+    if (!isRecording || !_waveAnalyser) return;
+    const data = new Uint8Array(_waveAnalyser.frequencyBinCount);
+    _waveAnalyser.getByteFrequencyData(data);
+    const avg = data.reduce((a, b) => a + b, 0) / data.length;
+    if (avg >= _SILENCE_THRESHOLD) {
+      _hasSpokenYet = true;
+      _silenceSince = null;
+      return;
+    }
+    if (!_hasSpokenYet) return;
+    if (_silenceSince === null) { _silenceSince = Date.now(); return; }
+    if (Date.now() - _silenceSince >= _SILENCE_STOP_MS) {
+      _stopSilenceWatch();
+      _stopRecording();
+    }
+  }, 200);
+}
+
+function _stopSilenceWatch() {
+  if (_silenceTimer) { clearInterval(_silenceTimer); _silenceTimer = null; }
+  _silenceSince = null;
+}
+
+async function _handleRecordingStop() {
+  const micBtn = document.getElementById('mic-btn');
+  if (!audioChunks.length) { _hideVoiceLiveStatus(); return; }
+  const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+  audioChunks = [];
+  micBtn?.classList.add('processing');
+  micBtn?.setAttribute('disabled', 'true');
+  _setVoiceLiveLabel('Je transcris ce que vous venez de dire…');
+
+  try {
+    const form = new FormData();
+    form.append('audio', blob, 'recording.webm');
+    const r = await fetch('/voice/transcribe', { method: 'POST', body: form });
+    const d = await r.json();
+    if (!r.ok || d.error) {
+      _showVoiceError(d.error || "Transcription impossible — réessayez ou écrivez votre réponse.");
+      _hideVoiceLiveStatus();
+    } else if (d.text && d.text.trim()) {
+      // Étape de relecture (brief : "vous pourrez corriger la transcription
+      // avant de l'envoyer") — on ne l'envoie jamais automatiquement, on
+      // remplit le champ, on le sélectionne pour une correction immédiate,
+      // et on attend un geste explicite (Entrée ou clic sur Envoyer).
+      const input = document.getElementById('chat-input');
+      input.value = d.text.trim();
+      autoResize(input);
+      input.focus();
+      input.select();
+      _setVoiceLiveLabel('Relisez, corrigez si besoin, puis envoyez ↵');
+    } else {
+      _showVoiceError("Rien n'a été compris — reformulez ou écrivez votre réponse.");
+      _hideVoiceLiveStatus();
+    }
+  } catch (e) {
+    _showVoiceError("Erreur de connexion pendant la transcription.");
+    _hideVoiceLiveStatus();
+  }
+  micBtn?.classList.remove('processing');
+  micBtn?.removeAttribute('disabled');
+}
+
+async function speakReply(text) {
+  const badge = document.getElementById('voice-speaking-badge');
+  try {
+    const r = await fetch('/voice/speak', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({text, voice_id: localStorage.getItem('gabriel_voice_id') || ''})
+    });
+    if (!r.ok) return;  // échec vocal silencieux — le texte est déjà affiché
+    const buf = await r.blob();
+    if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
+    const url = URL.createObjectURL(buf);
+    const audio = new Audio(url);
+    _currentAudio = audio;
+    badge?.classList.add('active');
+    _startReactiveWave(audio, document.getElementById('voice-speaking-wave'), false);
+    audio.onended = audio.onerror = () => {
+      badge?.classList.remove('active');
+      _stopReactiveWave(document.getElementById('voice-speaking-wave'));
+      URL.revokeObjectURL(url);
+      if (_currentAudio === audio) _currentAudio = null;
+    };
+    await audio.play();
+  } catch (e) {
+    badge?.classList.remove('active');
+  }
+}
+
+/* ── UI update ──────────────────────────────────────── */
+/* state = {updated_context, progression, completion_score, is_ready, ...}
+   renvoyé tel quel par /business-context et /context-chat — un seul contrat,
+   jamais reconstruit côté frontend (agents/context_builder/question_planner.py
+   calcule progression et completion_score, source de vérité unique). */
+function updateUI(state) {
+  state = state || {};
+  const progression = state.progression || [];
+  const score = state.completion_score !== undefined ? state.completion_score : 0;
+  const ready = !!state.is_ready;
+  isReady = ready;
+  if (ready) _restoreOrchestrateur();
+
+  const total = progression.length || 7;
+  const done  = progression.filter(d => d.status === 'done').length;
+  const pct   = Math.round(score * 100);
   document.getElementById('ctx-bar').style.width = pct + '%';
-  document.getElementById('ctx-label').textContent = `${filled} / ${total} informations collectées`;
+  document.getElementById('ctx-label').textContent = `${done} / ${total} dimensions couvertes`;
 
   const badge = document.getElementById('ctx-badge');
-  badge.className = 'ctx-badge ' + (ready ? 'ready' : filled > 0 ? 'partial' : 'empty');
+  badge.className = 'ctx-badge ' + (ready ? 'ready' : done > 0 ? 'partial' : 'empty');
   document.getElementById('ctx-badge-text').textContent =
     ready ? 'Contexte prêt — le Stratège peut travailler' :
-    filled > 0 ? `Contexte incomplet — ${filled}/${total}` : 'Contextualisation requise';
+    done > 0 ? `Contexte incomplet — ${done}/${total}` : 'Contextualisation requise';
 
-  renderFields(context);
+  renderProgression(progression);
 
   const btn  = document.getElementById('strat-launch-btn');
   const hint = document.getElementById('strat-cta-hint');
@@ -2926,29 +4810,30 @@ function updateUI(context, filled, score, ready) {
     showAnalyzeSection();
   } else {
     btn.className = 'strat-cta-btn locked'; btn.disabled = true;
-    const miss = total - filled;
-    hint.textContent = `${miss} information${miss>1?'s':''} manquante${miss>1?'s':''}`;
+    const miss = total - done;
+    hint.textContent = `${miss} dimension${miss>1?'s':''} restante${miss>1?'s':''}`;
   }
 }
 
-function renderFields(context) {
+/* Vue ✓ / • / ○ par dimension — Zone 3 (brief section 4.C), pas de détail
+   champ par champ : le schéma des 33 champs reste côté serveur uniquement. */
+function renderProgression(progression) {
+  const glyph = { done: '✓', in_progress: '•', not_started: '·' };
+  const cls   = { done: 'ok', in_progress: 'partial', not_started: 'miss' };
   document.getElementById('ctx-fields').innerHTML =
-    Object.entries(FIELD_LABELS).map(([key, label]) => {
-      const val = (context[key]||'').trim();
-      return `<div class="ctx-field ${val?'filled':''}">
-        <div class="ctx-field-icon ${val?'ok':'miss'}">${val?'✓':'·'}</div>
+    (progression || []).map(dim => `
+      <div class="ctx-field ${dim.status !== 'not_started' ? 'filled' : ''}">
+        <div class="ctx-field-icon ${cls[dim.status] || 'miss'}">${glyph[dim.status] || '·'}</div>
         <div style="flex:1;min-width:0;">
-          <div class="ctx-field-label">${label}</div>
-          ${val?`<div class="ctx-field-val">${val}</div>`:''}
+          <div class="ctx-field-label">${_esc(dim.label)}</div>
         </div>
-      </div>`;
-    }).join('');
+      </div>`).join('');
 }
 
 /* ── Analyze section ────────────────────────────────── */
 function showAnalyzeSection() {
   document.querySelector('.strat-layout')?.classList.remove('has-strategy');
-  document.querySelector('.ctx-panel')?.classList.remove('is-open');
+  setContextPanelOpen(false);
   document.getElementById('strat-dashboard')?.classList.remove('strat-cockpit-active');
   hide('strat-idle'); hide('strat-psycho-banner'); hide('strat-memory');
   show('strat-analyze-section');
@@ -2968,6 +4853,13 @@ function showAnalyzeSection() {
 
 function launchStratege() {
   if (!isReady && !_linkedAnalysisId) return;
+  // Sans analyse Psychologue liée, il n'y a rien à relire dans la section
+  // "Résultats du Psychologue (optionnel)" — faire défiler jusqu'à un
+  // deuxième bouton identique ("Générer la stratégie") juste pour cliquer
+  // dessus à nouveau est une friction gratuite. On ne garde l'étape
+  // intermédiaire que quand elle sert vraiment à quelque chose : relire un
+  // résumé Psychologue avant de l'envoyer.
+  if (!_linkedAnalysisId) { submitStrategie(); return; }
   showAnalyzeSection();
   document.getElementById('strat-analyze-section').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -2984,7 +4876,7 @@ async function submitStrategie() {
 
   const payload = _linkedAnalysisId
     ? {analysis_id: _linkedAnalysisId, brain_profile: ctx, psycho_data: _linkedPsychoData, folder_id: _folderId}
-    : {context: ctx, psycho_summary: psychoSum};
+    : {context: ctx, psycho_summary: psychoSum, folder_id: _folderId};
 
   try {
     const r = await fetch('/strategize', {
@@ -3141,7 +5033,10 @@ function showStratErr(msg) {
 
 function renderStrat(d) {
   _lastStratData = d;
+  document.querySelector('.ctx-panel')?.classList.remove('interview-intro', 'interview-session');
+  document.body.classList.remove('stratege-interview-intro', 'stratege-interview-session');
   document.querySelector('.strat-layout')?.classList.add('has-strategy');
+  setContextPanelOpen(false);
   const dash = document.getElementById('strat-dashboard');
   dash.classList.add('strat-cockpit-active');
   dash.innerHTML = '';
@@ -3176,6 +5071,16 @@ function renderStrat(d) {
       <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.45"/></svg>
       Régénérer
     </button>`;
+  // Le badge "Entretien stratégique" reste affiché en position fixe au-dessus
+  // du tableau de bord (≥1100px) mais rien ne réservait cet espace dans le
+  // flux normal du contenu — la barre d'action se retrouvait dessous, les
+  // deux se chevauchant (trouvé en conditions réelles, thème clair et
+  // sombre). Réglé en JS plutôt qu'en CSS : la règle stylesheet équivalente,
+  // pourtant valide et vérifiée dans les DevTools, n'était jamais appliquée
+  // au rendu — écrasée par un mécanisme de cascade non identifié.
+  if (window.matchMedia('(min-width:1101px)').matches) {
+    bar.style.setProperty('margin-top', '150px', 'important');
+  }
   add(bar);
 
   // ── Héro décision unifié (command center) ──────────────
@@ -3240,7 +5145,11 @@ function renderStrat(d) {
   }
 
   // ── 1. Décision centrale ───────────────────────────────
-  if (d.decision_centrale) {
+  // Ne pas répéter si le héro affiche déjà ce même texte (cas où
+  // executive_decision.one_sentence_decision est absent et que le héro
+  // retombe sur decision_centrale — sans ce garde-fou, la même phrase
+  // apparaissait deux fois d'affilée).
+  if (d.decision_centrale && d.decision_centrale !== heroDecision) {
     add(div('decision-card', `
       <div class="decision-label">Décision centrale</div>
       <div class="decision-text">${_esc(d.decision_centrale)}</div>`));
@@ -3710,12 +5619,29 @@ function orchStrategyAsk(text) {
 function toggleBusinessContextCompact() {
   const layout = document.querySelector('.strat-layout');
   if (!layout?.classList.contains('has-strategy')) return;
-  document.querySelector('.ctx-panel')?.classList.toggle('is-open');
+  const panel = document.querySelector('.ctx-panel');
+  setContextPanelOpen(!panel?.classList.contains('is-open'));
 }
+
+function setContextPanelOpen(isOpen) {
+  const panel = document.querySelector('.ctx-panel');
+  const header = panel?.querySelector('.ctx-header');
+  if (!panel) return;
+  panel.classList.toggle('is-open', Boolean(isOpen));
+  header?.setAttribute('aria-expanded', Boolean(isOpen) ? 'true' : 'false');
+}
+
+document.addEventListener('keydown', (event) => {
+  const header = event.target?.closest?.('.ctx-header');
+  if (!header) return;
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  event.preventDefault();
+  toggleBusinessContextCompact();
+});
 
 function regenStrategie() {
   document.querySelector('.strat-layout')?.classList.remove('has-strategy');
-  document.querySelector('.ctx-panel')?.classList.remove('is-open');
+  setContextPanelOpen(false);
   document.getElementById('strat-dashboard')?.classList.remove('strat-cockpit-active');
   hide('strat-dashboard');
   showAnalyzeSection();
@@ -3851,13 +5777,17 @@ function cancelGoToCreateur() {
 
 function goToCreateur() {
   sessionStorage.setItem('gabriel_for_createur', JSON.stringify({
-    analysis_id:    _analysisId  || '',
-    strategy_id:    _strategyId  || '',
-    folder_id:      _folderId    || '',
-    strategie_data: _lastStratData,
-    psycho_data:    _linkedPsychoData || {},
-    decision:       _lastStratData.decision_centrale || '',
-    message:        _lastStratData.message_central   || '',
+    analysis_id:      _analysisId  || '',
+    strategy_id:      _strategyId  || '',
+    folder_id:        _folderId    || '',
+    strategie_data:   _lastStratData,
+    psycho_data:      _linkedPsychoData || {},
+    // Contexte business V1.1 recueilli pendant l'Entretien stratégique —
+    // sans ça, le Créateur écrit sans jamais savoir ce que vend
+    // l'utilisateur, à qui, ni pourquoi (voir app.py::_resolve_business_context).
+    business_context: ctx || {},
+    decision:         _lastStratData.decision_centrale || '',
+    message:          _lastStratData.message_central   || '',
   }));
   window.location.href = '/createur' + (_folderId ? ('?folder_id=' + encodeURIComponent(_folderId)) : '');
 }
@@ -3915,16 +5845,17 @@ async function resetContext() {
   ctx = {};
   await fetch('/business-context', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
   document.querySelector('.strat-layout')?.classList.remove('has-strategy');
-  document.querySelector('.ctx-panel')?.classList.remove('is-open');
+  setContextPanelOpen(false);
   document.getElementById('strat-dashboard')?.classList.remove('strat-cockpit-active');
   document.getElementById('chat-messages').innerHTML = '';
-  updateUI({}, 0, 0, false);
   hide('strat-analyze-section'); hide('strat-dashboard'); hide('strat-loading'); hide('strat-psycho-banner');
   show('strat-idle');
-  addMsg('agent', "Contexte réinitialisé. Quel est votre rôle dans ce projet ?");
+  const state = await loadBusinessContext();
+  _maybeShowInterviewHero(state);
   loadRecentStrategies_refresh();
 }
 
+_initVoiceUI();
 init();
 </script>
 {% endblock %}

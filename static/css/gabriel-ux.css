@@ -1,0 +1,714 @@
+/* Gabriel usability layer.
+   Loaded after page-level styles to keep text, controls and responsive
+   navigation usable without changing the visual identity of each agent. */
+
+:root {
+  --ux-control-h: 44px;
+  --ux-readable: 13px;
+  --ux-small: 11px;
+}
+
+body {
+  font-size: 14px;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+.btn,
+.analyse-btn,
+.strat-generate-btn,
+.strat-cta-btn,
+.cre-btn,
+.df-analyse-btn,
+.df-open-btn,
+.pro-btn,
+.hist-btn {
+  min-height: 40px;
+  font-size: 13px;
+}
+
+.input,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+textarea,
+select {
+  min-height: var(--ux-control-h);
+  font-size: 14px;
+}
+
+.page-title {
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.section-title {
+  font-size: 14px;
+}
+
+.label,
+.input-label,
+.page-label,
+.sec-title,
+.db-title,
+.chart-label,
+.snap-label,
+.psycho-summary-label,
+.livrable-title,
+.grille-question,
+.pf-label,
+.brief-kw,
+.rag-card-title,
+.demog-card-title {
+  font-size: var(--ux-small);
+  line-height: 1.45;
+}
+
+.text-muted,
+.kpi-desc,
+.persona-desc,
+.risk-mitigation,
+.action-text,
+.chat-bubble,
+.orch-bubble-text,
+.orch-label-value,
+.df-breadcrumb,
+.df-progress-sub,
+.hist-sub,
+.hist-empty-desc,
+.pro-hint,
+.pro-account-action-desc {
+  font-size: var(--ux-readable);
+  line-height: 1.65;
+}
+
+.app-header {
+  min-height: 56px;
+  height: auto;
+  padding-block: 8px;
+}
+
+.header-title,
+.header-user,
+.btn-sm,
+.btn-ghost {
+  font-size: 12px;
+}
+
+.app-content {
+  padding: clamp(28px, 4vw, 44px);
+}
+
+.app-footer {
+  font-size: 11px;
+}
+
+.card,
+.orch-panel {
+  border-radius: 7px;
+}
+
+.card {
+  animation: ux-card-enter 0.42s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.dashboard-grid > .card:nth-child(2),
+.dashboard-grid-2 > .card:nth-child(2),
+.dashboard-grid-4 > .card:nth-child(2) { animation-delay: 35ms; }
+.dashboard-grid > .card:nth-child(3),
+.dashboard-grid-4 > .card:nth-child(3) { animation-delay: 70ms; }
+.dashboard-grid-4 > .card:nth-child(4) { animation-delay: 105ms; }
+
+@keyframes ux-card-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Psychologue: the analytical interface used many 8-10px labels. */
+.page-psychologue .src-tab,
+.page-psychologue .result-tab,
+.page-psychologue .analyse-btn,
+.page-psychologue .status-msg,
+.page-psychologue .url-hint,
+.page-psychologue .comment-meta-left,
+.page-psychologue .comment-count,
+.page-psychologue .dash-id,
+.page-psychologue .snap-sub,
+.page-psychologue .wc-sub,
+.page-psychologue .res-pct,
+.page-psychologue .res-likes,
+.page-psychologue .res-words,
+.page-psychologue .mi-badge,
+.page-psychologue .mi-ex,
+.page-psychologue .lf-pct,
+.page-psychologue .lf-ex,
+.page-psychologue .pos-pct,
+.page-psychologue .pos-count,
+.page-psychologue .groupe-size,
+.page-psychologue .sujet-freq,
+.page-psychologue .signal-pct,
+.page-psychologue .signal-ex,
+.page-psychologue .leg-name,
+.page-psychologue .leg-pct,
+.page-psychologue .hbar-pct,
+.page-psychologue .pie-leg-pct,
+.page-psychologue .word-tag,
+.page-psychologue .tripartite-val,
+.page-psychologue .grille-val,
+.page-psychologue .psycho-pill,
+.page-psychologue .pf-val,
+.page-psychologue .comment-quote,
+.page-psychologue .top-comment-text,
+.page-psychologue .top-comment-author,
+.page-psychologue .rag-lecture,
+.page-psychologue .rag-concept-val,
+.page-psychologue .rag-impl-text,
+.page-psychologue .rag-evidence {
+  font-size: 12px;
+}
+
+.page-psychologue #manualComments,
+.page-psychologue .input {
+  font-size: 14px;
+  min-height: 46px;
+}
+
+.page-psychologue .src-tab,
+.page-psychologue .result-tab {
+  min-height: 42px;
+  padding-inline: 14px;
+}
+
+.page-psychologue .analyse-btn {
+  min-height: 42px;
+  padding-inline: 18px;
+}
+
+/* Creator: preserve compactness while keeping controls readable. */
+.page-createur .cre-opt-lbl,
+.page-createur .cre-tone,
+.page-createur .cre-var-lbl,
+.page-createur .cre-out-lbl,
+.page-createur .cre-refine-lbl,
+.page-createur .cre-why-k,
+.page-createur .cre-loading-sub,
+.page-createur .cre-ctx-label {
+  font-size: 11px;
+}
+
+.page-createur .cre-desc,
+.page-createur .cre-opt,
+.page-createur .cre-out-text,
+.page-createur .cre-refine-in,
+.page-createur .cre-why-v,
+.page-createur .cre-ctx-val {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.page-createur .cre-select,
+.page-createur .cre-textarea,
+.page-createur .cre-refine-in {
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.page-createur .cre-tone {
+  min-height: 38px;
+}
+
+/* Strategist: the decision workspace must remain readable at normal zoom. */
+.page-stratege .pipeline-step,
+.page-stratege .ctx-identity-role,
+.page-stratege .ctx-header-label,
+.page-stratege .ctx-badge,
+.page-stratege .ctx-progress-label,
+.page-stratege .hero-kicker,
+.page-stratege .ctx-field-label,
+.page-stratege .strat-cta-hint,
+.page-stratege .decision-label,
+.page-stratege .obj-label,
+.page-stratege .pos-message-label,
+.page-stratege .pos-angle-label,
+.page-stratege .opp-signal-label,
+.page-stratege .opp-decision-label,
+.page-stratege .opp-sub-label,
+.page-stratege .offer-block-label,
+.page-stratege .price-lbl,
+.page-stratege .price-fourchette-label,
+.page-stratege .content-row-label,
+.page-stratege .content-avoid-label,
+.page-stratege .crit-row-label,
+.page-stratege .plan-phase-period,
+.page-stratege .plan-section-title,
+.page-stratege .exec-question,
+.page-stratege .exec-week-label,
+.page-stratege .exec-meta-label,
+.page-stratege .strat-hero-kicker,
+.page-stratege .strat-hero-week-label,
+.page-stratege .kpi-label,
+.page-stratege .psycho-used-label,
+.page-stratege .value-row-label,
+.page-stratege .value-gap-label,
+.page-stratege .social-first-label,
+.page-stratege .mono-block-time,
+.page-stratege .mono-offer-label,
+.page-stratege .mono-cta-label,
+.page-stratege .trace-section-label {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.page-stratege .ctx-header-title,
+.page-stratege .ctx-field-val,
+.page-stratege .strat-idle-desc,
+.page-stratege .strat-memory-sub,
+.page-stratege .strat-memory-item-title,
+.page-stratege .psycho-banner-sub,
+.page-stratege .psycho-banner-preview,
+.page-stratege .pos-angle-text,
+.page-stratege .reco-action,
+.page-stratege .reco-signal,
+.page-stratege .opp-signal-text,
+.page-stratege .opp-decision-text,
+.page-stratege .opp-sub-text,
+.page-stratege .offer-block-val,
+.page-stratege .offer-price-just,
+.page-stratege .price-val,
+.page-stratege .price-justification,
+.page-stratege .risk-text,
+.page-stratege .risk-mitigation,
+.page-stratege .plan-item,
+.page-stratege .plan-decision,
+.page-stratege .sc-bubble,
+.page-stratege .fb-comment,
+.page-stratege .createur-bridge-sub,
+.page-stratege .createur-confirm-summary,
+.page-stratege .clarify-item,
+.page-stratege .exec-meta-val,
+.page-stratege .psycho-used-val,
+.page-stratege .value-row-text,
+.page-stratege .value-gap-text,
+.page-stratege .social-format,
+.page-stratege .social-angle,
+.page-stratege .social-first-text,
+.page-stratege .mono-block-text,
+.page-stratege .mono-offer-val,
+.page-stratege .mono-cta-val,
+.page-stratege .trace-assumption {
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.page-stratege .strat-cta-btn,
+.page-stratege .psycho-receive-btn,
+.page-stratege .psycho-skip-btn,
+.page-stratege .export-btn,
+.page-stratege .regen-btn,
+.page-stratege .plan-tab,
+.page-stratege .fb-btn,
+.page-stratege .fb-submit,
+.page-stratege .createur-confirm-yes,
+.page-stratege .createur-confirm-no {
+  min-height: 40px;
+  font-size: 13px;
+}
+
+.page-stratege .chat-input,
+.page-stratege .sc-input,
+.page-stratege .fb-comment,
+.page-stratege .psycho-input input,
+.page-stratege .psycho-input textarea {
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.page-stratege .ctx-panel.interview-intro .ctx-header-label,
+.page-stratege .ctx-panel.interview-session .ctx-header-label,
+.page-stratege .ctx-panel.interview-intro .ctx-badge,
+.page-stratege .ctx-panel.interview-session .ctx-badge,
+.page-stratege .ctx-panel.interview-intro .ctx-progress-label,
+.page-stratege .ctx-panel.interview-session .ctx-progress-label,
+.page-stratege .ctx-panel.interview-session .ctx-field-label {
+  font-size: 10px;
+}
+
+.page-stratege .ctx-panel.interview-intro .ctx-header-title,
+.page-stratege .ctx-panel.interview-session .ctx-header-title {
+  font-size: 13px;
+}
+
+.page-stratege .ctx-panel.interview-intro .hero-cta::after {
+  font-size: 12px;
+}
+
+/* Folder workflow, profile and history. */
+.df-src-tab,
+.df-step-label,
+.df-progress-sub,
+.df-open-btn,
+.df-breadcrumb,
+.page-history .hist-count,
+.page-history .hist-date,
+.page-history .hist-nb,
+.page-history .hist-btn,
+.page-profil .pro-account-email,
+.page-profil .pro-plan-title,
+.page-profil .pro-usage-label,
+.page-profil .pro-account-action-label,
+.page-profil .pro-account-action-desc {
+  font-size: 12px;
+}
+
+.df-src-tab,
+.df-step-btn,
+.df-open-btn,
+.page-history .hist-btn {
+  min-height: 40px;
+}
+
+.df-textarea,
+.df-url-input,
+.page-profil .pro-input,
+.page-profil .pro-textarea {
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.pro-section,
+.pro-account-card,
+.pro-plan-card,
+.pro-account-action-row,
+.pro-status {
+  border-radius: 7px;
+}
+
+.pro-btn,
+.pro-btn-ghost,
+.pro-btn-danger {
+  min-height: 40px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.pro-label,
+.pro-label-opt,
+.pro-account-badge,
+.pro-plan-badge {
+  font-size: 11px;
+}
+
+.hist-title {
+  font-size: 15px;
+}
+
+.hist-badge,
+.hist-date,
+.hist-nb {
+  font-size: 11px;
+}
+
+/* Orchestrator */
+.orch-bubble {
+  padding: 0;
+}
+
+.orch-quick-btn {
+  min-height: 32px;
+  font-size: 12px;
+}
+
+.orch-icon-btn,
+.orch-send {
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.orch-input {
+  min-height: 40px;
+  font-size: 14px;
+}
+
+.mobile-nav-toggle,
+.mobile-nav-backdrop {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .header-user span {
+    display: none;
+  }
+
+  .header-user {
+    padding: 5px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+
+  body.mobile-nav-open {
+    overflow: hidden;
+  }
+
+  .mobile-nav-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    flex: 0 0 auto;
+  }
+
+  .mobile-nav-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 699;
+    border: 0;
+    background: rgba(0, 0, 0, .58);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .22s ease, visibility .22s ease;
+  }
+
+  body.mobile-nav-open .mobile-nav-backdrop {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .app-sidebar {
+    display: flex;
+    width: min(86vw, 318px);
+    height: calc(100dvh - 24px);
+    min-height: 0;
+    top: 12px;
+    left: 12px;
+    z-index: 700;
+    padding: 18px 0 14px;
+    transform: translateX(calc(-100% - 24px));
+    transition: transform .3s cubic-bezier(.22, 1, .36, 1), background .2s ease;
+    overflow-y: auto;
+    box-shadow: 18px 0 52px rgba(0, 0, 0, .34);
+  }
+
+  body.mobile-nav-open .app-sidebar {
+    transform: translateX(0);
+  }
+
+  .app-sidebar:hover,
+  body.mobile-nav-open .app-sidebar {
+    width: min(86vw, 318px);
+  }
+
+  .app-sidebar .sidebar-logo-mark,
+  .app-sidebar:hover .sidebar-logo-mark {
+    width: auto;
+    padding: 0 12px;
+    justify-content: flex-start;
+  }
+
+  .app-sidebar .sidebar-logo-glyph {
+    width: 0;
+    opacity: 0;
+  }
+
+  .app-sidebar .sidebar-logo-lockup {
+    opacity: 1;
+  }
+
+  .app-sidebar .sidebar-nav,
+  .app-sidebar:hover .sidebar-nav {
+    align-items: stretch;
+  }
+
+  .app-sidebar .sidebar-section-label,
+  .app-sidebar:hover .sidebar-section-label {
+    height: auto;
+    padding: 0 22px;
+    margin: 10px 0 6px;
+    opacity: 1;
+    overflow: visible;
+    font-size: 10px;
+  }
+
+  .app-sidebar .sidebar-item,
+  .app-sidebar:hover .sidebar-item,
+  .app-sidebar .sidebar-agent-item,
+  .app-sidebar:hover .sidebar-agent-item {
+    width: auto;
+    min-height: 44px;
+    height: 44px;
+    margin: 0 10px 3px;
+    padding: 0 12px;
+    justify-content: flex-start;
+    gap: 14px;
+  }
+
+  .app-sidebar .sidebar-label,
+  .app-sidebar:hover .sidebar-label {
+    width: auto;
+    overflow: visible;
+    opacity: 1;
+    font-size: 14px;
+  }
+
+  .app-header {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+
+  .header-title {
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .header-title .page {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .header-actions {
+    gap: 4px;
+  }
+
+  .header-actions .gb-help-btn {
+    display: none;
+  }
+
+  .app-content {
+    padding: 24px 16px 36px;
+  }
+
+  body.page-psychologue .app-main,
+  body.page-stratege .app-main,
+  body.page-createur .app-main,
+  body.page-dossiers .app-main {
+    height: 100dvh;
+  }
+
+  .app-footer {
+    padding: 12px 16px;
+  }
+
+  .input,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select,
+  .orch-input,
+  .page-psychologue #manualComments,
+  .page-psychologue .input,
+  .page-createur .cre-select,
+  .page-createur .cre-textarea,
+  .page-createur .cre-refine-in {
+    font-size: 16px;
+  }
+
+  .source-tabs,
+  .src-tabs,
+  .result-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .source-tabs::-webkit-scrollbar,
+  .src-tabs::-webkit-scrollbar,
+  .result-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .df-steps {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .df-steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .df-step-btn {
+    flex: 0 0 auto;
+    min-width: 148px;
+  }
+
+  .hist-card {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    padding: 16px;
+  }
+
+  .hist-actions {
+    flex-wrap: wrap;
+  }
+
+  .hist-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .pro-account-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pro-account-badge {
+    margin-left: 58px;
+  }
+
+  .orch-panel,
+  .orch-panel.expanded {
+    width: calc(100vw - 24px);
+    height: calc(100dvh - 24px);
+    max-height: calc(100dvh - 24px);
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .orch-quick-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .orch-quick-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .orch-quick-btn {
+    flex: 0 0 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
