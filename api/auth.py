@@ -19,6 +19,17 @@ from core.security import safe_log_event
 auth_bp = Blueprint('auth', __name__)
 oauth   = OAuth()
 
+# Slugs de plans valides pour rediriger vers /upgrade?plan=... après connexion —
+# whitelist volontaire (jamais le contenu brut de la query string) pour ne
+# jamais transformer ce paramètre en redirection ouverte.
+_REDIRECT_PLANS = {'early_access', 'standard', 'pme'}
+
+
+def _post_login_redirect(plan):
+    if plan in _REDIRECT_PLANS:
+        return redirect(f'/upgrade?plan={plan}')
+    return redirect('/dossiers')
+
 _BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _USERS_FILE = os.path.join(_BASE_DIR, 'data', 'users.json')
 _TABLE      = 'gabriel_users'
@@ -284,52 +295,62 @@ def _save_json_users(users):
 
 @auth_bp.route('/login')
 def login_page():
+    plan = request.args.get('plan', '') if request.args.get('plan') in _REDIRECT_PLANS else ''
     if session.get('user_id'):
-        return redirect('/dossiers')
+        return _post_login_redirect(plan)
     error          = request.args.get('error')
     mode           = request.args.get('mode', 'login')
     error_msg = {
         'not_configured': 'Connexion Google non configurée.',
         'auth_failed':    'Connexion Google échouée. Réessayez.',
     }.get(error, error)
-    return render_template('login.html', error=error_msg, mode=mode, google_enabled=_google_enabled)
+    return render_template('login.html', error=error_msg, mode=mode, plan=plan, google_enabled=_google_enabled)
 
 
 @auth_bp.route('/login/email', methods=['POST'])
 def login_email():
     email    = request.form.get('email', '')
     password = request.form.get('password', '')
+    plan     = request.form.get('plan', '')
     user, err = verify_email_user(email, password)
     if err:
-        return render_template('login.html', error=err, mode='email', prefill_email=email,
+        return render_template('login.html', error=err, mode='email', prefill_email=email, plan=plan,
                                google_enabled=_google_enabled)
     _open_session(user)
-    return redirect('/dossiers')
+    return _post_login_redirect(plan)
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('login.html', mode='register', google_enabled=_google_enabled)
+        plan = request.args.get('plan', '') if request.args.get('plan') in _REDIRECT_PLANS else ''
+        return render_template('login.html', mode='register', plan=plan, google_enabled=_google_enabled)
     name     = request.form.get('name', '')
     email    = request.form.get('email', '')
     password = request.form.get('password', '')
     confirm  = request.form.get('confirm', '')
+    plan     = request.form.get('plan', '')
     if password != confirm:
         return render_template('login.html', error='Les mots de passe ne correspondent pas.', mode='register',
-                               prefill_email=email, prefill_name=name, google_enabled=_google_enabled)
+                               prefill_email=email, prefill_name=name, plan=plan, google_enabled=_google_enabled)
     user, err = register_email_user(email, password, name)
     if err:
         return render_template('login.html', error=err, mode='register',
-                               prefill_email=email, prefill_name=name, google_enabled=_google_enabled)
+                               prefill_email=email, prefill_name=name, plan=plan, google_enabled=_google_enabled)
     _open_session(user)
-    return redirect('/dossiers')
+    return _post_login_redirect(plan)
 
 
 @auth_bp.route('/auth/google')
 def auth_google():
     if not os.environ.get('GOOGLE_CLIENT_ID'):
         return redirect('/login?error=not_configured')
+    # Le round-trip OAuth ne peut pas transporter notre propre query string —
+    # on garde l'intention "plan choisi avant connexion" en session, lue par
+    # auth_google_callback() une fois l'utilisateur revenu.
+    plan = request.args.get('plan', '')
+    if plan in _REDIRECT_PLANS:
+        session['pending_plan'] = plan
     redirect_uri = url_for('auth.auth_google_callback', _external=True)
     safe_log_event('oauth_start', metadata={'generated_redirect_uri': redirect_uri})
     return oauth.google.authorize_redirect(redirect_uri)
@@ -338,6 +359,7 @@ def auth_google():
 @auth_bp.route('/auth/google/callback')
 def auth_google_callback():
     safe_log_event('oauth_callback_received', metadata={'has_state': bool(request.args.get('state'))})
+    plan = session.pop('pending_plan', '')
     try:
         token = oauth.google.authorize_access_token()
     except MismatchingStateError as e:
@@ -359,7 +381,7 @@ def auth_google_callback():
         user = get_or_create_user(user_info)
         safe_log_event('token_exchange_success', user_id=user.get('user_id') if isinstance(user, dict) else None)
         _open_session(user)
-        return redirect('/dossiers')
+        return _post_login_redirect(plan)
     except Exception as e:
         safe_log_event('token_exchange_failure', metadata={'error_type': type(e).__name__}, error=e)
         return redirect('/login?error=auth_failed')

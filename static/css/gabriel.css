@@ -560,6 +560,13 @@ body.page-dossiers .app-footer {
   align-items: center;
   gap: 10px;
 }
+.header-upgrade-btn {
+  background: linear-gradient(90deg, #C8A96E, #E0C485);
+  color: #1a1714;
+  border: none;
+  font-weight: 600;
+}
+.header-upgrade-btn:hover { opacity: 0.9; }
 .header-user {
   display: flex;
   align-items: center;

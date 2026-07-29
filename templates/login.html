@@ -110,6 +110,7 @@
 
     {% if google_enabled and mode != 'register' %}
     <form action="/auth/google" method="get" style="margin-bottom: 16px;">
+      {% if plan %}<input type="hidden" name="plan" value="{{ plan }}">{% endif %}
       <button type="submit" class="btn-google">
         <svg viewBox="0 0 24 24" fill="none">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -126,6 +127,7 @@
 
     <form method="POST" action="{{ '/register' if mode == 'register' else '/login/email' }}" class="login-form" style="margin-top: 16px;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}">
+      {% if plan %}<input type="hidden" name="plan" value="{{ plan }}">{% endif %}
       {% if mode == 'register' %}
       <div class="input-group">
         <label class="input-label">Nom</label>
@@ -154,9 +156,9 @@
     <div class="login-footer-links">
       <a href="/">← Retour à l'accueil</a>
       {% if mode == 'register' %}
-      <a href="/login">J'ai déjà un compte</a>
+      <a href="/login{{ '?plan=' + plan if plan else '' }}">J'ai déjà un compte</a>
       {% else %}
-      <a href="/register">Créer un compte</a>
+      <a href="/register{{ '?plan=' + plan if plan else '' }}">Créer un compte</a>
       {% endif %}
     </div>
   </div>

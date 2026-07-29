@@ -413,6 +413,19 @@ def en_savoir_plus():
     )
 
 
+@app.route('/tarifs')
+def tarifs():
+    """Page publique des offres — accessible sans connexion. Le choix d'un
+    plan redirige vers l'inscription puis reprend le paiement automatiquement
+    (voir chooseTarif() dans tarifs.html et _post_login_redirect dans
+    api/auth.py)."""
+    return render_template(
+        'tarifs.html',
+        active_page='tarifs',
+        current_user=current_user(),
+    )
+
+
 @app.route('/app')
 def index():
     """Ancienne interface à onglets — redirige vers /dossiers."""

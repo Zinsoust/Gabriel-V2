@@ -357,7 +357,7 @@
         <li><span class="fi fi-check">✓</span> Historique illimité</li>
       </ul>
       <div class="plan-cta">
-        <button class="btn btn-primary" onclick="startCheckout('early_access')" style="width:100%;justify-content:center;">
+        <button class="btn btn-primary" onclick="startCheckout('early_access', this)" style="width:100%;justify-content:center;">
           Rejoindre en Early Access — 29 €/mois
         </button>
       </div>
@@ -380,7 +380,7 @@
         <li><span class="fi fi-check">✓</span> Historique illimité</li>
       </ul>
       <div class="plan-cta">
-        <button class="btn btn-ghost" onclick="startCheckout('standard')" style="width:100%;justify-content:center;">
+        <button class="btn btn-ghost" onclick="startCheckout('standard', this)" style="width:100%;justify-content:center;">
           Commencer — 49 €/mois
         </button>
       </div>
@@ -400,7 +400,7 @@
         <li><span class="fi fi-check">✓</span> Support prioritaire</li>
       </ul>
       <div class="plan-cta">
-        <button class="btn btn-plan-premium" onclick="startCheckout('pme')" style="width:100%;justify-content:center;">
+        <button class="btn btn-plan-premium" onclick="startCheckout('pme', this)" style="width:100%;justify-content:center;">
           Commencer — 99 €/mois
         </button>
       </div>
@@ -484,11 +484,13 @@ requestAnimationFrame(() => {
   });
 });
 
-async function startCheckout(planName) {
-  const btn = event.currentTarget;
-  const origText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Redirection…';
+async function startCheckout(planName, btnEl) {
+  // btnEl optionnel : absent quand le checkout est déclenché automatiquement
+  // (retour de /register ou /login avec ?plan=... — voir plus bas), pas
+  // depuis un clic sur un bouton précis.
+  const btn = btnEl || null;
+  const origText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Redirection…'; }
   try {
     const r = await fetch('/stripe/checkout', {
       method: 'POST',
@@ -500,14 +502,19 @@ async function startCheckout(planName) {
       window.location.href = d.url;
     } else {
       alert(d.error || 'Erreur lors du paiement. Contactez-nous à outilsagencechretienne@gmail.com');
-      btn.disabled = false;
-      btn.textContent = origText;
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
     }
   } catch(e) {
     alert('Erreur réseau. Réessayez ou contactez-nous.');
-    btn.disabled = false;
-    btn.textContent = origText;
+    if (btn) { btn.disabled = false; btn.textContent = origText; }
   }
+}
+
+// Reprise automatique du paiement après inscription/connexion depuis /tarifs
+// (le choix de plan a traversé signup → login → ici via ?plan=...).
+const _resumePlan = new URLSearchParams(window.location.search).get('plan');
+if (_resumePlan && STRIPE_READY) {
+  startCheckout(_resumePlan);
 }
 
 // Succès upgrade
