@@ -18,7 +18,6 @@ os.environ['RATE_LIMIT_ENABLED'] = 'false'
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 import app as _app
-from core.memory import _memory_file
 
 UID   = 'uid-deletion-tests'
 EMAIL = 'deletion-tests@example.com'
@@ -34,6 +33,8 @@ def _client():
 
 
 def _touch_user_files():
+    # La mémoire de cas (core/memory.py) vit désormais sur Supabase, plus en
+    # fichier local — voir _ACCOUNT_DATA_TABLES dans api/db.py pour sa purge.
     os.makedirs(_app._PROFILES_DIR, exist_ok=True)
     os.makedirs(_app._CONTEXTS_DIR, exist_ok=True)
     os.makedirs(_app._CONVOS_DIR, exist_ok=True)
@@ -41,7 +42,6 @@ def _touch_user_files():
         'profile': os.path.join(_app._PROFILES_DIR, f"{UID}.json"),
         'context': os.path.join(_app._CONTEXTS_DIR, f"{UID}.json"),
         'convo':   os.path.join(_app._CONVOS_DIR, f"{UID}.json"),
-        'memory':  _memory_file(UID),
     }
     for p in paths.values():
         with open(p, 'w', encoding='utf-8') as f:

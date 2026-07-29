@@ -56,10 +56,28 @@ function _orchGetContext() {
   };
 }
 
+/* La largeur du dock est portée par une classe sur le dock lui-même
+   (is-open / is-expanded) plutôt que par `.orch-dock:has(#orch-panel.hidden)`.
+   Trouvé en conditions réelles : la règle :has() correspondait bien
+   (dock.matches() renvoyait true) mais le moteur de style ne l'appliquait
+   jamais après un changement de classe sur l'enfant — le dock restait donc
+   large (340 px) alors que seule la bulle de 52 px était visible, volant
+   ~280 px à la conversation en permanence. Une classe posée explicitement
+   ici ne dépend d'aucune réévaluation de :has(). */
+function _orchSyncDockWidth() {
+  const dock  = document.querySelector('.orch-dock');
+  const panel = document.getElementById('orch-panel');
+  if (!dock || !panel) return;
+  const open = !panel.classList.contains('hidden');
+  dock.classList.toggle('is-open', open);
+  dock.classList.toggle('is-expanded', open && panel.classList.contains('expanded'));
+}
+
 function orchOpen() {
   document.getElementById('orch-bubble')?.classList.add('hidden');
   const panel = document.getElementById('orch-panel');
   panel?.classList.remove('hidden');
+  _orchSyncDockWidth();
   document.getElementById('orch-input')?.focus();
   _orchSetActive(true);   // ouverture = actif immédiatement
   _orchInitOpacity();     // attache les listeners une seule fois
@@ -70,12 +88,23 @@ function orchClose() {
   document.getElementById('orch-panel')?.classList.add('hidden');
   document.getElementById('orch-bubble')?.classList.remove('hidden');
   _orchExpanded = false;
+  _orchSyncDockWidth();
 }
 
 function orchToggleExpand() {
   _orchExpanded = !_orchExpanded;
   document.getElementById('orch-panel')?.classList.toggle('expanded', _orchExpanded);
+  _orchSyncDockWidth();
 }
+
+// Exposée : les pages qui replient l'Orchestrateur par leur propre chemin
+// (l'entretien du Stratège, notamment) doivent pouvoir resynchroniser la
+// largeur du dock après avoir changé la classe du panneau.
+window._orchSyncDockWidth = _orchSyncDockWidth;
+
+// État initial : le dock démarre replié (panneau masqué) sur la plupart des
+// pages — sans cet appel il garderait sa largeur pleine au premier rendu.
+document.addEventListener('DOMContentLoaded', _orchSyncDockWidth);
 
 function _orchEsc(s) {
   const d = document.createElement('div');

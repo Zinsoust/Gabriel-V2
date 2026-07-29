@@ -1,7 +1,7 @@
 # ─── Gabriel Memory — Mémoire stratégique fonctionnelle ──────────────────────
 #
 # Ce module stocke et exploite les cas passés pour améliorer les futures
-# décisions du Stratège. La mémoire est scopée par user_id.
+# décisions du Stratège.
 #
 # Chaque cas stocke :
 #   - fingerprint audience (signaux comparables)
@@ -19,18 +19,26 @@
 #   Seuil d'activation : 35/100 (abaissé pour couvrir plus de cas)
 #
 # Pattern fiable : minimum 2 cas similaires avec feedback.
+#
+# Persistance : Supabase (gabriel_memory_cases — voir
+# supabase/memory_cases_migration.sql). Avant cette migration, tout reposait
+# sur un fichier par utilisateur sur le disque du serveur, effacé à chaque
+# déploiement Render — l'apprentissage stratégique disparaissait donc à
+# chaque mise à jour du code.
+#
+# La mémoire est volontairement globale, pas cloisonnée par compte : chaque
+# recherche de cas similaires (find_similar) priorise d'abord les cas du
+# même utilisateur, et ne retombe sur l'ensemble des autres comptes que s'il
+# n'en a pas assez lui-même. Plus il y a d'utilisateurs, plus les patterns
+# détectés (quelle décision a fonctionné pour quel type d'audience) sont
+# fiables pour tout le monde — c'est le comportement d'apprentissage voulu.
 
-import os
 import re
-import json
 import datetime
-
-_BASE_DIR    = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_DATA_DIR    = os.path.join(_BASE_DIR, 'data')
+from api import db as _db
 
 SIMILARITY_THRESHOLD  = 35
 MIN_CASES_FOR_PATTERN = 2
-MAX_CASES             = 200
 
 _STOPWORDS = {
     'avec', 'dans', 'pour', 'mais', 'plus', 'leur', 'cette', 'sont', 'comme',
@@ -41,12 +49,21 @@ _STOPWORDS = {
 }
 
 
-def _memory_file(user_id=None):
-    """Fichier mémoire : par user si user_id connu, sinon fichier global."""
-    if user_id and user_id != 'global':
-        safe = re.sub(r'[^a-zA-Z0-9_-]', '_', str(user_id))
-        return os.path.join(_DATA_DIR, f'memory_{safe}.json')
-    return os.path.join(_DATA_DIR, 'gabriel_memory.json')
+def _row_to_case(row):
+    """Reconstruit la forme imbriquée attendue par le reste du module depuis
+    une ligne plate gabriel_memory_cases."""
+    return {
+        'case_id':           row.get('case_id', ''),
+        'user_id':           row.get('user_id', ''),
+        'date':              row.get('case_date', ''),
+        'fingerprint':       row.get('fingerprint') or {},
+        'audience':          row.get('audience') or {},
+        'strategie':         row.get('strategie') or {},
+        'contexte_business': row.get('contexte_business') or {},
+        'feedback':          row.get('feedback'),
+        'satisfaction':      row.get('satisfaction'),
+        'performance':       row.get('performance'),
+    }
 
 
 class GabrielMemory:
@@ -58,19 +75,8 @@ class GabrielMemory:
     # ── Persistance ──────────────────────────────────────────────────────────
 
     def _load(self):
-        path = _memory_file(self.user_id)
-        if os.path.exists(path):
-            try:
-                with open(path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except Exception:
-                pass
-        return []
-
-    def _save(self):
-        os.makedirs(_DATA_DIR, exist_ok=True)
-        with open(_memory_file(self.user_id), 'w', encoding='utf-8') as f:
-            json.dump(self.cases, f, ensure_ascii=False, indent=2)
+        rows = _db.get_memory_cases(self.user_id if self.user_id != 'global' else None)
+        return [_row_to_case(r) for r in rows]
 
     # ── Fingerprint & similarité ─────────────────────────────────────────────
 
@@ -229,42 +235,54 @@ class GabrielMemory:
             'feedback': None,
         }
 
-        # Dédupliquer puis insérer
+        row = {
+            'case_id':           case['case_id'],
+            'user_id':           uid,
+            'case_date':         case['date'],
+            'fingerprint':       case['fingerprint'],
+            'audience':          case['audience'],
+            'strategie':         case['strategie'],
+            'contexte_business': case['contexte_business'],
+        }
+        _db.upsert_memory_case(row)
+
+        # Dédupliquer puis insérer en local pour que le reste de cette même
+        # requête (get_memory_context appelé juste après, par exemple) voie
+        # tout de suite le nouveau cas sans re-requêter Supabase.
         self.cases = [c for c in self.cases if c['case_id'] != analysis_id]
         self.cases.insert(0, case)
-        self.cases = self.cases[:MAX_CASES]
-        self._save()
         return case
 
     def record_feedback(self, analysis_id, feedback):
+        payload = {
+            'pertinente':    feedback.get('pertinente', ''),
+            'va_appliquer':  feedback.get('va_appliquer', ''),
+            'resultat':      feedback.get('resultat', ''),
+            'comment':       feedback.get('comment', ''),
+            'date_feedback': datetime.datetime.now().strftime('%Y-%m-%d'),
+        }
+        ok = _db.update_memory_case_field(analysis_id, 'feedback', payload)
         for case in self.cases:
             if case['case_id'] == analysis_id:
-                case['feedback'] = {
-                    'pertinente':    feedback.get('pertinente', ''),
-                    'va_appliquer':  feedback.get('va_appliquer', ''),
-                    'resultat':      feedback.get('resultat', ''),
-                    'comment':       feedback.get('comment', ''),
-                    'date_feedback': datetime.datetime.now().strftime('%Y-%m-%d'),
-                }
-                self._save()
-                return True
-        return False
+                case['feedback'] = payload
+                break
+        return ok
 
     def record_satisfaction(self, analysis_id, satisfaction):
+        ok = _db.update_memory_case_field(analysis_id, 'satisfaction', satisfaction)
         for case in self.cases:
             if case['case_id'] == analysis_id:
                 case['satisfaction'] = satisfaction
-                self._save()
-                return True
-        return False
+                break
+        return ok
 
     def record_performance(self, analysis_id, performance):
+        ok = _db.update_memory_case_field(analysis_id, 'performance', performance)
         for case in self.cases:
             if case['case_id'] == analysis_id:
                 case['performance'] = performance
-                self._save()
-                return True
-        return False
+                break
+        return ok
 
     # ── Recherche de similarité ───────────────────────────────────────────────
 

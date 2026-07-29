@@ -1929,6 +1929,18 @@ body:has(.learn-page) .app-content {
     flex-direction: column;
     transition: width 0.25s cubic-bezier(0.22,1,0.36,1);
   }
+  /* Largeur pilotée par une classe posée en JS (_orchSyncDockWidth dans
+     orchestrator.js). Les variantes :has() sont conservées en second rideau
+     pour le cas où le JS ne tournerait pas, mais elles ne peuvent pas servir
+     de mécanisme principal : mesuré en conditions réelles, le moteur de style
+     ne les réappliquait pas après un changement de classe sur l'enfant, et le
+     dock restait large (340 px) alors que seule la bulle était visible —
+     ~280 px volés à la zone de conversation en permanence.
+     Le dock est REPLIÉ par défaut : il ne prend la place que lorsqu'il est
+     réellement ouvert. */
+  .orch-dock                           { width: 64px; }
+  .orch-dock.is-open                   { width: 340px; }
+  .orch-dock.is-expanded               { width: 480px; }
   .orch-dock:has(#orch-panel.expanded) { width: 480px; }
   .orch-dock:has(#orch-panel.hidden)   { width: 64px; }
 

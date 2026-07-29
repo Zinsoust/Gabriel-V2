@@ -32,6 +32,7 @@ _T_FOLDERS     = 'gabriel_folders'
 _T_CTX_SESSIONS = 'gabriel_context_sessions'
 _T_CTX_MESSAGES = 'gabriel_context_messages'
 _T_CTX_FIELDS   = 'gabriel_context_fields'
+_T_MEMORY_CASES = 'gabriel_memory_cases'
 
 FREE_ANALYSES_LIMIT = 3
 
@@ -1249,7 +1250,7 @@ _ACCOUNT_DATA_TABLES = [
     _T_FOLDERS, _T_JOBS, _T_ANALYSES, _T_STRATEGIES, _T_EXPORTS,
     _T_FEEDBACKS, _T_SURVEY_EVT, _T_SURVEY_RESP, _T_CONSENT,
     _T_CHAT_CONV, _T_CHAT_MSG, _T_TRAIN_CAND,
-    _T_CTX_SESSIONS, _T_CTX_MESSAGES, _T_CTX_FIELDS,
+    _T_CTX_SESSIONS, _T_CTX_MESSAGES, _T_CTX_FIELDS, _T_MEMORY_CASES,
 ]
 
 
@@ -1276,3 +1277,76 @@ def delete_all_user_data(user_id):
             print(f'[DB] delete_all_user_data error on {_T_USERS}: {e}')
             failed.append(_T_USERS)
     return failed
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MÉMOIRE DE CAS DU STRATÈGE (core/memory.py)
+#
+# gabriel_memory_cases (voir supabase/memory_cases_migration.sql) remplace
+# l'ancien stockage en fichier JSON local, effacé à chaque déploiement Render.
+# ─────────────────────────────────────────────────────────────────────────────
+
+GLOBAL_MEMORY_POOL_LIMIT = 300
+
+
+def get_memory_cases(user_id=None):
+    """Pool de cas pour la recherche de similarité : tout l'historique de cet
+    utilisateur + un échantillon récent tous comptes confondus, pour que les
+    patterns détectés s'appuient sur plus que ses seuls cas (apprentissage
+    global — voir core/memory.py find_similar, qui priorise déjà les cas de
+    l'utilisateur quand il en a assez avant de retomber sur ce pool élargi)."""
+    if not _supabase:
+        return []
+    cases, seen = [], set()
+    try:
+        if user_id:
+            res = (
+                _supabase.table(_T_MEMORY_CASES).select('*')
+                .eq('user_id', user_id).order('created_at', desc=True).execute()
+            )
+            for row in (res.data or []):
+                cases.append(row)
+                seen.add(row['case_id'])
+    except Exception as e:
+        print(f'[DB] get_memory_cases (user) error: {e}')
+    try:
+        res = (
+            _supabase.table(_T_MEMORY_CASES).select('*')
+            .order('created_at', desc=True).limit(GLOBAL_MEMORY_POOL_LIMIT).execute()
+        )
+        for row in (res.data or []):
+            if row['case_id'] not in seen:
+                cases.append(row)
+                seen.add(row['case_id'])
+    except Exception as e:
+        print(f'[DB] get_memory_cases (global) error: {e}')
+    return cases
+
+
+def upsert_memory_case(case_row):
+    """Écrit un cas (un par analyse — voir la contrainte unique sur case_id)."""
+    if not (_supabase and case_row.get('case_id') and case_row.get('user_id')):
+        return False
+    try:
+        _supabase.table(_T_MEMORY_CASES).upsert(case_row, on_conflict='case_id').execute()
+        return True
+    except Exception as e:
+        print(f'[DB] upsert_memory_case error: {e}')
+        return False
+
+
+def update_memory_case_field(case_id, field, value):
+    """Met à jour un seul champ (feedback, satisfaction ou performance) d'un
+    cas déjà enregistré, sans re-écrire tout le reste."""
+    if not (_supabase and case_id and field):
+        return False
+    try:
+        res = (
+            _supabase.table(_T_MEMORY_CASES)
+            .update({field: value, 'updated_at': datetime.datetime.now().isoformat()})
+            .eq('case_id', case_id).execute()
+        )
+        return bool(res.data)
+    except Exception as e:
+        print(f'[DB] update_memory_case_field error: {e}')
+        return False

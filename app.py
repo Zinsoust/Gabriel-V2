@@ -1406,13 +1406,9 @@ def account_delete():
         except Exception as e:
             print(f"[ACCOUNT_DELETE] fichier local non supprimé ({path}) : {e}")
 
-    try:
-        from core.memory import _memory_file
-        mem_path = _memory_file(uid)
-        if os.path.exists(mem_path):
-            os.remove(mem_path)
-    except Exception as e:
-        print(f"[ACCOUNT_DELETE] mémoire non supprimée : {e}")
+    # La mémoire de cas (gabriel_memory_cases) est purgée par
+    # _db.delete_all_user_data ci-dessus — plus de fichier local depuis son
+    # passage sur Supabase (voir core/memory.py).
 
     safe_log_event('account_deleted', user_id=uid, metadata={'failed_tables': failed_tables})
     session.clear()

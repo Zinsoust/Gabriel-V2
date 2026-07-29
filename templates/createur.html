@@ -1266,9 +1266,205 @@
 @media (prefers-reduced-motion: reduce) {
   .cre-loading-mark,
   .cre-progress-fill,
-  .cre-result {
+  .cre-result,
+  .cre-emotion {
     animation: none !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HARMONISATION open-space (langage du Stratège) — placée en fin de feuille
+   pour gagner sur les définitions de cartes plus haut. Les GROS conteneurs
+   s'effacent (fond et bordure retirés) pour que le contenu respire dans un
+   espace libre, exactement comme le Stratège. Les sous-composants gardent
+   leur propre cadre : le champ de brief (.cre-editor-wrap), les puces de ton,
+   les sélecteurs — seules les boîtes qui « enfermaient » disparaissent.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.page-createur .cre-card,
+.page-createur .cre-out-card,
+.page-createur .cre-why,
+.page-createur .cre-var,
+.page-createur .cre-refine-wrap {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+.page-createur .cre-card { padding-top: 0; }
+.page-createur .cre-card:focus-within {
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+/* Le panneau latéral adopte le séparateur vertical du Stratège
+   (.interview-side) au lieu d'empiler des cartes encadrées. */
+.page-createur .cre-side {
+  border-left: 1px solid var(--border-soft);
+  padding-left: 26px;
+}
+.page-createur .cre-tone-panel,
+.page-createur .cre-ctx,
+.page-createur .cre-history {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+/* Le résultat respire aussi : plus de carte pleine autour du texte généré,
+   seulement un léger filet à gauche pour le distinguer, comme les réponses
+   de Gabriel dans la conversation du Stratège. */
+.page-createur .cre-out-text {
+  border-left: 2px solid var(--border-medium);
+  padding-left: 16px;
+}
+@media (max-width: 900px) {
+  .page-createur .cre-side {
+    border-left: none;
+    border-top: 1px solid var(--border-soft);
+    padding-left: 0;
+    padding-top: 20px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ÉTAPE ÉMOTION — langage visuel ouvert (miroir du Stratège) : espace libre,
+   centré, aucune carte qui enferme. C'est ce qui donne l'air et la légèreté.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cre-emotion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(560px, calc(100vh - 240px));
+  padding: 40px 24px;
+  animation: cre-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.cre-emo-inner {
+  width: 100%;
+  max-width: 680px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.cre-emo-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--champagne) 62%, transparent);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.cre-emo-title {
+  font-size: clamp(23px, 2.6vw, 31px);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin: 0;
+  text-wrap: balance;
+  letter-spacing: -0.01em;
+}
+.cre-emo-sub {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  max-width: 520px;
+  margin: 14px 0 30px;
+  text-wrap: balance;
+}
+.cre-emo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  margin-bottom: 22px;
+}
+.cre-emo-chip {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 9px 17px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
+}
+.cre-emo-chip:hover {
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--champagne) 40%, transparent);
+  transform: translateY(-1px);
+}
+.cre-emo-chip.active {
+  color: var(--champagne);
+  background: color-mix(in srgb, var(--champagne) 12%, transparent);
+  border-color: color-mix(in srgb, var(--champagne) 42%, transparent);
+}
+.cre-emo-free {
+  width: 100%;
+  max-width: 440px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  border-radius: 0;
+  padding: 11px 4px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.18s;
+  margin-bottom: 34px;
+}
+.cre-emo-free::placeholder { color: var(--text-disabled); }
+.cre-emo-free:focus {
+  border-bottom-color: color-mix(in srgb, var(--champagne) 50%, transparent);
+}
+.cre-emo-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.cre-emo-skip {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  padding: 8px 4px;
+  transition: color 0.15s;
+}
+.cre-emo-skip:hover { color: var(--text-secondary); }
+.cre-emo-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1510;
+  background: linear-gradient(135deg, var(--champagne), var(--champagne-soft));
+  border: 1px solid color-mix(in srgb, var(--champagne) 60%, transparent);
+  border-radius: 999px;
+  padding: 12px 24px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--champagne) 20%, transparent);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cre-emo-go:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--champagne) 30%, transparent);
+}
+.cre-emo-go svg { width: 15px; height: 15px; }
+
+@media (max-width: 680px) {
+  .cre-emo-actions { flex-direction: column-reverse; gap: 14px; width: 100%; }
+  .cre-emo-go { width: 100%; justify-content: center; }
+  .cre-emo-chip { font-size: 12.5px; padding: 8px 14px; }
 }
 </style>
 {% endblock %}
@@ -1280,7 +1476,7 @@
 {% block content %}
 <div class="cre-page">
 
-  <header class="cre-hero">
+  <header class="cre-hero" id="cre-hero">
     <div class="cre-eyebrow"><span class="cre-eyebrow-mark" aria-hidden="true"></span>Atelier de création</div>
     <h1 class="cre-h1">
       Transformez votre stratégie en <span class="cre-h1-accent">contenu prêt à publier.</span>
@@ -1288,7 +1484,7 @@
     <p class="cre-h2">Décrivez votre intention. Gabriel relie votre demande aux décisions du Stratège et aux signaux du Psychologue pour produire un contenu cohérent avec votre audience.</p>
   </header>
 
-  <div class="cre-workspace">
+  <div class="cre-workspace" id="cre-workspace">
     <section class="cre-card" id="cre-card" data-tour="createur-start" aria-labelledby="cre-brief-title">
       <div class="cre-section-head">
         <span class="cre-step" aria-hidden="true">01</span>
@@ -1380,9 +1576,9 @@
 
       <div class="cre-cta-row">
         <span class="cre-count" id="cre-count">0 / 2000</span>
-        <button type="button" class="cre-btn" id="cre-gen" onclick="generate()" data-tour="createur-start">
+        <button type="button" class="cre-btn" id="cre-gen" onclick="openEmotionStep()" data-tour="createur-start">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          <span id="cre-gen-label">Créer le contenu</span>
+          <span id="cre-gen-label">Continuer</span>
         </button>
       </div>
     </section>
@@ -1461,6 +1657,52 @@
     </aside>
   </div>
 
+  <!-- ── Étape ÉMOTION (facultative) ────────────────────────────────────────
+       Nouvelle étape du parcours de création. Posée APRÈS le format, AVANT la
+       rédaction : « que doit ressentir votre audience ? » — la question d'un
+       copywriter senior. Présentée dans le langage visuel ouvert du Stratège
+       (espace libre, centré, aucune carte qui enferme), pilotée par
+       CreatorWorkspace. Facultative : « Passer » lance la rédaction sans
+       émotion. Le moteur derrière (agents/createur.py :: _EMOTION_DIRECTIVES)
+       traduit l'émotion choisie en directives d'écriture concrètes. -->
+  <section class="cre-emotion hidden" id="cre-emotion" aria-labelledby="cre-emo-title">
+    <div class="cre-emo-inner">
+      <div class="cre-emo-eyebrow">Avant de rédiger</div>
+      <h2 class="cre-emo-title" id="cre-emo-title">Quelle émotion voulez-vous faire vivre à votre audience ?</h2>
+      <p class="cre-emo-sub">Les meilleurs contenus pensent d’abord à l’impact. Choisissez un ressenti, décrivez-le librement, ou passez directement à la rédaction — cette étape est facultative.</p>
+
+      <div class="cre-emo-chips" id="cre-emo-chips" role="listbox" aria-label="Émotions proposées">
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="confiance"   onclick="selectEmotion(this)">Confiance</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="inspiration" onclick="selectEmotion(this)">Inspiration</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="motivation"  onclick="selectEmotion(this)">Motivation</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="urgence"     onclick="selectEmotion(this)">Urgence</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="curiosite"   onclick="selectEmotion(this)">Curiosité</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="surprise"    onclick="selectEmotion(this)">Surprise</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="admiration"  onclick="selectEmotion(this)">Admiration</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="empathie"    onclick="selectEmotion(this)">Empathie</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="fierte"      onclick="selectEmotion(this)">Fierté</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="espoir"      onclick="selectEmotion(this)">Espoir</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="joie"        onclick="selectEmotion(this)">Joie</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="reflexion"   onclick="selectEmotion(this)">Réflexion</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="autorite"    onclick="selectEmotion(this)">Autorité</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="luxe"        onclick="selectEmotion(this)">Luxe</button>
+        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="liberte"     onclick="selectEmotion(this)">Liberté</button>
+      </div>
+
+      <input type="text" class="cre-emo-free" id="cre-emo-free" maxlength="120"
+        placeholder="…ou décrivez librement le ressenti visé" oninput="onEmotionFree()"
+        aria-label="Décrire librement l’émotion visée" />
+
+      <div class="cre-emo-actions">
+        <button type="button" class="cre-emo-skip" onclick="skipEmotion()">Passer cette étape</button>
+        <button type="button" class="cre-emo-go" id="cre-emo-go" onclick="confirmEmotion()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          Créer le contenu
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- Loading -->
   <div class="hidden cre-loading" id="cre-load" role="status" aria-live="polite">
     <div class="cre-loading-mark" aria-hidden="true">
@@ -1530,9 +1772,14 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Machine à états du parcours de création — jumeau de strategy-workspace.js.
+     Chargé avant le script inline pour que CreatorWorkspace existe quand les
+     écrans s'enregistrent. -->
+<script src="{{ static_v('js/creator-workspace.js') }}"></script>
 <script>
 /* ─── État ──────────────────────────────────────────────────────────────────── */
 let _tone       = 'expert';
+let _emotion    = '';   // émotion cible facultative (étape émotion) — '' = passée
 let _psycho     = {};
 let _strategy   = {};
 let _businessContext = {};
@@ -1872,6 +2119,91 @@ function setGenerating(isGenerating, label) {
   $('cre-gen-label').textContent = isGenerating ? (label || 'Création en cours…') : 'Créer le contenu';
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+ * PARCOURS DE CRÉATION — écrans pilotés par CreatorWorkspace
+ *
+ * Chaque écran déclare comment il apparaît (miroir de la logique du Stratège
+ * dans stratege.html). La visibilité passe toujours par le workspace : un
+ * seul endroit décide de l'écran affiché, jamais des sh()/hd() éparpillés.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+function _creShowOnly(visibleIds) {
+  ['cre-hero', 'cre-workspace', 'cre-emotion', 'cre-load', 'cre-out']
+    .forEach(id => (visibleIds.indexOf(id) === -1 ? hd(id) : sh(id)));
+}
+
+if (window.CreatorWorkspace) {
+  CreatorWorkspace.register('brief',      { enter: () => _creShowOnly(['cre-hero', 'cre-workspace']) });
+  CreatorWorkspace.register('emotion',    { enter: () => {
+    _creShowOnly(['cre-emotion']);
+    _smartScrollToResults('cre-emotion');
+    $('cre-emo-free')?.focus({preventScroll: true});
+  }});
+  CreatorWorkspace.register('generating', { enter: () => _creShowOnly(['cre-load']) });
+  CreatorWorkspace.register('result',     { enter: () => _creShowOnly(['cre-out']) });
+}
+
+/* ─── Étape ÉMOTION (facultative) ────────────────────────────────────────────
+   Posée entre le brief et la rédaction. « Répondre » lance la création avec
+   l'émotion choisie ; « Passer » la lance sans émotion. La validation du brief
+   reste faite ici, avant d'avancer, pour ne pas afficher l'étape émotion sur
+   un brief vide. */
+function openEmotionStep() {
+  if ($('cre-gen').disabled) return;
+  const userRequest = $('cre-req').value.trim();
+  if (!userRequest) {
+    $('cre-editor-wrap').classList.add('invalid');
+    sh('cre-req-error');
+    $('cre-req').focus();
+    toast('Ajoutez un brief avant de continuer.', true);
+    return;
+  }
+  if (window.CreatorWorkspace) CreatorWorkspace.goTo('emotion');
+  else _creShowOnly(['cre-emotion']);
+}
+
+function selectEmotion(btn) {
+  const chips = document.querySelectorAll('.cre-emo-chip');
+  const wasActive = btn.classList.contains('active');
+  chips.forEach(c => { c.classList.remove('active'); c.setAttribute('aria-selected', 'false'); });
+  if (wasActive) {
+    // Re-cliquer sur la puce active la désélectionne (aucune émotion).
+    _emotion = '';
+    return;
+  }
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+  _emotion = btn.dataset.emotion || '';
+  const free = $('cre-emo-free');
+  if (free) free.value = '';  // puce et texte libre s'excluent
+}
+
+function onEmotionFree() {
+  const val = ($('cre-emo-free')?.value || '').trim();
+  if (val) {
+    document.querySelectorAll('.cre-emo-chip').forEach(c => {
+      c.classList.remove('active'); c.setAttribute('aria-selected', 'false');
+    });
+    _emotion = val;
+  } else if (!document.querySelector('.cre-emo-chip.active')) {
+    _emotion = '';
+  }
+}
+
+function confirmEmotion() {
+  // _emotion est déjà à jour (puce ou texte libre). Vide = équivaut à passer.
+  generate();
+}
+
+function skipEmotion() {
+  _emotion = '';
+  document.querySelectorAll('.cre-emo-chip').forEach(c => {
+    c.classList.remove('active'); c.setAttribute('aria-selected', 'false');
+  });
+  const free = $('cre-emo-free');
+  if (free) free.value = '';
+  generate();
+}
+
 /* ─── Génération ─────────────────────────────────────────────────────────────── */
 async function generate() {
   if ($('cre-gen').disabled) return;
@@ -1885,6 +2217,9 @@ async function generate() {
   }
 
   _lastResult = null;
+  // Écran de génération propre quel que soit le point d'entrée (depuis le
+  // brief ou depuis l'étape émotion) : on masque toujours les écrans amont.
+  hd('cre-hero'); hd('cre-workspace'); hd('cre-emotion');
   hd('cre-out');
   sh('cre-load');
   _smartScrollToResults('cre-load');
@@ -1895,6 +2230,7 @@ async function generate() {
     content_type:  $('cre-fmt').value,
     channel:       $('cre-ch').value,
     tone:          _tone,
+    emotion:       _emotion,
     objective:     $('cre-obj').value,
     user_request:  userRequest,
     analysis_id:   _analysisId,
@@ -2101,10 +2437,14 @@ async function refine() {
 /* ─── Régénérer / changer tonalité ─────────────────────────────────────────── */
 function regen()       { hd('cre-out'); generate(); }
 function changeTone()  {
+  // Les tons vivent dans le brief (workspace) — masqué à l'écran résultat.
+  // On y revient d'abord, sinon on défilerait vers un élément invisible.
+  if (window.CreatorWorkspace) CreatorWorkspace.goTo('brief');
+  else _creShowOnly(['cre-hero', 'cre-workspace']);
   const tones = $('cre-tones');
   tones.scrollIntoView({behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center'});
   tones.querySelector('.cre-tone.active')?.focus({preventScroll: true});
-  toast('Choisissez une tonalité, puis régénérez le contenu.');
+  toast('Choisissez une tonalité, puis relancez la création.');
 }
 
 /* ─── Copier ─────────────────────────────────────────────────────────────────── */
@@ -2192,7 +2532,16 @@ function reset() {
   updateCount();
   setGenerating(false);
   stopCrePercent();
-  hd('cre-load'); hd('cre-out');
+  // Retour à l'écran de départ (brief) — pas seulement masquer load/résultat :
+  // le hero et le workspace ont pu être masqués par l'étape émotion ou la
+  // génération. On réinitialise aussi l'émotion choisie.
+  _emotion = '';
+  $('cre-emo-free') && ($('cre-emo-free').value = '');
+  document.querySelectorAll('.cre-emo-chip').forEach(c => {
+    c.classList.remove('active'); c.setAttribute('aria-selected', 'false');
+  });
+  if (window.CreatorWorkspace) CreatorWorkspace.goTo('brief');
+  else _creShowOnly(['cre-hero', 'cre-workspace']);
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelector('.app-content')?.scrollTo({top:0, behavior: reduced ? 'auto' : 'smooth'});
   setTimeout(() => $('cre-req').focus({preventScroll: true}), reduced ? 0 : 280);

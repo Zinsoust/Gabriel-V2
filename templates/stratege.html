@@ -2662,12 +2662,30 @@
   .interview-session-bar { grid-column:1 / -1; grid-row:1; }
   #strat-psycho-banner, #strat-idle, .ctx-header, .chat-window, .interview-gate { grid-column:1; grid-row:2; }
   .chat-input-row { grid-column:1; grid-row:3; }
-  /* Le suivi étant devenu une carte flottante (voir .interview-side plus
-     bas), il ne réserve plus de colonne : une seule colonne, et le contenu
-     garde une marge à droite pour ne jamais passer sous la carte. */
-  /* position:relative — sert de repère à la barre de saisie, qui s'ancre
+  /* Le suivi est une carte FLOTTANTE (voir .interview-side plus bas) : elle
+     survole la page et ne doit voler aucun espace à la conversation. On ne
+     réserve donc plus 318 px à droite — cette réserve étranglait la zone de
+     conversation. À la place, la conversation est centrée avec une largeur
+     de lecture généreuse (modèle ChatGPT) : sur écran large, la marge
+     naturelle à droite accueille la carte sans jamais la croiser.
+     position:relative — sert de repère à la barre de saisie, qui s'ancre
      ainsi sur la colonne de conversation plutôt que sur la fenêtre. */
-  .ctx-panel { grid-template-columns:minmax(0,1fr); padding-right:318px; position:relative; }
+  .ctx-panel { grid-template-columns:minmax(0,1fr); position:relative; }
+
+  /* Largeur de lecture de la conversation — le seul garde-fou. Tout ce qui
+     appartient au fil (messages, écrans d'étape) partage cette largeur et
+     ce centrage, pour que la colonne reste la même d'un écran à l'autre. */
+  .page-stratege .chat-window,
+  .page-stratege .interview-gate:not(#gate-welcome) {
+    max-width:780px; margin-inline:auto;
+  }
+
+  /* En dessous de cette largeur, la marge naturelle ne suffit plus à loger
+     la carte flottante : on redonne une réserve pour que le texte ne passe
+     jamais dessous. */
+  @media (max-width:1360px) {
+    .ctx-panel:not(.step-welcome) { padding-right:310px; }
+  }
 
   /* ── Zone A — colonne principale ─────────────────────────────────────
      Aucun encadré. L'étape en cours s'inscrit dans un espace libre : c'est
@@ -2938,11 +2956,16 @@
      la barre de saisie n'apparaissent qu'à partir de l'entretien : à
      l'accueil il n'y a encore rien à suivre, ni rien à répondre. La
      conversation prend alors toute la largeur, centrée. */
-  .ctx-panel.step-welcome { grid-template-columns:minmax(0,1fr); }
+  /* padding-right:0 — la réserve de 318 px sert à la carte de progression
+     flottante, masquée à l'accueil. La garder ici décalait tout l'écran de
+     ~69 px vers la gauche au lieu de le centrer. */
+  .ctx-panel.step-welcome { grid-template-columns:minmax(0,1fr); padding-right:0; }
   .ctx-panel.step-welcome .interview-side,
   .ctx-panel.step-welcome .chat-input-row,
   .ctx-panel.step-welcome .interview-session-bar { display:none; }
-  .ctx-panel.step-welcome .interview-gate { max-width:720px; margin:0 auto; }
+  /* justify-self:center — en grille, margin:0 auto ne suffit pas : l'élément
+     est étiré puis plafonné par max-width, ce qui le colle au bord gauche. */
+  .ctx-panel.step-welcome .interview-gate { max-width:720px; justify-self:center; }
   .ctx-panel.step-welcome .gate-title { font-size:clamp(30px, 3.6vw, 44px); }
   .ctx-panel.step-welcome .gate-sub {
     font-size:clamp(15px, 1.5vw, 17px); line-height:1.8; max-width:600px; margin-top:20px;
@@ -3006,11 +3029,12 @@
        du rail de navigation, du dock Orchestrateur et de la carte de suivi.
        Ces valeurs devinées la décalaient de près de 200 px vers la gauche,
        sous la navigation. Ancrée à la colonne, elle hérite de sa géométrie
-       et reste alignée quoi qu'il arrive. right:318px reprend la réserve
-       faite pour la carte flottante. */
+       et reste alignée quoi qu'il arrive. Elle partage exactement la largeur
+       de lecture de la conversation (780 px) : la barre se trouve donc
+       toujours sous la colonne de texte, jamais décalée par rapport à elle. */
     position:absolute; z-index:40;
-    left:0; right:318px; bottom:26px;
-    margin:0 auto; width:auto; max-width:640px;
+    left:0; right:0; bottom:26px;
+    margin:0 auto; width:auto; max-width:780px;
     padding:6px 6px 6px 16px;
     border-radius:999px; align-items:center; gap:4px;
   }
@@ -4266,12 +4290,18 @@ function _hideVoiceLiveStatus() {
    l'Orchestrateur qui reste visible en permanence) divisent l'attention.
    Pendant l'entretien, Gabriel doit rester la seule présence à l'écran —
    l'Orchestrateur redevient utile une fois le contexte prêt. */
+/* Ces deux fonctions replient/déplient l'Orchestrateur par leur propre
+   chemin (sans passer par orchOpen/orchClose). Elles doivent donc appeler
+   la synchronisation de largeur du dock, sinon le dock garde sa largeur
+   pleine (340 px) alors que seule la bulle est visible — c'est ce qui
+   volait ~280 px à la conversation pendant tout l'entretien. */
 function _hideOrchestrateur() {
   const bubble = document.getElementById('orch-bubble');
   const panel  = document.getElementById('orch-panel');
   _orchHiddenByInterview = true;
   panel?.classList.add('hidden');
   bubble?.classList.remove('hidden');
+  window._orchSyncDockWidth?.();
 }
 function _restoreOrchestrateur() {
   if (!_orchHiddenByInterview) return;
@@ -4281,6 +4311,7 @@ function _restoreOrchestrateur() {
   } else {
     document.getElementById('orch-bubble')?.classList.remove('hidden');
   }
+  window._orchSyncDockWidth?.();
 }
 
 function _initVoiceUI() {
