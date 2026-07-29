@@ -20,8 +20,9 @@
   {% block head %}{% endblock %}
   <link rel="stylesheet" href="{{ static_v('css/gabriel-light.css') }}">
   <link rel="stylesheet" href="{{ static_v('css/gabriel-ux.css') }}">
+  <link rel="stylesheet" href="{{ static_v('css/gabriel-cabinet.css') }}">
 </head>
-<body class="page-{{ active_page }}">
+<body class="page-{{ active_page }}" data-office="{{ active_page }}">
 
 <div class="app-layout">
 
@@ -161,6 +162,7 @@
   {% endif %}
 
   <div class="app-main">
+    <div class="cabinet-ambient" aria-hidden="true"></div>
 
     <header class="app-header">
       <div class="header-title">
@@ -176,6 +178,7 @@
         </a>
         <span class="sep">/</span>
         <span class="page">{% block page_name %}{% endblock %}</span>
+        <span class="cabinet-room" aria-hidden="true"></span>
       </div>
       <div class="header-actions">
         {% block header_actions %}{% endblock %}

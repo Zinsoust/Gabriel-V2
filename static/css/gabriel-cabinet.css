@@ -1,0 +1,321 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   GABRIEL — ARCHITECTURE SPATIALE · « Le Cabinet »
+   ---------------------------------------------------------------------------
+   Couche additive. Ne restructure aucune page. Ne redéfinit aucun token de
+   base. Elle ajoute la PERSONNALITÉ de chaque bureau (les ~20 %) par-dessus le
+   langage commun (les ~80 % : noir, champagne, ivoire, typo, nav, sidebar).
+
+   L'utilisateur ne change jamais d'application. Il change de bureau :
+     · Psychologue  → cabinet d'analyse   (organique, chaud)
+     · Stratège     → salle de conseil    (lent, posé, profond)
+     · Créateur     → studio créatif      (vivant, plus affirmé)
+     · Dossiers     → hall d'accueil      (discret, neutre champagne)
+
+   Piloté par  body[data-office="…"]  posé dans base.html.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Tokens par bureau ─────────────────────────────────────────────────────
+   --office-accent  : couleur secondaire du bureau (jamais l'accent primaire :
+                      les CTA restent champagne, langage commun).
+   --office-glow    : force de la lumière d'ambiance dans la zone de travail.
+   --office-plate   : le nom de la salle (plaque sous le titre de page).        */
+body[data-office] {
+  --office-accent:        var(--champagne);
+  --office-accent-2:      var(--champagne-soft);
+  --office-glow:          0.05;
+  --office-plate:         '';
+}
+
+/* Le Psychologue — cabinet d'analyse. Chaleur humaine, mouvement organique. */
+body[data-office="psychologue"] {
+  --office-accent:   #C9986B;
+  --office-accent-2: #B9805A;
+  --office-glow:     0.06;
+  --office-plate:    'Cabinet d’analyse';
+}
+
+/* Le Stratège — salle de conseil. Profondeur, lenteur, décision posée.
+   Étain/graphite sobre : froid et posé (contraste avec la chaleur du
+   Psychologue et du Créateur) SANS le « bleu tech » qui jure avec le champagne. */
+body[data-office="stratege"] {
+  --office-accent:   #8A9099;
+  --office-accent-2: #6B717C;
+  --office-glow:     0.055;
+  --office-plate:    'Salle de conseil';
+}
+
+/* Le Créateur — studio créatif. Plus vivant, un peu plus affirmé. */
+body[data-office="createur"] {
+  --office-accent:   #D0895E;
+  --office-accent-2: #C4714A;
+  --office-glow:     0.07;
+  --office-plate:    'Studio créatif';
+}
+
+/* Le hall d'accueil — dossiers. Neutre, champagne, très discret. */
+body[data-office="dossiers"] {
+  --office-accent:   var(--champagne);
+  --office-accent-2: var(--champagne-soft);
+  --office-glow:     0.04;
+  --office-plate:    'Hall d’accueil';
+}
+
+/* En thème clair, la lumière d'ambiance s'atténue (fond déjà clair). */
+:root[data-theme="light"] body[data-office] { --office-glow: 0.028; }
+
+/* Thème clair : accents plus profonds pour tenir sur blanc (les tons chauds
+   pâles paraissent délavés) ; Stratège en graphite d'encre — aucun bleu. */
+:root[data-theme="light"] body[data-office="psychologue"] {
+  --office-accent:   #9C6E38;
+  --office-accent-2: #7E5628;
+}
+:root[data-theme="light"] body[data-office="stratege"] {
+  --office-accent:   #5A616C;
+  --office-accent-2: #454B55;
+}
+:root[data-theme="light"] body[data-office="createur"] {
+  --office-accent:   #B5623B;
+  --office-accent-2: #97492A;
+}
+
+
+/* ─── La lumière du bureau ──────────────────────────────────────────────────
+   Une nappe lumineuse très basse, teintée de la couleur secondaire du bureau,
+   posée derrière la zone de travail. C'est ce qui « change légèrement » quand
+   on passe d'un bureau à l'autre — perçu, jamais lu. Ne capte aucun clic.     */
+.cabinet-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;            /* derrière tout le contenu, sans repositionner quoi que ce soit */
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(58vw 52vh at 78% 8%,
+      color-mix(in srgb, var(--office-accent) calc(var(--office-glow) * 100%), transparent) 0%,
+      transparent 62%),
+    radial-gradient(46vw 44vh at 12% 96%,
+      color-mix(in srgb, var(--office-accent-2) calc(var(--office-glow) * 62%), transparent) 0%,
+      transparent 58%);
+  transition: opacity 900ms ease, background 900ms ease;
+}
+@keyframes cabinet-ambient-in { to { opacity: 1; } }
+/* La nappe ne s'allume que dans les VRAIES salles du cabinet. Les pages
+   utilitaires (profil, historique, en savoir plus…) restent neutres. */
+body[data-office="psychologue"] .cabinet-ambient,
+body[data-office="stratege"]    .cabinet-ambient,
+body[data-office="createur"]    .cabinet-ambient,
+body[data-office="dossiers"]    .cabinet-ambient {
+  animation: cabinet-ambient-in 1400ms ease forwards;
+}
+
+/* La nappe est en z-index:-1 : tout le contenu (sidebar, header, zone de
+   travail, orch-dock) paint au-dessus naturellement. On ne repositionne rien. */
+
+
+/* Note : pas de rythme d'arrivée par bureau ni de transition entre agents —
+   retirés à la demande. L'identité des bureaux passe par la lumière et la
+   couleur, pas par le mouvement. Les pages gardent leur entrée d'origine
+   (gb-fade-up, ~0.38s). */
+
+
+/* ─── La plaque de la salle ─────────────────────────────────────────────────
+   Sous le nom de la page, le type de bureau. Renforce l'identité sans jamais
+   crier « vous êtes dans X ». Contenu injecté par --office-plate.             */
+.cabinet-room {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 10px;
+  padding-left: 11px;
+  border-left: 1px solid var(--border-soft);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.cabinet-room::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--office-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--office-accent) 18%, transparent);
+  flex: none;
+}
+.cabinet-room::after { content: var(--office-plate); }
+/* Masquée là où aucun bureau n'est actif (page sans data-office pertinent). */
+body:not([data-office="psychologue"]):not([data-office="stratege"]):not([data-office="createur"]):not([data-office="dossiers"]) .cabinet-room { display: none; }
+/* Sur mobile étroit, on garde la nav lisible : la plaque s'efface. */
+@media (max-width: 640px) { .cabinet-room { display: none; } }
+
+
+/* ─── Sélection teintée par le bureau ───────────────────────────────────────
+   Détail qui « fait cabinet » : même le surlignage porte la couleur du lieu.  */
+body[data-office="psychologue"] ::selection,
+body[data-office="stratege"]    ::selection,
+body[data-office="createur"]    ::selection {
+  background: color-mix(in srgb, var(--office-accent) 26%, transparent);
+  color: var(--text-primary);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIÈCE 1 — LE COMPOSER
+   ---------------------------------------------------------------------------
+   Le composer est une pièce centrale : il doit respirer, jamais paraître
+   écrasé, le texte ne doit jamais toucher les bords. Au focus, il porte la
+   LUMIÈRE DU BUREAU (--office-accent) — le signal « bureau vivant » le plus
+   direct : le composer du Stratège s'allume acier, celui du Créateur terracotta.
+   Les CTA restent champagne (langage commun) — seul le halo d'ambiance change.
+
+   Cible les 3 composers conversationnels réels :
+     · .chat-input-row  (Stratège)
+     · .cre-editor-wrap (Créateur)
+     · .orch-input-row  (Orchestrateur, shell)
+   Couche chargée après les styles de page → surcharge propre à specificité égale.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Respiration : hauteur confortable + le texte ne touche jamais les bords. */
+.chat-input-row,
+.orch-input-row {
+  min-height: 60px;
+  align-items: center;
+}
+.cre-editor-wrap {
+  border-radius: 20px;
+}
+
+/* Halo au focus, teinté par le bureau. Discret, jamais criard. */
+.chat-input-row:focus-within,
+.orch-input-row:focus-within,
+.cre-editor-wrap:focus-within {
+  border-color: color-mix(in srgb, var(--office-accent) 42%, transparent);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.16),
+    0 0 0 3px color-mix(in srgb, var(--office-accent) 12%, transparent);
+}
+:root[data-theme="light"] .chat-input-row:focus-within,
+:root[data-theme="light"] .orch-input-row:focus-within,
+:root[data-theme="light"] .cre-editor-wrap:focus-within {
+  box-shadow:
+    0 6px 18px rgba(17, 19, 24, 0.08),
+    0 0 0 3px color-mix(in srgb, var(--office-accent) 14%, transparent);
+}
+
+/* Le champ grandit progressivement, PUIS devient scrollable — jamais brutal. */
+.chat-input,
+.orch-input,
+.cre-textarea {
+  line-height: 1.6;
+  overflow-y: auto;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIÈCE 2 — LA GRANDE ZONE DE TRAVAIL MODULABLE
+   ---------------------------------------------------------------------------
+   « Aucune largeur fixe ne doit être imposée. » La zone s'adapte au CONTENU :
+   conversation = largeur de lecture confortable ; rapport = plus large ;
+   tableau = pleine largeur ; graphique/image = centré et adapté.
+
+   On ne force RIEN sur les pages existantes (elles gèrent déjà leurs largeurs).
+   On fournit le mécanisme — tokens clamp()/min()/max() + classes utilitaires +
+   container queries — à brancher par bloc au fil du rendu. Additif, invisible
+   tant qu'une classe .zone-* n'est pas posée.
+
+   Échelle de largeurs (une intention par palier) :
+     .zone-read    conversation, prose      → ~68ch, lecture confortable
+     .zone-report  rapport, analyse         → jusqu'à 1080px
+     .zone-wide    tableau large, dashboard → jusqu'à 1320px
+     .zone-full    tableau/pleine largeur   → 100 %
+     .zone-center  graphique/image centré   → largeur du contenu, centré
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --work-read:   min(68ch, 100%);
+  --work-report: min(1080px, 100%);
+  --work-wide:   min(1320px, 100%);
+  --gutter:      clamp(16px, 4vw, 40px);
+}
+
+.zone-read,
+.zone-report,
+.zone-wide,
+.zone-full,
+.zone-center { margin-inline: auto; width: 100%; }
+
+.zone-read   { max-width: var(--work-read); }
+.zone-report { max-width: var(--work-report); }
+.zone-wide   { max-width: var(--work-wide); }
+.zone-full   { max-width: 100%; }
+.zone-center { max-width: max-content; display: block; }
+.zone-center > img,
+.zone-center > svg,
+.zone-center > canvas { max-width: 100%; height: auto; }
+
+/* Rendre un conteneur « modulable » : ses enfants peuvent répondre à la
+   largeur RÉELLE de la zone (pas du viewport) via @container. À poser sur un
+   wrapper de contenu généré, jamais sur le conteneur de scroll critique. */
+.zone-fluid { container-type: inline-size; container-name: workzone; }
+@container workzone (min-width: 720px) {
+  .zone-fluid-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-lg, 24px); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PIÈCE 4 — LA TYPOGRAPHIE PREMIUM
+   ---------------------------------------------------------------------------
+   « L'impression premium vient davantage de la typographie que des effets. »
+   Échelle très lisible, textes qui respirent, paragraphes limités à 70–80
+   caractères. Posée en TOKENS (fluides, clamp) + une classe éditoriale opt-in
+   — on ne bouge aucun titre existant (mises en page denses préservées).
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --fs-h1:        clamp(34px, 4.4vw, 52px);
+  --fs-h2:        clamp(27px, 3.0vw, 36px);
+  --fs-h3:        clamp(21px, 2.0vw, 26px);
+  --fs-subtitle:  clamp(16px, 1.4vw, 18px);
+  --fs-body:      clamp(16px, 1.1vw, 18px);
+  --fs-secondary: clamp(15px, 1.0vw, 16px);
+  --fs-label:     13px;
+
+  --lh-head: 1.14;
+  --lh-body: 1.65;
+  --measure: 74ch;   /* 70–80 caractères par ligne */
+}
+
+/* Surface de lecture éditoriale — à poser sur un bloc de prose / rapport.
+   Titres, corps et rythme vertical premium, largeur de lecture bornée. */
+.cabinet-prose {
+  max-width: var(--measure);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+.cabinet-prose > * + * { margin-top: 0.9em; }
+.cabinet-prose h1,
+.cabinet-prose h2,
+.cabinet-prose h3 {
+  color: var(--text-primary);
+  line-height: var(--lh-head);
+  text-wrap: balance;
+  font-weight: 600;
+}
+.cabinet-prose h1 { font-size: var(--fs-h1); letter-spacing: -0.015em; margin-top: 0.4em; }
+.cabinet-prose h2 { font-size: var(--fs-h2); letter-spacing: -0.01em; margin-top: 1.4em; }
+.cabinet-prose h3 { font-size: var(--fs-h3); margin-top: 1.2em; }
+.cabinet-prose p  { max-width: var(--measure); }
+.cabinet-prose strong { color: var(--text-primary); font-weight: 600; }
+/* Grands titres éditoriaux en serif — moment premium, jamais l'UI dense. */
+.cabinet-prose h1,
+.cabinet-display { font-family: var(--font-serif, 'Fraunces', Georgia, serif); }
+
+
+/* ─── Respect du confort de lecture / réglages système ──────────────────────
+   Aucune animation d'arrivée ni nappe animée si l'utilisateur la refuse ;
+   l'ambiance reste (statique), l'accessibilité prime.                          */
+@media (prefers-reduced-motion: reduce) {
+  .cabinet-ambient { animation: none; opacity: 1; transition: none; }
+  body[data-office] .app-content { animation: none; }
+}

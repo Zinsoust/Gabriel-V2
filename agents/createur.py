@@ -213,6 +213,238 @@ _TONE_ALIASES = {
 }
 
 
+# ─── Émotion cible ────────────────────────────────────────────────────────────
+#
+# Étape facultative (voir /creator/generate, paramètre `emotion`). Distincte du
+# TON : le ton décrit comment le TEXTE sonne (la voix), l'émotion décrit ce que
+# le LECTEUR doit RESSENTIR (l'impact). Les deux se composent — « ton premium »
+# + « émotion confiance » est cohérent. Même mécanique que _TONE_DISCIPLINES :
+# une émotion nommée est traduite en directives d'écriture concrètes injectées
+# dans le brief, sans aucun appel LLM supplémentaire. C'est la question qu'un
+# copywriter senior se pose avant d'écrire : « que doit ressentir la personne ? »
+_EMOTION_DIRECTIVES = {
+
+    'confiance': """\
+ÉMOTION CIBLE — CONFIANCE
+Ce que l'audience doit ressentir : « je peux m'appuyer sur eux, c'est sérieux et maîtrisé. »
+Leviers d'écriture :
+- Ancrer chaque affirmation dans une preuve, une expérience ou un fait concret.
+- Ton calme et posé. Rythme régulier, jamais pressé.
+- Éviter les promesses excessives et les superlatifs — ils détruisent la confiance.
+- Montrer la maîtrise par la précision du détail, pas par l'auto-éloge.
+Mouvement : preuve → clarté → maîtrise → sérénité.\
+""",
+
+    'inspiration': """\
+ÉMOTION CIBLE — INSPIRATION
+Ce que l'audience doit ressentir : « c'est possible, et ça me dépasse en bien. »
+Leviers d'écriture :
+- Ouvrir sur une possibilité plus grande que l'individu.
+- Relier l'action concrète à un sens, une vision, un « pourquoi » élevé.
+- Images fortes et concrètes plutôt qu'abstractions motivationnelles.
+- Éviter les formules toutes faites (« libère ton potentiel ») — elles sonnent creux.
+Mouvement : réalité actuelle → possibilité → élévation → première marche concrète.\
+""",
+
+    'motivation': """\
+ÉMOTION CIBLE — MOTIVATION
+Ce que l'audience doit ressentir : « je peux le faire, et je commence maintenant. »
+Leviers d'écriture :
+- Rendre le premier pas petit, clair et immédiatement faisable.
+- Parler de capacité, pas seulement de désir.
+- Rythme qui accélère vers l'action ; verbes d'action.
+- Retirer les obstacles perçus au lieu d'ajouter de la pression.
+Mouvement : blocage reconnu → capacité rappelée → premier pas net → élan.\
+""",
+
+    'urgence': """\
+ÉMOTION CIBLE — URGENCE
+Ce que l'audience doit ressentir : « si je n'agis pas maintenant, je passe à côté. »
+Leviers d'écriture :
+- Rendre tangible le coût de l'inaction (ce qui se perd, pas ce qu'on gagne).
+- Rareté ou fenêtre de temps RÉELLE — jamais fabriquée artificiellement.
+- Projeter la conséquence concrète du statu quo.
+- Ouverture percutante, CTA plus ferme et sans ambiguïté.
+Mouvement : ouverture forte → enjeu → conséquence du statu quo → action immédiate.\
+""",
+
+    'curiosite': """\
+ÉMOTION CIBLE — CURIOSITÉ
+Ce que l'audience doit ressentir : « il faut que je sache la suite. »
+Leviers d'écriture :
+- Ouvrir une boucle : poser une tension sans la résoudre tout de suite.
+- Suggérer une information manquante précieuse, sans la livrer d'emblée.
+- Contre-intuition : annoncer que l'évidence est fausse.
+- Ne jamais tout dire dans l'accroche — la révélation se mérite.
+Mouvement : boucle ouverte → indice → tension → révélation.\
+""",
+
+    'surprise': """\
+ÉMOTION CIBLE — SURPRISE
+Ce que l'audience doit ressentir : « je ne m'attendais pas à ça. »
+Leviers d'écriture :
+- Rompre un schéma attendu dès les premières lignes.
+- Jouer sur le contraste attendu / réel.
+- Une seule bascule forte, pas une accumulation d'effets.
+- La surprise doit servir le message, pas être gratuite.
+Mouvement : attente installée → rupture → nouvelle lecture → sens.\
+""",
+
+    'admiration': """\
+ÉMOTION CIBLE — ADMIRATION
+Ce que l'audience doit ressentir : « c'est remarquable, je respecte ça. »
+Leviers d'écriture :
+- Montrer l'excellence par des détails concrets, pas par des adjectifs.
+- Laisser les faits impressionner à la place des affirmations.
+- Sobriété : l'admiration naît de la retenue, pas de l'insistance.
+- Mettre en valeur le savoir-faire, l'effort ou la maîtrise réelle.
+Mouvement : détail précis → ampleur révélée → respect → aspiration.\
+""",
+
+    'empathie': """\
+ÉMOTION CIBLE — EMPATHIE
+Ce que l'audience doit ressentir : « ils me comprennent vraiment. »
+Leviers d'écriture :
+- Nommer le vécu réel avec les mots exacts de l'audience.
+- Décrire le ressenti précis avant de proposer quoi que ce soit.
+- Aucune leçon, aucun jugement — seulement de la reconnaissance.
+- La justesse prime sur la belle formule.
+Mouvement : vécu nommé → « vous n'êtes pas seul » → compréhension → ouverture douce.\
+""",
+
+    'fierte': """\
+ÉMOTION CIBLE — FIERTÉ
+Ce que l'audience doit ressentir : « je suis fier de ce que je suis / fais. »
+Leviers d'écriture :
+- Valoriser l'identité et les efforts déjà accomplis par l'audience.
+- Parler d'appartenance à un groupe qui a du sens.
+- Reconnaître le chemin parcouru avant de montrer la suite.
+- Éviter la flatterie creuse — la fierté vient de la reconnaissance juste.
+Mouvement : reconnaissance → identité valorisée → appartenance → élan.\
+""",
+
+    'espoir': """\
+ÉMOTION CIBLE — ESPOIR
+Ce que l'audience doit ressentir : « il y a une issue, ça peut s'améliorer. »
+Leviers d'écriture :
+- Reconnaître la difficulté présente sans la nier ni la minimiser.
+- Montrer un chemin crédible, étape par étape, vers le mieux.
+- Preuves que d'autres y sont arrivés, dans une situation semblable.
+- Ton doux et solide à la fois — jamais naïf.
+Mouvement : difficulté reconnue → possibilité crédible → chemin → premier appui.\
+""",
+
+    'joie': """\
+ÉMOTION CIBLE — JOIE
+Ce que l'audience doit ressentir : « ça me fait du bien, ça me rend léger. »
+Leviers d'écriture :
+- Rythme vif, énergie positive, légèreté assumée.
+- Images vivantes et concrètes qui évoquent le plaisir.
+- Autoriser l'enthousiasme sincère, sans tomber dans l'excès forcé.
+- Une chute qui laisse un sourire ou une énergie.
+Mouvement : étincelle → énergie → plaisir partagé → élan léger.\
+""",
+
+    'reflexion': """\
+ÉMOTION CIBLE — RÉFLEXION
+Ce que l'audience doit ressentir : « ça me fait penser, je vais y repenser. »
+Leviers d'écriture :
+- Poser une question ou un paradoxe qui reste en tête.
+- Laisser des espaces — ne pas tout conclure à la place du lecteur.
+- Rythme posé, phrases qui invitent à ralentir.
+- Une idée forte plutôt que plusieurs idées diluées.
+Mouvement : constat → question dérangeante → angle neuf → résonance ouverte.\
+""",
+
+    'autorite': """\
+ÉMOTION CIBLE — AUTORITÉ (RESSENTIE)
+Ce que l'audience doit ressentir : « ils savent de quoi ils parlent, je les suis. »
+Leviers d'écriture :
+- Voix affirmée : prendre position, éviter le conditionnel inutile.
+- Trancher clairement, orienter vers une direction.
+- L'autorité vient de la clarté et de la justesse, pas du volume.
+- Densité : peu de mots, beaucoup de signal.
+Mouvement : constat net → prise de position → direction → confiance.\
+""",
+
+    'luxe': """\
+ÉMOTION CIBLE — LUXE (RESSENTI)
+Ce que l'audience doit ressentir : « c'est rare, exclusif, ça n'est pas pour tout le monde. »
+Leviers d'écriture :
+- Sobriété totale : le silence et l'espace sont des matériaux.
+- Précision du détail exclusif plutôt qu'affirmation de qualité.
+- Suggérer l'appartenance à un cercle qui comprend.
+- Jamais : promotion, réduction, « incroyable », « pas cher ».
+Mouvement : évocation → détail rare → exclusivité implicite → invitation discrète.\
+""",
+
+    'liberte': """\
+ÉMOTION CIBLE — LIBERTÉ
+Ce que l'audience doit ressentir : « je peux enfin choisir, respirer, décider. »
+Leviers d'écriture :
+- Opposer contrainte subie et possibilité de choix retrouvé.
+- Vocabulaire d'ouverture, d'espace, de mouvement.
+- Montrer le retrait d'un poids, pas seulement l'ajout d'un gain.
+- Respecter l'autonomie du lecteur — inviter, jamais forcer.
+Mouvement : contrainte nommée → ouverture → choix retrouvé → respiration.\
+""",
+}
+
+# Alias / normalisation des émotions (accents et variantes courantes → clé canonique)
+_EMOTION_ALIASES = {
+    'curiosité':   'curiosite',
+    'fierté':      'fierte',
+    'réflexion':   'reflexion',
+    'autorité':    'autorite',
+    'liberté':     'liberte',
+    'confiance':   'confiance',
+    'urgency':     'urgence',
+    'fomo':        'urgence',
+    'empathy':     'empathie',
+    'hope':        'espoir',
+    'joy':         'joie',
+}
+
+
+def _normalize_emotion_key(emotion: str) -> str:
+    """Ramène une émotion saisie (puce ou texte libre) vers une clé canonique :
+    minuscules, accents retirés, alias appliqués."""
+    import unicodedata
+    raw = (emotion or '').strip().lower()
+    if not raw:
+        return ''
+    # Retirer les accents pour matcher les clés sans accent
+    no_accent = ''.join(
+        c for c in unicodedata.normalize('NFD', raw)
+        if unicodedata.category(c) != 'Mn'
+    )
+    return _EMOTION_ALIASES.get(raw, _EMOTION_ALIASES.get(no_accent, no_accent))
+
+
+def _get_emotion_directive(emotion: str) -> str:
+    """Traduit une émotion cible en directives d'écriture.
+
+    Émotion connue (puce prédéfinie) → bloc de directives calibré.
+    Texte libre non répertorié → gabarit générique qui oriente l'écriture vers
+    ce ressenti précis, en traitant la saisie comme contenu non fiable (le texte
+    libre entre dans le prompt LLM — même protection que user_request)."""
+    if not emotion or not emotion.strip():
+        return ''
+    key = _normalize_emotion_key(emotion)
+    if key in _EMOTION_DIRECTIVES:
+        return _EMOTION_DIRECTIVES[key]
+    # Émotion libre : gabarit générique, saisie neutralisée contre l'injection.
+    safe = wrap_untrusted_content(emotion.strip()[:120])
+    return (
+        "ÉMOTION CIBLE (libre)\n"
+        f"Ce que l'audience doit ressentir : {safe}\n"
+        "Leviers d'écriture :\n"
+        "- Oriente chaque choix (accroche, rythme, preuve, CTA) vers ce ressenti précis.\n"
+        "- Fais-le vivre par des faits et des images concrètes, ne le proclame jamais.\n"
+        "- Une seule émotion dominante — ne dilue pas dans plusieurs registres."
+    )
+
+
 def _get_tone_discipline(tone: str) -> str:
     """Retourne le bloc de discipline d'écriture pour une tonalité donnée."""
     if not tone:
@@ -763,7 +995,7 @@ class Createur(BaseAgent):
                                   channel=None, tone=None, objective=None,
                                   persona=None, business_context=None,
                                   user_request=None, params=None,
-                                  generate_variant=False):
+                                  generate_variant=False, emotion=None):
         """
         Génère un texte ou script marketing complet.
 
@@ -781,6 +1013,9 @@ class Createur(BaseAgent):
             user_request     : demande libre en texte
             params           : dict de paramètres supplémentaires
             generate_variant : si True, génère une variante après le contenu principal
+            emotion          : émotion cible facultative — ce que le LECTEUR doit
+                               ressentir (distinct du ton, qui décrit la voix du
+                               texte). Vide = étape passée, aucun effet.
 
         Retourne un dict complet selon la spec.
         """
@@ -813,6 +1048,19 @@ class Createur(BaseAgent):
             "Si une phrase ne respecte pas cette logique, réécris-la avant de passer à la suivante.\n"
         ) if tone_discipline else ""
 
+        # ── 4bis. Émotion cible (facultative) ─────────────────────────────────
+        # Le ton dit COMMENT le texte sonne ; l'émotion dit ce que le LECTEUR
+        # doit ressentir. Les deux se composent : ce bloc s'ajoute au ton sans
+        # le remplacer. Vide si l'utilisateur a passé l'étape.
+        emotion_directive = _get_emotion_directive(emotion or '')
+        emotion_block = (
+            f"\n── ÉMOTION À FAIRE VIVRE À L'AUDIENCE ──\n"
+            f"{emotion_directive}\n\n"
+            "Cette émotion est la boussole du texte : chaque accroche, chaque "
+            "preuve, chaque CTA doit servir ce ressenti précis. Fais-la vivre "
+            "par les faits et les images — ne la nomme jamais explicitement.\n"
+        ) if emotion_directive else ""
+
         # ── 5. Construire le prompt complet ───────────────────────────────────
         rag_block = f"\n── RÉFÉRENCES RÉDACTIONNELLES ──\n{rag_ctx}\n\n" if rag_ctx else ""
 
@@ -840,6 +1088,7 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
         prompt = (
             f"{system_pmt}\n\n"
             f"{tone_block}"
+            f"{emotion_block}"
             f"\n{humanization_block}\n\n"
             f"{rag_block}"
             f"{brief_text}\n\n"
@@ -848,7 +1097,8 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
             "1. Chaque phrase peut sortir de la bouche d'un humain dans une vraie conversation\n"
             "2. Les mots de l'audience sont utilisés\n"
             "3. La discipline de tonalité est respectée\n"
-            "4. Aucune formule IA-générique\n\n"
+            + ("4. L'émotion cible est réellement provoquée, sans être nommée\n" if emotion_block else "")
+            + "5. Aucune formule IA-générique\n\n"
             "JSON pur, sans markdown ni explication."
         )
 

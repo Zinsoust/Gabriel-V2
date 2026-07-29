@@ -1028,10 +1028,19 @@ select option { background: var(--bg-card); }
 /* ── Page entrance ──────────────────────────────────────────────────────── */
 @keyframes gb-fade-up {
   from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: none; }
 }
+/* "backwards" et non "both" : avec both, la dernière image de l'animation
+   reste appliquée indéfiniment, et une transformation — même neutre — fait
+   de l'élément le référentiel de tous ses enfants en position:fixed. Un
+   panneau flottant à l'intérieur de .app-content se positionnait donc par
+   rapport à elle et sortait de l'écran (constaté sur le Stratège, pastille
+   d'entretien coupée à droite). Avec backwards, l'état de départ s'applique
+   toujours avant le lancement (donc aucun scintillement à l'arrivée sur la
+   page), mais l'élément retrouve son état normal — sans transformation —
+   une fois l'animation terminée. */
 .app-content {
-  animation: gb-fade-up 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: gb-fade-up 0.38s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 /* Page exit — added via JS when navigating away */
 .app-content.exiting {
@@ -1947,8 +1956,13 @@ body:has(.learn-page) .app-content {
    .app-content n'atteint pas encore son max-width — le calcul de marge
    deviendrait négatif (contenu poussé sous le dock). On attend une fenêtre
    assez large pour qu'il reste vraiment de la place à redistribuer. */
+   Exclut le Stratège : sa zone de travail est volontairement pleine largeur
+   (conversation + panneau latéral), donc sans max-width à recentrer. Le
+   calcul ci-dessous, qui suppose une largeur de 1080px, y poussait le
+   contenu de ~300px vers la droite et coupait le panneau latéral hors de
+   l'écran. */
 @media (min-width: 1600px) {
-  .orch-dock ~ .app-main .app-content {
+  body:not(.page-stratege) .orch-dock ~ .app-main .app-content {
     margin-left: calc(50% - 540px - 28px);
     margin-right: calc(50% - 540px + 28px);
   }

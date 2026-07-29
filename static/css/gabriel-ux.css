@@ -203,12 +203,11 @@ select {
 .page-createur .cre-why-k,
 .page-createur .cre-loading-sub,
 .page-createur .cre-ctx-label {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .page-createur .cre-desc,
 .page-createur .cre-opt,
-.page-createur .cre-out-text,
 .page-createur .cre-refine-in,
 .page-createur .cre-why-v,
 .page-createur .cre-ctx-val {
@@ -216,15 +215,30 @@ select {
   line-height: 1.6;
 }
 
+.page-createur .cre-out-text {
+  font-size: 15px;
+  line-height: 1.85;
+}
+
 .page-createur .cre-select,
-.page-createur .cre-textarea,
 .page-createur .cre-refine-in {
   min-height: 44px;
   font-size: 14px;
 }
 
+.page-createur .cre-textarea {
+  min-height: 176px;
+  font-size: 15px;
+}
+
 .page-createur .cre-tone {
   min-height: 38px;
+  font-size: 12px;
+}
+
+:root[data-theme="light"] .page-createur .cre-textarea:focus {
+  background: transparent;
+  box-shadow: none;
 }
 
 /* Strategist: the decision workspace must remain readable at normal zoom. */
@@ -340,7 +354,7 @@ select {
 .page-stratege .ctx-panel.interview-intro .ctx-progress-label,
 .page-stratege .ctx-panel.interview-session .ctx-progress-label,
 .page-stratege .ctx-panel.interview-session .ctx-field-label {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .page-stratege .ctx-panel.interview-intro .ctx-header-title,

@@ -3,7 +3,29 @@
 {% block page_name %}Le Stratège{% endblock %}
 
 {% block head %}
+<link rel="preload" as="image" href="{{ static_v('images/stratege-interview-atmosphere.webp') }}" fetchpriority="high">
 <style>
+  @font-face {
+    font-family:'Creato Display';
+    src:url("{{ url_for('static', filename='fonts/CreatoDisplay-Thin.otf') }}") format('opentype');
+    font-weight:200;
+    font-style:normal;
+    font-display:swap;
+  }
+  @font-face {
+    font-family:'Creato Display';
+    src:url("{{ url_for('static', filename='fonts/CreatoDisplay-Light.otf') }}") format('opentype');
+    font-weight:300;
+    font-style:normal;
+    font-display:swap;
+  }
+  @font-face {
+    font-family:'Creato Display';
+    src:url("{{ url_for('static', filename='fonts/CreatoDisplay-Regular.otf') }}") format('opentype');
+    font-weight:400;
+    font-style:normal;
+    font-display:swap;
+  }
   /* ─── Layout ─────────────────────────────────────────── */
   .pipeline-bar { display:flex; align-items:center; gap:0; margin-bottom:22px; }
   .pipeline-step { display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:9px; font-size:10px; font-weight:500; letter-spacing:0.05em; }
@@ -26,18 +48,6 @@
      générée, .has-strategy (plus bas) réduit ce panneau en pastille flottante
      — mécanisme déjà en place, non modifié. */
   .ctx-panel { position:relative; top:0; display:flex; flex-direction:column; gap:14px; max-width:760px; margin:0 auto; width:100%; }
-
-  /* Identité visuelle du Stratège — Zone 3 (brief section 4.A) */
-  .ctx-identity { display:flex; align-items:center; gap:10px; padding:2px 2px 4px; }
-  .ctx-identity-avatar {
-    width:32px; height:32px; border-radius:50%; flex-shrink:0;
-    background:color-mix(in srgb, var(--champagne) 10%, transparent);
-    border:1px solid color-mix(in srgb, var(--champagne) 22%, transparent);
-    display:flex; align-items:center; justify-content:center;
-    font-size:13px; color:var(--champagne);
-  }
-  .ctx-identity-name { font-size:13px; font-weight:600; color:var(--text-primary); line-height:1.3; }
-  .ctx-identity-role { font-size:10px; color:var(--text-muted); line-height:1.3; }
 
   .ctx-header { padding:14px 16px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); }
   .ctx-header[role="button"] { cursor:pointer; }
@@ -151,101 +161,37 @@
     background:color-mix(in srgb, #d65b5b 12%, var(--bg-card)); border:1px solid color-mix(in srgb, #d65b5b 30%, transparent);
     color:#e07a7a; font-size:11.5px; text-align:center; animation:gb-slide-up 0.22s cubic-bezier(0.22,1,.36,1) both; z-index:5; }
 
-  /* ── Grand écran d'écoute ───────────────────────────────────────────────
-     Recouvre toute la carte pendant l'enregistrement — un vrai moment,
-     pas un indicateur discret dans un coin. Le bleu y est pleinement
-     légitime : c'est exactement la "matière vocale" qu'il doit représenter. */
+  /* ── Bandeau d'écoute ──────────────────────────────────────────────────
+     Présenté en bandeau compact sous la conversation (voir la refonte plus
+     bas), pas en grand écran qui recouvre tout. Le champagne remplace
+     l'ancien "--interview-blue" qui n'était défini nulle part — les
+     éléments qui en dépendaient étaient donc quasi invisibles. */
   .listening-overlay {
     position:absolute; inset:0; z-index:8; display:none;
     flex-direction:column; align-items:center; justify-content:center; gap:26px;
     padding:40px; text-align:center;
-    background:
-      radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--interview-blue) 8%, transparent), transparent 62%),
-      color-mix(in srgb, var(--bg-card) 97%, transparent);
-    backdrop-filter:blur(8px);
+    background:var(--bg-card);
     animation:gb-slide-up 0.28s cubic-bezier(0.22,1,.36,1) both;
   }
   .chat-window.is-recording .listening-overlay { display:flex; }
-
-  .listening-transcript {
-    font-size:18px; line-height:1.65; color:var(--text-muted); max-width:520px;
-    min-height:58px; transition:color 0.2s; text-wrap:balance;
-  }
+  .listening-transcript { font-size:18px; line-height:1.65; color:var(--text-muted); min-height:58px; transition:color 0.2s; }
   .listening-transcript.has-text { color:var(--text-primary); }
-
   .listening-mic-btn {
-    position:relative; width:92px; height:92px; border-radius:50%; cursor:pointer;
-    border:1px solid color-mix(in srgb, var(--interview-blue) 46%, transparent);
-    background:color-mix(in srgb, var(--interview-blue) 15%, var(--bg-card));
+    position:relative; border-radius:50%; cursor:pointer;
+    border:1px solid color-mix(in srgb, var(--champagne) 46%, transparent);
+    background:color-mix(in srgb, var(--champagne) 15%, var(--bg-card));
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
     transition:transform 0.15s;
   }
   .listening-mic-btn:hover { transform:scale(1.04); }
-  .listening-mic-btn svg { width:32px; height:32px; stroke:var(--interview-blue); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
-  .listening-mic-btn::before, .listening-mic-btn::after {
-    content:''; position:absolute; inset:0; border-radius:50%; pointer-events:none;
-    border:1px solid color-mix(in srgb, var(--interview-blue) 42%, transparent);
-    animation:mic-pulse 2.4s ease-out infinite;
-  }
-  .listening-mic-btn::after { animation-delay:1.2s; }
-
-  .listening-wave { display:flex; align-items:center; justify-content:center; gap:3px; height:60px; width:min(100%, 420px); }
+  .listening-mic-btn svg { stroke:var(--champagne); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .listening-wave { display:flex; align-items:center; justify-content:center; gap:3px; }
   .listening-wave span {
     width:3px; min-height:3px; border-radius:2px; height:16%;
-    background:color-mix(in srgb, var(--interview-blue) 68%, var(--champagne));
+    background:color-mix(in srgb, var(--champagne) 70%, transparent);
     transition:height 0.09s ease-out;
   }
   .listening-wave.wave-fallback span { animation:voice-live-bar-fallback 1.6s ease-in-out infinite; }
-
-  .listening-hint { font-size:11px; color:var(--text-muted); letter-spacing:0.03em; }
-
-  @media (max-width:640px) {
-    .listening-mic-btn { width:76px; height:76px; }
-    .listening-transcript { font-size:16px; }
-  }
-  @media (prefers-reduced-motion:reduce) {
-    .listening-mic-btn::before, .listening-mic-btn::after { animation:none !important; }
-  }
-
-  /* ── Hero d'accueil de l'entretien — remplace le chat le temps que
-       l'utilisateur n'a pas encore répondu une seule fois. Objectif :
-       donner envie de cliquer plutôt que d'ouvrir sur un formulaire muet. */
-  #interview-hero { display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px;
-    padding:56px 32px 48px; background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg);
-    animation:gb-slide-up 0.4s cubic-bezier(0.22,1,.36,1) both; }
-
-  /* Avatar — pas de photo générique : le sceau ◈ déjà utilisé comme identité
-     du Stratège (ctx-identity-avatar), agrandi et mis en scène. Reste dans
-     le système de marque plutôt que d'introduire un visage stock qui ne
-     représente personne. */
-  .hero-avatar { position:relative; width:72px; height:72px; display:flex; align-items:center; justify-content:center; margin-bottom:2px; }
-  .hero-avatar-mark { position:relative; z-index:1; width:100%; height:100%; border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:center;
-    font-size:26px; color:var(--champagne); background:linear-gradient(135deg,color-mix(in srgb, var(--champagne) 22%, transparent),color-mix(in srgb, var(--champagne) 8%, transparent));
-    border:1px solid color-mix(in srgb, var(--champagne) 38%, transparent); }
-  .hero-avatar-ring { position:absolute; inset:-9px; border-radius:calc(var(--radius-lg) + 9px); border:1px solid color-mix(in srgb, var(--champagne) 30%, transparent);
-    animation:hero-avatar-breathe 3.2s ease-in-out infinite; pointer-events:none; }
-  @keyframes hero-avatar-breathe { 0%,100%{ transform:scale(1); opacity:0.55; } 50%{ transform:scale(1.08); opacity:1; } }
-
-  .hero-kicker { font-size:10px; text-transform:uppercase; letter-spacing:0.16em; color:color-mix(in srgb, var(--champagne) 62%, transparent); font-weight:600; }
-  .hero-h1 { font-size:clamp(24px,3vw,34px); font-weight:600; color:var(--text-primary); line-height:1.28; max-width:580px; margin:0; }
-  .hero-sub { font-size:14px; color:var(--text-secondary); line-height:1.75; max-width:460px; margin-bottom:6px; }
-
-  /* CTA — une seule action forte (icône + libellé dans un même bouton),
-     pas une icône isolée avec sa légende à côté : plus direct, plus clair
-     sur ce qui va se passer au clic. */
-  .hero-cta { position:relative; display:inline-flex; align-items:center; gap:10px; padding:15px 28px 15px 20px;
-    border-radius:999px; cursor:pointer; font-family:inherit; font-size:14px; font-weight:500; letter-spacing:0.01em;
-    color:#1a1510; background:linear-gradient(135deg,var(--champagne),var(--champagne-soft));
-    border:1px solid color-mix(in srgb, var(--champagne) 60%, transparent); box-shadow:0 8px 28px color-mix(in srgb, var(--champagne) 22%, transparent);
-    transition:transform 0.2s, box-shadow 0.2s; }
-  .hero-cta:hover { transform:translateY(-2px); box-shadow:0 14px 38px color-mix(in srgb, var(--champagne) 32%, transparent); }
-  .hero-cta:active { transform:translateY(0); }
-  .hero-cta-icon { display:flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%;
-    background:color-mix(in srgb, #1a1510 12%, transparent); flex-shrink:0; }
-  .hero-cta-icon svg { width:13px; height:13px; stroke:#1a1510; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  .hero-text-fallback { font-size:11.5px; color:var(--text-muted); background:none; border:none; cursor:pointer;
-    text-decoration:underline; text-underline-offset:3px; font-family:inherit; padding:2px; transition:color 0.15s; }
-  .hero-text-fallback:hover { color:var(--text-secondary); }
 
   .ctx-fields-panel { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:12px 14px; }
   .ctx-fields { display:flex; flex-direction:column; gap:4px; }
@@ -936,9 +882,6 @@
 
   /* ─── Final premium overrides, after all card rules ─── */
   body.page-stratege .app-content {
-    max-width:1440px;
-    padding-left:34px;
-    padding-right:34px;
     overflow-x:hidden;
   }
   body.page-stratege .app-footer {
@@ -2575,1116 +2518,577 @@
     }
   }
 
-  /* ─── Zone 3 · entretien recentré ─────────────────────────────────────
-     Une surface de travail continue : identité, conversation, contexte.
-     Les sélecteurs restent volontairement limités à l'état pré-stratégie. */
-  .page-stratege {
-    /* Réservé à la matière vocale (onde, halo micro actif, indicateur "Gabriel
-       parle") — jamais aux boutons ou à l'interface générale, qui restent
-       champagne/ivoire/noir pour rester dans l'identité de Gabriel. */
-    --interview-blue:#5877FF;
-    --interview-blue-soft:color-mix(in srgb, var(--interview-blue) 10%, transparent);
-    --interview-line:color-mix(in srgb, var(--text-primary) 8%, transparent);
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) {
-    width:min(100%, 940px);
-    margin-inline:auto;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-panel {
-    max-width:none;
-    gap:0;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-identity {
-    min-height:48px;
-    padding:0 4px 16px;
-    margin-bottom:0;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-identity-avatar {
-    width:28px;
-    height:28px;
-    border-radius:5px;
-    font-size:11px;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-identity-name {
-    font-size:12px;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-header {
-    position:relative;
-    display:grid;
-    grid-template-columns:minmax(0, 1fr) auto;
-    grid-template-areas:
-      "label badge"
-      "title badge"
-      "progress progress";
-    align-items:center;
-    column-gap:22px;
-    min-height:92px;
-    padding:17px 20px 16px;
-    border-radius:7px 7px 0 0;
-    border-color:var(--interview-line);
-    background:color-mix(in srgb, var(--bg-card) 96%, transparent);
-    box-shadow:inset 0 1px 0 color-mix(in srgb, var(--text-primary) 3%, transparent);
-    cursor:default;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-header-label {
-    grid-area:label;
-    margin:0 0 3px;
-    color:var(--champagne);
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-header-title {
-    grid-area:title;
-    margin:0;
-    font-size:15px;
-    font-weight:550;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-badge {
-    grid-area:badge;
-    justify-self:end;
-    border-radius:999px;
-    padding:5px 10px;
-    max-width:260px;
-    text-align:right;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-progress {
-    grid-area:progress;
-    display:grid;
-    grid-template-columns:minmax(0, 1fr) auto;
-    align-items:center;
-    gap:12px;
-    margin:14px 0 0;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-progress-label {
-    margin:0;
-    white-space:nowrap;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) #interview-hero {
-    position:relative;
-    min-height:clamp(430px, 58vh, 590px);
-    justify-content:center;
-    gap:0;
-    padding:54px clamp(24px, 7vw, 82px) 50px;
-    overflow:hidden;
-    border-top:0;
-    border-radius:0 0 7px 7px;
-    border-color:var(--interview-line);
-    background:
-      radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--champagne) 13%, transparent), transparent 56%),
-      var(--bg-card);
-    box-shadow:0 28px 76px rgba(0,0,0,.18), inset 0 1px 0 color-mix(in srgb, var(--text-primary) 3%, transparent);
-  }
-
-  .page-stratege .hero-avatar {
-    width:48px;
-    height:48px;
-    margin:0 0 20px;
-  }
-
-  .page-stratege .hero-avatar-mark {
-    border-radius:6px;
-    font-size:17px;
-  }
-
-  .page-stratege .hero-avatar-ring {
-    display:none;
-  }
-
-  .page-stratege .hero-kicker {
-    margin-bottom:12px;
-    letter-spacing:.14em;
-  }
-
-  .page-stratege .hero-h1 {
-    max-width:660px;
-    margin-bottom:12px;
-    font-size:clamp(28px, 4vw, 42px);
-    font-weight:520;
-    letter-spacing:0;
-  }
-
-  .page-stratege .hero-sub {
-    max-width:560px;
-    margin:0;
-    color:var(--text-muted);
-  }
-
-  .interview-wave {
-    position:relative;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
-    width:min(100%, 520px);
-    height:92px;
-    margin:26px auto 20px;
-  }
-
-  .interview-wave::before {
-    content:'';
-    position:absolute;
-    left:0;
-    right:0;
-    top:50%;
-    height:1px;
-    background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--interview-blue) 38%, transparent), transparent);
-  }
-
-  .interview-wave span {
-    position:relative;
-    width:3px;
-    height:var(--wave-height, 18%);
-    min-height:3px;
-    border-radius:2px;
-    background:color-mix(in srgb, var(--interview-blue) 70%, var(--champagne));
-    opacity:var(--wave-opacity, .48);
-    animation:interview-wave-idle 2.8s ease-in-out infinite;
-    animation-delay:var(--wave-delay, 0s);
-  }
-
-  @keyframes interview-wave-idle {
-    0%,100% { transform:scaleY(.62); opacity:.34; }
-    50% { transform:scaleY(1); opacity:.72; }
-  }
-
-  /* Le CTA reste champagne/ivoire — le bleu est réservé à la matière vocale
-     (onde, halo d'écoute) plus bas, jamais au bouton principal ni aux
-     contrôles d'interface : sinon Gabriel ressemble à un composant générique
-     greffé sur l'app plutôt qu'à sa propre identité. */
-  .page-stratege .hero-cta {
-    min-width:250px;
-    justify-content:center;
-    padding:12px 18px;
-    border-radius:6px;
-  }
-
-  .page-stratege .hero-text-fallback {
-    margin-top:13px;
-    text-decoration:none;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .chat-window {
-    min-height:min(610px, calc(100vh - 280px));
-    max-height:720px;
-    border-top:0;
-    border-radius:0 0 7px 7px;
-    border-color:var(--interview-line);
-    box-shadow:0 28px 76px rgba(0,0,0,.18);
-  }
-
-  .page-stratege .voice-toolbar {
-    min-height:48px;
-    padding:10px 14px;
-    border-bottom:1px solid var(--interview-line);
-  }
-
-  .page-stratege .voice-toggle {
-    min-height:28px;
-    padding:5px 10px;
-    border-radius:999px;
-  }
-
-  .voice-live-status {
-    display:none;
-    align-items:center;
-    gap:9px;
-    min-width:0;
-    color:var(--text-secondary);
-    font-size:10px;
-  }
-
-  .voice-live-bars {
-    display:flex;
-    align-items:center;
-    gap:2px;
-    height:14px;
-  }
-
-  .voice-live-bars span {
-    width:2px;
-    height:35%;
-    border-radius:1px;
-    background:var(--interview-blue);
-  }
-
-  /* Visibilité pilotée en JS (.active), pas par .is-recording seul : ce
+  /* ── Indicateur vocal en ligne (rescapé de l'ancienne mise en page) ──
+     Visibilité pilotée en JS (.active), pas par .is-recording seul : ce
      statut reste affiché pendant l'écoute ET la transcription ET la
      relecture — trois phases, un seul indicateur textuel qui change de
-     libellé (voir _setVoiceLiveLabel). */
-  .voice-live-status.active {
-    display:flex;
-  }
-
+     libellé (voir _setVoiceLiveLabel). Repassé en champagne : l'ancien
+     "--interview-blue" n'était défini nulle part, les barres étaient donc
+     invisibles. */
+  .voice-live-status { display:none; align-items:center; gap:9px; min-width:0; color:var(--text-secondary); font-size:10px; }
+  .voice-live-status.active { display:flex; }
+  .voice-live-bars { display:flex; align-items:center; gap:2px; height:14px; }
   .voice-live-bars span {
-    transition:height .09s ease-out;
+    width:2px; height:35%; border-radius:1px; transition:height .09s ease-out;
+    background:color-mix(in srgb, var(--champagne) 75%, transparent);
   }
-
   /* Repli discret si l'analyse audio réelle échoue (navigateur restrictif) —
      classe posée par JS uniquement quand la vraie réactivité n'a pas pu
      démarrer, jamais en même temps que les hauteurs pilotées en direct
      (sinon l'animation en carton écraserait le signal réel à chaque frame). */
-  .voice-live-bars.wave-fallback span {
-    animation:voice-live-bar-fallback 1.6s ease-in-out infinite;
-  }
+  .voice-live-bars.wave-fallback span { animation:voice-live-bar-fallback 1.6s ease-in-out infinite; }
   .voice-live-bars.wave-fallback span:nth-child(2) { animation-delay:.1s; }
   .voice-live-bars.wave-fallback span:nth-child(3) { animation-delay:.2s; }
   .voice-live-bars.wave-fallback span:nth-child(4) { animation-delay:.3s; }
   .voice-live-bars.wave-fallback span:nth-child(5) { animation-delay:.4s; }
-
   @keyframes voice-live-bar-fallback {
     0%,100% { height:30%; opacity:.4; }
     50%     { height:55%; opacity:.7; }
   }
-
-  .page-stratege .voice-speaking-badge.active {
-    color:var(--interview-blue);
-    border-color:color-mix(in srgb, var(--interview-blue) 24%, transparent);
-    background:var(--interview-blue-soft);
-  }
-
-  .page-stratege .voice-speaking-badge .voice-wave span {
-    background:var(--interview-blue);
-  }
-
-  .page-stratege .chat-messages {
-    padding:26px clamp(18px, 4vw, 38px);
-  }
-
-  .page-stratege .msg {
-    max-width:min(78%, 620px);
-  }
-
-  .page-stratege .msg.agent .msg-bubble,
-  .page-stratege .msg.user .msg-bubble {
-    border-radius:5px;
-  }
-
-  .page-stratege .mic-btn,
-  .page-stratege .chat-send {
-    width:34px;
-    height:34px;
-    border-radius:50%;
-    flex-shrink:0;
-  }
-
-  /* Micro au repos : champagne, comme le reste de l'interface. Le bleu
-     n'apparaît que lorsque le micro est réellement actif (::recording,
-     plus bas) — c'est là qu'il représente la voix en train de se passer,
-     pas un simple bouton. */
-
-  .page-stratege .mic-btn.recording {
-    background:var(--interview-blue);
-  }
-
-  .page-stratege .mic-btn.recording svg {
-    stroke:#FFFFFF;
-  }
-
-  .page-stratege .mic-btn.recording::before {
-    border-radius:50%;
-    border-color:color-mix(in srgb, var(--interview-blue) 42%, transparent);
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-fields-panel {
-    margin-top:16px;
-    padding:12px;
-    border-radius:7px;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-fields {
-    display:grid;
-    grid-template-columns:repeat(4, minmax(0, 1fr));
-    gap:4px;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-field {
-    min-height:34px;
-    align-items:center;
-    padding:7px 8px;
-    border:1px solid transparent;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .ctx-field.filled {
-    border-color:var(--interview-line);
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .strat-cta {
-    width:min(100%, 420px);
-    margin:14px auto 0;
-  }
-
-  .page-stratege .strat-layout:not(.has-strategy) .strat-cta-btn {
-    min-height:42px;
-    border-radius:6px;
-  }
-
-  :root[data-theme="light"] .page-stratege .strat-layout:not(.has-strategy) #interview-hero,
-  :root[data-theme="light"] .page-stratege .strat-layout:not(.has-strategy) .chat-window {
-    box-shadow:0 24px 64px rgba(17,19,24,.09);
-  }
-
-  :root[data-theme="light"] .page-stratege .strat-layout:not(.has-strategy) #interview-hero {
-    background:
-      radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--champagne) 10%, transparent), transparent 56%),
-      #FFFFFF;
-  }
-
-  @media (max-width:700px) {
-    .page-stratege .strat-layout:not(.has-strategy) .ctx-header {
-      grid-template-columns:1fr;
-      grid-template-areas:"label" "title" "badge" "progress";
-      row-gap:5px;
-      padding:15px;
-    }
-
-    .page-stratege .strat-layout:not(.has-strategy) .ctx-badge {
-      justify-self:start;
-      text-align:left;
-      margin-top:4px !important;
-    }
-
-    .page-stratege .strat-layout:not(.has-strategy) .ctx-progress {
-      grid-template-columns:1fr;
-      gap:6px;
-      margin-top:10px;
-    }
-
-    .page-stratege .strat-layout:not(.has-strategy) #interview-hero {
-      min-height:440px;
-      padding:40px 20px 36px;
-    }
-
-    .page-stratege .hero-h1 {
-      font-size:30px;
-    }
-
-    .interview-wave {
-      height:72px;
-      margin:20px auto 16px;
-    }
-
-    .page-stratege .hero-cta {
-      width:100%;
-      min-width:0;
-    }
-
-    .page-stratege .strat-layout:not(.has-strategy) .ctx-fields {
-      grid-template-columns:repeat(2, minmax(0, 1fr));
-    }
-
-    .page-stratege .msg {
-      max-width:90%;
-    }
-  }
+  .voice-speaking-badge.active { color:var(--champagne); border-color:color-mix(in srgb, var(--champagne) 24%, transparent); background:color-mix(in srgb, var(--champagne) 8%, transparent); }
+  .voice-speaking-badge .voice-wave span { background:var(--champagne); }
 
   @media (prefers-reduced-motion:reduce) {
-    .interview-wave span,
-    .chat-window.is-recording .voice-live-bars span {
-      animation:none !important;
-    }
+    .chat-window.is-recording .voice-live-bars span { animation:none !important; }
   }
 
-  /* ─── Introduction immersive · studio vocal Gabriel ───────────────── */
-  body.page-stratege.stratege-interview-intro .pipeline-bar { display:none; }
-  body.page-stratege.stratege-interview-intro .app-content {
-    padding-top:18px;
+  /* ═══════════════════════════════════════════════════════════════════
+     ENTRETIEN STRATÉGIQUE — refonte sobre, deux zones (inspirée de la
+     zone "Paramètres" d'ElevenLabs). Remplace trois générations de mise
+     en scène superposées (intro/session, "V2 intelligence calme",
+     "V3 hero atmosphérique") par une seule mise en page claire : la
+     conversation à gauche, le statut et l'historique à droite. La voix
+     (dictée + lecture à voix haute) reste pleinement fonctionnelle — elle
+     est seulement présentée sans grand rituel visuel (plus d'avatar qui
+     pulse, plus d'écran plein écran qui envahit tout pendant l'écoute).
+     ═══════════════════════════════════════════════════════════════════ */
+
+  /* ── Barre de session (pleine largeur, au-dessus des deux zones) ──── */
+  .interview-session-bar {
+    grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;
+    padding:0 0 12px; border-bottom:1px solid var(--border-soft); margin-bottom:16px;
+  }
+  .interview-brand { display:flex; align-items:center; gap:9px; }
+  .interview-brand-mark { width:24px; height:24px; border-radius:var(--radius-md); overflow:hidden; flex-shrink:0; }
+  .interview-brand-mark img { width:100%; height:100%; object-fit:cover; }
+  .interview-brand-label { font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-muted); font-weight:600; }
+  .interview-brand-state { font-size:12px; color:var(--text-primary); font-weight:500; margin-top:1px; }
+  .interview-session-actions { display:flex; align-items:center; gap:6px; }
+  .interview-quiet-btn {
+    display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px;
+    border:1px solid var(--border-soft); background:transparent; color:var(--text-muted);
+    font-size:11px; font-family:inherit; cursor:pointer; transition:all 0.15s; text-decoration:none;
+  }
+  .interview-quiet-btn:hover { color:var(--text-secondary); border-color:var(--border-medium); }
+  .interview-quiet-btn svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .interview-quiet-btn:disabled { opacity:0.4; cursor:default; }
+  /* Pause : c'est la sortie de secours de l'entretien — « je m'arrête, je
+     reprendrai plus tard sans rien perdre ». Elle passait inaperçue au
+     milieu des boutons discrets. Contour et texte affirmés pour qu'on la
+     trouve au moment où on en a besoin. */
+  .interview-pause-btn {
+    color:var(--text-secondary); font-weight:500;
+    border-color:color-mix(in srgb, var(--champagne) 30%, transparent);
+    background:color-mix(in srgb, var(--champagne) 7%, transparent);
+    padding:7px 14px;
+  }
+  .interview-pause-btn:not(:disabled):hover {
+    color:var(--champagne); border-color:color-mix(in srgb, var(--champagne) 55%, transparent);
+    background:color-mix(in srgb, var(--champagne) 14%, transparent);
+  }
+  /* En pause, l'état doit se voir d'un coup d'œil depuis n'importe où. */
+  .ctx-panel[data-interview-state="session_paused"] .interview-pause-btn {
+    color:var(--champagne); border-color:color-mix(in srgb, var(--champagne) 60%, transparent);
+    background:color-mix(in srgb, var(--champagne) 16%, transparent);
+  }
+  /* La progression est désormais toujours visible dans le panneau latéral —
+     plus besoin d'un bouton pour l'ouvrir en tiroir. */
+  .interview-progress-btn, .interview-progress-count { display:none; }
+  .interview-live-region { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+
+  /* ── Grille deux zones ──────────────────────────────────────────────
+     .ctx-panel devient lui-même le conteneur grid : chaque enfant direct
+     reçoit une colonne, l'ordre dans le DOM ne compte plus pour la mise
+     en page (uniquement pour l'ordre de lecture / clavier). */
+  .ctx-panel {
+    display:grid; grid-template-columns:minmax(0,1fr) 336px; column-gap:32px; row-gap:0;
+    align-items:start; max-width:none;
+    /* Le parcours occupe toute la hauteur : chaque étape est un écran, pas
+       un bloc posé en haut de page. */
+    min-height:calc(100vh - 210px);
+    /* Trois rangées : l'en-tête de session, l'étape en cours (qui prend
+       toute la place disponible), puis la barre de saisie ancrée en bas.
+       Chaque élément est placé explicitement — sans quoi le placement
+       automatique renvoyait l'en-tête sous la barre de saisie.
+       minmax(0,1fr) et non 1fr : sans le minimum à zéro, la rangée du
+       milieu refuse de rétrécir sous la taille de son contenu et rien ne
+       peut défiler à l'intérieur. */
+    grid-template-rows:auto minmax(0,1fr) auto;
+  }
+
+  /* ── Défilement : le modèle ChatGPT ──────────────────────────────────
+     Pendant l'entretien, la PAGE ne défile plus. Ce qui bouge, ce sont les
+     zones, chacune de son côté :
+       · la barre de session reste en haut,
+       · la conversation défile dans sa propre zone,
+       · la barre de saisie reste ancrée en bas, toujours atteignable,
+       · le panneau de droite (progression, historique) défile séparément.
+     Auparavant tout descendait ensemble : la barre de saisie disparaissait
+     vers le bas et le panneau de droite quittait l'écran. */
+  body.page-stratege.stratege-interview-mode .app-content {
+    overflow:hidden; display:flex; flex-direction:column;
+    /* Marge basse réduite : la zone de travail ne défile pas, l'espace
+       vide sous la barre de saisie ne sert donc à rien. */
     padding-bottom:18px;
   }
-
-  .page-stratege .ctx-panel.interview-intro {
-    position:relative;
-    height:clamp(640px, calc(100svh - 112px), 860px);
-    min-height:640px;
-    isolation:isolate;
-    overflow:hidden;
+  /* La zone de travail prend exactement la place restante sous le fil
+     d'étapes — ni plus (sinon la page déborde et se remet à défiler), ni
+     moins. min-height:0 autorise ses enfants à défiler à l'intérieur. */
+  body.page-stratege.stratege-interview-mode .strat-layout {
+    flex:1 1 auto; min-height:0; height:auto;
+    /* La rangée se dimensionnait sur son contenu : la zone de travail
+       s'arrêtait donc à mi-hauteur et un height:100% n'y changeait rien
+       (100 % d'une rangée trop courte reste trop court). En forçant la
+       rangée à occuper toute la place, la barre de saisie descend
+       réellement en bas de l'écran. */
+    grid-template-rows:minmax(0,1fr); align-items:stretch; align-content:stretch;
   }
-
-  .page-stratege .ctx-panel.interview-intro .strat-memory,
-  .page-stratege .ctx-panel.interview-intro .strat-idle,
-  .page-stratege .ctx-panel.interview-intro .psycho-banner {
-    display:none !important;
+  /* align-self:stretch — .strat-layout aligne ses éléments en haut
+     (align-items:start), la zone de travail ne descendait donc pas jusqu'en
+     bas et la barre de saisie restait suspendue à ~240 px du bord. */
+  body.page-stratege.stratege-interview-mode .ctx-panel {
+    height:100%; min-height:0; align-self:stretch;
   }
+  .interview-session-bar { grid-column:1 / -1; grid-row:1; }
+  #strat-psycho-banner, #strat-idle, .ctx-header, .chat-window, .interview-gate { grid-column:1; grid-row:2; }
+  .chat-input-row { grid-column:1; grid-row:3; }
+  /* Le suivi étant devenu une carte flottante (voir .interview-side plus
+     bas), il ne réserve plus de colonne : une seule colonne, et le contenu
+     garde une marge à droite pour ne jamais passer sous la carte. */
+  /* position:relative — sert de repère à la barre de saisie, qui s'ancre
+     ainsi sur la colonne de conversation plutôt que sur la fenêtre. */
+  .ctx-panel { grid-template-columns:minmax(0,1fr); padding-right:318px; position:relative; }
 
-  .page-stratege .ctx-panel.interview-intro .ctx-identity {
-    position:absolute;
-    z-index:4;
-    top:22px;
-    left:22px;
-    right:auto;
-    width:230px;
-    min-height:48px;
-    margin:0;
-    padding:9px 11px;
-    border:1px solid var(--interview-line);
-    border-radius:6px;
-    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
-    backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
+  /* ── Zone A — colonne principale ─────────────────────────────────────
+     Aucun encadré. L'étape en cours s'inscrit dans un espace libre : c'est
+     ce qui donne l'impression d'air et de légèreté (référence ChatGPT).
+     Le titre de section est déjà porté par la barre de session en haut —
+     le répéter dans une carte bordée ne faisait qu'enfermer la zone. */
+  .ctx-header { display:none; }
+
+  /* Transcript sobre : un vrai échange écrit, pas des bulles de SMS. Un
+     petit repère "Gabriel"/"Vous" au-dessus de chaque tour suffit à
+     distinguer les voix, sans fond coloré ni forme de bulle. */
+  /* Sélecteur préfixé .page-stratege : une règle de même nom mais plus
+     spécifique dessinait un fond dégradé, une bordure arrondie et une ombre
+     autour de la conversation. C'est précisément l'encadré qui enfermait la
+     zone et cassait l'impression d'espace libre. */
+  .page-stratege .chat-window {
+    background:none; border:none; box-shadow:none; border-radius:0;
+    display:flex; flex-direction:column;
+    height:100%; min-height:0; overflow:hidden; align-self:stretch; width:100%;
+    /* La barre de saisie étant en position fixe, elle ne réserve plus sa
+       place dans la mise en page : on la réserve ici, sans quoi les
+       derniers messages passeraient dessous. */
+    padding-bottom:96px;
   }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-header {
-    position:absolute;
-    z-index:4;
-    top:22px;
-    right:22px;
-    width:230px;
-    min-height:0;
-    display:block;
-    padding:10px 11px;
-    border-radius:6px;
-    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
-    backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
+  /* C'est ICI que la conversation défile — pas la page. min-height:0 est
+     indispensable : sans lui, un élément flexible refuse de rétrécir sous
+     la hauteur de son contenu et c'est la page entière qui se met à
+     défiler à sa place (la barre de saisie descendait alors hors écran).
+     Le plafond de 360px hérité d'une feuille commune est levé pour que la
+     zone occupe toute la hauteur disponible. */
+  .page-stratege .chat-messages {
+    flex:1 1 auto; min-height:0; max-height:none;
+    overflow-y:auto; padding:0 4px 8px 0; gap:26px; background:none;
+    scrollbar-width:thin;
   }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-header-label {
-    margin-bottom:3px;
-    font-size:8px;
+  .msg { max-width:600px; gap:5px; }
+  .msg::before {
+    display:block; font-size:10px; font-weight:600; letter-spacing:0.03em; color:var(--text-muted);
   }
+  .msg.agent::before { content:"Gabriel"; }
+  .msg.user::before  { content:"Vous"; }
+  .msg-bubble { background:none; border:none; padding:0; border-radius:0; font-size:13.5px; line-height:1.7; }
+  .msg.agent .msg-bubble { color:var(--text-secondary); background:none; border:none; }
+  .msg.user  .msg-bubble { color:var(--text-primary); background:none; border:none; padding-left:14px; border-left:2px solid var(--border-medium); border-radius:0; }
+  .msg.agent.stance-challenge .msg-bubble,
+  .msg.agent.stance-contradict .msg-bubble { padding-left:14px; border-left:2px solid color-mix(in srgb, var(--champagne) 45%, transparent); }
+  .msg-observation { font-size:11px; color:var(--champagne-soft); margin-bottom:6px; padding-bottom:6px; border-bottom:1px solid var(--border-soft); }
+  .msg-observation span { display:block; font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:2px; }
+  .msg-time { padding:0; }
 
-  .page-stratege .ctx-panel.interview-intro .ctx-header-title {
-    margin:0 0 7px;
-    font-size:11px;
+  /* Repère de titre affiché à l'intérieur de la fenêtre de chat pour
+     certains états (attente de permission, transcription…) — redondant
+     avec le titre de la colonne, retiré pour ne pas dupliquer le message. */
+  .interview-state-stage { display:none; }
+
+  /* Barre vocale compacte au-dessus du champ de saisie — reste
+     fonctionnelle (mode vocal, choix de la voix, lecture) mais discrète :
+     aucun bandeau large, aucune barre de son spectaculaire. */
+  /* Réglages vocaux : une seule ligne discrète, jamais une bande.
+     Le sélecteur de voix est un <select> qui, laissé libre, s'étirait sur
+     toute la largeur de la colonne (1172 px) et passait à la ligne — il
+     ressemblait à un champ de saisie égaré au-dessus de la conversation et
+     lui volait 88 px de hauteur. Largeur ramenée à son contenu. */
+  .voice-toolbar {
+    padding:0 0 14px; flex-wrap:nowrap; justify-content:flex-start; gap:8px; align-items:center;
   }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-badge {
-    display:inline-flex;
-    max-width:100%;
-    padding:3px 7px;
-    font-size:8px;
-    text-align:left;
+  /* La hauteur vient d'une règle commune aux champs de formulaire (44 px) —
+     inutile pour un réglage secondaire posé au-dessus de la conversation. */
+  .voice-picker {
+    width:auto; max-width:220px; flex:0 0 auto;
+    font-size:10px; padding:5px 22px 5px 11px;
+    height:26px; min-height:0; line-height:1;
+    text-overflow:ellipsis; white-space:nowrap; overflow:hidden;
   }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-progress {
-    display:grid;
-    grid-template-columns:1fr;
-    gap:4px;
-    margin-top:8px;
+  .voice-toggle { flex:0 0 auto; }
+  .voice-playback-actions { display:none; align-items:center; gap:4px; }
+  .voice-playback-actions.active { display:flex; }
+  .voice-playback-btn {
+    width:26px; height:26px; border:1px solid var(--border-soft); background:transparent; border-radius:var(--radius-md);
+    color:var(--text-muted); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s;
   }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-progress-label { font-size:8px; }
-
-  .page-stratege .ctx-panel.interview-intro #interview-hero {
-    width:100%;
-    height:100%;
-    min-height:0;
-    padding:112px clamp(24px, 6vw, 80px) 118px;
-    border:1px solid var(--interview-line);
-    border-radius:7px;
-    background:
-      radial-gradient(ellipse at 50% 54%, color-mix(in srgb, var(--champagne) 4%, transparent), transparent 36%),
-      color-mix(in srgb, var(--bg-main) 96%, #000);
-    box-shadow:inset 0 1px 0 color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+  .voice-playback-btn:hover { color:var(--text-secondary); border-color:var(--border-medium); }
+  .voice-playback-btn svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .review-restart-btn {
+    display:none; font-size:11px; color:var(--text-muted); background:transparent; border:1px solid var(--border-soft);
+    border-radius:var(--radius-md); padding:0 12px; align-self:stretch; cursor:pointer; font-family:inherit; transition:all 0.15s;
   }
+  .review-restart-btn.active { display:block; }
+  .review-restart-btn:hover { color:var(--text-secondary); border-color:var(--border-medium); }
 
-  .page-stratege .ctx-panel.interview-intro .hero-avatar { display:none; }
-  .page-stratege .ctx-panel.interview-intro .hero-kicker {
-    order:1;
-    margin-bottom:13px;
-    color:color-mix(in srgb, var(--champagne) 72%, transparent);
+  /* ── Écoute — un indicateur compact en bas de la fenêtre, pas un écran
+     qui recouvre tout. Mêmes éléments (JS inchangé), présentation en
+     bandeau horizontal plutôt qu'en grand écran centré. Le bleu générique
+     laisse place au champagne — cohérent avec le reste de l'app (l'ancien
+     "--interview-blue" n'était d'ailleurs jamais défini). */
+  /* Panneau d'écoute — un vrai moment, sans théâtre. Quand Gabriel écoute,
+     la conversation s'efface derrière un voile et laisse place à ce qui
+     compte à cet instant : ce que vous êtes en train de dire, transcrit en
+     direct. C'est mesuré (pas d'avatar géant, pas de plein écran qui prend
+     l'application en otage) mais suffisamment présent pour qu'on sache
+     qu'on est écouté. */
+  .listening-overlay {
+    position:absolute; inset:0; z-index:8; display:none;
+    /* Tout est empilé sur un seul axe et centré, horizontalement comme
+       verticalement : pendant qu'on parle, l'écran n'a qu'un seul centre
+       de gravité. */
+    flex-direction:column; align-items:center; justify-content:center; gap:0;
+    padding:32px; text-align:center;
+    background:color-mix(in srgb, var(--bg-main) 84%, transparent);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    animation:step-in 0.3s cubic-bezier(0.22,1,.36,1) both;
   }
-  .page-stratege .ctx-panel.interview-intro .hero-sub {
-    order:2;
-    max-width:470px;
+  .chat-window.is-recording .listening-overlay { display:flex; }
+  /* Chaque bloc est centré et borné à la même largeur de lecture : rien ne
+     part en biais quand le texte s'allonge. */
+  .listening-overlay > * { margin-left:auto; margin-right:auto; }
+  .listening-kicker {
+    display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:0.18em;
+    color:color-mix(in srgb, var(--champagne) 68%, transparent); font-weight:600;
     margin-bottom:22px;
-    font-size:12px;
-    color:var(--text-muted);
+  }
+  .listening-title, .listening-copy, .listening-hint, .listening-silence { display:none; }
+  /* La transcription est le cœur du moment : c'est elle qu'on lit pour
+     vérifier qu'on est bien compris. Hauteur réservée d'avance pour que
+     l'apparition des mots ne fasse pas sauter le reste du panneau. */
+  .listening-transcript {
+    font-size:19px; line-height:1.75; color:var(--text-primary);
+    width:100%; max-width:600px; min-height:100px; flex:none; text-wrap:balance;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:30px;
+  }
+  .listening-transcript:not(.has-text) { color:var(--text-disabled); font-size:16px; }
+  /* Le micro reste l'objet central : c'est lui qu'on cherche pour arrêter. */
+  .listening-mic-btn {
+    position:relative; width:72px; height:72px; border-radius:50%; cursor:pointer; flex-shrink:0;
+    border:1px solid color-mix(in srgb, var(--champagne) 48%, transparent);
+    background:color-mix(in srgb, var(--champagne) 12%, var(--bg-card));
+    display:flex; align-items:center; justify-content:center; transition:transform 0.15s;
+    margin-bottom:26px;
+  }
+  .listening-mic-btn:hover { transform:scale(1.05); }
+  .listening-mic-btn svg { width:26px; height:26px; stroke:var(--champagne); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  /* Un seul halo qui respire — signe qu'on est bien en écoute, sans agiter
+     l'écran. Retiré si l'utilisateur a demandé moins d'animations. */
+  .listening-mic-btn::before {
+    content:''; display:block; position:absolute; inset:-9px; border-radius:50%;
+    border:1px solid color-mix(in srgb, var(--champagne) 34%, transparent);
+    animation:mic-pulse 2.6s ease-out infinite;
+  }
+  .listening-mic-btn::after { display:none; }
+  .listening-wave {
+    height:40px; width:min(320px, 80%); gap:3px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+  }
+  .listening-wave span {
+    width:3px; border-radius:2px;
+    background:color-mix(in srgb, var(--champagne) 78%, transparent);
+  }
+  .listening-meta {
+    font-size:12px; color:var(--text-muted); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    font-variant-numeric:tabular-nums; letter-spacing:0.04em; margin-bottom:28px;
+  }
+  .listening-actions { display:flex; gap:10px; flex-shrink:0; justify-content:center; }
+  .listening-action {
+    font-size:12px; padding:9px 18px; border-radius:999px; border:1px solid var(--border-soft);
+    background:transparent; color:var(--text-muted); cursor:pointer; font-family:inherit; transition:all 0.15s; white-space:nowrap;
+  }
+  .listening-action:hover { color:var(--text-secondary); border-color:var(--border-medium); }
+  /* Une seule action franche — « Terminer ». Les deux autres restent en
+     retrait : on ne doit jamais hésiter sur le geste qui envoie la réponse. */
+  .listening-action.primary {
+    color:#1a1510; background:var(--champagne); border-color:var(--champagne);
+    font-weight:500; padding:9px 26px;
+  }
+  .listening-action.primary:hover { background:var(--champagne-light); color:#1a1510; }
+  @media (prefers-reduced-motion:reduce) {
+    .listening-mic-btn::before { animation:none; }
+  }
+  @media (max-width:640px) {
+    .listening-transcript { font-size:16px; min-height:84px; margin-bottom:24px; }
+    .listening-mic-btn { width:62px; height:62px; margin-bottom:20px; }
+    .listening-actions { flex-wrap:wrap; }
   }
 
-  .page-stratege .ctx-panel.interview-intro .hero-cta {
-    order:3;
-    width:58px;
-    min-width:58px;
-    height:58px;
-    padding:0;
-    border-radius:50%;
-    font-size:0;
-    background:color-mix(in srgb, var(--bg-card) 92%, var(--text-primary));
-    color:var(--text-primary);
-    border:1px solid color-mix(in srgb, var(--champagne) 40%, transparent);
-    box-shadow:
-      0 0 0 6px color-mix(in srgb, var(--text-primary) 3%, transparent),
-      0 0 0 8px color-mix(in srgb, var(--champagne) 13%, transparent),
-      0 16px 42px rgba(0,0,0,.25);
+  /* Mode vocal activé : le micro de la barre de saisie prend la couleur de
+     l'accent. On voit d'un coup d'œil que parler est le mode en cours,
+     sans avoir à lire l'étiquette. */
+  .voice-toggle.on + .voice-picker,
+  .voice-toggle.on { border-color:color-mix(in srgb, var(--champagne) 40%, transparent); }
+  body.gabriel-voice-on .mic-btn {
+    background:color-mix(in srgb, var(--champagne) 16%, transparent);
+    border:1px solid color-mix(in srgb, var(--champagne) 38%, transparent);
   }
+  body.gabriel-voice-on .mic-btn svg { stroke:var(--champagne); }
 
-  .page-stratege .ctx-panel.interview-intro .hero-cta:hover {
-    transform:translateY(-1px);
-    box-shadow:
-      0 0 0 7px color-mix(in srgb, var(--text-primary) 4%, transparent),
-      0 0 0 9px color-mix(in srgb, var(--champagne) 20%, transparent),
-      0 20px 48px rgba(0,0,0,.30);
+  /* ── Zone B — panneau latéral ────────────────────────────────────── */
+  /* Le panneau de droite défile de son côté : la progression et l'historique
+     peuvent s'allonger sans jamais entraîner la conversation ni la barre de
+     saisie avec eux. */
+  /* Carte FLOTTANTE : la progression et l'historique ne prennent plus une
+     colonne dans la mise en page — ils se posent par-dessus, en haut à
+     droite. La conversation retrouve ainsi toute la largeur, et le suivi
+     reste visible en permanence sans découper l'écran en deux. */
+  .interview-side {
+    position:fixed; top:100px; right:24px; width:274px; z-index:60;
+    display:flex; flex-direction:column;
+    max-height:calc(100vh - 140px); min-height:0; overflow-y:auto; scrollbar-width:thin;
+    padding:14px 14px 12px; border:1px solid var(--border-soft); border-radius:12px;
+    background:color-mix(in srgb, var(--bg-card) 94%, transparent);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    box-shadow:0 18px 48px rgba(0,0,0,0.28);
+    animation:step-in 0.45s cubic-bezier(0.22,1,.36,1) both;
   }
+  .interview-side .ctx-badge { margin-bottom:10px; font-size:9.5px; }
+  .interview-side .ctx-progress { margin:0 0 14px; }
+  .interview-side .ctx-progress-label { font-size:9.5px; }
 
-  .page-stratege .ctx-panel.interview-intro .hero-cta-icon {
-    width:100%;
-    height:100%;
-    background:transparent;
+  .interview-tabs { display:flex; gap:18px; border-bottom:1px solid var(--border-soft); margin-bottom:14px; }
+  .interview-tab {
+    font-size:11.5px; font-weight:500; color:var(--text-muted); padding:0 0 9px; margin-bottom:-1px;
+    border:none; border-bottom:2px solid transparent; background:none; cursor:pointer; font-family:inherit;
   }
+  .interview-tab.active { color:var(--text-primary); border-bottom-color:var(--champagne); }
+  .interview-tab-panel { flex:1; }
+  .interview-tab-panel.hidden { display:none; }
 
-  .page-stratege .ctx-panel.interview-intro .hero-cta-icon svg {
-    width:20px;
-    height:20px;
-    stroke:var(--text-primary);
-  }
+  /* Liste des dimensions — ctx-fields-panel n'est plus un tiroir qu'on
+     ouvre/ferme : il vit en permanence dans l'onglet "Progression". */
+  .ctx-fields-panel { background:none; border:none; padding:0; }
+  .progress-human-group { margin-bottom:18px; }
+  .progress-human-group-title { font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-disabled); font-weight:600; margin-bottom:6px; }
+  .progress-human-list { display:flex; flex-direction:column; gap:1px; }
+  .ctx-field:hover { background:var(--bg-card); }
 
-  .page-stratege .ctx-panel.interview-intro .interview-wave {
-    order:4;
-    height:62px;
-    margin:12px auto 14px;
-  }
+  /* Historique — ancien .strat-memory, devient le contenu de l'onglet
+     "Historique" : plus de carte encartée, le libellé de l'onglet fait
+     déjà office de titre. */
+  .interview-side .strat-memory { background:none; border:none; padding:0; margin:0; animation:none; }
+  .interview-side .strat-memory-head { display:none; }
+  .interview-side .strat-memory-item { background:none; }
+  .interview-side .strat-memory-item:hover { background:var(--bg-card); transform:none; }
 
-  .page-stratege .ctx-panel.interview-intro .interview-wave::before {
-    background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--champagne) 32%, transparent), transparent);
-  }
-
-  .page-stratege .ctx-panel.interview-intro .interview-wave span {
-    width:2px;
-    background:color-mix(in srgb, var(--champagne) 74%, var(--text-primary));
-  }
-
-  .page-stratege .ctx-panel.interview-intro .hero-h1 {
-    order:5;
-    max-width:440px;
-    margin:0;
-    font-size:clamp(22px, 2.5vw, 32px);
-    line-height:1.12;
-    font-weight:400;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .hero-text-fallback { display:none; }
-
-  .page-stratege .ctx-panel.interview-intro .chat-window {
-    position:absolute !important;
-    z-index:5;
-    left:50%;
-    bottom:24px;
-    width:min(660px, calc(100% - 48px));
-    height:auto !important;
-    min-height:0 !important;
-    max-height:none;
-    transform:translateX(-50%);
-    overflow:visible;
-    border:0;
-    border-radius:0;
-    background:transparent;
-    box-shadow:none;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .voice-toolbar,
-  .page-stratege .ctx-panel.interview-intro .chat-messages {
-    display:none !important;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .chat-input-row {
-    min-height:50px;
-    padding:7px 8px 7px 16px;
-    border:1px solid color-mix(in srgb, var(--text-primary) 11%, transparent);
-    border-radius:8px;
-    background:color-mix(in srgb, var(--text-primary) 8%, var(--bg-main));
-    box-shadow:0 16px 44px rgba(0,0,0,.18);
-  }
-
-  .page-stratege .ctx-panel.interview-intro .chat-input {
-    min-height:34px;
-    padding:6px 2px;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .chat-send {
-    color:var(--champagne);
-    border:1px solid color-mix(in srgb, var(--champagne) 24%, transparent);
-    background:color-mix(in srgb, var(--champagne) 9%, transparent);
-  }
-
-  :root[data-theme="light"] .page-stratege .ctx-panel.interview-intro #interview-hero {
-    background:
-      radial-gradient(ellipse at 50% 54%, rgba(164,125,67,.04), transparent 36%),
-      #FDFDFD;
-    box-shadow:inset 0 1px 0 #FFFFFF;
-  }
-
-  :root[data-theme="light"] .page-stratege .ctx-panel.interview-intro .chat-input-row {
-    background:#F3F4F5;
-    border-color:rgba(17,19,24,.11);
-    box-shadow:0 16px 42px rgba(17,19,24,.08);
-  }
+  .strat-cta { margin-top:auto; padding-top:18px; }
 
   @media (max-width:900px) {
-    body.page-stratege.stratege-interview-intro .app-content { padding:14px; }
-    .page-stratege .ctx-panel.interview-intro {
-      height:auto;
-      min-height:auto;
-      overflow:visible;
-    }
-    .page-stratege .ctx-panel.interview-intro .ctx-identity,
-    .page-stratege .ctx-panel.interview-intro .ctx-header {
-      position:relative;
-      inset:auto;
-      width:100%;
-      border-radius:6px;
-    }
-    .page-stratege .ctx-panel.interview-intro .ctx-identity { margin-bottom:8px; }
-    .page-stratege .ctx-panel.interview-intro #interview-hero {
-      min-height:580px;
-      height:auto;
-      padding:70px 20px 112px;
-      border-radius:7px;
-    }
-    .page-stratege .ctx-panel.interview-intro .hero-sub { max-width:360px; }
+    .ctx-panel { grid-template-columns:1fr; }
+    .interview-side { grid-column:1; border-left:none; border-top:1px solid var(--border-soft); padding-left:0; padding-top:22px; margin-top:8px; min-height:0; }
   }
 
-  @media (max-width:520px) {
-    .page-stratege .ctx-panel.interview-intro #interview-hero {
-      min-height:540px;
-      padding-top:54px;
-    }
-    .page-stratege .ctx-panel.interview-intro .hero-h1 { font-size:25px; }
-    .page-stratege .ctx-panel.interview-intro .chat-window {
-      bottom:18px;
-      width:calc(100% - 28px);
-    }
+  /* ── Parcours d'entrée en 2 temps (avant la conversation) ────────────
+     Étape 1 : accueil ("Apprenons à nous connaître") — on nomme le moment
+     avant de demander quoi que ce soit. Étape 2 : la première question de
+     Gabriel, présentée seule et en grand, avec le micro comme invitation.
+     Les deux occupent la colonne principale ; le panneau latéral reste
+     visible pour montrer d'emblée ce qui va être couvert. Même discipline
+     que la conversation : centré, sobre, aucun élément qui gesticule. */
+  .interview-gate {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:40px 24px; width:100%; height:100%;
+    min-height:0; overflow-y:auto;
+    animation:step-in 0.5s cubic-bezier(0.22,1,.36,1) both;
+  }
+  .interview-gate.hidden { display:none; }
+
+  /* ── Étape "accueil" : la page doit respirer ─────────────────────────
+     Très peu d'éléments, beaucoup d'espace. Le panneau de progression et
+     la barre de saisie n'apparaissent qu'à partir de l'entretien : à
+     l'accueil il n'y a encore rien à suivre, ni rien à répondre. La
+     conversation prend alors toute la largeur, centrée. */
+  .ctx-panel.step-welcome { grid-template-columns:minmax(0,1fr); }
+  .ctx-panel.step-welcome .interview-side,
+  .ctx-panel.step-welcome .chat-input-row,
+  .ctx-panel.step-welcome .interview-session-bar { display:none; }
+  .ctx-panel.step-welcome .interview-gate { max-width:720px; margin:0 auto; }
+  .ctx-panel.step-welcome .gate-title { font-size:clamp(30px, 3.6vw, 44px); }
+  .ctx-panel.step-welcome .gate-sub {
+    font-size:clamp(15px, 1.5vw, 17px); line-height:1.8; max-width:600px; margin-top:20px;
+  }
+  .ctx-panel.step-welcome .gate-next { margin-top:52px; }
+  /* Une étape entre en scène, elle ne surgit pas. Même respiration pour la
+     conversation et pour le rendu stratégique : le passage d'un écran à
+     l'autre se sent, sans jamais faire attendre. */
+  @keyframes step-in {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:none; }
+  }
+  .chat-window, .dash-panel { animation:step-in 0.5s cubic-bezier(0.22,1,.36,1) both; }
+  .gate-title {
+    font-size:clamp(26px, 3vw, 36px); font-weight:400; color:var(--text-primary);
+    line-height:1.3; margin:0; text-wrap:balance; letter-spacing:-0.01em;
+  }
+  .gate-sub { font-size:clamp(17px, 2vw, 21px); font-weight:300; color:var(--text-muted); margin-top:10px; text-wrap:balance; }
+  .gate-next {
+    margin-top:38px; display:inline-flex; align-items:center; gap:9px; padding:12px 4px;
+    background:none; border:none; border-bottom:1px solid transparent; cursor:pointer; font-family:inherit;
+    font-size:16px; font-weight:400; color:var(--text-primary); transition:border-color 0.2s, gap 0.2s;
+  }
+  .gate-next:hover { border-bottom-color:color-mix(in srgb, var(--champagne) 55%, transparent); gap:13px; }
+  .gate-next svg { width:15px; height:15px; stroke:var(--champagne); fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* Étape 2 — la question d'ouverture, présentée comme une prise de parole. */
+  .gate-eyebrow {
+    align-self:flex-start; font-size:clamp(22px, 2.4vw, 28px); font-weight:300; color:var(--text-secondary);
+    margin:0 0 auto; letter-spacing:-0.01em;
+  }
+  .gate-mic {
+    width:74px; height:74px; border-radius:50%; background:none; border:none; cursor:pointer; padding:0;
+    display:flex; align-items:center; justify-content:center; color:var(--text-secondary);
+    transition:color 0.2s, transform 0.2s;
+  }
+  .gate-mic:hover { color:var(--champagne); transform:scale(1.05); }
+  .gate-mic svg { width:52px; height:52px; stroke:currentColor; fill:none; stroke-width:1.2; stroke-linecap:round; stroke-linejoin:round; }
+  .gate-question {
+    margin-top:30px; max-width:640px; font-size:16px; line-height:1.85; color:var(--text-secondary); text-wrap:balance;
+  }
+  .gate-actions { margin-top:34px; display:flex; align-items:center; gap:20px; }
+  .gate-write {
+    background:none; border:none; cursor:pointer; font-family:inherit; font-size:13px; color:var(--text-muted);
+    text-decoration:underline; text-underline-offset:4px; padding:4px; transition:color 0.15s;
+  }
+  .gate-write:hover { color:var(--text-secondary); }
+
+  /* ── La barre de saisie : le fil conducteur du parcours ──────────────
+     Elle ne change jamais de forme ni de place, de l'accueil jusqu'à la
+     stratégie. C'est elle qui fait que les quatre étapes se lisent comme
+     un même lieu et non comme quatre pages sans rapport. Posée dans le
+     flux (dernière rangée de la grille), pas en survol : rien ne recouvre
+     jamais le contenu. */
+  .chat-input-row {
+    /* Ancrée au bas de la zone de travail, jamais entraînée par le contenu
+       — comportement identique à une barre fixe, puisque .ctx-panel occupe
+       toute la hauteur et ne défile pas.
+       Pourquoi "absolute" et non "fixed" : une barre fixe se positionne par
+       rapport à la fenêtre, il faut donc lui redonner à la main la largeur
+       du rail de navigation, du dock Orchestrateur et de la carte de suivi.
+       Ces valeurs devinées la décalaient de près de 200 px vers la gauche,
+       sous la navigation. Ancrée à la colonne, elle hérite de sa géométrie
+       et reste alignée quoi qu'il arrive. right:318px reprend la réserve
+       faite pour la carte flottante. */
+    position:absolute; z-index:40;
+    left:0; right:318px; bottom:26px;
+    margin:0 auto; width:auto; max-width:640px;
+    padding:6px 6px 6px 16px;
+    border-radius:999px; align-items:center; gap:4px;
+  }
+  .chat-input { font-size:13.5px; padding:2px; line-height:1.5; }
+  .mic-btn, .chat-send {
+    width:28px; height:28px; border-radius:50%; align-self:center; background:transparent;
+    transition:background 0.15s, color 0.15s;
+  }
+  .mic-btn:hover, .chat-send:hover { background:color-mix(in srgb, var(--champagne) 14%, transparent); }
+  .mic-btn svg, .chat-send svg { width:14px; height:14px; stroke:var(--champagne-soft); }
+  /* «+» — même gabarit rond que le micro/l'envoi, posé à gauche du champ. */
+  .compose-add {
+    flex-shrink:0; width:28px; height:28px; border-radius:50%; align-self:center;
+    display:flex; align-items:center; justify-content:center; margin-right:2px;
+    color:var(--text-muted); text-decoration:none; transition:background 0.15s, color 0.15s;
+  }
+  .compose-add:hover { background:color-mix(in srgb, var(--champagne) 14%, transparent); color:var(--champagne); }
+  .compose-add svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  @media (prefers-reduced-motion:reduce) {
+    .interview-gate { animation:none; }
+    .gate-mic:hover { transform:none; }
   }
 
-  /* ─── Continuité de l'entretien après l'introduction ──────────────── */
-  body.page-stratege.stratege-interview-session .pipeline-bar { display:none; }
-  body.page-stratege.stratege-interview-session .app-content {
-    padding-top:18px;
-    padding-bottom:18px;
+  /* ── Volets du rendu stratégique ─────────────────────────────────────
+     Onglets larges et espacés : on lit l'ordre de la présentation avant de
+     lire le contenu. Un seul volet est peint à la fois (voir renderStrat). */
+  .dash-tabs {
+    display:flex; gap:clamp(18px, 4vw, 56px); justify-content:center; flex-wrap:wrap;
+    border-bottom:1px solid var(--border-soft); margin:0 0 28px; padding:0 8px;
   }
-
-  .page-stratege .ctx-panel.interview-session {
-    position:relative;
-    height:clamp(680px, calc(100svh - 112px), 900px);
-    min-height:680px;
-    max-width:none;
-    overflow:hidden;
-    isolation:isolate;
-    border:1px solid var(--interview-line);
-    border-radius:7px;
-    background:
-      radial-gradient(ellipse at 50% 34%, color-mix(in srgb, var(--champagne) 3.5%, transparent), transparent 40%),
-      color-mix(in srgb, var(--bg-main) 96%, #000);
-    box-shadow:inset 0 1px 0 color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+  .dash-tab {
+    background:none; border:none; cursor:pointer; font-family:inherit;
+    font-size:12px; font-weight:500; letter-spacing:0.13em; text-transform:uppercase;
+    color:var(--text-muted); padding:0 2px 14px; margin-bottom:-1px;
+    border-bottom:1px solid transparent; transition:color 0.18s, border-color 0.18s; white-space:nowrap;
   }
+  .dash-tab:hover { color:var(--text-secondary); }
+  .dash-tab.active { color:var(--text-primary); border-bottom-color:var(--champagne); }
+  .dash-tab:focus-visible { outline:2px solid color-mix(in srgb, var(--champagne) 58%, transparent); outline-offset:3px; border-radius:2px; }
+  .dash-panel { animation:gb-slide-up 0.3s cubic-bezier(0.22,1,.36,1) both; }
+  .dash-panel.hidden { display:none !important; }
+  @media (prefers-reduced-motion:reduce) { .dash-panel { animation:none; } }
 
-  .page-stratege .ctx-panel.interview-session .strat-memory,
-  .page-stratege .ctx-panel.interview-session .strat-idle,
-  .page-stratege .ctx-panel.interview-session .psycho-banner {
-    display:none !important;
+  /* Une fois la stratégie affichée, l'entretien se replie en pastille
+     flottante (mécanisme existant). Les deux blocs ajoutés par la refonte —
+     la barre de session et le panneau latéral — doivent s'y replier aussi,
+     sinon la pastille embarque toute la colonne de droite et déborde de
+     l'écran (constaté en conditions réelles en 1920 de large). */
+  .strat-layout.has-strategy .interview-session-bar,
+  .strat-layout.has-strategy .interview-side,
+  .strat-layout.has-strategy .interview-gate { display:none; }
+  /* La barre de saisie survit à la génération : on doit pouvoir continuer à
+     parler à Gabriel devant sa stratégie. Elle quitte la pastille repliée
+     pour revenir au centre bas de l'écran, à la même place que pendant
+     l'entretien — la continuité du parcours tient à ça. */
+  /* À l'étape stratégie, la carte de suivi n'est plus affichée : la barre
+     récupère l'espace de droite et se recentre sur toute la largeur utile.
+     Les bornes de l'entretien sont explicitement annulées. */
+  /* À l'étape stratégie, .ctx-panel se réduit en pastille : la barre ne peut
+     plus s'y ancrer et repasse en position fixe, centrée sur la fenêtre.
+     Avec 640 px de large maximum, elle reste largement à l'écart de la
+     navigation quelle que soit la largeur du dock. */
+  .strat-layout.has-strategy .chat-input-row {
+    position:fixed; bottom:26px; z-index:340;
+    left:50%; right:auto; transform:translateX(-50%);
+    margin:0; width:min(640px, calc(100vw - 420px)); max-width:640px;
   }
-
-  .page-stratege .ctx-panel.interview-session .ctx-identity {
-    position:absolute;
-    z-index:4;
-    top:20px;
-    left:22px;
-    width:230px;
-    min-height:48px;
-    margin:0;
-    padding:9px 11px;
-    border:1px solid var(--interview-line);
-    border-radius:6px;
-    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
-    backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-header {
-    position:absolute;
-    z-index:4;
-    top:20px;
-    right:22px;
-    width:230px;
-    min-height:0;
-    display:block;
-    padding:10px 11px;
-    border-radius:6px;
-    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
-    backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-header-label {
-    margin-bottom:3px;
-    font-size:8px;
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-header-title {
-    margin:0 0 7px;
-    font-size:11px;
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-badge {
-    display:inline-flex;
-    max-width:100%;
-    padding:3px 7px;
-    font-size:8px;
-    text-align:left;
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-progress {
-    display:grid;
-    grid-template-columns:1fr;
-    gap:4px;
-    margin-top:8px;
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-progress-label {
-    margin:0;
-    font-size:8px;
-  }
-
-  .page-stratege .ctx-panel.interview-session .chat-window {
-    position:absolute !important;
-    z-index:2;
-    top:136px;
-    left:50%;
-    bottom:116px;
-    width:min(760px, calc(100% - 48px));
-    height:auto !important;
-    min-height:0 !important;
-    max-height:none;
-    transform:translateX(-50%);
-    border:0;
-    border-radius:0;
-    background:transparent;
-    box-shadow:none;
-  }
-
-  .page-stratege .ctx-panel.interview-session .voice-toolbar {
-    min-height:42px;
-    padding:7px 2px;
-    border-bottom:1px solid var(--interview-line);
-  }
-
-  .page-stratege .ctx-panel.interview-session .chat-messages {
-    padding:24px 4px;
-    scrollbar-gutter:stable;
-  }
-
-  .page-stratege .ctx-panel.interview-session .msg {
-    max-width:min(82%, 620px);
-  }
-
-  .page-stratege .ctx-panel.interview-session .chat-input-row {
-    min-height:52px;
-    padding:7px 8px 7px 16px;
-    border:1px solid color-mix(in srgb, var(--text-primary) 11%, transparent);
-    border-radius:8px;
-    background:color-mix(in srgb, var(--text-primary) 8%, var(--bg-main));
-    box-shadow:0 16px 44px rgba(0,0,0,.18);
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-fields-panel {
-    position:absolute;
-    z-index:3;
-    left:22px;
-    bottom:18px;
-    width:calc(100% - 392px);
-    min-height:76px;
-    margin:0;
-    padding:8px;
-    overflow:hidden;
-    border-radius:6px;
-    background:color-mix(in srgb, var(--bg-card) 72%, transparent);
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-fields {
-    display:grid;
-    grid-template-columns:repeat(4, minmax(0, 1fr));
-    gap:3px;
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-field {
-    min-height:27px;
-    align-items:center;
-    padding:4px 5px;
-  }
-
-  .page-stratege .ctx-panel.interview-session .ctx-field-label {
-    font-size:8px;
-  }
-
-  .page-stratege .ctx-panel.interview-session .strat-cta {
-    position:absolute;
-    z-index:3;
-    right:22px;
-    bottom:18px;
-    width:340px;
-    min-height:76px;
-    margin:0;
-    justify-content:center;
-    padding:9px;
-    border:1px solid var(--interview-line);
-    border-radius:6px;
-    background:color-mix(in srgb, var(--bg-card) 72%, transparent);
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-  }
-
-  .page-stratege .ctx-panel.interview-session .strat-cta-btn {
-    min-height:36px;
-    border-radius:5px;
-  }
-
-  :root[data-theme="light"] .page-stratege .ctx-panel.interview-session {
-    background:
-      radial-gradient(ellipse at 50% 34%, rgba(164,125,67,.035), transparent 40%),
-      #FDFDFD;
-    box-shadow:inset 0 1px 0 #FFFFFF;
-  }
-
-  :root[data-theme="light"] .page-stratege .ctx-panel.interview-session .chat-input-row {
-    background:#F3F4F5;
-    border-color:rgba(17,19,24,.11);
-    box-shadow:0 16px 42px rgba(17,19,24,.08);
-  }
-
-  @media (max-width:900px) {
-    body.page-stratege.stratege-interview-session .app-content { padding:14px; }
-    .page-stratege .ctx-panel.interview-session {
-      height:auto;
-      min-height:0;
-      overflow:visible;
-      padding:12px;
-    }
-    .page-stratege .ctx-panel.interview-session .ctx-identity,
-    .page-stratege .ctx-panel.interview-session .ctx-header,
-    .page-stratege .ctx-panel.interview-session .chat-window,
-    .page-stratege .ctx-panel.interview-session .ctx-fields-panel,
-    .page-stratege .ctx-panel.interview-session .strat-cta {
-      position:relative !important;
-      inset:auto !important;
-      width:100%;
-      transform:none;
-    }
-    .page-stratege .ctx-panel.interview-session .ctx-identity,
-    .page-stratege .ctx-panel.interview-session .ctx-header {
-      margin-bottom:8px;
-    }
-    .page-stratege .ctx-panel.interview-session .chat-window {
-      height:clamp(460px, 62svh, 620px) !important;
-      margin-bottom:10px;
-    }
-    .page-stratege .ctx-panel.interview-session .ctx-fields-panel {
-      min-height:0;
-      margin-bottom:10px;
-    }
-    .page-stratege .ctx-panel.interview-session .strat-cta {
-      min-height:0;
-    }
-  }
-
-  @media (max-width:520px) {
-    .page-stratege .ctx-panel.interview-session {
-      padding:8px;
-    }
-    .page-stratege .ctx-panel.interview-session .ctx-fields {
-      grid-template-columns:repeat(2, minmax(0, 1fr));
-    }
-    .page-stratege .ctx-panel.interview-session .msg {
-      max-width:92%;
-    }
-  }
-
-  /* ─── Hiérarchie finale : un rail, une conversation, une action ───── */
-  .page-stratege .ctx-panel.interview-intro::before,
-  .page-stratege .ctx-panel.interview-session::before {
-    content:'';
-    position:absolute;
-    z-index:3;
-    top:20px;
-    left:22px;
-    right:22px;
-    height:72px;
-    border:1px solid var(--interview-line);
-    border-radius:6px;
-    background:color-mix(in srgb, var(--bg-card) 84%, transparent);
-    backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
-  }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-identity,
-  .page-stratege .ctx-panel.interview-session .ctx-identity {
-    top:20px;
-    left:22px;
-    width:310px;
-    height:72px;
-    min-height:72px;
-    padding:11px 14px;
-    border:0;
-    border-radius:0;
-    background:transparent;
-    backdrop-filter:none;
-    -webkit-backdrop-filter:none;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-header,
-  .page-stratege .ctx-panel.interview-session .ctx-header {
-    top:20px;
-    right:22px;
-    width:430px;
-    height:72px;
-    min-height:72px;
-    display:grid;
-    grid-template-columns:minmax(0, 1fr) auto;
-    grid-template-areas:
-      "label badge"
-      "title badge"
-      "progress progress";
-    align-items:center;
-    column-gap:14px;
-    padding:10px 14px;
-    border:0;
-    border-radius:0;
-    background:transparent;
-    backdrop-filter:none;
-    -webkit-backdrop-filter:none;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-header-label,
-  .page-stratege .ctx-panel.interview-session .ctx-header-label {
-    grid-area:label;
-    margin:0 0 2px;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-header-title,
-  .page-stratege .ctx-panel.interview-session .ctx-header-title {
-    grid-area:title;
-    margin:0;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-badge,
-  .page-stratege .ctx-panel.interview-session .ctx-badge {
-    grid-area:badge;
-    justify-self:end;
-    margin:0 !important;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-progress,
-  .page-stratege .ctx-panel.interview-session .ctx-progress {
-    grid-area:progress;
-    display:grid;
-    grid-template-columns:minmax(0, 1fr) auto;
-    align-items:center;
-    gap:10px;
-    margin:7px 0 0;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .ctx-progress-label,
-  .page-stratege .ctx-panel.interview-session .ctx-progress-label {
-    white-space:nowrap;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .hero-kicker { display:none; }
-
-  .page-stratege .ctx-panel.interview-intro .hero-h1 {
-    order:1;
-    margin:0 0 14px;
-    font-size:clamp(28px, 3.2vw, 42px);
-    font-weight:450;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .hero-sub {
-    order:2;
-    max-width:590px;
-    margin-bottom:27px;
-    color:var(--text-secondary);
-    font-size:13.5px;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .hero-cta {
-    order:3;
-    width:68px;
-    min-width:68px;
-    height:68px;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .hero-cta::after {
-    content:'Appuyez pour parler';
-    position:absolute;
-    top:calc(100% + 11px);
-    left:50%;
-    transform:translateX(-50%);
-    color:var(--text-muted);
-    font-family:var(--font-main);
-    font-size:10px;
-    font-weight:500;
-    letter-spacing:.02em;
-    white-space:nowrap;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .interview-wave {
-    order:4;
-    margin:30px auto 0;
-  }
-
-  .page-stratege .ctx-panel.interview-intro #interview-hero {
-    padding-top:124px;
-    padding-bottom:124px;
-  }
-
-  .page-stratege .ctx-panel.interview-intro .chat-input::placeholder {
-    color:color-mix(in srgb, var(--text-secondary) 70%, transparent);
-  }
-
-  @media (max-width:900px) {
-    .page-stratege .ctx-panel.interview-intro::before,
-    .page-stratege .ctx-panel.interview-session::before {
-      display:none;
-    }
-
-    .page-stratege .ctx-panel.interview-intro .ctx-identity,
-    .page-stratege .ctx-panel.interview-session .ctx-identity,
-    .page-stratege .ctx-panel.interview-intro .ctx-header,
-    .page-stratege .ctx-panel.interview-session .ctx-header {
-      width:100%;
-      height:auto;
-      min-height:0;
-      border:1px solid var(--interview-line);
-      border-radius:6px;
-      background:color-mix(in srgb, var(--bg-card) 84%, transparent);
-    }
-
-    .page-stratege .ctx-panel.interview-intro .ctx-header,
-    .page-stratege .ctx-panel.interview-session .ctx-header {
-      display:block;
-    }
-
-    .page-stratege .ctx-panel.interview-intro .ctx-progress,
-    .page-stratege .ctx-panel.interview-session .ctx-progress {
-      display:grid;
-      grid-template-columns:1fr;
-      gap:4px;
-    }
-  }
-
-  @media (max-width:520px) {
-    .page-stratege .ctx-panel.interview-intro .hero-h1 {
-      font-size:29px;
-    }
-    .page-stratege .ctx-panel.interview-intro .hero-sub {
-      font-size:12px;
-    }
+  .strat-layout.has-strategy .ctx-panel.is-open .interview-side {
+    display:flex; grid-column:1; border-left:none; padding-left:0; min-height:0;
+    max-height:340px; overflow:auto;
   }
 
 </style>
 {% endblock %}
 
 {% block header_actions %}
-<button class="btn btn-ghost btn-sm" onclick="resetContext()">Réinitialiser</button>
+<button type="button" class="btn btn-ghost btn-sm" onclick="resetContext()">Réinitialiser</button>
 {% endblock %}
 
 {% block content %}
@@ -3712,18 +3116,33 @@
   <!-- ── Left: Context Builder ─────────────────────────── -->
   <div class="ctx-panel">
 
-    <div class="ctx-identity">
-      <div class="ctx-identity-avatar">◈</div>
-      <div>
-        <div class="ctx-identity-name">Le Stratège</div>
-        <div class="ctx-identity-role">Conseil, décision et développement d'entreprise</div>
+    <div class="interview-session-bar">
+      <div class="interview-brand">
+        <div class="interview-brand-mark" aria-hidden="true">
+          <img src="{{ static_v('brand/gabriel-mark-gold.png') }}" alt="">
+        </div>
+        <div>
+          <div class="interview-brand-label">Entretien stratégique</div>
+          <div class="interview-brand-state" id="interview-brand-state">Prêt à commencer</div>
+        </div>
+      </div>
+      <div class="interview-session-actions">
+        <button type="button" class="interview-quiet-btn interview-progress-btn" id="interview-progress-btn" onclick="toggleInterviewProgress()" aria-expanded="false" aria-controls="ctx-fields-panel" aria-label="Voir ce que Gabriel comprend">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 11 8 4 8-4"/><path d="m4 15 8 4 8-4"/></svg>
+          <span class="interview-progress-count" id="interview-progress-count">Contexte à découvrir</span>
+        </button>
+        <button type="button" class="interview-quiet-btn interview-pause-btn" id="interview-pause-btn" onclick="toggleInterviewSessionPause()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+          <span>Pause</span>
+        </button>
+        <a class="interview-quiet-btn" href="/dossiers" title="Quitter l’entretien" aria-label="Quitter l’entretien">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        </a>
       </div>
     </div>
+    <div class="interview-live-region" id="interview-live-region" role="status" aria-live="polite"></div>
 
-    <!-- Psycho banner — shown when analysis is available. Déplacé ici
-         (au-dessus de la conversation) pour que le Context Builder forme un
-         seul écran de conversation plein écran, plutôt qu'une colonne de
-         chat à côté d'une colonne d'état séparée. -->
+    <!-- Psycho banner — shown when analysis is available. -->
     <div class="psycho-banner hidden" id="strat-psycho-banner">
       <div class="psycho-banner-top">
         <div class="psycho-banner-icon">🧠</div>
@@ -3738,102 +3157,93 @@
       </div>
       <div class="psycho-banner-preview hidden" id="psycho-banner-preview"></div>
       <div class="psycho-banner-actions">
-        <button class="psycho-receive-btn" onclick="acceptPsychoAnalysis()">
+        <button type="button" class="psycho-receive-btn" onclick="acceptPsychoAnalysis()">
           <svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
           Recevoir l'analyse du Psychologue
         </button>
-        <button class="psycho-skip-btn" onclick="skipPsychoImport()">Ignorer</button>
+        <button type="button" class="psycho-skip-btn" onclick="skipPsychoImport()">Ignorer</button>
       </div>
     </div>
 
-    <!-- Mémoire stratégique : stratégies sauvegardées — déplacée ici pour
-         la même raison que le psycho-banner ci-dessus. -->
-    <div class="strat-memory hidden" id="strat-memory">
-      <div class="strat-memory-head">
-        <div class="strat-memory-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
-          Reprendre une stratégie
-        </div>
-        <div class="strat-memory-sub">Vos stratégies passées, accessibles à tout moment.</div>
-      </div>
-      <div class="strat-memory-list" id="strat-memory-list"></div>
-    </div>
-
-    <!-- Idle / résumé d'analyse restaurée — déplacée ici pour la même raison.
-         Cette div sert aussi de zone de contenu réutilisée par
-         _showPsychoLinked() pour afficher le résumé d'une analyse restaurée
-         depuis l'historique (voir tryRestoreStratege()) — conservée intacte,
-         seulement repositionnée, jamais supprimée. -->
+    <!-- Idle / résumé d'analyse restaurée — cette div sert aussi de zone de
+         contenu réutilisée par _showPsychoLinked() pour afficher le résumé
+         d'une analyse restaurée depuis l'historique (voir tryRestoreStratege()) —
+         conservée intacte. -->
     <div class="strat-idle" id="strat-idle">
       <div class="strat-idle-glyph">◈</div>
       <div class="strat-idle-title">Le Stratège attend</div>
       <div class="strat-idle-desc">Répondez aux questions ci-dessous pour construire votre contexte business. La stratégie se débloque dès que le contexte est complet.</div>
     </div>
 
-    <div class="ctx-header" role="button" tabindex="0" aria-expanded="false" aria-controls="chat-messages ctx-fields" onclick="toggleBusinessContextCompact()">
-      <div class="ctx-header-label">Entretien stratégique</div>
-      <div class="ctx-header-title">Comprendre votre entreprise</div>
-      <div class="ctx-badge empty" id="ctx-badge">
-        <div class="ctx-dot"></div>
-        <span id="ctx-badge-text">Contextualisation requise</span>
-      </div>
-      <div class="ctx-progress">
-        <div class="ctx-progress-bar"><div class="ctx-progress-fill" id="ctx-bar" style="width:0%"></div></div>
-        <div class="ctx-progress-label" id="ctx-label">0 / 7 dimensions couvertes</div>
+    <!-- Étape 1 du parcours — accueil. On nomme le moment avant de demander
+         quoi que ce soit. -->
+    <div class="interview-gate hidden" id="gate-welcome">
+      <h1 class="gate-title">Bienvenue dans votre Salle de Conseil</h1>
+      <div class="gate-sub">En quelques échanges, Gabriel analysera votre entreprise, votre marché, vos objectifs et construira une stratégie entièrement personnalisée.</div>
+      <button type="button" class="gate-next" onclick="StrategyWorkspace.goTo('interview')">
+        Commencer l’entretien stratégique
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+
+    <!-- Étape 2 du parcours — la première question de Gabriel, présentée
+         seule. Le micro est l'invitation principale (l'entretien vocal est
+         le cœur de l'expérience), l'écrit reste accessible juste à côté.
+         Le texte est repris du premier message de l'orchestrateur, jamais
+         écrit en dur : si la question d'ouverture change côté serveur,
+         cet écran suit automatiquement. -->
+    <div class="interview-gate hidden" id="gate-intro">
+      <div class="gate-eyebrow">Entretien business</div>
+      <button type="button" class="gate-mic" onclick="startInterviewVoice()" aria-label="Répondre à la voix">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+      <p class="gate-question" id="gate-question"></p>
+      <div class="gate-actions">
+        <button type="button" class="gate-write" onclick="startInterviewText()">Je préfère répondre par écrit</button>
       </div>
     </div>
 
-    <!-- Hero d'accueil — visible uniquement tant qu'aucune réponse
-         utilisateur n'existe encore (voir _maybeShowInterviewHero). Le but
-         est de déclencher l'entretien activement, pas de laisser
-         l'utilisateur découvrir tout seul qu'il peut écrire ou parler. -->
-    <div class="hidden" id="interview-hero">
-      <div class="hero-avatar">
-        <div class="hero-avatar-ring"></div>
-        <div class="hero-avatar-mark">◈</div>
-      </div>
-      <div class="hero-kicker">Entretien stratégique</div>
-      <h1 class="hero-h1">Apprenons à nous connaître.</h1>
-      <div class="hero-sub">Quelques questions, à votre rythme, pour que je comprenne votre entreprise comme vous la vivez — pas comme un formulaire la résumerait.</div>
-      <div class="interview-wave" aria-hidden="true">
-        <span style="--wave-height:8%;--wave-delay:-.1s"></span>
-        <span style="--wave-height:14%;--wave-delay:-.3s"></span>
-        <span style="--wave-height:22%;--wave-delay:-.5s"></span>
-        <span style="--wave-height:34%;--wave-delay:-.7s"></span>
-        <span style="--wave-height:48%;--wave-delay:-.9s"></span>
-        <span style="--wave-height:64%;--wave-delay:-1.1s"></span>
-        <span style="--wave-height:40%;--wave-delay:-1.3s"></span>
-        <span style="--wave-height:76%;--wave-delay:-1.5s"></span>
-        <span style="--wave-height:52%;--wave-delay:-1.7s"></span>
-        <span style="--wave-height:30%;--wave-delay:-1.9s"></span>
-        <span style="--wave-height:58%;--wave-delay:-2.1s"></span>
-        <span style="--wave-height:36%;--wave-delay:-2.3s"></span>
-        <span style="--wave-height:18%;--wave-delay:-2.5s"></span>
-        <span style="--wave-height:10%;--wave-delay:-2.7s"></span>
-      </div>
-      <button type="button" class="hero-cta" onclick="startInterviewVoice()">
-        <span class="hero-cta-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </span>
-        Racontez-moi votre parcours
-      </button>
-      <button type="button" class="hero-text-fallback" onclick="startInterviewText()">Je préfère écrire</button>
+    <div class="ctx-header" role="button" tabindex="0" aria-expanded="false" onclick="toggleBusinessContextCompact()">
+      <div class="ctx-header-label">Entretien stratégique</div>
+      <div class="ctx-header-title">Comprendre votre entreprise</div>
     </div>
 
     <div class="chat-window">
-      <!-- Grand écran d'écoute — recouvre toute la carte pendant
-           l'enregistrement (Gabriel "ferme le reste" pour se concentrer sur
-           vous). Transcription en direct via la reconnaissance vocale native
-           du navigateur (gratuite, purement visuelle) ; la version envoyée
-           reste toujours celle d'ElevenLabs, plus fiable — voir
-           _handleRecordingStop et la relecture éditable dans le champ. -->
-      <div class="listening-overlay" id="listening-overlay">
+      <!-- Indicateur d'écoute — reprend la transcription en direct via la
+           reconnaissance vocale native du navigateur (gratuite, purement
+           visuelle) ; la version envoyée reste toujours celle d'ElevenLabs,
+           plus fiable — voir _handleRecordingStop et la relecture éditable
+           dans le champ. Présenté en bandeau compact (voir CSS), plus en
+           grand écran qui recouvre toute la conversation. -->
+      <div class="listening-overlay" id="listening-overlay" role="dialog" aria-modal="true" aria-labelledby="listening-title">
+        <div class="listening-kicker">Entretien stratégique</div>
+        <h2 class="listening-title" id="listening-title">Je vous écoute.</h2>
+        <p class="listening-copy">Racontez-moi votre parcours avec vos propres mots.</p>
         <div class="listening-transcript" id="listening-transcript">Je vous écoute…</div>
         <button type="button" class="listening-mic-btn" id="listening-mic-btn" onclick="toggleRecording()" title="Terminer l'enregistrement">
           <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         </button>
         <div class="listening-wave" id="listening-wave" aria-hidden="true"></div>
-        <div class="listening-hint">Je termine seul après 2 secondes de silence — ou appuyez sur le micro</div>
+        <div class="listening-meta">
+          <span id="listening-time">00:00</span>
+          <span class="listening-silence" id="listening-silence">Écoute active</span>
+        </div>
+        <div class="listening-actions">
+          <button type="button" class="listening-action" id="listening-pause-btn" onclick="toggleRecordingPause()">Mettre en pause</button>
+          <button type="button" class="listening-action primary" onclick="toggleRecording()">Terminer</button>
+          <button type="button" class="listening-action" onclick="cancelRecording()">Annuler</button>
+        </div>
+      </div>
+      <div class="interview-state-stage" id="interview-state-stage">
+        <div class="interview-state-kicker" id="interview-state-kicker">Entretien stratégique</div>
+        <h2 class="interview-state-title" id="interview-state-title">Parlez-moi de votre entreprise.</h2>
+        <p class="interview-state-copy" id="interview-state-copy">Gabriel organise les informations avec vous.</p>
+        <div class="interview-state-wave" id="interview-state-wave" aria-hidden="true">
+          <span style="--h:12%;--i:1"></span><span style="--h:22%;--i:2"></span><span style="--h:34%;--i:3"></span><span style="--h:18%;--i:4"></span>
+          <span style="--h:48%;--i:5"></span><span style="--h:70%;--i:6"></span><span style="--h:42%;--i:7"></span><span style="--h:82%;--i:8"></span>
+          <span style="--h:56%;--i:9"></span><span style="--h:32%;--i:10"></span><span style="--h:62%;--i:11"></span><span style="--h:38%;--i:12"></span>
+          <span style="--h:24%;--i:13"></span><span style="--h:14%;--i:14"></span><span style="--h:9%;--i:15"></span><span style="--h:6%;--i:16"></span>
+        </div>
       </div>
       <div class="voice-toolbar">
         <button type="button" class="voice-toggle" id="voice-toggle" onclick="toggleVoiceMode()" title="Parler et écouter Gabriel à voix haute">
@@ -3849,30 +3259,91 @@
           <div class="voice-wave" id="voice-speaking-wave"><span></span><span></span><span></span><span></span></div>
           Gabriel parle…
         </div>
+        <div class="voice-playback-actions" id="voice-playback-actions">
+          <button type="button" class="voice-playback-btn" id="voice-audio-pause" onclick="toggleGabrielAudio()" title="Mettre la voix en pause" aria-label="Mettre la voix en pause">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+          </button>
+          <button type="button" class="voice-playback-btn" onclick="replayGabrielAudio()" title="Réécouter" aria-label="Réécouter">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+          <button type="button" class="voice-playback-btn" onclick="focusLatestReply()" title="Lire la réponse complète" aria-label="Lire la réponse complète">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          </button>
+          <button type="button" class="voice-playback-btn" onclick="disableGabrielVoice()" title="Désactiver la voix" aria-label="Désactiver la voix">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/></svg>
+          </button>
+        </div>
       </div>
-      <div class="chat-messages" id="chat-messages"></div>
-      <div class="chat-input-row">
-        <textarea class="chat-input" id="chat-input" placeholder="Écrivez votre réponse ou utilisez le micro…" rows="1"
-          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-        <button type="button" class="mic-btn hidden" id="mic-btn" onclick="toggleRecording()" title="Parler">
-          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </button>
-        <button class="chat-send" id="chat-send" onclick="sendMessage()" title="Envoyer">
-          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
+      <div class="chat-messages" id="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation avec Gabriel"></div>
     </div>
 
-    <div class="ctx-fields-panel">
-      <div class="ctx-fields" id="ctx-fields"></div>
-    </div>
-
-    <div class="strat-cta">
-      <button class="strat-cta-btn locked" id="strat-launch-btn" onclick="launchStratege()" disabled data-tour="stratege-start">
-        <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Générer la stratégie
+    <!-- Barre de saisie — élément PERMANENT, hors de la conversation.
+         Elle reste identique et à la même place d'une étape à l'autre
+         (accueil, première question, conversation, stratégie) : c'est elle
+         qui donne la continuité du parcours. Sortie de .chat-window pour
+         cette raison : elle ne doit pas disparaître quand la conversation
+         n'est pas encore affichée. -->
+    <div class="chat-input-row">
+      <!-- «+» — retour au fil des dossiers : créer un nouveau dossier ou
+           reprendre un dossier en cours, sans quitter le parcours. Même
+           emplacement que sur la maquette de référence (à gauche du champ). -->
+      <a class="compose-add" href="/dossiers" title="Créer ou reprendre un dossier" aria-label="Créer ou reprendre un dossier">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </a>
+      <textarea class="chat-input" id="chat-input" placeholder="Écrivez votre réponse ou utilisez le micro…" rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)" aria-label="Votre réponse à Gabriel"></textarea>
+      <button type="button" class="review-restart-btn" id="review-restart-btn" onclick="restartTranscript()">Recommencer</button>
+      <button type="button" class="mic-btn" id="mic-btn" onclick="toggleRecording()" title="Parler" aria-label="Répondre à la voix">
+        <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
-      <div class="strat-cta-hint" id="strat-cta-hint">Complétez le contexte pour débloquer le Stratège</div>
+      <button type="button" class="chat-send" id="chat-send" onclick="sendMessage()" title="Envoyer" aria-label="Envoyer">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+
+    <!-- ── Right zone: statut, progression, historique, action ────────── -->
+    <div class="interview-side">
+      <div class="ctx-badge empty" id="ctx-badge">
+        <div class="ctx-dot"></div>
+        <span id="ctx-badge-text">Contextualisation requise</span>
+      </div>
+      <div class="ctx-progress">
+        <div class="ctx-progress-bar" id="interview-context-progress" role="progressbar" aria-label="Compréhension du contexte business" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ctx-progress-fill" id="ctx-bar" style="width:0%"></div></div>
+        <div class="ctx-progress-label" id="ctx-label">0 / 7 dimensions couvertes</div>
+      </div>
+
+      <div class="interview-tabs">
+        <button type="button" class="interview-tab active" onclick="setInterviewTab('prog', this)">Progression</button>
+        <button type="button" class="interview-tab" onclick="setInterviewTab('hist', this)">Historique</button>
+      </div>
+
+      <div class="interview-tab-panel" id="interview-tab-prog">
+        <div class="ctx-fields-panel" id="ctx-fields-panel">
+          <div class="ctx-fields" id="ctx-fields"></div>
+        </div>
+      </div>
+
+      <div class="interview-tab-panel hidden" id="interview-tab-hist">
+        <!-- Mémoire stratégique : stratégies sauvegardées. -->
+        <div class="strat-memory hidden" id="strat-memory">
+          <div class="strat-memory-head">
+            <div class="strat-memory-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+              Reprendre une stratégie
+            </div>
+            <div class="strat-memory-sub">Vos stratégies passées, accessibles à tout moment.</div>
+          </div>
+          <div class="strat-memory-list" id="strat-memory-list"></div>
+        </div>
+      </div>
+
+      <div class="strat-cta">
+        <button type="button" class="strat-cta-btn locked" id="strat-launch-btn" onclick="launchStratege()" disabled data-tour="stratege-start">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Générer la stratégie
+        </button>
+        <div class="strat-cta-hint" id="strat-cta-hint">Complétez le contexte pour débloquer le Stratège</div>
+      </div>
     </div>
 
   </div>
@@ -3893,7 +3364,7 @@
         <label>Résultats du Psychologue (optionnel)</label>
         <textarea class="input" id="psycho-summary" placeholder="Collez ici les insights du Psychologue pour une stratégie plus précise…" rows="4"></textarea>
       </div>
-      <button class="strat-generate-btn" onclick="submitStrategie()">
+      <button type="button" class="strat-generate-btn" onclick="submitStrategie()">
         <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Générer la stratégie
       </button>
@@ -3922,6 +3393,9 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Conteneur du parcours (machine à états). Chargé avant le script de la
+     page : les écrans s'enregistrent auprès de lui dès leur définition. -->
+<script src="{{ static_v('js/strategy-workspace.js') }}"></script>
 <script>
 document.body.classList.add('page-stratege');
 
@@ -3944,6 +3418,177 @@ let _folderId         = new URLSearchParams(window.location.search).get('folder_
 /* IDs liés au dossier actif — injectés par Flask pour auto-charger l'espace de travail */
 const _folderStrategyId = '{{ folder_strategy_id|default("") }}';
 const _folderAnalysisId = '{{ folder_analysis_id|default("") }}';
+
+/* ── Machine d’état visuelle de l’entretien ─────────────────────────
+   La logique métier reste pilotée par le serveur. Cette machine ne fait
+   qu’unifier l’affichage, l’accessibilité et les transitions autour des
+   événements déjà présents dans le frontend. */
+const INTERVIEW_STATES = Object.freeze({
+  welcome: {
+    brand: 'Prêt à commencer',
+    kicker: 'Entretien stratégique',
+    title: 'Parlez-moi de votre entreprise.',
+    copy: 'Vous n’avez rien à préparer. Gabriel organise les informations avec vous.',
+  },
+  requesting_permission: {
+    brand: 'Accès au microphone',
+    kicker: 'Préparation',
+    title: 'J’ouvre l’écoute.',
+    copy: 'Votre navigateur peut vous demander l’autorisation d’utiliser le microphone.',
+  },
+  listening: {
+    brand: 'Écoute active',
+    kicker: 'Je vous écoute',
+    title: 'Parlez librement.',
+    copy: 'Vos mots sont transcrits en direct et restent modifiables avant l’envoi.',
+  },
+  paused: {
+    brand: 'Écoute en pause',
+    kicker: 'Entretien en pause',
+    title: 'Prenez votre temps.',
+    copy: 'L’enregistrement est conservé. Reprenez lorsque vous êtes prêt.',
+  },
+  transcribing: {
+    brand: 'Transcription',
+    kicker: 'Je mets vos mots au clair',
+    title: 'Je prépare votre réponse.',
+    copy: 'La transcription fiable arrive dans quelques instants.',
+  },
+  reviewing_transcript: {
+    brand: 'Relecture',
+    kicker: 'Voici ce que j’ai entendu',
+    title: 'Relisez avant d’envoyer.',
+    copy: 'Corrigez librement la transcription, recommencez ou envoyez-la à Gabriel.',
+  },
+  analyzing: {
+    brand: 'Réflexion en cours',
+    kicker: 'Je relie les informations',
+    title: 'J’organise ce que vous venez de dire.',
+    copy: 'Je replace votre réponse dans votre parcours, votre modèle et vos objectifs.',
+  },
+  gabriel_speaking: {
+    brand: 'Gabriel vous répond',
+    kicker: 'Voici ce qui attire mon attention',
+    title: 'Écoutez la lecture de Gabriel.',
+    copy: 'La réponse complète reste visible dans la conversation.',
+  },
+  waiting_for_answer: {
+    brand: 'À votre rythme',
+    kicker: 'Entretien stratégique',
+    title: 'Poursuivons.',
+    copy: 'Répondez par écrit ou utilisez le microphone. Gabriel relie chaque élément.',
+  },
+  session_paused: {
+    brand: 'Session en pause',
+    kicker: 'Entretien en pause',
+    title: 'Vos informations sont conservées.',
+    copy: 'Reprenez lorsque vous le souhaitez. Rien n’est perdu.',
+  },
+  completed: {
+    brand: 'Compréhension suffisante',
+    kicker: 'Votre entreprise se précise',
+    title: 'J’ai désormais assez de contexte.',
+    copy: 'Gabriel peut construire une stratégie cohérente avec votre situation.',
+  },
+  error: {
+    brand: 'Alternative disponible',
+    kicker: 'Un point demande votre attention',
+    title: 'Poursuivez simplement par écrit.',
+    copy: 'Le reste de l’entretien demeure disponible.',
+  },
+});
+
+let _interviewState = 'welcome';
+let _stateBeforePause = 'waiting_for_answer';
+let _stateBeforeError = 'waiting_for_answer';
+let _interviewErrorTimer = null;
+
+function setInterviewState(nextState, overrides = {}) {
+  if (!INTERVIEW_STATES[nextState]) nextState = 'waiting_for_answer';
+  const previous = _interviewState;
+  _interviewState = nextState;
+  const state = {...INTERVIEW_STATES[nextState], ...overrides};
+  const panel = document.querySelector('.ctx-panel');
+  const layout = document.querySelector('.strat-layout');
+  if (!panel || layout?.classList.contains('has-strategy')) return;
+
+  panel.dataset.interviewState = nextState;
+  panel.classList.toggle('interview-intro', nextState === 'welcome');
+  panel.classList.toggle('interview-session', nextState !== 'welcome');
+  document.body.classList.add('stratege-interview-mode');
+  document.body.classList.toggle('stratege-interview-intro', nextState === 'welcome');
+  document.body.classList.toggle('stratege-interview-session', nextState !== 'welcome');
+
+  const brand = document.getElementById('interview-brand-state');
+  const kicker = document.getElementById('interview-state-kicker');
+  const title = document.getElementById('interview-state-title');
+  const copy = document.getElementById('interview-state-copy');
+  const live = document.getElementById('interview-live-region');
+  if (brand) brand.textContent = state.brand;
+  if (kicker) kicker.textContent = state.kicker;
+  if (title) title.textContent = state.title;
+  if (copy) copy.textContent = state.copy;
+  if (live && previous !== nextState) live.textContent = `${state.brand}. ${state.title}`;
+  panel.setAttribute(
+    'aria-busy',
+    String(['requesting_permission', 'transcribing', 'analyzing'].includes(nextState))
+  );
+
+  const pauseButton = document.getElementById('interview-pause-btn');
+  const pauseLabel = pauseButton?.querySelector('span');
+  const progressButton = document.getElementById('interview-progress-btn');
+  const pauseUnavailable = [
+    'welcome', 'requesting_permission', 'listening', 'paused',
+    'transcribing', 'analyzing', 'gabriel_speaking', 'completed', 'error',
+  ].includes(nextState);
+  if (pauseButton) pauseButton.disabled = pauseUnavailable;
+  if (pauseLabel) pauseLabel.textContent = nextState === 'session_paused' ? 'Reprendre' : 'Pause';
+  pauseButton?.setAttribute(
+    'aria-label',
+    nextState === 'session_paused' ? 'Reprendre l’entretien' : 'Mettre l’entretien en pause'
+  );
+  if (progressButton) progressButton.disabled = nextState === 'welcome';
+  if (nextState === 'welcome') toggleInterviewProgress(false);
+
+  if (nextState === 'session_paused') {
+    document.getElementById('chat-input')?.setAttribute('disabled', 'true');
+    document.getElementById('chat-send')?.setAttribute('disabled', 'true');
+  } else if (!isWaiting) {
+    document.getElementById('chat-input')?.removeAttribute('disabled');
+    document.getElementById('chat-send')?.removeAttribute('disabled');
+  }
+}
+
+function toggleInterviewProgress(force) {
+  const panel = document.querySelector('.ctx-panel');
+  const open = typeof force === 'boolean' ? force : !panel?.classList.contains('progress-open');
+  panel?.classList.toggle('progress-open', open);
+  document.getElementById('interview-progress-btn')?.setAttribute('aria-expanded', String(open));
+  document.getElementById('ctx-fields-panel')?.setAttribute('aria-hidden', String(!open));
+  if (open) document.querySelector('.interview-progress-close')?.focus({preventScroll:true});
+}
+
+/* Onglets du panneau latéral (Progression / Historique) — la progression
+   est désormais toujours visible (plus de tiroir), l'historique des
+   stratégies vit dans le second onglet plutôt qu'empilé au-dessus. */
+function setInterviewTab(name, btn) {
+  document.querySelectorAll('.interview-tab').forEach(t => t.classList.remove('active'));
+  btn?.classList.add('active');
+  document.getElementById('interview-tab-prog')?.classList.toggle('hidden', name !== 'prog');
+  document.getElementById('interview-tab-hist')?.classList.toggle('hidden', name !== 'hist');
+}
+
+function toggleInterviewSessionPause() {
+  if (_interviewState === 'session_paused') {
+    setInterviewState(_stateBeforePause === 'session_paused' ? 'waiting_for_answer' : _stateBeforePause);
+    document.getElementById('chat-input')?.focus();
+    return;
+  }
+  if (document.getElementById('interview-pause-btn')?.disabled) return;
+  _stateBeforePause = _interviewState;
+  if (_currentAudio) _currentAudio.pause();
+  setInterviewState('session_paused');
+}
 
 /* ── Chargement du Context Builder (état + historique de conversation) ─
    Une seule fonction, utilisée partout où on doit (re)charger l'état — elle
@@ -3971,16 +3616,51 @@ function renderMessages(messages) {
   const box = document.getElementById('chat-messages');
   if (!box) return;
   box.innerHTML = '';
-  messages.forEach(m => addMsg(m.role === 'user' ? 'user' : 'agent', m.content));
+  messages.forEach(m => {
+    const utterance = normalizeInterviewUtterance(m.content);
+    addMsg(m.role === 'user' ? 'user' : 'agent', utterance.displayText, utterance);
+  });
 }
 
-/* ── Hero d'accueil de l'entretien ─────────────────────
-   Tant que l'utilisateur n'a jamais répondu une seule fois, le chat reste
-   caché derrière un vrai écran d'invitation (H1 + gros bouton micro) plutôt
-   que de le laisser découvrir tout seul qu'il peut écrire ou parler. */
+/* ── Parcours d'entrée en 2 temps ──────────────────────
+   Tant que l'utilisateur n'a jamais répondu, on ne l'installe pas devant
+   une conversation vide : accueil (« Apprenons à nous connaître »), puis la
+   première question de Gabriel présentée seule, avec le micro en invitation.
+   Dès qu'une réponse existe, ces deux écrans ne réapparaissent plus — une
+   reprise de session retombe directement dans la conversation. */
 function _hasUserReplied(messages) {
   return Array.isArray(messages) && messages.some(m => m.role === 'user');
 }
+
+function _setGate(name) {
+  const panel = document.querySelector('.ctx-panel');
+  panel?.classList.toggle('gate-active', name !== null);
+  // L'accueil est le seul écran volontairement dépouillé : titre, promesse,
+  // une action. Le panneau de progression et la barre de saisie n'y ont pas
+  // leur place — il n'y a encore rien à suivre ni rien à répondre.
+  panel?.classList.toggle('step-welcome', name === 'welcome');
+  document.getElementById('gate-welcome')?.classList.toggle('hidden', name !== 'welcome');
+  document.getElementById('gate-intro')?.classList.toggle('hidden', name !== 'intro');
+  const chat = document.querySelector('.chat-window');
+  if (name === null) _forceShow(chat); else _forceHide(chat);
+}
+
+/* ── Écrans du parcours ────────────────────────────────
+   Chaque étape déclare comment elle apparaît. Les étapes suivantes
+   (analyse, synthèse, marketing…) s'ajouteront ici de la même façon, sans
+   toucher au conteneur (static/js/strategy-workspace.js). */
+StrategyWorkspace.register('welcome', {
+  enter() { _setGate('welcome'); setInterviewState('welcome'); _hideOrchestrateur(); },
+});
+
+StrategyWorkspace.register('interview', {
+  enter() {
+    _setGate('intro');
+    setInterviewState('welcome');
+    _hideOrchestrateur();
+    document.querySelector('#gate-intro .gate-mic')?.focus({preventScroll:true});
+  },
+});
 
 // .chat-window porte une règle CSS préexistante ".page-stratege .chat-window
 // { display:flex !important; ... }" (utilisée pour l'état post-stratégie) —
@@ -3991,39 +3671,25 @@ function _forceHide(el)  { if (el) el.style.setProperty('display', 'none', 'impo
 function _forceShow(el)  { if (el) el.style.removeProperty('display'); }
 
 function _maybeShowInterviewHero(state) {
-  const panel = document.querySelector('.ctx-panel');
-  if (_hasUserReplied(state && state.messages)) {
-    hide('interview-hero');
-    panel?.classList.remove('interview-intro', 'interview-session');
-    document.body.classList.remove('stratege-interview-intro', 'stratege-interview-session');
-    _forceShow(document.querySelector('.chat-window'));
-    _forceShow(document.querySelector('.ctx-fields-panel'));
-    _forceShow(document.querySelector('.strat-cta'));
-    // Reprise d'une session déjà entamée : l'entretien est en cours, pas
-    // seulement au moment du clic initial — l'Orchestrateur doit rester
-    // replié tant que le contexte n'est pas prêt, pas seulement au démarrage.
-    if (!(state && state.is_ready)) _hideOrchestrateur();
+  hide('strat-idle');
+  if (!_hasUserReplied(state && state.messages)) {
+    // Première visite : le parcours reprend à l'étape enregistrée côté
+    // serveur (accueil, ou entretien si l'utilisateur était déjà passé à la
+    // suite). L'écran de l'entretien reprend la question d'ouverture
+    // réellement envoyée par l'orchestrateur, jamais un texte en dur.
+    const opening = (state?.messages || []).find(m => m.role !== 'user');
+    const q = document.getElementById('gate-question');
+    if (q) q.textContent = opening ? opening.content : '';
+    StrategyWorkspace.start();
     return;
   }
-  hide('strat-idle');
-  show('interview-hero');
-  panel?.classList.remove('interview-session');
-  panel?.classList.add('interview-intro');
-  document.body.classList.remove('stratege-interview-session');
-  document.body.classList.add('stratege-interview-intro');
-  _hideOrchestrateur();
-  // Le vrai champ texte reste disponible dès l'introduction. Le cadre est
-  // désormais de hauteur stable et lui réserve une zone basse dédiée.
-  _forceShow(document.querySelector('.chat-window'));
-  _forceHide(document.querySelector('.ctx-fields-panel'));
-  _forceHide(document.querySelector('.strat-cta'));
+  _dismissInterviewHero();
+  setInterviewState(state?.is_ready ? 'completed' : 'waiting_for_answer');
+  if (!(state && state.is_ready)) _hideOrchestrateur();
 }
 
 function _dismissInterviewHero() {
-  hide('interview-hero');
-  const panel = document.querySelector('.ctx-panel');
-  panel?.classList.remove('interview-intro', 'interview-session');
-  document.body.classList.remove('stratege-interview-intro', 'stratege-interview-session');
+  _setGate(null);
   _forceShow(document.querySelector('.chat-window'));
   _forceShow(document.querySelector('.ctx-fields-panel'));
   _forceShow(document.querySelector('.strat-cta'));
@@ -4032,6 +3698,8 @@ function _dismissInterviewHero() {
 
 function startInterviewVoice() {
   _dismissInterviewHero();
+  setInterviewState('waiting_for_answer');
+  setInterviewState('requesting_permission');
   if (!voiceModeOn) { voiceModeOn = true; localStorage.setItem('gabriel_voice_mode', '1'); _initVoiceUI(); }
   _unlockAudioPlayback();
   toggleRecording();
@@ -4039,6 +3707,7 @@ function startInterviewVoice() {
 
 function startInterviewText() {
   _dismissInterviewHero();
+  setInterviewState('waiting_for_answer');
   if (voiceModeOn) {
     voiceModeOn = false;
     localStorage.setItem('gabriel_voice_mode', '0');
@@ -4286,12 +3955,62 @@ function _showPsychoLinked(brief, aid) {
 function showPsychoLink(brief, aid) { _showPsychoLinked(brief, aid); }
 
 /* ── Chat ───────────────────────────────────────────── */
-function addMsg(role, text) {
+function normalizeInterviewUtterance(payload) {
+  const root = payload && typeof payload === 'object' ? payload : {};
+  const nested = root.utterance && typeof root.utterance === 'object'
+    ? root.utterance
+    : root.reply && typeof root.reply === 'object'
+      ? root.reply
+      : root;
+  const fallback = typeof payload === 'string'
+    ? payload
+    : typeof root.reply === 'string'
+      ? root.reply
+      : '';
+  const displayText = String(
+    nested.display_text || root.display_text || nested.text || fallback || ''
+  ).trim();
+  const speechText = String(
+    nested.speech_text || root.speech_text || displayText
+  ).trim();
+  const requestedState = nested.state || root.state || '';
+
+  return {
+    displayText,
+    speechText,
+    state: INTERVIEW_STATES[requestedState] ? requestedState : '',
+    stance: String(nested.stance || root.stance || '').toLowerCase(),
+    tone: String(nested.tone || root.tone || '').toLowerCase(),
+    strategicObservation: String(
+      nested.strategic_observation || root.strategic_observation || ''
+    ).trim(),
+    nextQuestion: String(nested.next_question || root.next_question || '').trim(),
+    pace: String(
+      (nested.speech_profile || root.speech_profile || {}).pace || ''
+    ).toLowerCase(),
+  };
+}
+
+function _escapeChatText(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function addMsg(role, text, utterance = {}) {
   const msgs = document.getElementById('chat-messages');
+  if (!msgs || !text) return;
   const now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
   const el = document.createElement('div');
-  el.className = `msg ${role}`;
-  el.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${now}</div>`;
+  const stance = ['clarify', 'validate', 'caution', 'challenge', 'contradict', 'recommend']
+    .includes(utterance.stance) ? utterance.stance : '';
+  el.className = `msg ${role}${stance ? ` stance-${stance}` : ''}`;
+  const observation = role === 'agent' && utterance.strategicObservation
+    ? `<div class="msg-observation"><span>Ce qui ressort</span>${_escapeChatText(utterance.strategicObservation)}</div>`
+    : '';
+  el.innerHTML = `<div class="msg-bubble">${observation}${_escapeChatText(text).replace(/\n/g,'<br>')}</div><div class="msg-time">${now}</div>`;
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
 }
@@ -4309,6 +4028,7 @@ const _REFLECT_PHRASES = [
 let _reflectTimer = null;
 
 function showTyping() {
+  setInterviewState('analyzing');
   const msgs = document.getElementById('chat-messages');
   const el = document.createElement('div');
   el.className = 'msg agent'; el.id = 'typing';
@@ -4332,9 +4052,10 @@ async function sendMessage() {
   const msg = input.value.trim();
   if (!msg) return;
   if (voiceModeOn) _unlockAudioPlayback();
-  if (!document.getElementById('interview-hero')?.classList.contains('hidden')) {
-    _dismissInterviewHero();
-  }
+  // Écrire depuis l'accueil ou l'écran de la première question fait entrer
+  // dans la conversation : la barre de saisie étant visible dès la première
+  // étape, répondre directement doit fonctionner sans passer par "Suivant".
+  if (document.querySelector('.ctx-panel.gate-active')) _dismissInterviewHero();
   _hideVoiceLiveStatus();
   addMsg('user', msg);
   input.value = ''; input.style.height = 'auto';
@@ -4351,16 +4072,30 @@ async function sendMessage() {
 
     if (d.error) {
       addMsg('agent', "Une erreur est survenue. Réessayez dans un instant.");
+      setInterviewState('error', {
+        title: 'Je n’ai pas pu relier cette réponse.',
+        copy: 'Votre message est conservé. Réessayez dans quelques instants.',
+      });
     } else {
       ctx = d.updated_context || ctx;
       updateUI(d);
-      if (d.reply) {
-        addMsg('agent', d.reply);
-        if (voiceModeOn) speakReply(d.reply);
+      const utterance = normalizeInterviewUtterance(d);
+      if (utterance.displayText) {
+        addMsg('agent', utterance.displayText, utterance);
+        if (voiceModeOn) {
+          speakReply(utterance.speechText || utterance.displayText, utterance.pace);
+        } else if (!d.is_ready) {
+          setInterviewState(utterance.state || 'waiting_for_answer');
+        }
       }
     }
   } catch(e) {
-    hideTyping(); addMsg('agent', "Erreur de connexion. Réessayez.");
+    hideTyping();
+    addMsg('agent', "Erreur de connexion. Réessayez.");
+    setInterviewState('error', {
+      title: 'La connexion s’est interrompue.',
+      copy: 'Votre réponse reste visible. Vous pouvez réessayer.',
+    });
   }
   setWaiting(false);
 }
@@ -4391,8 +4126,18 @@ let mediaRecorder = null;
 let audioChunks   = [];
 let isRecording   = false;
 let _currentAudio = null;
+let _currentAudioUrl = '';
+let _lastSpokenText = '';
+let _lastSpokenPace = '';
 let _orchHiddenByInterview = false;
 let _speechRecog = null;
+let _activeMicStream = null;
+let _discardRecording = false;
+let _recordingPaused = false;
+let _recordingStartedAt = 0;
+let _recordingPausedAt = 0;
+let _recordingPausedTotal = 0;
+let _recordingClockTimer = null;
 
 /* ── Transcription en direct (purement visuelle) ───────
    Web Speech API du navigateur — gratuite, locale, mais moins fiable
@@ -4547,7 +4292,14 @@ function _initVoiceUI() {
   toggle.classList.toggle('on', voiceModeOn);
   toggle.setAttribute('aria-pressed', voiceModeOn ? 'true' : 'false');
   if (label) label.textContent = voiceModeOn ? 'Mode vocal actif' : 'Mode vocal';
-  if (mic) mic.classList.toggle('hidden', !voiceModeOn);
+  // Marque l'état sur <body> : le micro de la barre de saisie s'allume,
+  // pour qu'on voie que parler est le mode en cours sans lire l'étiquette.
+  document.body.classList.toggle('gabriel-voice-on', !!voiceModeOn);
+  // Le micro reste visible en permanence dans la barre de saisie : dicter sa
+  // réponse est une manière normale de répondre, pas une option à activer
+  // au préalable. (Auparavant il n'apparaissait qu'une fois le "mode vocal"
+  // enclenché — l'entretien vocal était donc invisible par défaut.)
+  if (mic) mic.classList.remove('hidden');
   if (picker) {
     picker.classList.toggle('hidden', !voiceModeOn);
     if (voiceModeOn) _loadVoicePicker();
@@ -4610,17 +4362,33 @@ function toggleVoiceMode() {
 function _showVoiceError(msg) {
   const win = document.querySelector('.chat-window');
   if (!win) return;
+  _stateBeforeError = ['error', 'requesting_permission', 'transcribing'].includes(_interviewState)
+    ? 'waiting_for_answer'
+    : _interviewState;
+  setInterviewState('error', {
+    title: 'Je n’ai pas pu utiliser le microphone.',
+    copy: 'Vous pouvez poursuivre par écrit ou réessayer.',
+  });
   win.querySelector('.voice-error-toast')?.remove();
   const el = document.createElement('div');
   el.className = 'voice-error-toast';
+  el.setAttribute('role', 'alert');
   el.textContent = msg;
   win.appendChild(el);
-  setTimeout(() => el.remove(), 4000);
+  if (_interviewErrorTimer) clearTimeout(_interviewErrorTimer);
+  _interviewErrorTimer = setTimeout(() => {
+    el.remove();
+    if (_interviewState === 'error') setInterviewState(_stateBeforeError);
+  }, 4500);
 }
 
 async function toggleRecording() {
   if (isRecording) { _stopRecording(); return; }
 
+  // Même logique que pour l'écrit : parler depuis un écran d'entrée fait
+  // entrer dans la conversation, sans étape intermédiaire.
+  if (document.querySelector('.ctx-panel.gate-active')) _dismissInterviewHero();
+  setInterviewState('requesting_permission');
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -4629,17 +4397,22 @@ async function toggleRecording() {
     return;
   }
 
+  _activeMicStream = stream;
   audioChunks = [];
+  _discardRecording = false;
+  _recordingPaused = false;
   try {
     mediaRecorder = new MediaRecorder(stream);
   } catch (e) {
     _showVoiceError("L'enregistrement audio n'est pas pris en charge par ce navigateur.");
     stream.getTracks().forEach(t => t.stop());
+    _activeMicStream = null;
     return;
   }
   mediaRecorder.ondataavailable = (ev) => { if (ev.data.size > 0) audioChunks.push(ev.data); };
   mediaRecorder.onstop = () => {
     stream.getTracks().forEach(t => t.stop());
+    _activeMicStream = null;
     _handleRecordingStop();
   };
   mediaRecorder.start();
@@ -4650,14 +4423,17 @@ async function toggleRecording() {
   micBtn?.setAttribute('title', "Arrêter l'enregistrement");
   document.querySelector('.chat-window')?.classList.add('is-recording');
   _setVoiceLiveLabel('Je vous écoute…');
+  setInterviewState('listening');
   _ensureWaveBars(document.getElementById('listening-wave'), 32);
   _startReactiveWave(stream, [document.getElementById('voice-live-bars'), document.getElementById('listening-wave')], true);
   _startLiveTranscript();
   _startSilenceWatch();
+  _startRecordingClock();
 }
 
 function _stopRecording() {
   isRecording = false;
+  _recordingPaused = false;
   const micBtn = document.getElementById('mic-btn');
   micBtn?.classList.remove('recording');
   micBtn?.setAttribute('aria-label', 'Parler');
@@ -4666,7 +4442,77 @@ function _stopRecording() {
   _stopReactiveWave([document.getElementById('voice-live-bars'), document.getElementById('listening-wave')]);
   _stopLiveTranscript();
   _stopSilenceWatch();
+  _stopRecordingClock();
+  if (!_discardRecording) setInterviewState('transcribing');
   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+}
+
+function toggleRecordingPause() {
+  if (!isRecording || !mediaRecorder) return;
+  const button = document.getElementById('listening-pause-btn');
+  if (!_recordingPaused) {
+    try { mediaRecorder.pause(); } catch (e) { return; }
+    _recordingPaused = true;
+    _recordingPausedAt = Date.now();
+    _stopSilenceWatch();
+    _stopLiveTranscript();
+    _stopReactiveWave([document.getElementById('voice-live-bars'), document.getElementById('listening-wave')]);
+    if (button) button.textContent = 'Reprendre';
+    setInterviewState('paused');
+    return;
+  }
+
+  try { mediaRecorder.resume(); } catch (e) { return; }
+  _recordingPaused = false;
+  _recordingPausedTotal += Date.now() - _recordingPausedAt;
+  _recordingPausedAt = 0;
+  if (button) button.textContent = 'Mettre en pause';
+  if (_activeMicStream) {
+    _startReactiveWave(_activeMicStream, [document.getElementById('voice-live-bars'), document.getElementById('listening-wave')], true);
+  }
+  _startLiveTranscript();
+  _startSilenceWatch();
+  setInterviewState('listening');
+}
+
+function cancelRecording() {
+  if (!isRecording) return;
+  _discardRecording = true;
+  audioChunks = [];
+  _stopRecording();
+}
+
+function restartTranscript() {
+  const input = document.getElementById('chat-input');
+  if (input) {
+    input.value = '';
+    input.style.height = 'auto';
+  }
+  toggleRecording();
+}
+
+function _startRecordingClock() {
+  _stopRecordingClock();
+  _recordingStartedAt = Date.now();
+  _recordingPausedAt = 0;
+  _recordingPausedTotal = 0;
+  const update = () => {
+    const el = document.getElementById('listening-time');
+    if (!el) return;
+    const pausedNow = _recordingPaused && _recordingPausedAt ? Date.now() - _recordingPausedAt : 0;
+    const elapsed = Math.max(0, Date.now() - _recordingStartedAt - _recordingPausedTotal - pausedNow);
+    const seconds = Math.floor(elapsed / 1000);
+    el.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+  };
+  update();
+  _recordingClockTimer = setInterval(update, 500);
+}
+
+function _stopRecordingClock() {
+  if (_recordingClockTimer) {
+    clearInterval(_recordingClockTimer);
+    _recordingClockTimer = null;
+  }
 }
 
 /* ── Arrêt automatique après 2 secondes de silence ─────
@@ -4682,6 +4528,11 @@ const _SILENCE_STOP_MS   = 2000;
 function _startSilenceWatch() {
   _hasSpokenYet = false;
   _silenceSince = null;
+  const silenceLabel = document.getElementById('listening-silence');
+  if (silenceLabel) {
+    silenceLabel.textContent = 'Écoute active';
+    silenceLabel.classList.remove('detected');
+  }
   if (_silenceTimer) clearInterval(_silenceTimer);
   _silenceTimer = setInterval(() => {
     if (!isRecording || !_waveAnalyser) return;
@@ -4691,10 +4542,21 @@ function _startSilenceWatch() {
     if (avg >= _SILENCE_THRESHOLD) {
       _hasSpokenYet = true;
       _silenceSince = null;
+      if (silenceLabel) {
+        silenceLabel.textContent = 'Voix détectée';
+        silenceLabel.classList.remove('detected');
+      }
       return;
     }
     if (!_hasSpokenYet) return;
-    if (_silenceSince === null) { _silenceSince = Date.now(); return; }
+    if (_silenceSince === null) {
+      _silenceSince = Date.now();
+      if (silenceLabel) {
+        silenceLabel.textContent = 'Silence détecté';
+        silenceLabel.classList.add('detected');
+      }
+      return;
+    }
     if (Date.now() - _silenceSince >= _SILENCE_STOP_MS) {
       _stopSilenceWatch();
       _stopRecording();
@@ -4705,16 +4567,29 @@ function _startSilenceWatch() {
 function _stopSilenceWatch() {
   if (_silenceTimer) { clearInterval(_silenceTimer); _silenceTimer = null; }
   _silenceSince = null;
+  document.getElementById('listening-silence')?.classList.remove('detected');
 }
 
 async function _handleRecordingStop() {
   const micBtn = document.getElementById('mic-btn');
-  if (!audioChunks.length) { _hideVoiceLiveStatus(); return; }
+  if (_discardRecording) {
+    _discardRecording = false;
+    audioChunks = [];
+    _hideVoiceLiveStatus();
+    setInterviewState('waiting_for_answer');
+    return;
+  }
+  if (!audioChunks.length) {
+    _hideVoiceLiveStatus();
+    setInterviewState('waiting_for_answer');
+    return;
+  }
   const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
   audioChunks = [];
   micBtn?.classList.add('processing');
   micBtn?.setAttribute('disabled', 'true');
   _setVoiceLiveLabel('Je transcris ce que vous venez de dire…');
+  setInterviewState('transcribing');
 
   try {
     const form = new FormData();
@@ -4735,6 +4610,7 @@ async function _handleRecordingStop() {
       input.focus();
       input.select();
       _setVoiceLiveLabel('Relisez, corrigez si besoin, puis envoyez ↵');
+      setInterviewState('reviewing_transcript');
     } else {
       _showVoiceError("Rien n'a été compris — reformulez ou écrivez votre réponse.");
       _hideVoiceLiveStatus();
@@ -4747,32 +4623,140 @@ async function _handleRecordingStop() {
   micBtn?.removeAttribute('disabled');
 }
 
-async function speakReply(text) {
+async function speakReply(text, pace) {
   const badge = document.getElementById('voice-speaking-badge');
   try {
+    _lastSpokenText = text;
+    _lastSpokenPace = pace || '';
+    setInterviewState('gabriel_speaking');
     const r = await fetch('/voice/speak', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({text, voice_id: localStorage.getItem('gabriel_voice_id') || ''})
+      body: JSON.stringify({text, pace: pace || '', voice_id: localStorage.getItem('gabriel_voice_id') || ''})
     });
-    if (!r.ok) return;  // échec vocal silencieux — le texte est déjà affiché
+    if (!r.ok) {
+      setInterviewState(isReady ? 'completed' : 'waiting_for_answer');
+      return;
+    }
     const buf = await r.blob();
-    if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
+    if (_currentAudio) {
+      _currentAudio.pause();
+      _currentAudio.onended = null;
+      _currentAudio.onerror = null;
+      _currentAudio.src = '';
+      _currentAudio = null;
+    }
+    if (_currentAudioUrl) {
+      URL.revokeObjectURL(_currentAudioUrl);
+      _currentAudioUrl = '';
+    }
     const url = URL.createObjectURL(buf);
     const audio = new Audio(url);
     _currentAudio = audio;
+    _currentAudioUrl = url;
+    _setAudioPauseControl(false);
     badge?.classList.add('active');
-    _startReactiveWave(audio, document.getElementById('voice-speaking-wave'), false);
+    _ensureWaveBars(document.getElementById('interview-state-wave'), 16);
+    _startReactiveWave(audio, [document.getElementById('voice-speaking-wave'), document.getElementById('interview-state-wave')], false);
     audio.onended = audio.onerror = () => {
       badge?.classList.remove('active');
-      _stopReactiveWave(document.getElementById('voice-speaking-wave'));
+      _stopReactiveWave([document.getElementById('voice-speaking-wave'), document.getElementById('interview-state-wave')]);
       URL.revokeObjectURL(url);
-      if (_currentAudio === audio) _currentAudio = null;
+      if (_currentAudio === audio) {
+        _currentAudio = null;
+        _currentAudioUrl = '';
+      }
+      _setAudioPauseControl(false);
+      setInterviewState(isReady ? 'completed' : 'waiting_for_answer');
     };
     await audio.play();
   } catch (e) {
     badge?.classList.remove('active');
+    if (_currentAudio) {
+      _currentAudio.pause();
+      _currentAudio.onended = null;
+      _currentAudio.onerror = null;
+      _currentAudio.src = '';
+      _currentAudio = null;
+    }
+    if (_currentAudioUrl) {
+      URL.revokeObjectURL(_currentAudioUrl);
+      _currentAudioUrl = '';
+    }
+    _stopReactiveWave([document.getElementById('voice-speaking-wave'), document.getElementById('interview-state-wave')]);
+    _setAudioPauseControl(false);
+    setInterviewState(isReady ? 'completed' : 'waiting_for_answer');
   }
+}
+
+function _setAudioPauseControl(paused) {
+  const button = document.getElementById('voice-audio-pause');
+  if (!button) return;
+  button.innerHTML = paused
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5z"/></svg>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>';
+  const label = paused ? 'Reprendre la voix' : 'Mettre la voix en pause';
+  button.setAttribute('title', label);
+  button.setAttribute('aria-label', label);
+}
+
+function toggleGabrielAudio() {
+  if (!_currentAudio) return;
+  if (_currentAudio.paused) {
+    _currentAudio.play().catch(() => {});
+    _setAudioPauseControl(false);
+    setInterviewState('gabriel_speaking');
+  } else {
+    _currentAudio.pause();
+    _setAudioPauseControl(true);
+    setInterviewState('gabriel_speaking', {
+      brand: 'Réponse en pause',
+      title: 'La lecture est en pause.',
+      copy: 'La réponse complète reste visible dans la conversation.',
+    });
+  }
+}
+
+function replayGabrielAudio() {
+  if (_currentAudio) {
+    _currentAudio.currentTime = 0;
+    _currentAudio.play().catch(() => {});
+    _setAudioPauseControl(false);
+    setInterviewState('gabriel_speaking');
+  } else if (_lastSpokenText) {
+    speakReply(_lastSpokenText, _lastSpokenPace);
+  }
+}
+
+function focusLatestReply() {
+  const replies = document.querySelectorAll('#chat-messages .msg.agent');
+  const latest = replies[replies.length - 1];
+  latest?.scrollIntoView({
+    behavior: _reducedMotion ? 'auto' : 'smooth',
+    block: 'center',
+  });
+}
+
+function disableGabrielVoice() {
+  voiceModeOn = false;
+  localStorage.setItem('gabriel_voice_mode', '0');
+  if (_currentAudio) {
+    _currentAudio.pause();
+    _currentAudio.onended = null;
+    _currentAudio.onerror = null;
+    _currentAudio.src = '';
+    _currentAudio = null;
+  }
+  if (_currentAudioUrl) {
+    URL.revokeObjectURL(_currentAudioUrl);
+    _currentAudioUrl = '';
+  }
+  _setAudioPauseControl(false);
+  document.getElementById('voice-speaking-badge')?.classList.remove('active');
+  _stopReactiveWave([document.getElementById('voice-speaking-wave'), document.getElementById('interview-state-wave')]);
+  _initVoiceUI();
+  setInterviewState(isReady ? 'completed' : 'waiting_for_answer');
+  document.getElementById('chat-input')?.focus();
 }
 
 /* ── UI update ──────────────────────────────────────── */
@@ -4792,13 +4776,25 @@ function updateUI(state) {
   const done  = progression.filter(d => d.status === 'done').length;
   const pct   = Math.round(score * 100);
   document.getElementById('ctx-bar').style.width = pct + '%';
-  document.getElementById('ctx-label').textContent = `${done} / ${total} dimensions couvertes`;
+  document.getElementById('interview-context-progress')?.setAttribute('aria-valuenow', String(pct));
+  document.getElementById('ctx-label').textContent =
+    ready ? 'Compréhension suffisante' :
+    done > 0 ? `${done} repère${done > 1 ? 's' : ''} structurant${done > 1 ? 's' : ''} compris` :
+    'Votre entreprise reste à découvrir';
+  const progressCount = document.getElementById('interview-progress-count');
+  if (progressCount) {
+    progressCount.textContent = ready
+      ? 'Contexte prêt'
+      : done > 0
+        ? `${done} compris · ${Math.max(0, total - done)} à éclaircir`
+        : 'Contexte à découvrir';
+  }
 
   const badge = document.getElementById('ctx-badge');
   badge.className = 'ctx-badge ' + (ready ? 'ready' : done > 0 ? 'partial' : 'empty');
   document.getElementById('ctx-badge-text').textContent =
-    ready ? 'Contexte prêt — le Stratège peut travailler' :
-    done > 0 ? `Contexte incomplet — ${done}/${total}` : 'Contextualisation requise';
+    ready ? 'Votre situation est suffisamment claire' :
+    done > 0 ? 'Votre entreprise se précise' : 'Commençons par votre parcours';
 
   renderProgression(progression);
 
@@ -4806,8 +4802,18 @@ function updateUI(state) {
   const hint = document.getElementById('strat-cta-hint');
   if (ready) {
     btn.className = 'strat-cta-btn ready'; btn.disabled = false;
-    hint.textContent = 'Contexte complet — prêt à générer la stratégie';
-    showAnalyzeSection();
+    hint.textContent = 'Votre contexte est prêt pour le Stratège';
+    if (!['analyzing', 'gabriel_speaking'].includes(_interviewState)) {
+      setInterviewState('completed');
+    }
+    // NE PAS ouvrir ici la section "Prêt à générer votre stratégie" : elle
+    // s'ajoutait sous la conversation dès que le contexte devenait complet,
+    // avec un SECOND bouton "Générer la stratégie" identique à celui du
+    // panneau de droite — et débordait de l'écran, donc coupée en bas.
+    // L'action reste unique : le bouton du panneau de droite, qui vient de
+    // passer à l'état actif juste au-dessus. La section n'apparaît plus que
+    // sur action explicite (import d'une analyse Psychologue à relire, ou
+    // régénération).
   } else {
     btn.className = 'strat-cta-btn locked'; btn.disabled = true;
     const miss = total - done;
@@ -4820,14 +4826,30 @@ function updateUI(state) {
 function renderProgression(progression) {
   const glyph = { done: '✓', in_progress: '•', not_started: '·' };
   const cls   = { done: 'ok', in_progress: 'partial', not_started: 'miss' };
-  document.getElementById('ctx-fields').innerHTML =
-    (progression || []).map(dim => `
+  const dimensions = progression || [];
+  const understood = dimensions.filter(dim => dim.status === 'done');
+  const remaining = dimensions.filter(dim => dim.status !== 'done');
+  const rows = dims => dims.map(dim => `
       <div class="ctx-field ${dim.status !== 'not_started' ? 'filled' : ''}">
         <div class="ctx-field-icon ${cls[dim.status] || 'miss'}">${glyph[dim.status] || '·'}</div>
         <div style="flex:1;min-width:0;">
           <div class="ctx-field-label">${_esc(dim.label)}</div>
         </div>
       </div>`).join('');
+
+  document.getElementById('ctx-fields').innerHTML = `
+    <section class="progress-human-group">
+      <div class="progress-human-group-title">Déjà compris</div>
+      <div class="progress-human-list">
+        ${understood.length ? rows(understood) : '<div class="ctx-field"><div class="ctx-field-label">Les premiers repères apparaîtront ici.</div></div>'}
+      </div>
+    </section>
+    <section class="progress-human-group">
+      <div class="progress-human-group-title">À éclaircir</div>
+      <div class="progress-human-list">
+        ${remaining.length ? rows(remaining) : '<div class="ctx-field filled"><div class="ctx-field-icon ok">✓</div><div class="ctx-field-label">Les éléments essentiels sont compris.</div></div>'}
+      </div>
+    </section>`;
 }
 
 /* ── Analyze section ────────────────────────────────── */
@@ -5031,17 +5053,74 @@ function showStratErr(msg) {
   show('strat-dashboard');
 }
 
+/* Bascule entre les volets du rendu stratégique. Aucun contenu n'est
+   reconstruit : les cinq volets existent déjà, on change lequel est visible. */
+function setDashTab(key, btn) {
+  document.querySelectorAll('#strat-dashboard .dash-tab').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
+  btn?.classList.add('active');
+  btn?.setAttribute('aria-selected', 'true');
+  document.querySelectorAll('#strat-dashboard .dash-panel').forEach(p => {
+    p.classList.toggle('hidden', p.id !== `dash-panel-${key}`);
+  });
+}
+
 function renderStrat(d) {
   _lastStratData = d;
   document.querySelector('.ctx-panel')?.classList.remove('interview-intro', 'interview-session');
-  document.body.classList.remove('stratege-interview-intro', 'stratege-interview-session');
+  document.querySelector('.ctx-panel')?.removeAttribute('data-interview-state');
+  document.body.classList.remove('stratege-interview-mode', 'stratege-interview-intro', 'stratege-interview-session');
   document.querySelector('.strat-layout')?.classList.add('has-strategy');
   setContextPanelOpen(false);
   const dash = document.getElementById('strat-dashboard');
   dash.classList.add('strat-cockpit-active');
   dash.innerHTML = '';
 
-  const add = el => dash.appendChild(el);
+  /* ── Restitution en 5 volets, façon présentation de consultant ────────
+     Le Stratège produit une vingtaine de blocs. Les dérouler d'un seul
+     tenant oblige à scroller longtemps avant de savoir quoi faire ; on les
+     range dans l'ordre d'un vrai exposé : le constat, puis la direction,
+     puis l'exécution, puis les réserves.
+
+     Performance : les cinq volets sont construits en une passe (les données
+     sont déjà en mémoire, aucun appel réseau supplémentaire), mais un seul
+     est affiché. Les quatre autres restent en display:none — le navigateur
+     ne calcule ni leur mise en page ni leur peinture tant qu'on ne les
+     ouvre pas. Le premier affichage coûte donc environ un cinquième d'un
+     déroulé complet, sans jamais retarder l'accès à une section. */
+  const TABS = [
+    {key:'synthese', label:'Synthèse'},
+    {key:'marketing', label:'Marketing'},
+    {key:'branding',  label:'Branding'},
+    {key:'plan',      label:"Plan d'action"},
+    {key:'decision',  label:'Décision'},
+  ];
+  const panels = {};
+  const tabsBar = document.createElement('div');
+  tabsBar.className = 'dash-tabs';
+  tabsBar.setAttribute('role', 'tablist');
+  TABS.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'dash-tab' + (i === 0 ? ' active' : '');
+    b.textContent = t.label;
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+    b.setAttribute('aria-controls', `dash-panel-${t.key}`);
+    b.onclick = () => setDashTab(t.key, b);
+    tabsBar.appendChild(b);
+    const p = document.createElement('div');
+    p.className = 'dash-panel' + (i === 0 ? '' : ' hidden');
+    p.id = `dash-panel-${t.key}`;
+    p.setAttribute('role', 'tabpanel');
+    panels[t.key] = p;
+  });
+
+  let _target = null;   // null = hors onglets (barre d'action, feedback, pont Créateur)
+  const section = key => { _target = key; };
+  const add = el => (_target ? panels[_target] : dash).appendChild(el);
   const div = (cls, html) => { const e = document.createElement('div'); e.className = cls; e.innerHTML = html; return e; };
   const card = (html, cls = '') => div(`card strat-card ${cls}`.trim(), html);
   const SVG = {
@@ -5082,7 +5161,10 @@ function renderStrat(d) {
     bar.style.setProperty('margin-top', '150px', 'important');
   }
   add(bar);
+  dash.appendChild(tabsBar);
+  TABS.forEach(t => dash.appendChild(panels[t.key]));
 
+  section('synthese');
   // ── Héro décision unifié (command center) ──────────────
   const ed = d.executive_decision || {};
   const heroDecision =
@@ -5125,6 +5207,7 @@ function renderStrat(d) {
     add(krow);
   }
 
+  section('decision');
   // ── Relecture critique — 2e avis indépendant ────────────
   const crit = d.critique_strategique;
   if (crit && typeof crit === 'object' && (crit.point_faible_principal || crit.angle_contrarien)) {
@@ -5144,6 +5227,7 @@ function renderStrat(d) {
     add(card(html, 'strat-card--critique'));
   }
 
+  section('synthese');
   // ── 1. Décision centrale ───────────────────────────────
   // Ne pas répéter si le héro affiche déjà ce même texte (cas où
   // executive_decision.one_sentence_decision est absent et que le héro
@@ -5189,6 +5273,7 @@ function renderStrat(d) {
     }
   }
 
+  section('marketing');
   // ── NEW-C. Valeur à créer ──────────────────────────────
   const vtc = d.value_to_create;
   const hasValue = vtc && typeof vtc === 'object' && (
@@ -5309,6 +5394,7 @@ function renderStrat(d) {
     }
   }
 
+  section('branding');
   // ── NEW-D. Décision réseau social ─────────────────────
   const sm = d.social_media_decision;
   if (sm && typeof sm === 'object' && sm.best_platform) {
@@ -5329,6 +5415,7 @@ function renderStrat(d) {
     add(card(html, 'strat-card--social strat-card--priority'));
   }
 
+  section('marketing');
   // ── NEW-E. Plan monétisation immédiate ────────────────
   const imon = d.immediate_monetization_plan;
   if (imon && typeof imon === 'object' && (imon.next_24h_action || imon.next_7_days_action)) {
@@ -5383,6 +5470,7 @@ function renderStrat(d) {
     add(card(html, 'strat-card--opportunities'));
   }
 
+  section('plan');
   // ── 5. Recommandations ─────────────────────────────────
   if (Array.isArray(d.recommandations_prioritaires) && d.recommandations_prioritaires.length) {
     let html = secHead('arrow', 'Recommandations prioritaires');
@@ -5406,6 +5494,7 @@ function renderStrat(d) {
     add(card(html, 'strat-card--recommendations'));
   }
 
+  section('branding');
   // ── 8. Stratégie contenu ───────────────────────────────
   const contenu = d.strategie_contenu;
   if (contenu && typeof contenu === 'object') {
@@ -5421,6 +5510,7 @@ function renderStrat(d) {
     add(card(html, 'strat-card--content'));
   }
 
+  section('plan');
   // ── 9. Plan 90 jours ───────────────────────────────────
   const plan = d.plan_90_jours;
   if (plan && typeof plan === 'object') {
@@ -5455,6 +5545,7 @@ function renderStrat(d) {
     add(card(html, 'strat-card--plan'));
   }
 
+  section('decision');
   // ── 10. Risques ────────────────────────────────────────
   if (Array.isArray(d.risques) && d.risques.length) {
     let html = secHead('alert', 'Risques à surveiller');
@@ -5518,6 +5609,19 @@ function renderStrat(d) {
     }
   }
 
+  // Un volet sans contenu (le Stratège n'a pas toujours de quoi remplir les
+  // cinq) ne doit pas laisser un onglet qui ouvre sur du vide.
+  TABS.forEach((t, i) => {
+    if (panels[t.key].children.length) return;
+    panels[t.key].remove();
+    tabsBar.children[i].style.display = 'none';
+  });
+  const firstVisible = Array.from(tabsBar.children).find(b => b.style.display !== 'none');
+  if (firstVisible && !firstVisible.classList.contains('active')) {
+    setDashTab(firstVisible.getAttribute('aria-controls').replace('dash-panel-', ''), firstVisible);
+  }
+
+  section(null);
   // ── 13. Orchestrateur flottant ─────────────────────────
   primeStrategyOrchestrator();
 

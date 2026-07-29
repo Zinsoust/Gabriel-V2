@@ -485,7 +485,8 @@ const REQUIRED = [
     const used  = d.used  || 0;
     const limit = d.limit || 0;
     if (badge) {
-      badge.textContent = plan === 'free' ? 'Gratuit' : plan.charAt(0).toUpperCase() + plan.slice(1);
+      const PLAN_LABELS = { free: 'Gratuit', early_access: 'Early Access', standard: 'Standard', pme: 'PME' };
+      badge.textContent = PLAN_LABELS[plan] || (plan.charAt(0).toUpperCase() + plan.slice(1));
       badge.classList.toggle('free', plan === 'free');
     }
     document.getElementById('pro-usage-analyses').textContent = limit ? `${used} / ${limit}` : `${used}`;

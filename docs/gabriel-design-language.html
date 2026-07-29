@@ -1,0 +1,635 @@
+<title>Gabriel Design Language — v1.0</title>
+<style>
+  /* ══════════════════════════════════════════════════════════════════════════
+     GABRIEL DESIGN LANGUAGE — le document obéit aux lois qu'il énonce.
+     Monde unique, délibéré : noir chaud, ivoire, champagne. C'est l'identité
+     phare de Gabriel — le document la porte plutôt que de la décrire de loin.
+     ══════════════════════════════════════════════════════════════════════════ */
+  :root {
+    color-scheme: dark;
+
+    /* — Couleur — */
+    --ink:        #060504;
+    --ink-2:      #0B0A08;
+    --panel:      #100F0D;
+    --card:       #16150F;
+    --card-2:     #1C1A16;
+    --ivory:      #F4F1EA;
+    --ivory-2:    #B8B1A6;
+    --muted:      #837B70;
+    --faint:      #5B554C;
+    --champagne:      #D8B982;
+    --champagne-light:#F1D7A8;
+    --champagne-dark: #8F7445;
+    --hair:       rgba(244,241,234,0.09);
+    --hair-2:     rgba(244,241,234,0.055);
+
+    /* — Les quatre bureaux — */
+    --psycho:   #C9986B;   /* cabinet d'analyse — chaud, organique */
+    --stratege: #8A9099;   /* salle de conseil — étain sobre, posé */
+    --createur: #D0895E;   /* studio créatif — terracotta vif */
+    --hall:     #D8B982;   /* hall d'accueil — champagne discret */
+
+    /* — L'espace : la seule échelle autorisée — */
+    --s0: 8px; --s1: 16px; --s2: 24px; --s3: 32px;
+    --s4: 48px; --s5: 64px; --s6: 96px; --s7: 128px;
+
+    /* — La typographie — */
+    --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --serif: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+
+    --measure: 66ch;
+    --radius: 20px;
+    --radius-sm: 12px;
+    --shadow: 0 24px 60px -20px rgba(0,0,0,0.7);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(120vw 80vh at 82% -8%, rgba(216,185,130,0.05), transparent 60%),
+      radial-gradient(90vw 60vh at 8% 108%, rgba(201,152,107,0.035), transparent 58%),
+      var(--ink);
+    color: var(--ivory-2);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection { background: rgba(216,185,130,0.24); color: var(--ivory); }
+
+  /* ── Ossature : index fixe + colonne de lecture ─────────────────────────── */
+  .shell { display: grid; grid-template-columns: 300px minmax(0, 1fr); }
+  @media (max-width: 940px) { .shell { grid-template-columns: 1fr; } }
+
+  /* — Index latéral — */
+  .index {
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow-y: auto;
+    padding: var(--s4) var(--s2) var(--s3) var(--s4);
+    border-right: 1px solid var(--hair-2);
+  }
+  @media (max-width: 940px) { .index { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--hair-2); padding: var(--s2) var(--s2) var(--s1); } }
+  .index-brand { display: flex; align-items: baseline; gap: 10px; margin-bottom: var(--s3); }
+  .index-brand .mark { font-family: var(--serif); font-size: 22px; color: var(--ivory); letter-spacing: -0.01em; }
+  .index-brand .ver { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--champagne); }
+  .toc { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+  @media (max-width: 940px) { .toc { flex-direction: row; flex-wrap: wrap; gap: 4px 14px; } }
+  .toc a {
+    display: flex; gap: 12px; align-items: baseline;
+    padding: 7px 0; color: var(--muted); text-decoration: none;
+    font-size: 13.5px; letter-spacing: 0.01em;
+    border: none; transition: color 0.2s var(--ease);
+  }
+  .toc a .n { font-variant-numeric: tabular-nums; color: var(--faint); font-size: 11px; min-width: 18px; transition: color 0.2s var(--ease); }
+  .toc a:hover { color: var(--ivory); }
+  .toc a:hover .n, .toc a.active .n { color: var(--champagne); }
+  .toc a.active { color: var(--ivory); }
+  .toc a:focus-visible { outline: 2px solid var(--champagne); outline-offset: 3px; border-radius: 4px; }
+
+  /* — Colonne de contenu — */
+  main { padding: clamp(var(--s3), 6vw, var(--s6)) clamp(var(--s2), 6vw, var(--s6)); max-width: 1120px; }
+  section { padding-block: var(--s6) 0; scroll-margin-top: var(--s2); }
+  section:first-of-type { padding-top: 0; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--champagne); margin-bottom: var(--s1);
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--champagne-dark); }
+
+  h1, h2, h3 { font-family: var(--serif); color: var(--ivory); font-weight: 400; text-wrap: balance; letter-spacing: -0.015em; }
+  h1 { font-size: clamp(44px, 7vw, 84px); line-height: 1.02; margin: 0 0 var(--s2); }
+  h2 { font-size: clamp(30px, 4.4vw, 48px); line-height: 1.08; margin: 0 0 var(--s1); }
+  h3 { font-size: 22px; line-height: 1.2; color: var(--ivory); margin: 0 0 8px; }
+  p { max-width: var(--measure); margin: 0 0 var(--s1); }
+  .lead { font-size: clamp(19px, 2.2vw, 24px); line-height: 1.5; color: var(--ivory-2); max-width: 60ch; }
+  strong { color: var(--ivory); font-weight: 600; }
+  em { color: var(--champagne-light); font-style: italic; }
+  .dim { color: var(--muted); }
+
+  /* — Hero — */
+  .hero { min-height: 78vh; display: flex; flex-direction: column; justify-content: center; padding-bottom: var(--s4); }
+  .hero .lede { font-size: clamp(20px, 2.6vw, 28px); font-family: var(--serif); color: var(--ivory-2); font-style: italic; max-width: 24ch; margin-top: var(--s1); }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s4); font-size: 13px; color: var(--muted); }
+  .hero-meta b { color: var(--ivory); font-weight: 500; display: block; font-size: 13px; }
+  .hero-meta span { display: block; letter-spacing: 0.14em; text-transform: uppercase; font-size: 10.5px; color: var(--faint); margin-bottom: 4px; }
+
+  /* — Blocs génériques — */
+  .grid { display: grid; gap: var(--s1); }
+  .cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .cols-4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 720px) { .cols-2, .cols-3, .cols-4 { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: linear-gradient(180deg, var(--card), var(--ink-2));
+    border: 1px solid var(--hair); border-radius: var(--radius);
+    padding: var(--s2);
+  }
+  .note { color: var(--muted); font-size: 14px; max-width: var(--measure); }
+  .kicker { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--faint); margin-bottom: 10px; }
+
+  /* — Les Lois — */
+  .laws { counter-reset: law; display: grid; gap: 1px; background: var(--hair-2); border: 1px solid var(--hair-2); border-radius: var(--radius); overflow: hidden; }
+  .law { counter-increment: law; background: var(--ink); padding: var(--s2); display: grid; grid-template-columns: auto 1fr; gap: var(--s2); align-items: start; transition: background 0.3s var(--ease); }
+  .law:hover { background: var(--ink-2); }
+  .law::before { content: counter(law, decimal-leading-zero); font-family: var(--serif); font-size: 26px; color: var(--champagne); font-variant-numeric: tabular-nums; line-height: 1; }
+  .law p { margin: 0; color: var(--ivory); font-size: 18px; max-width: 46ch; }
+  .law p small { display: block; color: var(--muted); font-family: var(--sans); font-size: 14px; margin-top: 6px; }
+
+  /* — Échelle d'espace : la règle — */
+  .rulers { display: flex; flex-direction: column; gap: 12px; }
+  .ruler { display: grid; grid-template-columns: 56px 1fr; align-items: center; gap: var(--s1); }
+  .ruler .val { font-variant-numeric: tabular-nums; color: var(--ivory); font-size: 14px; text-align: right; }
+  .ruler .bar { height: 14px; border-radius: 3px; background: linear-gradient(90deg, var(--champagne-dark), var(--champagne)); }
+
+  /* — Échelle typographique — */
+  .type-ladder { display: flex; flex-direction: column; gap: var(--s1); border-top: 1px solid var(--hair-2); padding-top: var(--s2); }
+  .type-row { display: flex; align-items: baseline; gap: var(--s2); flex-wrap: wrap; }
+  .type-row .tag { font-size: 11px; color: var(--faint); letter-spacing: 0.12em; text-transform: uppercase; width: 96px; flex: none; }
+  .type-row .sample { color: var(--ivory); font-family: var(--serif); line-height: 1.1; }
+  .ts-48 { font-size: 48px; } .ts-36 { font-size: 36px; } .ts-28 { font-size: 28px; }
+  .ts-20 { font-size: 20px; font-family: var(--sans) !important; color: var(--ivory-2) !important; }
+  .ts-16 { font-size: 16px; font-family: var(--sans) !important; color: var(--ivory-2) !important; }
+  .ts-13 { font-size: 13px; font-family: var(--sans) !important; color: var(--muted) !important; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* — Palette — */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .sw { border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--hair-2); }
+  .sw .chip { height: 76px; }
+  .sw .meta { padding: 10px 12px; background: var(--ink-2); }
+  .sw .meta b { display: block; color: var(--ivory); font-size: 13px; font-weight: 500; }
+  .sw .meta code { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  /* — Bureaux — */
+  .offices { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s1); }
+  @media (max-width: 720px) { .offices { grid-template-columns: 1fr; } }
+  .office { position: relative; border: 1px solid var(--hair); border-radius: var(--radius); padding: var(--s2); overflow: hidden; background: var(--ink-2); }
+  .office::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 120% at 90% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 62%); }
+  .office .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent); }
+  .office .room { display: flex; align-items: center; gap: 12px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: var(--s1); }
+  .office h3 { margin-bottom: 6px; }
+  .office .accent-name { color: var(--accent); font-weight: 600; }
+  .office dl { display: grid; grid-template-columns: auto 1fr; gap: 4px var(--s1); margin: var(--s1) 0 0; font-size: 13.5px; }
+  .office dt { color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; padding-top: 3px; }
+  .office dd { margin: 0; color: var(--ivory-2); }
+
+  /* — Composants démontrés — */
+  .btn-row { display: flex; align-items: center; gap: var(--s1); flex-wrap: wrap; }
+  .btn { font-family: var(--sans); font-weight: 500; border-radius: 999px; border: 1px solid transparent; cursor: default; transition: transform 0.2s var(--ease); }
+  .btn-primary { background: linear-gradient(180deg, var(--champagne-light), var(--champagne)); color: #2A1F0B; }
+  .btn-ghost { background: transparent; border-color: var(--hair); color: var(--ivory); }
+  .btn-quiet { background: transparent; color: var(--muted); }
+  .btn-lg { font-size: 16px; padding: 13px 26px; }
+  .btn-md { font-size: 14px; padding: 10px 20px; }
+  .btn-sm { font-size: 13px; padding: 7px 14px; }
+
+  .demo-card { border: 1px solid var(--hair); border-radius: var(--radius); background: var(--card); padding: var(--s2); }
+  .demo-card .inner { border: 1px solid var(--hair-2); border-radius: var(--radius-sm); background: var(--ink-2); padding: var(--s1); margin-top: var(--s1); }
+  .icons-row { display: flex; align-items: flex-end; gap: var(--s2); color: var(--ivory); }
+  .icons-row svg { stroke: var(--champagne); fill: none; stroke-width: 1.35; }
+  .icons-row figcaption { font-size: 11px; color: var(--faint); text-align: center; margin-top: 6px; }
+  .icons-row figure { margin: 0; }
+
+  /* — Tableaux de mouvement — */
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--hair-2); }
+  th { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); font-weight: 500; }
+  td { color: var(--ivory-2); }
+  td b { color: var(--ivory); font-weight: 500; }
+  td code, .mono { font-variant-numeric: tabular-nums; color: var(--champagne-light); font-size: 13px; }
+  .twrap { overflow-x: auto; border: 1px solid var(--hair-2); border-radius: var(--radius); }
+
+  /* — Voix : do / don't — */
+  .voice { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s1); }
+  @media (max-width: 720px) { .voice { grid-template-columns: 1fr; } }
+  .voice-col { border: 1px solid var(--hair); border-radius: var(--radius); padding: var(--s2); }
+  .voice-col.yes { border-color: color-mix(in srgb, var(--champagne) 30%, transparent); }
+  .voice-col h4 { margin: 0 0 var(--s1); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .voice-col.yes h4 { color: var(--champagne); }
+  .voice-col.no h4 { color: var(--muted); }
+  .voice-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .voice-col li { font-size: 15px; }
+  .voice-col.yes li { color: var(--ivory); }
+  .voice-col.no li { color: var(--faint); text-decoration: line-through; text-decoration-color: var(--hair); }
+
+  /* — Principes de mouvement : autorisé / interdit — */
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { font-size: 13px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--hair); }
+  .pill.on { color: var(--ivory); border-color: color-mix(in srgb, var(--champagne) 26%, transparent); }
+  .pill.off { color: var(--faint); text-decoration: line-through; text-decoration-color: var(--faint); }
+
+  hr.rule { border: none; border-top: 1px solid var(--hair-2); margin: var(--s4) 0 0; }
+
+  /* — Clôture — */
+  .closing { padding-block: var(--s6) var(--s7); }
+  .closing .big { font-family: var(--serif); font-size: clamp(26px, 4vw, 44px); color: var(--ivory); line-height: 1.18; max-width: 20ch; }
+
+  footer { border-top: 1px solid var(--hair-2); padding: var(--s3) 0 0; margin-top: var(--s4); color: var(--faint); font-size: 13px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--s1); }
+
+  /* — Révélation au défilement, sobre et respectueuse — */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+</style>
+
+<div class="shell">
+  <!-- ─────────────────────────── Index ─────────────────────────── -->
+  <nav class="index" aria-label="Sommaire">
+    <div class="index-brand">
+      <span class="mark">Gabriel</span>
+      <span class="ver">GDL · v1.0</span>
+    </div>
+    <ol class="toc">
+      <li><a href="#philosophie"><span class="n">01</span> Philosophie</a></li>
+      <li><a href="#lois"><span class="n">02</span> Les dix lois</a></li>
+      <li><a href="#espace"><span class="n">03</span> L'espace</a></li>
+      <li><a href="#typographie"><span class="n">04</span> La typographie</a></li>
+      <li><a href="#couleur"><span class="n">05</span> La couleur</a></li>
+      <li><a href="#bureaux"><span class="n">06</span> Les quatre bureaux</a></li>
+      <li><a href="#composants"><span class="n">07</span> Les composants</a></li>
+      <li><a href="#mouvement"><span class="n">08</span> Le mouvement</a></li>
+      <li><a href="#transitions"><span class="n">09</span> Les transitions</a></li>
+      <li><a href="#voix"><span class="n">10</span> La voix</a></li>
+      <li><a href="#emotion"><span class="n">11</span> L'émotion</a></li>
+    </ol>
+  </nav>
+
+  <!-- ─────────────────────────── Contenu ─────────────────────────── -->
+  <main>
+
+    <!-- Hero -->
+    <section class="hero" id="top">
+      <span class="eyebrow">Human Interface Guidelines</span>
+      <h1>Gabriel<br>Design Language</h1>
+      <p class="lede">Gabriel ne possède pas des interfaces.<br>Il possède un système.</p>
+      <div class="hero-meta">
+        <div><span>Document</span><b>Fondateur · v1.0</b></div>
+        <div><span>Nature</span><b>Des principes, pas des écrans</b></div>
+        <div><span>Portée</span><b>Chaque agent, chaque fonctionnalité</b></div>
+      </div>
+    </section>
+
+    <!-- 01 — Philosophie -->
+    <section id="philosophie" class="reveal">
+      <span class="eyebrow">01 — Philosophie</span>
+      <h2>Un langage, pas une collection de pages.</h2>
+      <p class="lead">On peut regarder un grand produit et dire « c'est beau ». Mais ce n'est pas seulement beau. C'est <strong>cohérent</strong>. Chaque écran est différent, et pourtant on sait à chaque seconde où l'on se trouve.</p>
+      <div class="grid cols-2" style="margin-top: var(--s3);">
+        <div class="panel">
+          <div class="kicker">Le piège</div>
+          <p style="color: var(--ivory);">Concevoir des <em>écrans</em>. Chacun résout son problème local. L'ensemble devient un assemblage de bonnes idées — et le cerveau de l'utilisateur travaille à chaque page.</p>
+        </div>
+        <div class="panel" style="border-color: color-mix(in srgb, var(--champagne) 24%, transparent);">
+          <div class="kicker" style="color: var(--champagne);">La voie</div>
+          <p style="color: var(--ivory);">Concevoir un <em>langage</em>. Les mêmes lois s'appliquent partout. Chaque nouvelle fonctionnalité semble avoir toujours fait partie du logiciel.</p>
+        </div>
+      </div>
+      <p class="note" style="margin-top: var(--s2);">Ce document est cette différence, écrite. Il ne décrit pas des maquettes : il énonce les règles dont toute maquette découlera. Et il obéit lui-même à ces règles — même échelle d'espace, même typographie, même retenue.</p>
+    </section>
+
+    <!-- 02 — Les lois -->
+    <section id="lois" class="reveal">
+      <span class="eyebrow">02 — Les dix lois</span>
+      <h2>Les lois de Gabriel.</h2>
+      <p class="lead">Avant toute couleur, avant toute maquette. Dix principes qui tranchent toutes les décisions à venir.</p>
+      <div class="laws" style="margin-top: var(--s3);">
+        <div class="law"><p>Une seule action principale par écran.<small>Tout le reste est secondaire, et le montre.</small></p></div>
+        <div class="law"><p>Le contenu prime toujours sur l'interface.<small>Les commandes servent le contenu, jamais l'inverse.</small></p></div>
+        <div class="law"><p>Chaque agent possède un bureau — jamais une page.<small>On ne change pas d'écran, on se déplace dans le cabinet.</small></p></div>
+        <div class="law"><p>Chaque bureau a sa personnalité, tous parlent le même langage.<small>~80 % commun, ~20 % de caractère.</small></p></div>
+        <div class="law"><p>Le vide est une fonctionnalité.<small>La respiration n'est pas de la place perdue : c'est de la hiérarchie.</small></p></div>
+        <div class="law"><p>L'utilisateur ne cherche jamais où cliquer.<small>L'évidence est un travail de conception, pas de chance.</small></p></div>
+        <div class="law"><p>Chaque transition raconte une progression — jamais une navigation.<small>On avance dans un parcours, on ne saute pas entre onglets.</small></p></div>
+        <div class="law"><p>Aucun composant n'existe pour décorer.<small>S'il n'informe pas ou n'agit pas, il n'a rien à faire là.</small></p></div>
+        <div class="law"><p>Chaque pixel justifie sa présence.<small>Le doute se tranche par la suppression.</small></p></div>
+        <div class="law"><p>Gabriel inspire la confiance avant d'impressionner.<small>La sobriété est une promesse de sérieux.</small></p></div>
+      </div>
+    </section>
+
+    <!-- 03 — L'espace -->
+    <section id="espace" class="reveal">
+      <span class="eyebrow">03 — L'espace</span>
+      <h2>Une seule échelle. Jamais le hasard.</h2>
+      <p class="lead">Toute l'application respire sur la même grille. Jamais 13 px. Jamais 21. Jamais une valeur inventée pour « que ça tombe bien ».</p>
+      <div class="grid cols-2" style="margin-top: var(--s3); align-items: start;">
+        <div>
+          <div class="kicker">L'échelle autorisée — en pixels</div>
+          <div class="rulers">
+            <div class="ruler"><span class="val">8</span><div class="bar" style="width: 8px;"></div></div>
+            <div class="ruler"><span class="val">16</span><div class="bar" style="width: 16px;"></div></div>
+            <div class="ruler"><span class="val">24</span><div class="bar" style="width: 24px;"></div></div>
+            <div class="ruler"><span class="val">32</span><div class="bar" style="width: 32px;"></div></div>
+            <div class="ruler"><span class="val">48</span><div class="bar" style="width: 48px;"></div></div>
+            <div class="ruler"><span class="val">64</span><div class="bar" style="width: 64px;"></div></div>
+            <div class="ruler"><span class="val">96</span><div class="bar" style="width: 96px;"></div></div>
+            <div class="ruler"><span class="val">128</span><div class="bar" style="width: 128px;"></div></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="kicker">Comment l'appliquer</div>
+          <p style="color: var(--ivory);">Marges internes, écarts entre éléments, respiration des sections : toujours une valeur de l'échelle.</p>
+          <p class="note">Les grandes respirations — 64, 96, 128 — séparent les sections importantes. Les petites — 8, 16 — organisent l'intérieur d'un bloc. Entre les deux, on choisit ; on n'improvise pas.</p>
+          <p class="note" style="margin-top: var(--s1);"><strong>Migration :</strong> les tokens actuels (6/12/20/32/48/72) convergent vers cette échelle. On ne réécrit pas tout d'un coup — chaque bureau retouché adopte la grille cible.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 — Typographie -->
+    <section id="typographie" class="reveal">
+      <span class="eyebrow">04 — La typographie</span>
+      <h2>Le premium vient d'abord de la lettre.</h2>
+      <p class="lead">Deux voix seulement. Une serif éditoriale (<em>Fraunces</em>) pour les grands moments. Une sans-serif claire (<em>Inter</em>) pour l'interface et la donnée. Rien d'autre.</p>
+      <div class="type-ladder" style="margin-top: var(--s3);">
+        <div class="type-row"><span class="tag">Display · 48</span><span class="sample ts-48">Décision recommandée</span></div>
+        <div class="type-row"><span class="tag">Titre · 36</span><span class="sample ts-36">Salle de conseil</span></div>
+        <div class="type-row"><span class="tag">Sous-titre · 28</span><span class="sample ts-28">Ce que révèle l'analyse</span></div>
+        <div class="type-row"><span class="tag">Corps · 17–20</span><span class="sample ts-20">Le texte principal respire, limité à 66 caractères par ligne pour rester confortable à lire.</span></div>
+        <div class="type-row"><span class="tag">Secondaire · 16</span><span class="sample ts-16">Une précision, une légende, un appui discret.</span></div>
+        <div class="type-row"><span class="tag">Label · 13</span><span class="sample ts-13">Signal observé</span></div>
+      </div>
+      <div class="grid cols-3" style="margin-top: var(--s3);">
+        <div class="panel"><div class="kicker">La règle des tailles</div><p style="color: var(--ivory);">48 · 36 · 28 · 20 · 16.<br><span class="dim">Jamais 37. Jamais 41.</span></p></div>
+        <div class="panel"><div class="kicker">Les titres</div><p style="color: var(--ivory);">Grands, assumés, aérés.<br><span class="dim">L'interligne serré est une faute.</span></p></div>
+        <div class="panel"><div class="kicker">La mesure</div><p style="color: var(--ivory);">70–80 caractères max.<br><span class="dim">Au-delà, l'œil se perd.</span></p></div>
+      </div>
+    </section>
+
+    <!-- 05 — Couleur -->
+    <section id="couleur" class="reveal">
+      <span class="eyebrow">05 — La couleur</span>
+      <h2>Noir, ivoire, champagne.</h2>
+      <p class="lead">Le noir chaud est le fond. L'ivoire porte le sens. Le champagne est <strong>rare</strong> — réservé aux décisions, aux priorités, à l'action principale. Généralisé, il ne vaut plus rien.</p>
+
+      <div style="margin-top: var(--s3);">
+        <div class="kicker">Socle — thème sombre</div>
+        <div class="swatches">
+          <div class="sw"><div class="chip" style="background:#060504;"></div><div class="meta"><b>Encre</b><code>#060504</code></div></div>
+          <div class="sw"><div class="chip" style="background:#16150F;"></div><div class="meta"><b>Carte</b><code>#16150F</code></div></div>
+          <div class="sw"><div class="chip" style="background:#F4F1EA;"></div><div class="meta"><b>Ivoire</b><code>#F4F1EA</code></div></div>
+          <div class="sw"><div class="chip" style="background:#B8B1A6;"></div><div class="meta"><b>Ivoire sourd</b><code>#B8B1A6</code></div></div>
+          <div class="sw"><div class="chip" style="background: linear-gradient(180deg,#F1D7A8,#D8B982 55%,#8F7445);"></div><div class="meta"><b>Champagne</b><code>#D8B982</code></div></div>
+        </div>
+      </div>
+
+      <div style="margin-top: var(--s2);">
+        <div class="kicker">Socle — thème clair</div>
+        <div class="swatches">
+          <div class="sw"><div class="chip" style="background:#FDFDFD;"></div><div class="meta"><b>Blanc</b><code>#FDFDFD</code></div></div>
+          <div class="sw"><div class="chip" style="background:#FFFFFF; border-bottom:1px solid var(--hair);"></div><div class="meta"><b>Carte</b><code>#FFFFFF</code></div></div>
+          <div class="sw"><div class="chip" style="background:#111318;"></div><div class="meta"><b>Encre</b><code>#111318</code></div></div>
+          <div class="sw"><div class="chip" style="background:#434951;"></div><div class="meta"><b>Encre sourde</b><code>#434951</code></div></div>
+          <div class="sw"><div class="chip" style="background: linear-gradient(180deg,#C8A66B,#A47D43 60%,#765625);"></div><div class="meta"><b>Champagne</b><code>#A47D43</code></div></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top: var(--s2);">
+        <div class="kicker" style="color: var(--champagne);">La loi du champagne</div>
+        <p style="color: var(--ivory);">Une surface champagne dans un écran attire l'œil comme un aimant. Il ne peut donc y avoir qu'<strong>une</strong> raison de l'employer par écran : l'action ou la décision qui compte. Partout ailleurs — hairlines, halos, accents de survol — il reste un murmure, jamais un cri.</p>
+      </div>
+    </section>
+
+    <!-- 06 — Bureaux -->
+    <section id="bureaux" class="reveal">
+      <span class="eyebrow">06 — Les quatre bureaux</span>
+      <h2>Un cabinet, quatre salles vivantes.</h2>
+      <p class="lead">Même grille, mêmes marges, même sidebar, même langage. Mais chaque bureau a sa lumière, sa couleur secondaire, son rythme, son vocabulaire. On ne lit pas où l'on est — on le <em>ressent</em>.</p>
+      <div class="offices" style="margin-top: var(--s3); --accent: var(--psycho);">
+        <div class="office" style="--accent: var(--psycho);">
+          <div class="room"><span class="dot"></span> Cabinet d'analyse</div>
+          <h3>Le <span class="accent-name">Psychologue</span></h3>
+          <p class="note">Chaleur humaine, mouvement organique. On écoute avant de conclure.</p>
+          <dl>
+            <dt>Accent</dt><dd>Ambre chaud · <span class="mono">#C9986B</span></dd>
+            <dt>Rythme</dt><dd>Arrivée douce, 820 ms</dd>
+            <dt>Voix</dt><dd>« Signal observé », « Ce que révèlent les mots »</dd>
+          </dl>
+        </div>
+        <div class="office" style="--accent: var(--stratege);">
+          <div class="room"><span class="dot"></span> Salle de conseil</div>
+          <h3>Le <span class="accent-name">Stratège</span></h3>
+          <p class="note">Étain sobre, profondeur, lenteur assumée. La décision se pose, elle ne se précipite pas.</p>
+          <dl>
+            <dt>Accent</dt><dd>Graphite étain · <span class="mono">#8A9099</span></dd>
+            <dt>Rythme</dt><dd>Arrivée lente, 980 ms</dd>
+            <dt>Voix</dt><dd>« Décision recommandée », « Risque principal »</dd>
+          </dl>
+        </div>
+        <div class="office" style="--accent: var(--createur);">
+          <div class="room"><span class="dot"></span> Studio créatif</div>
+          <h3>Le <span class="accent-name">Créateur</span></h3>
+          <p class="note">Terracotta vif, énergie, matière. C'est ici que la stratégie prend forme.</p>
+          <dl>
+            <dt>Accent</dt><dd>Terracotta · <span class="mono">#D0895E</span></dd>
+            <dt>Rythme</dt><dd>Arrivée vive, 660 ms</dd>
+            <dt>Voix</dt><dd>« Prochaine action », « Prêt à produire »</dd>
+          </dl>
+        </div>
+        <div class="office" style="--accent: var(--hall);">
+          <div class="room"><span class="dot"></span> Hall d'accueil</div>
+          <h3>L'<span class="accent-name">Orchestrateur</span></h3>
+          <p class="note">Champagne discret, neutralité. Il relie les bureaux et transmet les conclusions.</p>
+          <dl>
+            <dt>Accent</dt><dd>Champagne · <span class="mono">#D8B982</span></dd>
+            <dt>Rythme</dt><dd>Très discret, 640 ms</dd>
+            <dt>Voix</dt><dd>« Les conclusions ont été transmises… »</dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 — Composants -->
+    <section id="composants" class="reveal">
+      <span class="eyebrow">07 — Les composants</span>
+      <h2>Peu de pièces. Grandes. Justes.</h2>
+      <p class="lead">La complexité fatigue. On réduit le nombre de composants, on augmente leur taille, on limite les profondeurs. Le cerveau se repose.</p>
+
+      <div class="grid cols-2" style="margin-top: var(--s3); align-items: start;">
+        <div class="demo-card">
+          <div class="kicker">Boutons — trois tailles, jamais quatre</div>
+          <div class="btn-row" style="margin-bottom: var(--s1);">
+            <span class="btn btn-primary btn-lg">Action principale</span>
+            <span class="btn btn-ghost btn-md">Secondaire</span>
+            <span class="btn btn-quiet btn-sm">Tertiaire</span>
+          </div>
+          <p class="note">Une seule action <em>pleine champagne</em> par écran. Le reste s'efface.</p>
+        </div>
+        <div class="demo-card">
+          <div class="kicker">Icônes — trois tailles</div>
+          <div class="icons-row">
+            <figure><svg width="16" height="16" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg><figcaption>16</figcaption></figure>
+            <figure><svg width="20" height="20" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg><figcaption>20</figcaption></figure>
+            <figure><svg width="24" height="24" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z"/></svg><figcaption>24</figcaption></figure>
+          </div>
+          <p class="note" style="margin-top: var(--s1);">Contour fin (1.35), champagne discret. Jamais plus grandes que le texte qu'elles accompagnent.</p>
+        </div>
+      </div>
+
+      <div class="grid cols-2" style="margin-top: var(--s1); align-items: start;">
+        <div class="demo-card">
+          <div class="kicker">Cartes — deux profondeurs maximum</div>
+          <p style="color: var(--ivory); margin:0;">Une carte.</p>
+          <div class="inner"><p style="margin:0; color: var(--ivory-2);">Une sous-carte. <span class="dim">Et on s'arrête là.</span></p></div>
+          <p class="note" style="margin-top: var(--s1);">Jamais carte-dans-carte-dans-carte. La troisième profondeur est interdite.</p>
+        </div>
+        <div class="demo-card">
+          <div class="kicker">Les invariants</div>
+          <table style="margin-top: 4px;">
+            <tr><td><b>Ombre</b></td><td>Une seule, douce.</td></tr>
+            <tr><td><b>Bordure</b></td><td>Une seule épaisseur — 1 px.</td></tr>
+            <tr><td><b>Rayon</b></td><td>20 px cartes · 12 px éléments.</td></tr>
+            <tr><td style="border:none;"><b>Composer</b></td><td style="border:none;">≥ 60 px, coins 18–22 px, respire.</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 — Mouvement -->
+    <section id="mouvement" class="reveal">
+      <span class="eyebrow">08 — Le mouvement</span>
+      <h2>L'animation raconte. Elle ne décore pas.</h2>
+      <p class="lead">Le mouvement signale qu'une action est en cours, ou qu'on se déplace dans le cabinet. Jamais pour faire joli. Chaque bureau a son tempo.</p>
+
+      <div class="twrap" style="margin-top: var(--s3);">
+        <table>
+          <thead><tr><th>Moment</th><th>Durée</th><th>Courbe</th><th>Intention</th></tr></thead>
+          <tbody>
+            <tr><td><b>Arrivée — Psychologue</b></td><td><code>820 ms</code></td><td><code>0.34, 1.12, 0.4, 1</code></td><td>Respiration organique</td></tr>
+            <tr><td><b>Arrivée — Stratège</b></td><td><code>980 ms</code></td><td><code>0.16, 1, 0.3, 1</code></td><td>Lent, assuré</td></tr>
+            <tr><td><b>Arrivée — Créateur</b></td><td><code>660 ms</code></td><td><code>0.2, 0.9, 0.3, 1.08</code></td><td>Vif, léger élan</td></tr>
+            <tr><td><b>Passation inter-agents</b></td><td><code>~760 ms</code></td><td><code>0.16, 1, 0.3, 1</code></td><td>Déplacement dans le cabinet</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid cols-2" style="margin-top: var(--s2); align-items: start;">
+        <div class="panel">
+          <div class="kicker" style="color: var(--champagne);">Autorisé</div>
+          <div class="pills"><span class="pill on">opacity</span><span class="pill on">blur léger</span><span class="pill on">translation</span><span class="pill on">scale très faible</span></div>
+        </div>
+        <div class="panel">
+          <div class="kicker">Interdit</div>
+          <div class="pills"><span class="pill off">rotation</span><span class="pill off">rebond</span><span class="pill off">zoom violent</span><span class="pill off">animation permanente</span></div>
+        </div>
+      </div>
+      <p class="note" style="margin-top: var(--s2);">Et toujours : <strong>prefers-reduced-motion</strong> respecté. L'élégance ne s'impose jamais contre le confort.</p>
+    </section>
+
+    <!-- 09 — Transitions -->
+    <section id="transitions" class="reveal">
+      <span class="eyebrow">09 — Les transitions</span>
+      <h2>On ne change pas d'onglet. On traverse le cabinet.</h2>
+      <p class="lead">Passer d'un agent à l'autre est un moment, pas un rechargement. L'Orchestrateur coordonne, la lumière évolue, le bureau suivant se révèle.</p>
+      <div class="twrap" style="margin-top: var(--s3);">
+        <table>
+          <thead><tr><th style="width:36px;">—</th><th>Étape</th><th>Ce qui se passe</th></tr></thead>
+          <tbody>
+            <tr><td><code>1</code></td><td><b>L'agent termine</b></td><td>La zone de travail se prépare à sortir (fondu).</td></tr>
+            <tr><td><code>2</code></td><td><b>L'Orchestrateur paraît</b></td><td>Un voile élégant, le glyphe teinté du bureau de destination.</td></tr>
+            <tr><td><code>3</code></td><td><b>La passation</b></td><td><em>« Les conclusions du Psychologue sont transmises au Stratège. »</em></td></tr>
+            <tr><td><code>4</code></td><td><b>L'ambiance évolue</b></td><td>Lumière, rythme et couleur secondaire changent.</td></tr>
+            <tr><td style="border:none;"><code>5</code></td><td style="border:none;"><b>Le bureau paraît</b></td><td style="border:none;">Arrivée au tempo du nouvel agent.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top: var(--s2);">Durée totale : 700 – 1200 ms. Assez pour être ressenti, assez court pour ne jamais peser.</p>
+    </section>
+
+    <!-- 10 — Voix -->
+    <section id="voix" class="reveal">
+      <span class="eyebrow">10 — La voix</span>
+      <h2>Gabriel parle décision, pas production.</h2>
+      <p class="lead">Les mots sont du design. L'interface d'un cabinet stratégique nomme des jugements et des choix — pas des sorties de machine.</p>
+      <div class="voice" style="margin-top: var(--s3);">
+        <div class="voice-col yes">
+          <h4>La voix de Gabriel</h4>
+          <ul>
+            <li>Décision recommandée</li>
+            <li>Signal observé</li>
+            <li>Risque principal</li>
+            <li>Prochaine action</li>
+            <li>Ce qui mérite attention</li>
+          </ul>
+        </div>
+        <div class="voice-col no">
+          <h4>Ce qu'on n'écrit jamais</h4>
+          <ul>
+            <li>Résultat généré</li>
+            <li>Données produites</li>
+            <li>Rapport automatique</li>
+            <li>Traitement terminé</li>
+            <li>Sortie du modèle</li>
+          </ul>
+        </div>
+      </div>
+      <div class="grid cols-3" style="margin-top: var(--s2);">
+        <div class="panel"><div class="kicker">Ton</div><p style="color: var(--ivory);">Posé, précis, jamais bavard. Une phrase vaut mieux qu'un paragraphe.</p></div>
+        <div class="panel"><div class="kicker">Point de vue</div><p style="color: var(--ivory);">On écrit du côté de l'utilisateur : ce qu'il reconnaît, pas comment c'est construit.</p></div>
+        <div class="panel"><div class="kicker">Action</div><p style="color: var(--ivory);">Un bouton dit exactement ce qui va arriver. « Publier », puis « Publié ».</p></div>
+      </div>
+    </section>
+
+    <!-- 11 — Émotion -->
+    <section id="emotion" class="reveal">
+      <span class="eyebrow">11 — L'émotion</span>
+      <h2>La confiance avant l'esbroufe.</h2>
+      <p class="lead">On ne cherche pas à impressionner au premier regard. On cherche à ce que l'utilisateur se sente <strong>accompagné par une équipe sérieuse</strong>, dans un même cabinet, du début à la fin.</p>
+      <div class="grid cols-4" style="margin-top: var(--s3);">
+        <div class="panel"><div class="kicker">Les bureaux</div><p style="color: var(--ivory); margin:0;">donnent l'identité.</p></div>
+        <div class="panel"><div class="kicker">L'Orchestrateur</div><p style="color: var(--ivory); margin:0;">donne la continuité.</p></div>
+        <div class="panel"><div class="kicker">La navigation</div><p style="color: var(--ivory); margin:0;">donne la stabilité.</p></div>
+        <div class="panel"><div class="kicker">La zone de travail</div><p style="color: var(--ivory); margin:0;">donne la simplicité.</p></div>
+      </div>
+    </section>
+
+    <!-- Clôture -->
+    <section class="closing reveal">
+      <span class="eyebrow">Le contrat</span>
+      <p class="big">À partir de ce document, chaque nouvelle fonctionnalité semblera avoir toujours fait partie de Gabriel.</p>
+      <footer>
+        <span>Gabriel Design Language · Version 1.0</span>
+        <span>Des principes, pas des écrans.</span>
+      </footer>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  /* Révélation au défilement — sobre, désactivée si l'utilisateur le demande. */
+  (function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var items = document.querySelectorAll('.reveal');
+    if (reduce || !('IntersectionObserver' in window)) {
+      items.forEach(function (el) { el.classList.add('in'); });
+    } else {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { rootMargin: '0px 0px -12% 0px' });
+      items.forEach(function (el) { io.observe(el); });
+    }
+
+    /* Sommaire : surligne la section courante — l'utilisateur sait où il est. */
+    var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+    var map = {};
+    links.forEach(function (a) { var id = a.getAttribute('href').slice(1); var s = document.getElementById(id); if (s) map[id] = a; });
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove('active'); });
+          if (map[e.target.id]) map[e.target.id].classList.add('active');
+        }
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    Object.keys(map).forEach(function (id) { spy.observe(document.getElementById(id)); });
+  })();
+</script>

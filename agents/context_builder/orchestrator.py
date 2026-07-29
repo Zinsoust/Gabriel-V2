@@ -31,11 +31,45 @@ _INTRO_MESSAGE = (
     "besoin de plan ni d'ordre : je structure derrière."
 )
 
+# Utterance statique pour l'ouverture libre — pas d'appel LLM ici (l'invitation
+# est toujours la même par construction), mais elle respecte le même contrat
+# structuré que tone_renderer.render_*() pour que le frontend n'ait jamais à
+# distinguer "premier message" et "réponse générée".
+_INTRO_UTTERANCE = {
+    "display_text": _INTRO_MESSAGE,
+    "speech_text": _INTRO_MESSAGE,
+    "stance": "clarify",
+    "tone": "calm",
+    "strategic_observation": "",
+    "next_question": "",
+    "speech_profile": {"pace": "standard", "emphasis": [], "pause_after": []},
+}
+
+
+def _with_state(utterance: dict, ready: bool) -> dict:
+    """Ajoute l'état d'interview (contrat frontend, voir INTERVIEW_STATES
+    dans stratege.html) à l'utterance renvoyée par tone_renderer — dérivé
+    directement de is_ready, jamais recalculé côté frontend séparément."""
+    return {**utterance, "state": "completed" if ready else "waiting_for_answer"}
+
 
 def _fields_for_dimension(dimension_key: str, fields: dict) -> dict:
     dim = DIMENSION_BY_KEY.get(dimension_key) or {}
     keys = {f['key'] for f in dim.get('fields', [])}
     return {k: v for k, v in fields.items() if k in keys}
+
+
+def _context_progress(prog: list) -> dict:
+    """Reformate progression() (une entrée par dimension + statut) en deux
+    listes de libellés déjà groupées — docs/interview_frontend_contract.md
+    demande cette forme pour que le frontend cesse de dériver lui-même la
+    présentation "Déjà compris" / "À éclaircir" depuis les statuts bruts.
+    Aucun fait métier recalculé ici, un simple regroupement de ce que
+    question_planner a déjà déterminé."""
+    return {
+        'understood': [p['label'] for p in prog if p['status'] == 'done'],
+        'remaining':  [p['label'] for p in prog if p['status'] != 'done'],
+    }
 
 
 def _state_payload(user_id, session, fields):
@@ -51,6 +85,7 @@ def _state_payload(user_id, session, fields):
         'completion_score':  qp.completion_ratio(fields),
         'is_ready':          ready,
         'current_dimension': nxt['key'] if nxt else None,
+        'context_progress':  _context_progress(prog),
     }
 
 
@@ -83,15 +118,16 @@ def resume_or_start(user_id: str, folder_id: str = '') -> dict:
         # d'une dimension précise. handle_message() détecte la toute
         # première réponse et scanne les 7 dimensions à la fois.
         db.update_context_session(session_id, user_id, current_dimension=nxt['key'])
-        opening = _INTRO_MESSAGE
+        utterance = _INTRO_UTTERANCE
     else:
-        opening = tr.render_completion(fields)
+        utterance = tr.render_completion(fields)
 
-    db.save_context_message(session_id, user_id, 'assistant', opening,
+    db.save_context_message(session_id, user_id, 'assistant', utterance['display_text'],
                              dimension_key=nxt['key'] if nxt else '')
 
     payload = _state_payload(user_id, session, fields)
-    payload['messages'] = [{'role': 'assistant', 'content': opening}]
+    payload['messages'] = [{'role': 'assistant', 'content': utterance['display_text']}]
+    payload['reply'] = _with_state(utterance, not nxt)
     payload['resumed'] = False
     return payload
 
@@ -123,10 +159,10 @@ def handle_message(user_id: str, message: str) -> dict:
     if not current_dim:
         # Tout est déjà couvert — pas de dimension à traiter, on ne casse pas
         # pour autant : on répond simplement que le contexte est déjà complet.
-        reply = tr.render_completion(fields)
-        db.save_context_message(session_id, user_id, 'assistant', reply)
+        utterance = tr.render_completion(fields)
+        db.save_context_message(session_id, user_id, 'assistant', utterance['display_text'])
         payload = _state_payload(user_id, session, fields)
-        payload['reply'] = reply
+        payload['reply'] = _with_state(utterance, True)
         payload['rejected_vague'] = []
         return payload
 
@@ -145,7 +181,7 @@ def handle_message(user_id: str, message: str) -> dict:
     dim_now = DIMENSION_BY_KEY.get(current_dim)
 
     if rejected_vague and not extracted:
-        reply = tr.render_clarification(rejected_vague, dim_now['opening_question'] if dim_now else '')
+        utterance = tr.render_clarification(rejected_vague, dim_now['opening_question'] if dim_now else '')
         # On reste sur la même dimension — pas de progression tant que la
         # réponse n'est pas exploitable.
         db.update_context_session(session_id, user_id, current_dimension=current_dim)
@@ -154,19 +190,19 @@ def handle_message(user_id: str, message: str) -> dict:
         # uniquement ce qui manque au lieu de reposer la question d'ouverture
         # entière (voir tone_renderer.render_followup).
         missing_labels = missing_required_field_labels(current_dim, fields)
-        reply = tr.render_followup(extracted, FIELD_LABEL_BY_KEY, missing_labels)
+        utterance = tr.render_followup(extracted, FIELD_LABEL_BY_KEY, missing_labels)
         db.update_context_session(session_id, user_id, current_dimension=current_dim)
     elif nxt:
-        reply = tr.render_transition(extracted, FIELD_LABEL_BY_KEY, nxt['opening_question'])
+        utterance = tr.render_transition(extracted, FIELD_LABEL_BY_KEY, nxt['opening_question'])
         db.update_context_session(session_id, user_id, current_dimension=nxt['key'])
     else:
-        reply = tr.render_completion(fields)
+        utterance = tr.render_completion(fields)
         db.update_context_session(session_id, user_id, status='active', current_dimension='')
 
-    db.save_context_message(session_id, user_id, 'assistant', reply,
+    db.save_context_message(session_id, user_id, 'assistant', utterance['display_text'],
                              dimension_key=(nxt['key'] if nxt else ''))
 
     payload = _state_payload(user_id, session, fields)
-    payload['reply'] = reply
+    payload['reply'] = _with_state(utterance, not nxt)
     payload['rejected_vague'] = rejected_vague
     return payload

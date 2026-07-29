@@ -333,94 +333,83 @@
   <!-- Hero -->
   <div class="upgrade-hero">
     <h1>Choisissez votre plan Gabriel</h1>
-    <p>Chaque plan débloque davantage de puissance analytique — de l'essentiel au premium exclusif.</p>
+    <p>Une offre simple, sans version gratuite permanente — juste ce qu'il faut pour valider que Gabriel vous fait gagner du temps.</p>
   </div>
 
   <!-- Plans -->
   <div class="plan-grid">
 
-    <!-- Gabriel Standard -->
+    <!-- Early Access -->
     <div class="plan-card featured">
-      <div class="plan-badge badge-standard">POPULAIRE</div>
+      <div class="plan-badge badge-standard">🚀 OFFRE DE LANCEMENT</div>
       <div class="plan-tier">Gabriel</div>
-      <div class="plan-name">Standard</div>
-      <div class="plan-price">19 €<span> /mois</span></div>
-      <div class="plan-desc">Pour créateurs et entrepreneurs actifs</div>
+      <div class="plan-name">Early Access</div>
+      <div class="plan-price">29 €<span> /mois</span></div>
+      <div class="plan-desc">Tarif verrouillé tant que l'offre de lancement est ouverte</div>
       <ul class="plan-features">
         <li><span class="fi fi-check">✓</span> Analyses <strong>illimitées</strong></li>
         <li><span class="fi fi-check">✓</span> Dashboard psychologique complet</li>
         <li><span class="fi fi-check">✓</span> Personas détaillés (Jung · Frankl · Munroe)</li>
-        <li><span class="fi fi-check">✓</span> Agent Stratège complet</li>
+        <li><span class="fi fi-check">✓</span> Agent Stratège complet + entretien vocal</li>
         <li><span class="fi fi-check">✓</span> Agent Créateur — scripts & posts</li>
         <li><span class="fi fi-check">✓</span> Mémoire stratégique</li>
         <li><span class="fi fi-check">✓</span> Export PDF professionnel</li>
         <li><span class="fi fi-check">✓</span> Historique illimité</li>
-        <li class="off"><span class="fi fi-off">—</span> Multi-profils équipe</li>
-        <li class="off"><span class="fi fi-off">—</span> Cross-analyse</li>
-        <li class="off"><span class="fi fi-off">—</span> Search Intelligence</li>
       </ul>
       <div class="plan-cta">
-        <button class="btn btn-primary" onclick="startCheckout('standard')" style="width:100%;justify-content:center;">
-          Commencer — 19 €/mois
+        <button class="btn btn-primary" onclick="startCheckout('early_access')" style="width:100%;justify-content:center;">
+          Rejoindre en Early Access — 29 €/mois
         </button>
       </div>
     </div>
 
-    <!-- Gabriel Groupe -->
+    <!-- Standard -->
     <div class="plan-card">
       <div class="plan-tier">Gabriel</div>
-      <div class="plan-name">Groupe</div>
+      <div class="plan-name">Standard</div>
       <div class="plan-price">49 €<span> /mois</span></div>
-      <div class="plan-desc">Pour agences et équipes créatives</div>
+      <div class="plan-desc">Tarif permanent pour les nouveaux clients</div>
+      <ul class="plan-features">
+        <li><span class="fi fi-check">✓</span> Analyses <strong>illimitées</strong></li>
+        <li><span class="fi fi-check">✓</span> Dashboard psychologique complet</li>
+        <li><span class="fi fi-check">✓</span> Personas détaillés (Jung · Frankl · Munroe)</li>
+        <li><span class="fi fi-check">✓</span> Agent Stratège complet + entretien vocal</li>
+        <li><span class="fi fi-check">✓</span> Agent Créateur — scripts & posts</li>
+        <li><span class="fi fi-check">✓</span> Mémoire stratégique</li>
+        <li><span class="fi fi-check">✓</span> Export PDF professionnel</li>
+        <li><span class="fi fi-check">✓</span> Historique illimité</li>
+      </ul>
+      <div class="plan-cta">
+        <button class="btn btn-ghost" onclick="startCheckout('standard')" style="width:100%;justify-content:center;">
+          Commencer — 49 €/mois
+        </button>
+      </div>
+    </div>
+
+    <!-- PME -->
+    <div class="plan-card premium-card">
+      <div class="plan-badge badge-premium">🏢 ÉQUIPE & BESOINS AVANCÉS</div>
+      <div class="plan-tier">Gabriel</div>
+      <div class="plan-name">PME</div>
+      <div class="plan-price">99 €<span> /mois</span></div>
+      <div class="plan-desc">Pour un usage équipe ou des besoins avancés</div>
       <ul class="plan-features">
         <li><span class="fi fi-check">✓</span> Tout de Standard</li>
-        <li><span class="fi fi-check">✓</span> Jusqu'à 5 profils utilisateurs</li>
-        <li><span class="fi fi-check">✓</span> Partage d'analyses en équipe</li>
-        <li><span class="fi fi-check">✓</span> Tableau de bord centralisé</li>
-        <li><span class="fi fi-check">✓</span> Gestion multi-comptes</li>
-        <li><span class="fi fi-check">✓</span> Rapports collaboratifs</li>
+        <li><span class="fi fi-check">✓</span> Volume d'usage pensé pour une équipe</li>
+        <li><span class="fi fi-check">✓</span> Audit stratégique personnalisé à l'onboarding</li>
         <li><span class="fi fi-check">✓</span> Support prioritaire</li>
-        <li class="off"><span class="fi fi-off">—</span> Cross-analyse</li>
-        <li class="off"><span class="fi fi-off">—</span> Search Intelligence</li>
       </ul>
       <div class="plan-cta">
-        <button class="btn btn-ghost" onclick="contactForPlan('groupe')" style="width:100%;justify-content:center;">
-          Nous contacter
+        <button class="btn btn-plan-premium" onclick="startCheckout('pme')" style="width:100%;justify-content:center;">
+          Commencer — 99 €/mois
         </button>
       </div>
     </div>
 
-    <!-- Gabriel Premium -->
-    <div class="plan-card premium-card">
-      <div class="plan-badge badge-premium">EXCLUSIF</div>
-      <div class="plan-tier">Gabriel</div>
-      <div class="plan-name">Premium</div>
-      <div class="plan-price">99 €<span> /mois</span></div>
-      <div class="plan-desc">Fonctionnalités inédites — accès anticipé</div>
-      <ul class="plan-features">
-        <li><span class="fi fi-check">✓</span> Tout de Groupe</li>
-        <li class="soon">
-          <span class="fi fi-lock">◈</span>
-          Cross-analyse
-          <span class="feature-badge badge-soon">BIENTÔT</span>
-        </li>
-        <li class="soon">
-          <span class="fi fi-lock">◈</span>
-          Search Intelligence
-          <span class="feature-badge badge-soon">BIENTÔT</span>
-        </li>
-        <li><span class="fi fi-check">✓</span> Accès bêta en avant-première</li>
-        <li><span class="fi fi-check">✓</span> Utilisateurs illimités</li>
-        <li><span class="fi fi-check">✓</span> Support dédié (SLA 24h)</li>
-        <li><span class="fi fi-check">✓</span> Onboarding personnalisé</li>
-      </ul>
-      <div class="plan-cta">
-        <button class="btn btn-plan-premium" onclick="contactForPlan('premium')" style="width:100%;justify-content:center;">
-          Rejoindre la liste d'attente
-        </button>
-      </div>
-    </div>
+  </div>
 
+  <div class="upgrade-note" style="margin-bottom:28px;">
+    Vous hésitez encore ? <a href="mailto:outilsagencechretienne@gmail.com?subject=Demande%20d'audit%20Gabriel" style="color:var(--champagne-soft);">Demandez une démo gratuite ou un audit personnalisé</a> avant de vous abonner.
   </div>
 
   <!-- Section fonctionnalités Premium -->
@@ -431,7 +420,7 @@
       </div>
       <div>
         <div class="pf-title">Fonctionnalités Premium — En développement</div>
-        <div class="pf-subtitle">Ces capacités inédites arrivent exclusivement sur Gabriel Premium</div>
+        <div class="pf-subtitle">Ces capacités inédites arrivent exclusivement sur Gabriel PME</div>
       </div>
     </div>
 
@@ -519,12 +508,6 @@ async function startCheckout(planName) {
     btn.disabled = false;
     btn.textContent = origText;
   }
-}
-
-function contactForPlan(planName) {
-  const subject = encodeURIComponent(`Gabriel ${planName.charAt(0).toUpperCase() + planName.slice(1)} — Demande d'accès`);
-  const body    = encodeURIComponent(`Bonjour,\n\nJe suis intéressé par le plan Gabriel ${planName.charAt(0).toUpperCase() + planName.slice(1)}.\n\nMon email : \n\nDites-moi comment procéder.\n\nMerci`);
-  window.location.href = `mailto:outilsagencechretienne@gmail.com?subject=${subject}&body=${body}`;
 }
 
 // Succès upgrade

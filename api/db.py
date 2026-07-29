@@ -535,7 +535,8 @@ def _feedback_index(user_id=None):
 
 def get_user_plan(user_id):
     """
-    Retourne le plan de l'utilisateur : 'free' | 'starter' | 'pro'.
+    Retourne le plan de l'utilisateur : 'free' | 'early_access' | 'standard' | 'pme'
+    (voir app.py _STRIPE_PLANS — stratégie pricing sans freemium permanent).
     Lit le champ 'plan' dans gabriel_users (Supabase), sinon fallback users.json.
     Par défaut : 'free'.
     """
@@ -1072,10 +1073,11 @@ def get_active_context_session(user_id):
 
 
 def update_context_session(session_id, user_id, **fields):
-    """Met à jour une session (status, current_dimension...). Retourne True si succès."""
+    """Met à jour une session (status, current_dimension, current_step...).
+    Retourne True si succès."""
     if not (_supabase and session_id and user_id):
         return False
-    allowed = {'status', 'current_dimension', 'folder_id', 'completed_at'}
+    allowed = {'status', 'current_dimension', 'folder_id', 'completed_at', 'current_step'}
     payload = {k: v for k, v in fields.items() if k in allowed}
     if not payload:
         return False
@@ -1090,6 +1092,34 @@ def update_context_session(session_id, user_id, **fields):
     except Exception as e:
         print(f'[DB] update_context_session error: {e}')
         return False
+
+
+# Rappel unique en cas de base pas encore migrée : sans ce garde-fou, chaque
+# changement d'étape écrirait la même erreur dans les journaux.
+_step_column_warned = False
+
+
+def set_session_step(session_id, user_id, step):
+    """Enregistre l'étape du PARCOURS (welcome, interview...) — distincte de
+    `current_dimension`, qui suit l'avancement à l'intérieur de l'entretien.
+
+    Tolère une base pas encore migrée : tant que la colonne `current_step`
+    n'existe pas (voir supabase/strategy_session_migration.sql), l'écriture
+    échoue silencieusement et le parcours fonctionne quand même — il repart
+    simplement à l'accueil au rechargement plutôt que de reprendre où il en
+    était. Le produit reste utilisable pendant le déploiement de la
+    migration, au lieu de tomber en panne en attendant.
+    """
+    global _step_column_warned
+    if not (_supabase and session_id and user_id and step):
+        return False
+    ok = update_context_session(session_id, user_id, current_step=step)
+    if not ok and not _step_column_warned:
+        _step_column_warned = True
+        print('[DB] colonne current_step absente — exécuter '
+              'supabase/strategy_session_migration.sql pour activer la '
+              'reprise du parcours à l\'étape en cours.')
+    return ok
 
 
 def save_context_message(session_id, user_id, role, content, dimension_key=''):

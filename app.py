@@ -1157,6 +1157,7 @@ def creator_generate():
     channel          = data.get('channel', '')
     tone             = data.get('tone', '')
     objective        = data.get('objective', '')
+    emotion          = str(data.get('emotion') or '')[:120]  # émotion cible facultative
     persona          = data.get('persona')
     business_context = _resolve_business_context(data, uid)
     user_request     = data.get('user_request', '')
@@ -1200,6 +1201,7 @@ def creator_generate():
             business_context = business_context,
             user_request     = user_request,
             generate_variant = generate_variant,
+            emotion          = emotion,
         )
 
     # UUID aléatoire — non prédictible
@@ -1525,7 +1527,7 @@ def upgrade_page():
         analyses_limit=info.get('limit', _db.FREE_ANALYSES_LIMIT),
         plan=info.get('plan', 'free'),
         stripe_public_key=_STRIPE_PUBLIC_KEY,
-        stripe_ready=bool(_STRIPE_SECRET and _STRIPE_PRICE_STARTER),
+        stripe_ready=bool(_STRIPE_SECRET and _STRIPE_PLANS),
     )
 
 
@@ -1922,6 +1924,13 @@ def context_chat():
     Reçoit : {message}
     Retourne : {reply, updated_context, progression, completion_score,
                 is_ready, current_dimension, rejected_vague, session_id}
+
+    "reply" est un objet structuré (agents/context_builder/tone_renderer.py) :
+    {display_text, speech_text, stance, tone, strategic_observation,
+     next_question, speech_profile: {pace, emphasis, pause_after}, state}
+    — display_text pour l'affichage, speech_text pour /voice/speak (texte
+    court, rythmé pour la lecture à voix haute). state ∈ INTERVIEW_STATES
+    côté frontend (stratege.html), dérivé de is_ready.
     """
     data    = request.get_json(silent=True) or {}
     message = data.get('message', '').strip()
@@ -2011,9 +2020,16 @@ def voice_speak():
     requested_voice_id = (data.get('voice_id') or '').strip()
     voice_id = requested_voice_id if is_allowed_voice_id(requested_voice_id) else None
 
+    # pace vient de tone_renderer (speech_profile.pace, voir /context-chat) —
+    # transmis tel quel par le frontend depuis la réponse qu'il vient de lire.
+    # Une valeur absente ou inattendue retombe sur le débit par défaut plutôt
+    # que d'échouer (voice_provider.speed_for_pace).
+    pace = (data.get('pace') or '').strip().lower()
+    pace = pace if pace in ('slow', 'measured', 'standard') else None
+
     uid = (current_user() or {}).get('user_id')
     try:
-        audio_bytes = provider.synthesize(text, voice_id=voice_id)
+        audio_bytes = provider.synthesize(text, voice_id=voice_id, pace=pace)
         return Response(audio_bytes, mimetype='audio/mpeg')
     except VoiceProviderError as e:
         safe_log_event('voice_speak_error', user_id=uid, error=e)
@@ -2066,6 +2082,90 @@ def business_context():
         import traceback; traceback.print_exc()
         safe_log_event('business_context_error', user_id=uid, error=e)
         return jsonify({'error': 'Erreur lors du chargement du contexte.'}), 500
+
+
+# ─── Parcours stratégique — Salle de Conseil (Phase 1) ───────────────────────
+#
+# Ces routes ne font QUE du transport. Les règles du parcours (quelles étapes
+# existent, laquelle suit laquelle, laquelle est ouverte) vivent dans
+# core/strategy_session.py — jamais ici, pour qu'ajouter une étape ne
+# demande pas de toucher au serveur HTTP.
+
+@app.route('/strategy-session', methods=['GET'])
+@login_required
+def strategy_session_get():
+    """Crée ou reprend la session stratégique de l'utilisateur.
+
+    Appelée dès l'arrivée dans la Salle de Conseil : la session existe donc
+    avant toute action, comme prévu par la spécification. Aucun appel LLM,
+    aucune analyse — uniquement l'état du parcours.
+    """
+    from core.strategy_session import StrategySession, FIRST_STEP, is_open_step
+
+    uid = (current_user() or {}).get('user_id')
+    folder_id = str(request.args.get('folder_id') or '').strip()[:64]
+
+    try:
+        row = _db.get_active_context_session(uid)
+        if not row:
+            session_id = f"cbs_{uuid.uuid4().hex[:16]}"
+            _db.create_context_session(session_id, uid, folder_id=folder_id)
+            _db.set_session_step(session_id, uid, FIRST_STEP)
+            row = {'session_id': session_id, 'current_step': FIRST_STEP}
+
+        # `current_step` est absent tant que la migration n'a pas été jouée
+        # (voir supabase/strategy_session_migration.sql) : on repart alors de
+        # l'accueil plutôt que de tomber en erreur.
+        step = row.get('current_step') or FIRST_STEP
+        if not is_open_step(step):
+            step = FIRST_STEP
+
+        session = StrategySession(
+            session_id=row.get('session_id', ''),
+            user_id=uid,
+            created_at=row.get('created_at', '') or '',
+            updated_at=row.get('updated_at', '') or '',
+            folder_id=row.get('folder_id', '') or '',
+            current_step=step,
+        )
+        return jsonify(session.to_public_dict())
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        safe_log_event('strategy_session_error', user_id=uid, error=e)
+        return jsonify({'error': 'Erreur lors du chargement du parcours.'}), 500
+
+
+@app.route('/strategy-session/step', methods=['POST'])
+@login_required
+def strategy_session_step():
+    """Fait avancer le parcours d'une étape.
+
+    Ne déclenche AUCUNE génération : le changement d'étape est un simple
+    changement d'état, l'écran suivant s'affiche côté client sans
+    rechargement. C'est exactement ce que demande la spécification pour le
+    clic sur « Commencer l'entretien stratégique ».
+    """
+    from core.strategy_session import is_valid_step, is_open_step
+
+    uid  = (current_user() or {}).get('user_id')
+    data = request.get_json(silent=True) or {}
+    step = str(data.get('step') or '').strip()[:32]
+
+    if not is_valid_step(step):
+        return jsonify({'error': 'Étape inconnue du parcours.'}), 400
+    if not is_open_step(step):
+        return jsonify({'error': "Cette étape n'est pas encore disponible."}), 409
+
+    try:
+        row = _db.get_active_context_session(uid)
+        if not row:
+            return jsonify({'error': 'Aucune session en cours.'}), 404
+        _db.set_session_step(row['session_id'], uid, step)
+        return jsonify({'success': True, 'current_step': step})
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        safe_log_event('strategy_step_error', user_id=uid, error=e)
+        return jsonify({'error': "Erreur lors du changement d'étape."}), 500
 
 
 # ─── Stratège — Post-génération ───────────────────────────────────────────────
@@ -2535,30 +2635,47 @@ def performance():
 _STRIPE_SECRET         = os.environ.get('STRIPE_SECRET_KEY', '')
 _STRIPE_PUBLIC_KEY     = os.environ.get('STRIPE_PUBLIC_KEY', '')
 _STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
-_STRIPE_PRICE_STARTER  = os.environ.get('STRIPE_STARTER_PRICE_ID', '')
 _APP_URL = os.environ.get('APP_URL', 'http://localhost:5001')
+
+# Stratégie pricing (docs/pricing — "Lancer avec une offre simple et payante") :
+# 3 offres, sans freemium permanent. Une seule source de vérité slug → Price
+# Stripe, utilisée à la fois pour créer la session de paiement et pour
+# retrouver le plan depuis le webhook (via l'ID de prix de l'abonnement).
+_STRIPE_PLANS = {
+    slug: price_id for slug, price_id in {
+        'early_access': os.environ.get('STRIPE_EARLY_ACCESS_PRICE_ID', ''),
+        'standard':     os.environ.get('STRIPE_STANDARD_PRICE_ID', ''),
+        'pme':          os.environ.get('STRIPE_PME_PRICE_ID', ''),
+    }.items() if price_id
+}
+_STRIPE_PLAN_BY_PRICE_ID = {price_id: slug for slug, price_id in _STRIPE_PLANS.items()}
 
 
 @app.route('/stripe/checkout', methods=['POST'])
 @login_required
 def stripe_checkout():
-    """Crée une session Stripe Checkout pour le plan Starter."""
-    if not _STRIPE_SECRET or not _STRIPE_PRICE_STARTER:
-        return jsonify({'error': 'Paiement non encore configuré. Contactez outilsagencechretienne@gmail.com pour accéder au plan Starter.'}), 503
+    """Crée une session Stripe Checkout pour le plan choisi (early_access,
+    standard ou pme — voir _STRIPE_PLANS)."""
+    data = request.get_json(silent=True) or {}
+    plan = (data.get('plan') or '').strip().lower()
+    price_id = _STRIPE_PLANS.get(plan)
 
+    if not _STRIPE_SECRET or not price_id:
+        return jsonify({'error': 'Paiement non encore configuré pour ce plan. Contactez outilsagencechretienne@gmail.com.'}), 503
+
+    uid = (current_user() or {}).get('user_id', '')
     try:
         import stripe as _stripe
         _stripe.api_key = _STRIPE_SECRET
-        uid   = (current_user() or {}).get('user_id', '')
         email = (current_user() or {}).get('email', '')
         session_obj = _stripe.checkout.Session.create(
             mode                = 'subscription',
             payment_method_types= ['card'],
-            line_items          = [{'price': _STRIPE_PRICE_STARTER, 'quantity': 1}],
+            line_items          = [{'price': price_id, 'quantity': 1}],
             success_url         = f"{_APP_URL}/stripe/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url          = f"{_APP_URL}/upgrade",
             customer_email      = email or None,
-            metadata            = {'user_id': uid},
+            metadata            = {'user_id': uid, 'plan_slug': plan},
             client_reference_id = uid,
         )
         return jsonify({'url': session_obj.url})
@@ -2588,7 +2705,16 @@ def stripe_webhook():
     try:
         import stripe as _stripe
         _stripe.api_key = _STRIPE_SECRET
-        event = _stripe.Webhook.construct_event(payload, sig_header, _STRIPE_WEBHOOK_SECRET)
+        # construct_event() sert uniquement à vérifier la signature — son
+        # retour est un objet typé stripe._event.Event qui n'a pas .get()
+        # (testé en conditions réelles avec la version installée, stripe
+        # 15.x : event.get('type') lève AttributeError, en dehors de ce
+        # try/except, donc invisible tant qu'aucun vrai paiement n'arrive).
+        # On re-parse le payload brut déjà validé, comme partout ailleurs
+        # dans Gabriel (json.loads), pour rester indépendant de la forme
+        # exacte de l'objet retourné par le SDK.
+        _stripe.Webhook.construct_event(payload, sig_header, _STRIPE_WEBHOOK_SECRET)
+        event = json.loads(payload)
     except ImportError:
         return jsonify({'error': 'stripe not installed'}), 503
     except Exception as e:
@@ -2599,10 +2725,18 @@ def stripe_webhook():
     obj   = event.get('data', {}).get('object', {})
 
     if etype in ('customer.subscription.created', 'customer.subscription.updated'):
-        status  = obj.get('status', '')
-        uid     = obj.get('metadata', {}).get('user_id', '') or (obj.get('client_reference_id') or '')
-        plan    = 'starter' if status in ('active', 'trialing') else 'free'
-        if uid:
+        status = obj.get('status', '')
+        uid    = obj.get('metadata', {}).get('user_id', '') or (obj.get('client_reference_id') or '')
+        # Le plan vient du prix réellement souscrit (jamais supposé) — retrouve
+        # le slug via _STRIPE_PLAN_BY_PRICE_ID, avec le metadata.plan_slug de
+        # la session de checkout en repli si le prix n'est plus dans la config
+        # actuelle (offre retirée après coup, ex. Early Access en fin de lancement).
+        items = (obj.get('items') or {}).get('data') or []
+        price_id = (items[0].get('price') or {}).get('id') if items else None
+        plan = _STRIPE_PLAN_BY_PRICE_ID.get(price_id) or obj.get('metadata', {}).get('plan_slug', '')
+        if status not in ('active', 'trialing'):
+            plan = 'free'
+        if uid and plan:
             _db.upgrade_user_plan(uid, plan)
 
     elif etype == 'customer.subscription.deleted':

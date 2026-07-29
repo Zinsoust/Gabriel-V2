@@ -578,213 +578,948 @@
   .cre-cta-row { flex-direction: column; align-items: flex-end; gap: 10px; }
   .cre-out-card { padding: 16px 18px; }
 }
+
+/* ── Atelier Créateur ─────────────────────────────────────────────────────── */
+.cre-page {
+  width: min(100%, 1080px);
+  max-width: 1080px;
+  padding: 34px 28px 96px;
+}
+.cre-page button,
+.cre-page input,
+.cre-page select,
+.cre-page textarea {
+  letter-spacing: 0;
+}
+.cre-hero {
+  max-width: 760px;
+  padding: 12px 0 30px;
+  text-align: left;
+}
+.cre-glow-a { display: none; }
+.cre-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  color: var(--champagne);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+.cre-eyebrow-mark {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--champagne);
+  transform: rotate(45deg);
+}
+.cre-h1 {
+  max-width: 700px;
+  margin: 0 0 12px;
+  font-size: clamp(28px, 3.2vw, 42px);
+  line-height: 1.14;
+  letter-spacing: 0;
+}
+.cre-h1-accent {
+  color: var(--champagne);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+.cre-h2 {
+  max-width: 650px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+.cre-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 304px;
+  gap: 18px;
+  align-items: start;
+}
+.cre-card,
+.cre-tone-panel,
+.cre-ctx,
+.cre-history,
+.cre-out-card,
+.cre-why,
+.cre-var,
+.cre-refine-wrap {
+  border-radius: 6px;
+}
+.cre-card {
+  margin: 0;
+  padding: 24px;
+  background: var(--bg-card);
+  border-color: var(--border-soft);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.08);
+}
+.cre-card:focus-within {
+  border-color: color-mix(in srgb, var(--champagne) 30%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--champagne) 8%, transparent);
+}
+.cre-section-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+.cre-step {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  color: var(--champagne);
+  background: color-mix(in srgb, var(--champagne) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--champagne) 22%, transparent);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.cre-section-title {
+  margin: 0 0 3px;
+  color: var(--text-primary);
+  font-size: 17px;
+  line-height: 1.35;
+}
+.cre-section-copy {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.cre-field-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+.cre-editor-wrap {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text-primary) 2.2%, transparent);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.cre-editor-wrap:focus-within {
+  background: var(--bg-card);
+  border-color: color-mix(in srgb, var(--champagne) 38%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--champagne) 8%, transparent);
+}
+.cre-editor-wrap.invalid {
+  border-color: color-mix(in srgb, var(--color-risk) 65%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-risk) 10%, transparent);
+}
+.cre-textarea {
+  min-height: 176px;
+  max-height: 320px;
+  padding: 16px 44px 16px 16px;
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.65;
+  resize: vertical;
+}
+.cre-textarea::placeholder {
+  color: var(--text-disabled);
+  opacity: 1;
+}
+.cre-input-clear {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.cre-input-clear:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border-color: var(--border-soft);
+}
+.cre-input-clear svg { width: 15px; height: 15px; }
+.cre-field-error {
+  margin-top: 7px;
+  color: var(--color-risk);
+  font-size: 12px;
+}
+.cre-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+.cre-suggestion {
+  min-height: 34px;
+  padding: 7px 10px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: left;
+  transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+.cre-suggestion:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--champagne) 4%, transparent);
+  border-color: color-mix(in srgb, var(--champagne) 24%, transparent);
+}
+.cre-hr { margin: 22px -24px 20px; }
+.cre-opts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.cre-opt { gap: 7px; }
+.cre-opt-lbl {
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cre-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 34px 9px 11px;
+  color: var(--text-primary);
+  background-color: color-mix(in srgb, var(--text-primary) 2.2%, transparent);
+  border-color: var(--border-soft);
+  font-size: 14px;
+}
+.cre-select:focus {
+  border-color: color-mix(in srgb, var(--champagne) 40%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--champagne) 8%, transparent);
+}
+.cre-variant-toggle {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 16px;
+  padding: 9px 11px;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  font-size: 13px;
+}
+.cre-variant-toggle input {
+  width: 16px;
+  height: 16px;
+}
+.cre-cta-row {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-soft);
+}
+.cre-count {
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.cre-btn {
+  min-height: 46px;
+  justify-content: center;
+  padding: 11px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  transform: none;
+}
+.cre-btn:hover { transform: translateY(-1px); }
+.cre-btn:active { transform: translateY(0); }
+.cre-btn svg { width: 16px; height: 16px; }
+.cre-side {
+  position: sticky;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cre-tone-panel {
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+}
+.cre-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.cre-side-title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+.cre-side-step {
+  color: var(--champagne);
+  font-size: 11px;
+  font-weight: 700;
+}
+.cre-tones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  padding: 0;
+}
+.cre-tone {
+  min-height: 40px;
+  padding: 8px 9px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border-color: var(--border-soft);
+  font-size: 12px;
+  text-align: center;
+  animation: none;
+}
+.cre-tone:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--champagne) 4%, transparent);
+  border-color: color-mix(in srgb, var(--champagne) 22%, transparent);
+}
+.cre-tone.active {
+  color: var(--champagne);
+  background: color-mix(in srgb, var(--champagne) 8%, transparent);
+  background-image: none;
+  border-color: color-mix(in srgb, var(--champagne) 34%, transparent);
+  box-shadow: none;
+  animation: none;
+}
+.cre-desc {
+  min-height: 0;
+  margin: 14px 0 0;
+  padding-top: 13px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-soft);
+  font-size: 12px;
+  line-height: 1.55;
+  text-align: left;
+}
+.cre-ctx {
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin: 0;
+  padding: 16px;
+  background: var(--bg-card);
+  border-color: var(--border-soft);
+}
+.cre-ctx-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+.cre-ctx-state {
+  color: var(--color-opportunity);
+  font-size: 11px;
+  font-weight: 500;
+}
+.cre-ctx-item {
+  display: grid;
+  grid-template-columns: 7px 1fr;
+  gap: 2px 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+.cre-ctx-dot { grid-row: 1 / span 2; margin-top: 6px; }
+.cre-ctx-label { color: var(--text-secondary); font-size: 12px; }
+.cre-ctx-val {
+  max-width: none;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.cre-ctx-sep {
+  width: 100%;
+  height: 1px;
+  background: var(--border-soft);
+}
+.cre-history {
+  margin: 0;
+  padding: 4px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+}
+.cre-history-head {
+  width: 100%;
+  min-height: 46px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+}
+.cre-history-title {
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cre-history-count {
+  border-radius: 4px;
+  font-size: 11px;
+}
+.cre-history-toggle {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.cre-history-list {
+  max-height: 270px;
+  margin: 0 -8px 8px;
+}
+.cre-history-item {
+  width: 100%;
+  min-height: 46px;
+  color: inherit;
+  border-radius: 4px;
+  text-align: left;
+}
+.cre-history-preview { font-size: 12px; }
+.cre-history-tag {
+  border-radius: 3px;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cre-history-date { font-size: 11px; }
+.cre-loading {
+  min-height: 270px;
+  margin-top: 24px;
+  padding: 42px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+}
+.cre-loading-mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  color: var(--champagne);
+  background: color-mix(in srgb, var(--champagne) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--champagne) 24%, transparent);
+  border-radius: 50%;
+  animation: cre-loading-pulse 1.8s ease-in-out infinite;
+}
+.cre-loading-mark svg { width: 21px; height: 21px; }
+@keyframes cre-loading-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.78; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+.cre-progress {
+  width: min(280px, 70vw);
+  height: 2px;
+}
+.cre-loading-label {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.cre-loading-sub {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.cre-result {
+  margin-top: 28px;
+  gap: 14px;
+  scroll-margin-top: 22px;
+}
+.cre-result-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 4px 0 2px;
+}
+.cre-result-kicker {
+  margin-bottom: 4px;
+  color: var(--champagne);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.cre-result-title {
+  color: var(--text-primary);
+  font-size: 22px;
+  line-height: 1.25;
+}
+.cre-actions {
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+.cre-actions-secondary {
+  justify-content: flex-start;
+  padding-top: 2px;
+}
+.cre-act {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.cre-act svg {
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  vertical-align: -2px;
+}
+.cre-brief {
+  padding: 10px 12px;
+  border-radius: 5px;
+}
+.cre-chip {
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cre-out-card {
+  padding: 26px 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid color-mix(in srgb, var(--champagne) 65%, transparent);
+  border-radius: 4px;
+}
+.cre-out-lbl {
+  margin-bottom: 18px;
+  color: var(--champagne);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.cre-out-text {
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.85;
+}
+.cre-result-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr);
+  gap: 12px;
+  align-items: start;
+}
+.cre-why,
+.cre-refine-wrap {
+  min-height: 100%;
+  padding: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+}
+.cre-why-hdr,
+.cre-refine-lbl,
+.cre-var-lbl {
+  margin-bottom: 13px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cre-why-row {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.cre-why-k {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cre-why-v { color: var(--text-secondary); }
+.cre-refine-copy {
+  margin: -4px 0 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.cre-refine-row { align-items: stretch; }
+.cre-refine-in {
+  min-width: 0;
+  min-height: 44px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.cre-refine-row .cre-act {
+  min-width: 86px;
+}
+.cre-var {
+  padding: 20px 22px;
+  background: color-mix(in srgb, var(--accent-blue) 3%, var(--bg-card));
+  border-color: color-mix(in srgb, var(--accent-blue) 18%, transparent);
+}
+.cre-separator { display: none; }
+.cre-toast {
+  min-height: 38px;
+  padding: 9px 14px;
+  font-size: 13px;
+}
+
+.cre-page button:focus-visible,
+.cre-page input:focus-visible,
+.cre-page select:focus-visible,
+.cre-page textarea:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-blue) 70%, transparent);
+  outline-offset: 2px;
+}
+
+:root[data-theme="light"] .cre-card,
+:root[data-theme="light"] .cre-tone-panel,
+:root[data-theme="light"] .cre-ctx,
+:root[data-theme="light"] .cre-history,
+:root[data-theme="light"] .cre-loading,
+:root[data-theme="light"] .cre-out-card,
+:root[data-theme="light"] .cre-why,
+:root[data-theme="light"] .cre-refine-wrap {
+  box-shadow: 0 12px 34px rgba(17, 19, 24, 0.045);
+}
+:root[data-theme="light"] .cre-editor-wrap,
+:root[data-theme="light"] .cre-select,
+:root[data-theme="light"] .cre-variant-toggle {
+  background: #FAFAF9;
+}
+:root[data-theme="light"] .cre-editor-wrap:focus-within {
+  border-color: rgba(20, 102, 184, 0.50);
+  box-shadow: 0 0 0 3px rgba(20, 102, 184, 0.08);
+}
+:root[data-theme="light"] .cre-tone.active {
+  color: var(--accent-blue);
+  background: var(--accent-blue-soft);
+  border-color: var(--accent-blue-border);
+}
+
+@media (max-width: 900px) {
+  .cre-page { padding-inline: 20px; }
+  .cre-workspace { grid-template-columns: 1fr; }
+  .cre-side {
+    position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .cre-tone-panel { grid-row: span 2; }
+}
+
+@media (min-width: 1100px) and (max-width: 1400px) {
+  .cre-workspace { grid-template-columns: 1fr; }
+  .cre-side {
+    position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .cre-tone-panel { grid-row: span 2; }
+}
+
+.orch-dock:has(#orch-panel.expanded) ~ .app-main .cre-workspace {
+  grid-template-columns: 1fr;
+}
+.orch-dock:has(#orch-panel.expanded) ~ .app-main .cre-side {
+  position: static;
+}
+
+@media (max-width: 680px) {
+  .cre-page { padding: 24px 16px 72px; }
+  .cre-hero { padding-bottom: 24px; }
+  .cre-h1 { font-size: 29px; }
+  .cre-h2 { font-size: 14px; }
+  .cre-card { padding: 18px 16px; }
+  .cre-hr { margin-inline: -16px; }
+  .cre-opts { grid-template-columns: 1fr; }
+  .cre-side { display: flex; }
+  .cre-tone-panel { padding: 16px; }
+  .cre-tones { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cre-tone { min-height: 44px; padding: 8px; font-size: 12px; }
+  .cre-cta-row {
+    flex-direction: row;
+    align-items: center;
+  }
+  .cre-btn { width: auto; }
+  .cre-result-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .cre-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .cre-out-card { padding: 20px 18px; }
+  .cre-result-details { grid-template-columns: 1fr; }
+  .cre-refine-row { flex-direction: column; }
+  .cre-refine-row .cre-act { min-height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cre-loading-mark,
+  .cre-progress-fill,
+  .cre-result {
+    animation: none !important;
+  }
+}
 </style>
 {% endblock %}
 
 {% block header_actions %}
-<button class="btn btn-ghost btn-sm" onclick="reset()">Nouvelle création</button>
+<button type="button" class="btn btn-ghost btn-sm" onclick="reset()">Nouvelle création</button>
 {% endblock %}
 
 {% block content %}
 <div class="cre-page">
 
-  <!-- Hero -->
-  <div class="cre-hero">
-    <div class="cre-glow-a"></div>
+  <header class="cre-hero">
+    <div class="cre-eyebrow"><span class="cre-eyebrow-mark" aria-hidden="true"></span>Atelier de création</div>
     <h1 class="cre-h1">
-      Écrivez avec la&nbsp;<span class="cre-h1-accent">voix juste</span>,<br>
-      pour la bonne audience.
+      Transformez votre stratégie en <span class="cre-h1-accent">contenu prêt à publier.</span>
     </h1>
-    <p class="cre-h2">Choisissez une tonalité. Gabriel s'appuie sur votre stratégie, vos personas et les signaux psychologiques de votre audience pour produire des scripts cohérents, ciblés et prêts à l'action.</p>
-  </div>
+    <p class="cre-h2">Décrivez votre intention. Gabriel relie votre demande aux décisions du Stratège et aux signaux du Psychologue pour produire un contenu cohérent avec votre audience.</p>
+  </header>
 
-  <!-- 6 Tonalités -->
-  <div class="cre-tones" id="cre-tones">
-    <button class="cre-tone active"
-      data-tone="expert"
-      data-desc="Diagnostic, précision, autorité, décision. Logique : signal → analyse → décision → action."
-      onclick="selectTone(this)">Expert</button>
-    <button class="cre-tone"
-      data-tone="premium"
-      data-desc="Sobriété, valeur perçue, rareté, élégance. Moins de bruit → plus de précision → plus de valeur."
-      onclick="selectTone(this)">Premium</button>
-    <button class="cre-tone"
-      data-tone="educational"
-      data-desc="Clarté, progression, exemples concrets, transmission. Du simple vers le complexe."
-      onclick="selectTone(this)">Éducatif</button>
-    <button class="cre-tone"
-      data-tone="viral"
-      data-desc="Hook immédiat, tension, contraste, rétention. Logique : hook → tension → surprise → payoff → action."
-      onclick="selectTone(this)">Viral</button>
-    <button class="cre-tone"
-      data-tone="direct_response"
-      data-desc="Douleur, bénéfice, preuve, CTA unique. Chaque ligne répond à : pourquoi agir maintenant ?"
-      onclick="selectTone(this)">Direct Response</button>
-    <button class="cre-tone"
-      data-tone="emotional"
-      data-desc="Empathie, vécu, identification, vérité humaine. Logique : vécu → tension → vérité → ouverture → action."
-      onclick="selectTone(this)">Émotionnel</button>
-    <button class="cre-tone"
-      data-tone="storytelling"
-      data-desc="Narration, bascule, transformation. Logique : situation → conflit → bascule → transformation."
-      onclick="selectTone(this)">Storytelling</button>
-    <button class="cre-tone"
-      data-tone="autorite"
-      data-desc="Vision, prise de position, direction claire. Logique : constat → position → direction → action."
-      onclick="selectTone(this)">Autorité</button>
-  </div>
-  <div class="cre-desc" id="cre-desc">Diagnostic, précision, autorité, décision. Logique : signal → analyse → décision → action.</div>
-
-  <!-- Contexte (si connecté) -->
-  <div class="cre-ctx" id="cre-ctx" style="display:none">
-    <div class="cre-ctx-item">
-      <div class="cre-ctx-dot off" id="ctx-p-dot"></div>
-      <span class="cre-ctx-label">Le Psychologue</span>
-      <span class="cre-ctx-val" id="ctx-p-val"></span>
-    </div>
-    <div class="cre-ctx-sep"></div>
-    <div class="cre-ctx-item">
-      <div class="cre-ctx-dot off" id="ctx-s-dot"></div>
-      <span class="cre-ctx-label">Le Stratège</span>
-      <span class="cre-ctx-val" id="ctx-s-val"></span>
-    </div>
-  </div>
-
-  <!-- Historique des créations — masqué tant qu'il n'y a rien à montrer -->
-  <div class="cre-history hidden" id="cre-history">
-    <div class="cre-history-head" onclick="toggleHistory()">
-      <div class="cre-history-title">
-        Vos créations récentes
-        <span class="cre-history-count" id="cre-history-count">0</span>
+  <div class="cre-workspace">
+    <section class="cre-card" id="cre-card" data-tour="createur-start" aria-labelledby="cre-brief-title">
+      <div class="cre-section-head">
+        <span class="cre-step" aria-hidden="true">01</span>
+        <div>
+          <h2 class="cre-section-title" id="cre-brief-title">Définissez votre brief</h2>
+          <p class="cre-section-copy">Précisez le sujet, l’idée ou l’action que le contenu doit provoquer.</p>
+        </div>
       </div>
-      <span class="cre-history-toggle" id="cre-history-toggle-label">Afficher ▾</span>
-    </div>
-    <div class="cre-history-list collapsed" id="cre-history-list"></div>
-  </div>
 
-  <!-- Carte formulaire -->
-  <div class="cre-card" id="cre-card" data-tour="createur-start">
-    <textarea
-      class="cre-textarea"
-      id="cre-req"
-      maxlength="2000"
-      rows="5"
-      placeholder="Décrivez le script ou le texte que vous voulez créer…&#10;&#10;Ex : « Écris un script TikTok pour présenter cette offre »&#10;     « Transforme cette stratégie en post LinkedIn expert »&#10;     « Crée un discours de lancement premium »"
-      oninput="updateCount()"
-    ></textarea>
-
-    <div class="cre-hr"></div>
-
-    <div class="cre-opts">
-      <div class="cre-opt">
-        <div class="cre-opt-lbl">Format</div>
-        <select class="cre-select" id="cre-fmt">
-          <option value="script">Script court</option>
-          <option value="youtube">Script YouTube</option>
-          <option value="tiktok">Script TikTok / Reels</option>
-          <option value="hooks">Hooks d'accroche</option>
-          <option value="linkedin">Post LinkedIn</option>
-          <option value="post">Post réseaux sociaux</option>
-          <option value="email">Email séquence</option>
-          <option value="speech">Discours</option>
-          <option value="ad">Publicité</option>
-          <option value="sales_page">Page de vente</option>
-          <option value="angles">Angles de contenu</option>
-        </select>
+      <label class="cre-field-label" for="cre-req">Votre demande</label>
+      <div class="cre-editor-wrap" id="cre-editor-wrap">
+        <textarea
+          class="cre-textarea"
+          id="cre-req"
+          maxlength="2000"
+          rows="6"
+          aria-describedby="cre-count cre-req-error"
+          placeholder="Ex. Écris un post LinkedIn qui présente cette offre, traite l’objection principale et invite à réserver un appel."
+          oninput="updateCount()"
+        ></textarea>
+        <button type="button" class="cre-input-clear hidden" id="cre-input-clear" onclick="clearPrompt()" title="Effacer la demande" aria-label="Effacer la demande">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
-      <div class="cre-opt">
-        <div class="cre-opt-lbl">Canal</div>
-        <select class="cre-select" id="cre-ch">
-          <option value="">Automatique</option>
-          <option value="tiktok">TikTok</option>
-          <option value="youtube">YouTube</option>
-          <option value="instagram">Instagram</option>
-          <option value="linkedin">LinkedIn</option>
-          <option value="email">Email</option>
-          <option value="website">Site web</option>
-          <option value="ads">Publicités</option>
-        </select>
-      </div>
-      <div class="cre-opt">
-        <div class="cre-opt-lbl">Objectif</div>
-        <select class="cre-select" id="cre-obj">
-          <option value="">Automatique</option>
-          <option value="attention">Attention</option>
-          <option value="education">Éducation</option>
-          <option value="conversion">Conversion</option>
-          <option value="autorite">Autorité</option>
-          <option value="sales">Vente</option>
-          <option value="launch">Lancement</option>
-        </select>
-      </div>
-      <div class="cre-opt hidden" id="cre-opt-persona">
-        <div class="cre-opt-lbl">Persona ciblé</div>
-        <select class="cre-select" id="cre-persona">
-          <option value="">Audience générale</option>
-        </select>
-      </div>
-    </div>
+      <p class="cre-field-error hidden" id="cre-req-error" role="alert">Décrivez le contenu que vous souhaitez créer.</p>
 
-    <label class="cre-variant-toggle" for="cre-variant">
-      <input type="checkbox" id="cre-variant">
-      Générer aussi une variante avec un angle différent
-    </label>
-  </div>
+      <div class="cre-suggestions" aria-label="Exemples de demandes">
+        <button type="button" class="cre-suggestion" onclick="setPrompt('Transforme cette stratégie en post LinkedIn expert avec une conclusion actionnable.')">Post LinkedIn expert</button>
+        <button type="button" class="cre-suggestion" onclick="setPrompt('Écris un script vidéo court qui traite l’objection principale de mon audience.')">Script vidéo objection</button>
+        <button type="button" class="cre-suggestion" onclick="setPrompt('Crée cinq hooks distincts pour présenter cette offre sans promesse excessive.')">5 hooks pour l’offre</button>
+      </div>
 
-  <!-- CTA -->
-  <div class="cre-cta-row">
-    <span class="cre-count" id="cre-count">0 / 2000</span>
-    <button class="cre-btn" id="cre-gen" onclick="generate()" data-tour="createur-start">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-      Créer le script
-    </button>
+      <div class="cre-hr"></div>
+
+      <div class="cre-opts">
+        <label class="cre-opt" for="cre-fmt">
+          <span class="cre-opt-lbl">Format</span>
+          <select class="cre-select" id="cre-fmt">
+            <option value="script">Script court</option>
+            <option value="youtube">Script YouTube</option>
+            <option value="tiktok">Script TikTok / Reels</option>
+            <option value="hooks">Hooks d'accroche</option>
+            <option value="linkedin">Post LinkedIn</option>
+            <option value="post">Post réseaux sociaux</option>
+            <option value="email">Email séquence</option>
+            <option value="speech">Discours</option>
+            <option value="ad">Publicité</option>
+            <option value="sales_page">Page de vente</option>
+            <option value="angles">Angles de contenu</option>
+          </select>
+        </label>
+        <label class="cre-opt" for="cre-ch">
+          <span class="cre-opt-lbl">Canal</span>
+          <select class="cre-select" id="cre-ch">
+            <option value="">Automatique</option>
+            <option value="tiktok">TikTok</option>
+            <option value="youtube">YouTube</option>
+            <option value="instagram">Instagram</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="email">Email</option>
+            <option value="website">Site web</option>
+            <option value="ads">Publicités</option>
+          </select>
+        </label>
+        <label class="cre-opt" for="cre-obj">
+          <span class="cre-opt-lbl">Objectif</span>
+          <select class="cre-select" id="cre-obj">
+            <option value="">Automatique</option>
+            <option value="attention">Attention</option>
+            <option value="education">Éducation</option>
+            <option value="conversion">Conversion</option>
+            <option value="autorite">Autorité</option>
+            <option value="sales">Vente</option>
+            <option value="launch">Lancement</option>
+          </select>
+        </label>
+        <label class="cre-opt hidden" id="cre-opt-persona" for="cre-persona">
+          <span class="cre-opt-lbl">Persona ciblé</span>
+          <select class="cre-select" id="cre-persona">
+            <option value="">Audience générale</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="cre-variant-toggle" for="cre-variant">
+        <input type="checkbox" id="cre-variant">
+        Générer aussi une variante avec un angle différent
+      </label>
+
+      <div class="cre-cta-row">
+        <span class="cre-count" id="cre-count">0 / 2000</span>
+        <button type="button" class="cre-btn" id="cre-gen" onclick="generate()" data-tour="createur-start">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <span id="cre-gen-label">Créer le contenu</span>
+        </button>
+      </div>
+    </section>
+
+    <aside class="cre-side" aria-label="Réglages de création">
+      <section class="cre-tone-panel" aria-labelledby="cre-tone-title">
+        <div class="cre-side-head">
+          <h2 class="cre-side-title" id="cre-tone-title">Tonalité</h2>
+          <span class="cre-side-step">02</span>
+        </div>
+        <div class="cre-tones" id="cre-tones" role="radiogroup" aria-label="Tonalité du contenu">
+          <button type="button" class="cre-tone active" role="radio" aria-checked="true"
+            data-tone="expert"
+            data-desc="Diagnostic, précision, autorité, décision. Logique : signal → analyse → décision → action."
+            onclick="selectTone(this)">Expert</button>
+          <button type="button" class="cre-tone" role="radio" aria-checked="false"
+            data-tone="premium"
+            data-desc="Sobriété, valeur perçue, rareté, élégance. Moins de bruit → plus de précision → plus de valeur."
+            onclick="selectTone(this)">Premium</button>
+          <button type="button" class="cre-tone" role="radio" aria-checked="false"
+            data-tone="educational"
+            data-desc="Clarté, progression, exemples concrets, transmission. Du simple vers le complexe."
+            onclick="selectTone(this)">Éducatif</button>
+          <button type="button" class="cre-tone" role="radio" aria-checked="false"
+            data-tone="viral"
+            data-desc="Hook immédiat, tension, contraste, rétention. Logique : hook → tension → surprise → payoff → action."
+            onclick="selectTone(this)">Viral</button>
+          <button type="button" class="cre-tone" role="radio" aria-checked="false"
+            data-tone="direct_response"
+            data-desc="Douleur, bénéfice, preuve, CTA unique. Chaque ligne répond à : pourquoi agir maintenant ?"
+            onclick="selectTone(this)">Direct Response</button>
+          <button type="button" class="cre-tone" role="radio" aria-checked="false"
+            data-tone="emotional"
+            data-desc="Empathie, vécu, identification, vérité humaine. Logique : vécu → tension → vérité → ouverture → action."
+            onclick="selectTone(this)">Émotionnel</button>
+          <button type="button" class="cre-tone" role="radio" aria-checked="false"
+            data-tone="storytelling"
+            data-desc="Narration, bascule, transformation. Logique : situation → conflit → bascule → transformation."
+            onclick="selectTone(this)">Storytelling</button>
+          <button type="button" class="cre-tone" role="radio" aria-checked="false"
+            data-tone="autorite"
+            data-desc="Vision, prise de position, direction claire. Logique : constat → position → direction → action."
+            onclick="selectTone(this)">Autorité</button>
+        </div>
+        <p class="cre-desc" id="cre-desc">Diagnostic, précision, autorité, décision. Logique : signal → analyse → décision → action.</p>
+      </section>
+
+      <section class="cre-ctx" id="cre-ctx" aria-label="Contexte utilisé">
+        <div class="cre-ctx-head">
+          <span>Contexte utilisé</span>
+          <span class="cre-ctx-state">Connecté</span>
+        </div>
+        <div class="cre-ctx-item">
+          <div class="cre-ctx-dot off" id="ctx-p-dot"></div>
+          <span class="cre-ctx-label">Le Psychologue</span>
+          <span class="cre-ctx-val" id="ctx-p-val">Aucune analyse liée</span>
+        </div>
+        <div class="cre-ctx-sep"></div>
+        <div class="cre-ctx-item">
+          <div class="cre-ctx-dot off" id="ctx-s-dot"></div>
+          <span class="cre-ctx-label">Le Stratège</span>
+          <span class="cre-ctx-val" id="ctx-s-val">Aucune stratégie liée</span>
+        </div>
+      </section>
+
+      <section class="cre-history hidden" id="cre-history">
+        <button type="button" class="cre-history-head" onclick="toggleHistory()" aria-expanded="false" aria-controls="cre-history-list">
+          <span class="cre-history-title">
+            Créations récentes
+            <span class="cre-history-count" id="cre-history-count">0</span>
+          </span>
+          <span class="cre-history-toggle" id="cre-history-toggle-label">Afficher</span>
+        </button>
+        <div class="cre-history-list collapsed" id="cre-history-list"></div>
+      </section>
+    </aside>
   </div>
 
   <!-- Loading -->
-  <div class="hidden cre-loading" id="cre-load">
+  <div class="hidden cre-loading" id="cre-load" role="status" aria-live="polite">
+    <div class="cre-loading-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    </div>
     <div class="cre-progress"><div class="cre-progress-fill"></div></div>
     <div class="loading-percent" id="cre-percent" style="font-size:22px;min-height:26px;">0%</div>
     <div class="cre-loading-label" id="cre-load-lbl">Gabriel compose votre contenu…</div>
-    <div class="cre-loading-sub">Inspiré de la psychologie de votre audience</div>
+    <div class="cre-loading-sub">Votre brief, votre stratégie et votre audience sont reliés.</div>
   </div>
 
   <!-- Résultat -->
   <div class="hidden cre-result" id="cre-out">
+    <div class="cre-result-head">
+      <div>
+        <div class="cre-result-kicker">Création terminée</div>
+        <h2 class="cre-result-title">Votre contenu est prêt.</h2>
+      </div>
+      <div class="cre-actions">
+        <button type="button" class="cre-act cp" id="cre-cp" onclick="copyMain()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copier
+        </button>
+        <button type="button" class="cre-act" onclick="regen()">Régénérer</button>
+        <button type="button" class="cre-act sv" id="cre-sv" onclick="save()">Sauvegarder</button>
+      </div>
+    </div>
 
-    <div class="cre-brief"   id="cre-brief"></div>
+    <div class="cre-brief" id="cre-brief" aria-label="Résumé du brief"></div>
 
     <div class="cre-out-card">
       <div class="cre-out-lbl" id="cre-out-lbl">Script généré</div>
       <div class="cre-out-text" id="cre-out-text"></div>
     </div>
 
-    <div class="cre-why" id="cre-why">
-      <div class="cre-why-hdr">Pourquoi cette tonalité</div>
-      <div id="cre-why-body"></div>
-    </div>
-
     <div class="hidden cre-var" id="cre-var">
       <div class="cre-var-lbl" id="cre-var-lbl">Variante · angle alternatif</div>
       <div class="cre-out-text" id="cre-var-txt" style="margin-bottom:14px"></div>
-      <button class="cre-act cp" onclick="copyVar()">Copier la variante</button>
+      <button type="button" class="cre-act cp" onclick="copyVar()">Copier la variante</button>
     </div>
 
-    <div class="cre-refine-wrap">
-      <div class="cre-refine-lbl">Raffiner</div>
-      <div class="cre-refine-row">
-        <input type="text" class="cre-refine-in" id="cre-rfn"
-          placeholder="Rendre le hook plus percutant, raccourcir, ajouter une preuve sociale…" />
-        <button class="cre-act" onclick="refine()" style="white-space:nowrap">Appliquer</button>
-      </div>
+    <div class="cre-result-details">
+      <section class="cre-why" id="cre-why">
+        <div class="cre-why-hdr">Décisions d’écriture</div>
+        <div id="cre-why-body"></div>
+      </section>
+
+      <section class="cre-refine-wrap">
+        <label class="cre-refine-lbl" for="cre-rfn">Raffiner ce contenu</label>
+        <p class="cre-refine-copy">Demandez une modification précise sans recommencer votre brief.</p>
+        <div class="cre-refine-row">
+          <input type="text" class="cre-refine-in" id="cre-rfn"
+            placeholder="Ex. Raccourcir et renforcer le hook" />
+          <button type="button" class="cre-act" id="cre-refine-btn" onclick="refine()">Appliquer</button>
+        </div>
+      </section>
     </div>
 
-    <div class="cre-separator"></div>
-
-    <div class="cre-actions">
-      <button class="cre-act cp"  id="cre-cp"  onclick="copyMain()">Copier</button>
-      <button class="cre-act"          onclick="regen()">Régénérer</button>
-      <button class="cre-act"          onclick="changeTone()">Changer la tonalité</button>
-      <button class="cre-act sv"  id="cre-sv"  onclick="save()">Sauvegarder</button>
+    <div class="cre-actions cre-actions-secondary">
+      <button type="button" class="cre-act" onclick="changeTone()">Changer la tonalité</button>
     </div>
 
   </div>
@@ -883,11 +1618,11 @@ async function loadCreatorHistory() {
       const key   = item.content_type || item.export_type || '';
       const label = _CRE_HIST_LABELS[key] || key || 'Contenu';
       const preview = (item.full_text || '').replace(/\s+/g, ' ').trim().slice(0, 90);
-      return `<div class="cre-history-item" onclick="loadHistoryItem(${i})">
+      return `<button type="button" class="cre-history-item" onclick="loadHistoryItem(${i})">
         <span class="cre-history-tag">${esc(label)}</span>
         <span class="cre-history-preview">${esc(preview)}</span>
         <span class="cre-history-date">${_fmtHistDate(item.created_at)}</span>
-      </div>`;
+      </button>`;
     }).join('');
     sh('cre-history');
   } catch (e) {}
@@ -896,12 +1631,24 @@ async function loadCreatorHistory() {
 function toggleHistory() {
   _historyOpen = !_historyOpen;
   $('cre-history-list').classList.toggle('collapsed', !_historyOpen);
-  $('cre-history-toggle-label').textContent = _historyOpen ? 'Masquer ▴' : 'Afficher ▾';
+  $('cre-history-toggle-label').textContent = _historyOpen ? 'Masquer' : 'Afficher';
+  document.querySelector('.cre-history-head')?.setAttribute('aria-expanded', String(_historyOpen));
 }
 
 function loadHistoryItem(i) {
   const item = _historyItems[i];
   if (!item) return;
+  const format = item.content_type || item.export_type || '';
+  if (format && [...$('cre-fmt').options].some(option => option.value === format)) {
+    $('cre-fmt').value = format;
+  }
+  if (item.channel && [...$('cre-ch').options].some(option => option.value === item.channel)) {
+    $('cre-ch').value = item.channel;
+  }
+  if (item.tone) {
+    const toneButton = document.querySelector(`.cre-tone[data-tone="${CSS.escape(item.tone)}"]`);
+    if (toneButton) selectTone(toneButton);
+  }
   let content = {};
   try { content = JSON.parse(item.content_json || '{}'); } catch (e) {}
   renderResult({
@@ -1030,11 +1777,26 @@ async function _loadFromFolder(folderId) {
 
 /* ─── Tonalité ───────────────────────────────────────────────────────────────── */
 function selectTone(btn) {
-  document.querySelectorAll('.cre-tone').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.cre-tone').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-checked', 'false');
+  });
   btn.classList.add('active');
+  btn.setAttribute('aria-checked', 'true');
   _tone = btn.dataset.tone;
   $('cre-desc').textContent = btn.dataset.desc || '';
 }
+
+document.querySelectorAll('.cre-tone').forEach((tone, index, all) => {
+  tone.addEventListener('keydown', event => {
+    if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(event.key)) return;
+    event.preventDefault();
+    const direction = ['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : -1;
+    const next = all[(index + direction + all.length) % all.length];
+    selectTone(next);
+    next.focus();
+  });
+});
 
 /* ─── Canal suggéré selon le format ──────────────────────────────────────────
    Certains couples Format/Canal sont contradictoires pour le LLM (ex: Format
@@ -1054,11 +1816,36 @@ $('cre-fmt').addEventListener('change', () => {
 
 /* ─── Compteur chars ─────────────────────────────────────────────────────────── */
 function updateCount() {
-  const n = $('cre-req').value.length;
+  const input = $('cre-req');
+  const n = input.value.length;
   const el = $('cre-count');
   el.textContent = n + ' / 2000';
   el.className = 'cre-count' + (n >= 1900 ? ' over' : n >= 1600 ? ' near' : '');
+  $('cre-input-clear').classList.toggle('hidden', n === 0);
+  $('cre-editor-wrap').classList.remove('invalid');
+  hd('cre-req-error');
 }
+
+function setPrompt(value) {
+  const input = $('cre-req');
+  input.value = value;
+  updateCount();
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+}
+
+function clearPrompt() {
+  $('cre-req').value = '';
+  updateCount();
+  $('cre-req').focus();
+}
+
+$('cre-req').addEventListener('keydown', event => {
+  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+    event.preventDefault();
+    generate();
+  }
+});
 
 /* ─── Pourcentage estimé (≈95% à 70 s) ───────────────────────────────────────── */
 let _crePctTimer = null;
@@ -1077,20 +1864,39 @@ function stopCrePercent(done) {
   if (done) { const el = $('cre-percent'); if (el) el.textContent = '100%'; }
 }
 
+function setGenerating(isGenerating, label) {
+  const button = $('cre-gen');
+  button.disabled = isGenerating;
+  button.setAttribute('aria-busy', String(isGenerating));
+  $('cre-card').setAttribute('aria-busy', String(isGenerating));
+  $('cre-gen-label').textContent = isGenerating ? (label || 'Création en cours…') : 'Créer le contenu';
+}
+
 /* ─── Génération ─────────────────────────────────────────────────────────────── */
 async function generate() {
+  if ($('cre-gen').disabled) return;
+  const userRequest = $('cre-req').value.trim();
+  if (!userRequest) {
+    $('cre-editor-wrap').classList.add('invalid');
+    sh('cre-req-error');
+    $('cre-req').focus();
+    toast('Ajoutez un brief avant de lancer la création.', true);
+    return;
+  }
+
   _lastResult = null;
   hd('cre-out');
   sh('cre-load');
+  _smartScrollToResults('cre-load');
   startCrePercent();
-  $('cre-gen').disabled = true;
+  setGenerating(true);
 
   const payload = {
     content_type:  $('cre-fmt').value,
     channel:       $('cre-ch').value,
     tone:          _tone,
     objective:     $('cre-obj').value,
-    user_request:  $('cre-req').value.trim(),
+    user_request:  userRequest,
     analysis_id:   _analysisId,
     folder_id:     _folderId,
     psycho_data:   _psycho,
@@ -1112,7 +1918,7 @@ async function generate() {
       return;
     }
     const d = await r.json();
-    if (d.error) { err(d.error); return; }
+    if (!r.ok || d.error) { err(d.error || 'La création n’a pas pu démarrer.'); return; }
     if (d.job_id) { _pollN = 0; poll(d.job_id); }
     else renderResult(d.data || d);
   } catch(e) {
@@ -1156,7 +1962,7 @@ function renderResult(d) {
   if (_pollTimer) clearTimeout(_pollTimer);
   stopCrePercent(true);
   _lastResult = d;
-  $('cre-gen').disabled = false;
+  setGenerating(false);
   hd('cre-load');
 
   // Brief chips
@@ -1216,6 +2022,7 @@ function renderResult(d) {
   const sv = $('cre-sv');
   sv.textContent = 'Sauvegarder';
   sv.className = 'cre-act sv';
+  sv.disabled = false;
   const cp = $('cre-cp');
   cp.textContent = 'Copier';
   cp.className = 'cre-act cp';
@@ -1239,11 +2046,17 @@ function renderResult(d) {
 /* ─── Raffiner ───────────────────────────────────────────────────────────────── */
 async function refine() {
   const instruction = $('cre-rfn').value.trim();
-  if (!instruction) return;
+  if (!instruction) {
+    $('cre-rfn').focus();
+    toast('Précisez la modification à appliquer.', true);
+    return;
+  }
   hd('cre-out'); sh('cre-load');
+  _smartScrollToResults('cre-load');
   startCrePercent();
   $('cre-load-lbl').textContent = 'Raffinement en cours…';
-  $('cre-gen').disabled = true;
+  setGenerating(true, 'Raffinement en cours…');
+  $('cre-refine-btn').disabled = true;
 
   try {
     const r = await fetch('/creator/refine', {
@@ -1261,48 +2074,83 @@ async function refine() {
     });
     const d = await r.json();
     stopCrePercent(true);
-    $('cre-gen').disabled = false; hd('cre-load');
-    if (d.error) { err(d.error); return; }
+    setGenerating(false);
+    $('cre-refine-btn').disabled = false;
+    hd('cre-load');
+    if (!r.ok || d.error) { err(d.error || 'Le raffinement a échoué.'); return; }
     const refined = d.data || d;
     if (refined.full_text) {
       $('cre-out-text').textContent = refined.full_text;
-      if (_lastResult) _lastResult.content = refined;
+      if (_lastResult) {
+        _lastResult.content = refined;
+        _lastResult.full_text = refined.full_text;
+      }
       $('cre-sv').textContent = 'Sauvegarder';
       $('cre-sv').className = 'cre-act sv';
       $('cre-rfn').value = '';
       toast('Contenu raffiné');
     }
     sh('cre-out');
+    _smartScrollToResults('cre-out');
   } catch(e) {
-    $('cre-gen').disabled = false;
+    $('cre-refine-btn').disabled = false;
     err('Erreur lors du raffinement.');
   }
 }
 
 /* ─── Régénérer / changer tonalité ─────────────────────────────────────────── */
 function regen()       { hd('cre-out'); generate(); }
-function changeTone()  { hd('cre-out'); $('cre-tones').scrollIntoView({behavior:'smooth',block:'center'}); }
+function changeTone()  {
+  const tones = $('cre-tones');
+  tones.scrollIntoView({behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center'});
+  tones.querySelector('.cre-tone.active')?.focus({preventScroll: true});
+  toast('Choisissez une tonalité, puis régénérez le contenu.');
+}
 
 /* ─── Copier ─────────────────────────────────────────────────────────────────── */
 async function copyMain() {
-  await cpText($('cre-out-text').textContent);
+  const copied = await cpText($('cre-out-text').textContent);
+  if (!copied) return;
   const btn = $('cre-cp');
-  btn.textContent = '✓ Copié';
+  btn.textContent = 'Copié';
   btn.className = 'cre-act ok';
   setTimeout(() => { btn.textContent = 'Copier'; btn.className = 'cre-act cp'; }, 2200);
 }
 async function copyVar() {
   await cpText($('cre-var-txt').textContent);
-  toast('Variante copiée');
 }
 async function cpText(t) {
-  try { await navigator.clipboard.writeText(t); toast('Copié'); } catch(e){}
+  try {
+    await navigator.clipboard.writeText(t);
+    toast('Copié');
+    return true;
+  } catch(e) {
+    try {
+      const fallback = document.createElement('textarea');
+      fallback.value = t;
+      fallback.setAttribute('readonly', '');
+      fallback.style.position = 'fixed';
+      fallback.style.opacity = '0';
+      document.body.appendChild(fallback);
+      fallback.select();
+      const copied = document.execCommand('copy');
+      fallback.remove();
+      if (!copied) throw new Error('copy_failed');
+      toast('Copié');
+      return true;
+    } catch (fallbackError) {
+      toast('Copie impossible. Sélectionnez le texte manuellement.', true);
+      return false;
+    }
+  }
 }
 
 /* ─── Sauvegarder ────────────────────────────────────────────────────────────── */
 async function save() {
   const btn = $('cre-sv');
   if (btn.classList.contains('done')) return;
+  btn.disabled = true;
+  btn.textContent = 'Sauvegarde…';
   try {
     const r = await fetch('/creator/save', {
       method: 'POST',
@@ -1317,35 +2165,45 @@ async function save() {
       }),
     });
     const d = await r.json();
-    if (d.success) {
+    if (r.ok && d.success) {
       btn.textContent = '✓ Sauvegardé';
       btn.className = 'cre-act sv done';
       toast('Contenu sauvegardé');
+      loadCreatorHistory();
+      return;
     }
-  } catch(e){}
+    throw new Error(d.error || 'save_failed');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Sauvegarder';
+    toast('La sauvegarde a échoué. Réessayez.', true);
+  }
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────────────────── */
 function reset() {
   if (_pollTimer) clearTimeout(_pollTimer);
-  _psycho = {}; _strategy = {}; _analysisId = ''; _lastResult = null;
+  _lastResult = null;
   $('cre-req').value = '';
-  $('cre-count').textContent = '0 / 2000';
-  $('cre-count').className = 'cre-count';
-  $('cre-ctx').style.display = 'none';
-  $('cre-opt-persona').classList.add('hidden');
   $('cre-variant').checked = false;
-  $('cre-gen').disabled = false;
+  $('cre-rfn').value = '';
+  $('cre-load-lbl').textContent = 'Gabriel compose votre contenu…';
+  $('cre-refine-btn').disabled = false;
+  updateCount();
+  setGenerating(false);
   stopCrePercent();
   hd('cre-load'); hd('cre-out');
-  document.querySelector('.app-content')?.scrollTo({top:0, behavior:'smooth'});
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelector('.app-content')?.scrollTo({top:0, behavior: reduced ? 'auto' : 'smooth'});
+  setTimeout(() => $('cre-req').focus({preventScroll: true}), reduced ? 0 : 280);
 }
 
 /* ─── Erreur ─────────────────────────────────────────────────────────────────── */
 function err(msg) {
   if (_pollTimer) clearTimeout(_pollTimer);
   stopCrePercent();
-  $('cre-gen').disabled = false;
+  setGenerating(false);
+  $('cre-refine-btn').disabled = false;
   hd('cre-load');
   toast(msg, true);
 }
