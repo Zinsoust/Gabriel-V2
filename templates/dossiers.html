@@ -483,7 +483,14 @@
       cursor: pointer;
       display: grid;
       place-items: center;
-      opacity: 0;
+      /* Visible en permanence, à faible opacité — un bouton révélé
+         uniquement au survol (opacity:0 par défaut) est invisible et donc
+         introuvable sur tout appareil sans souris (tablette, tactile) : ni
+         hover ni focus-visible ne se déclenchent jamais. Trouvé en
+         conditions réelles : entre 560px et 840px de large notamment,
+         aucun correctif mobile ne compensait, le bouton restait invisible
+         alors qu'il fonctionnait très bien une fois localisé au clic. */
+      opacity: .55;
       transition: opacity .2s ease, color .2s ease, border-color .2s ease, background .2s ease;
     }
 
@@ -864,7 +871,6 @@
       .ds-card-link { grid-template-columns: 68px minmax(0, 1fr); padding: 16px; }
       .ds-card-visual { width: 68px; min-height: 58px; }
       .ds-card-del {
-        opacity: 1;
         right: 8px;
       }
       .ds-modal { padding: 24px; border-radius: 8px; }

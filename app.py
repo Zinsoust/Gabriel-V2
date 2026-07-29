@@ -933,14 +933,29 @@ def strategize():
 
         try:
             uid      = (current_user() or {}).get('user_id')
-            result   = gabriel.run_stratege(psycho_data, brain_context)
+            # Le flux Context Builder (entretien vocal) ignorait entièrement
+            # la mémoire de cas — ni lecture (aucun "cas similaires" injecté
+            # dans le prompt), ni écriture (add_case jamais appelé), alors
+            # que c'est désormais le chemin principal de génération de
+            # stratégie. Symétrique au flux classique ci-dessous.
+            user_mem = GabrielMemory(uid)
+            memory_context = user_mem.get_memory_context(psycho_data, effective_profile, user_id=uid)
+            memory_summary = user_mem.get_similar_summary(psycho_data, effective_profile, user_id=uid)
+
+            result   = gabriel.run_stratege(psycho_data, brain_context, memory_context=memory_context)
             strategie = result.get('strategie', {})
             strategy_id = _db.save_strategy(strategie, user_id=uid,
                                             business_context=effective_profile,
                                             folder_id=folder_id_strat)
             if folder_id_strat:
                 _db.update_folder(folder_id_strat, uid, strategy_id=strategy_id, step='stratege')
-            return jsonify({**strategie, 'success': True, 'strategy_id': strategy_id})
+            # Pas d'analysis_id sur ce flux (pas de Psychologue en amont) — le
+            # cas mémoire est donc indexé par strategy_id, déjà renvoyé au
+            # frontend et déjà la clé naturelle si un jour ce flux gagne, lui
+            # aussi, un feedback post-génération.
+            if strategy_id:
+                user_mem.add_case(strategy_id, psycho_data, strategie, effective_profile, user_id=uid)
+            return jsonify({**strategie, 'success': True, 'strategy_id': strategy_id, 'memory': memory_summary})
         except Exception as e:
             import traceback; traceback.print_exc()
             safe_log_event('strategize_cb_error', user_id=uid, error=e)
@@ -1171,6 +1186,11 @@ def creator_generate():
     tone             = data.get('tone', '')
     objective        = data.get('objective', '')
     emotion          = str(data.get('emotion') or '')[:120]  # émotion cible facultative
+    try:
+        creativity = int(data.get('creativity', 50))
+    except (TypeError, ValueError):
+        creativity = 50
+    creativity = max(0, min(100, creativity))  # niveau de créativité 0-100
     persona          = data.get('persona')
     business_context = _resolve_business_context(data, uid)
     user_request     = data.get('user_request', '')
@@ -1200,7 +1220,7 @@ def creator_generate():
             None,
         )
 
-    def _job():
+    def _legacy_generate():
         from agents.createur import Createur
         agent = Createur()
         return agent.generate_script_or_text(
@@ -1216,6 +1236,47 @@ def creator_generate():
             generate_variant = generate_variant,
             emotion          = emotion,
         )
+
+    def _job():
+        # Nouveau moteur de création stratégique (pipeline modulaire) piloté par
+        # l'interrupteur CREATOR_PIPELINE (défaut : activé). En cas d'échec ou de
+        # contenu illisible, on retombe SANS BRUIT sur le Créateur historique —
+        # aucune régression possible pour l'utilisateur. Refactorisation
+        # progressive : les deux moteurs coexistent, on bascule en confiance.
+        use_pipeline = os.environ.get('CREATOR_PIPELINE', '1') == '1'
+        if use_pipeline:
+            try:
+                from agents.creation import generate_result
+
+                # Progression en direct : chaque étape du pipeline met à jour le
+                # job, que le frontend lit via /status/<job_id>. L'utilisateur
+                # voit Gabriel réfléchir étape par étape plutôt qu'une barre muette.
+                def _on_stage(name, label, pct):
+                    j = _jobs.get(job_id)
+                    if j is not None:
+                        j['step'] = label
+                        j['progress'] = pct
+
+                return generate_result(
+                    on_stage         = _on_stage,
+                    content_type     = content_type,
+                    psycho_data      = psycho_data,
+                    strategy         = strategy,
+                    channel          = channel,
+                    tone             = tone,
+                    objective        = objective,
+                    creativity       = creativity,
+                    persona          = persona,
+                    business_context = business_context,
+                    user_request     = user_request,
+                    generate_variant = generate_variant,
+                    emotion          = emotion,
+                )
+            except Exception as e:
+                import traceback; traceback.print_exc()
+                safe_log_event('creator_pipeline_fallback', user_id=uid, error=e)
+                # repli silencieux sur l'ancien moteur
+        return _legacy_generate()
 
     # UUID aléatoire — non prédictible
     job_id = f"cr_{str(uuid.uuid4())[:12]}"
