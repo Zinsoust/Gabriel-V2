@@ -140,7 +140,7 @@
       </div>
       <div class="input-group">
         <label class="input-label">Mot de passe</label>
-        <input type="password" name="password" class="input" placeholder="••••••••" required autocomplete="{{ 'new-password' if mode == 'register' else 'current-password' }}">
+        <input type="password" name="password" class="input" placeholder="••••••••" required autocomplete="{{ 'new-password' if mode == 'register' else 'current-password' }}"{{ ' minlength="8"' if mode == 'register' else '' }}>
       </div>
       {% if mode == 'register' %}
       <div class="input-group">

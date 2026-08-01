@@ -3,15 +3,52 @@
 # Usage :
 #   from core.security import (
 #       validate_size, wrap_untrusted_content, safe_parse_ai_json,
-#       safe_log_event, assert_job_owner, LIMITS
+#       safe_log_event, assert_job_owner, LIMITS, rate_limit, limiter
 #   )
 
+import os
 import re
 import json
 import hashlib
 import logging
 
 logger = logging.getLogger('gabriel.security')
+
+# ─── Rate limiting partagé ──────────────────────────────────────────────────
+#
+# Créé ici (pas dans app.py) pour que api/auth.py puisse appliquer des
+# limites (login, register — cibles naturelles du brute-force) sans import
+# circulaire. Motif recommandé par flask-limiter : construire le Limiter
+# SANS l'app, le lier plus tard via limiter.init_app(app) dans app.py.
+_RATE_LIMIT_ENABLED = os.environ.get('RATE_LIMIT_ENABLED', 'true').lower() == 'true'
+
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    from flask import session as _flask_session
+
+    def _limiter_key():
+        """Clé de rate limit : user_id si authentifié, sinon IP. Pour login/
+        register (jamais authentifié au moment de l'appel), c'est l'IP —
+        exactement ce qu'il faut contre le brute-force de mot de passe."""
+        uid = _flask_session.get('user_id')
+        return f"uid:{uid}" if uid else f"ip:{get_remote_address()}"
+
+    limiter = Limiter(key_func=_limiter_key, default_limits=[], storage_uri="memory://")
+    _LIMITER_AVAILABLE = True
+except ImportError:
+    limiter = None
+    _LIMITER_AVAILABLE = False
+
+
+def rate_limit(limit_string):
+    """Décorateur de rate-limit conditionnel — no-op si flask-limiter est
+    absent ou RATE_LIMIT_ENABLED=false (utile en dev)."""
+    def decorator(f):
+        if not _RATE_LIMIT_ENABLED or not _LIMITER_AVAILABLE or not limiter:
+            return f
+        return limiter.limit(limit_string)(f)
+    return decorator
 
 # ─── Limites d'entrée ─────────────────────────────────────────────────────────
 

@@ -14,7 +14,9 @@ from flask import Blueprint, session, redirect, url_for, request, jsonify, rende
 from authlib.integrations.flask_client import OAuth
 from authlib.integrations.base_client.errors import MismatchingStateError, OAuthError
 from werkzeug.security import generate_password_hash, check_password_hash
-from core.security import safe_log_event
+from core.security import safe_log_event, rate_limit
+
+_RL_LOGIN = os.environ.get('RATE_LIMIT_LOGIN', '10 per hour')
 
 auth_bp = Blueprint('auth', __name__)
 oauth   = OAuth()
@@ -193,8 +195,8 @@ def register_email_user(email, password, name=''):
     email = email.strip().lower()
     if not email or not password:
         return None, 'Email et mot de passe requis.'
-    if len(password) < 6:
-        return None, 'Le mot de passe doit faire au moins 6 caractères.'
+    if len(password) < 8:
+        return None, 'Le mot de passe doit faire au moins 8 caractères.'
 
     if _supabase:
         existing = _supabase.table(_TABLE).select('user_id').eq('email', email).execute()
@@ -308,6 +310,7 @@ def login_page():
 
 
 @auth_bp.route('/login/email', methods=['POST'])
+@rate_limit(_RL_LOGIN)
 def login_email():
     email    = request.form.get('email', '')
     password = request.form.get('password', '')
@@ -321,6 +324,7 @@ def login_email():
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@rate_limit(_RL_LOGIN)
 def register():
     if request.method == 'GET':
         plan = request.args.get('plan', '') if request.args.get('plan') in _REDIRECT_PLANS else ''

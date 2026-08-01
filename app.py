@@ -115,7 +115,9 @@ except Exception as _nlp_preload_err:
 
 # ── Rate Limiting ─────────────────────────────────────────────────────────────
 # Configurable via .env (RATE_LIMIT_ENABLED=false désactive tout, utile en dev)
-_RATE_LIMIT_ENABLED = os.environ.get('RATE_LIMIT_ENABLED', 'true').lower() == 'true'
+# Le Limiter lui-même vit dans core/security.py (créé sans app, lié ici via
+# init_app) pour qu'api/auth.py puisse aussi l'utiliser sans import circulaire
+# — indispensable pour protéger /login/email et /register du brute-force.
 _RL_ANALYZE     = os.environ.get('RATE_LIMIT_ANALYZE',    '10 per hour')
 _RL_STRATEGIZE  = os.environ.get('RATE_LIMIT_STRATEGIZE', '20 per hour')
 _RL_CREATOR     = os.environ.get('RATE_LIMIT_CREATOR',    '30 per hour')
@@ -123,39 +125,12 @@ _RL_CHAT        = os.environ.get('RATE_LIMIT_CHAT',       '60 per hour')
 _RL_EXPORT_PDF  = os.environ.get('RATE_LIMIT_EXPORT_PDF', '10 per hour')
 _RL_VOICE       = os.environ.get('RATE_LIMIT_VOICE',      '60 per hour')
 
-try:
-    from flask_limiter import Limiter
-    from flask_limiter.util import get_remote_address
+from core.security import limiter, rate_limit as _rl
 
-    def _limiter_key():
-        """Clé de rate limit : user_id si authentifié, sinon IP."""
-        uid = session.get('user_id')
-        if uid:
-            return f"uid:{uid}"
-        return f"ip:{get_remote_address()}"
-
-    limiter = Limiter(
-        app=app,
-        key_func=_limiter_key,
-        default_limits=[],
-        storage_uri="memory://",
-    )
-    _LIMITER_AVAILABLE = True
-except ImportError:
-    limiter = None
-    _LIMITER_AVAILABLE = False
+if limiter is not None:
+    limiter.init_app(app)
+else:
     print("[SECURITY] flask-limiter non disponible — rate limiting désactivé.")
-
-
-def _rl(limit_string):
-    """Décorateur de rate-limit conditionnel.
-    Doit être placé APRÈS @login_required (inner) pour que l'auth passe en premier.
-    """
-    def decorator(f):
-        if not _RATE_LIMIT_ENABLED or not _LIMITER_AVAILABLE or not limiter:
-            return f
-        return limiter.limit(limit_string)(f)
-    return decorator
 
 # ── Gestionnaires d'erreurs globaux ──────────────────────────────────────────
 
@@ -186,6 +161,10 @@ def _security_headers(response):
     response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
     response.headers.setdefault('X-Permitted-Cross-Domain-Policies', 'none')
     response.headers.setdefault('Permissions-Policy', 'camera=(), microphone=(self), geolocation=()')
+    # HSTS uniquement en production — en local (http://), l'imposer casserait
+    # le développement (le navigateur refuserait de repasser en clair).
+    if _is_production:
+        response.headers.setdefault('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
     # CSP : bloque l'exfiltration XSS tout en autorisant les CDN fonts et le JS inline existant
     if not response.headers.get('Content-Security-Policy'):
         response.headers['Content-Security-Policy'] = (
@@ -1266,8 +1245,24 @@ def creator_generate():
                         j['step'] = label
                         j['progress'] = pct
 
+                # Livraison progressive : le brouillon part à l'écran dès qu'il
+                # est écrit (~32 s) pendant que Gabriel le critique et
+                # l'optimise (~25 s de plus). Le frontend l'affiche aussitôt
+                # avec la mention « Gabriel relit », puis le remplace par la
+                # version finale. L'attente ressentie est presque divisée par deux.
+                def _on_draft(ctx):
+                    j = _jobs.get(job_id)
+                    if j is None:
+                        return
+                    try:
+                        from agents.creation import shape_draft
+                        j.setdefault('partial', {})['draft'] = shape_draft(ctx)
+                    except Exception:
+                        pass
+
                 return generate_result(
                     on_stage         = _on_stage,
+                    on_draft         = _on_draft,
                     content_type     = content_type,
                     psycho_data      = psycho_data,
                     strategy         = strategy,
