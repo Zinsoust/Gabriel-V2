@@ -199,6 +199,15 @@ def _security_headers(response):
             "object-src 'none'; "
             "base-uri 'self';"
         )
+    # Les PAGES HTML ne doivent jamais être servies depuis le cache navigateur :
+    # sinon une itération d'interface (comme la refonte du Créateur) reste
+    # invisible tant que l'utilisateur ne vide pas son cache. On ne touche pas
+    # aux assets statiques (CSS/JS versionnés par static_v), seulement au HTML.
+    ctype = response.headers.get('Content-Type', '')
+    if ctype.startswith('text/html') and not response.headers.get('Cache-Control'):
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
     return response
 
 

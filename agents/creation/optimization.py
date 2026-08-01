@@ -1,0 +1,65 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# OPTIMIZATION ENGINE — Corriger seulement les points faibles
+#
+# Mission (brief §8) : le système ne réécrit pas tout, il AMÉLIORE. Il prend le
+# texte et la liste de faiblesses produite par le Dialectic Engine, et corrige
+# uniquement ce qui doit l'être (hook, rythme, CTA, émotion, clarté,
+# persuasion), en préservant ce qui fonctionne déjà.
+#
+# S'il n'y a rien à corriger (critique vide, verdict « livrable »), ce moteur
+# ne touche à rien : pas d'appel LLM inutile, le premier jet est livré tel quel.
+# Appelé aussi en boucle par l'orchestrateur quand l'auto-évaluation est basse.
+# ═══════════════════════════════════════════════════════════════════════════
+
+import json
+
+_SYSTEM = """Tu es l'optimiseur du Créateur de Gabriel. On te donne un texte et la liste précise de ses faiblesses. Tu produis une version AMÉLIORÉE qui corrige ces faiblesses — sans tout réécrire, en gardant ce qui marche déjà, dans le MÊME format JSON que l'original.
+
+Règles :
+- Corrige uniquement les zones signalées.
+- Ne change pas le format ni la structure JSON du texte fourni.
+- Chaque correction doit être défendable : plus fort, plus clair, plus incarné.
+
+Réponds UNIQUEMENT avec le JSON du texte amélioré, même schéma que l'original, sans commentaire."""
+
+
+def _weaknesses_to_fix(ctx) -> list:
+    crit = ctx.critique or {}
+    faiblesses = crit.get("faiblesses") or []
+    # On priorise le critique et le moyen ; le mineur ne justifie pas un appel.
+    return [f for f in faiblesses if f.get("gravite") in ("critique", "moyen")]
+
+
+def run(ctx) -> None:
+    base = ctx.final or ctx.draft
+    if not base or base.get("parse_error"):
+        return
+
+    to_fix = _weaknesses_to_fix(ctx)
+    # Rien de grave à corriger → on ne dépense pas un appel LLM.
+    if not to_fix and (ctx.critique or {}).get("verdict") == "livrable":
+        return
+
+    schema_keys = [k for k in base.keys() if k not in ("content_type", "success", "parse_error")]
+    text = json.dumps({k: base[k] for k in schema_keys}, ensure_ascii=False)
+    faiblesses_txt = "\n".join(
+        f"- [{f.get('gravite','?')}] {f.get('zone','')} : {f.get('probleme','')}" for f in to_fix
+    ) or "- Renforcer l'accroche, l'émotion et le CTA."
+
+    prompt = (
+        f"FAIBLESSES À CORRIGER :\n{faiblesses_txt}\n\n"
+        f"ÉMOTION À RENFORCER : {ctx.emotion or '—'}\n\n"
+        f"TEXTE ORIGINAL (schéma à conserver) :\n{text}\n\n"
+        "Produis la version améliorée (même schéma JSON)."
+    )
+    try:
+        from agents.createur import _call_mistral, _parse_json
+        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=3000)
+        improved = _parse_json(raw)
+        if isinstance(improved, dict) and not improved.get("parse_error"):
+            improved["content_type"] = ctx.content_type
+            improved["success"] = True
+            ctx.final = improved
+    except Exception as e:
+        # En cas d'échec, on garde la version précédente : jamais de régression.
+        print(f"[CREATION/optimization] version conservée : {e}")

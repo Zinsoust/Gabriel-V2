@@ -1273,6 +1273,256 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   STUDIO — maquette de référence : canevas large + panneau FLOTTANT à droite.
+   Trois règles imposées : (1) le panneau de réglages flotte, (2) le texte
+   généré défile dans la page, (3) la saisie grandit avec le contenu.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* La page réserve la place du panneau flottant ; le canevas se centre dans
+   l'espace restant. (Réserver la place sur .cs-main lui-même retirait cette
+   largeur de son max-width — le contenu tombait à ~370 px et tout se
+   compressait : titre sur 4 lignes, cartes illisibles.) */
+.cre-studio { max-width: none; padding: 34px 372px 40px 0; }
+
+/* (1) Panneau FLOTTANT — il ne pousse rien, il survole la page à droite. */
+.cs-params {
+  position: fixed; top: 92px; right: 26px; width: 322px;
+  max-height: calc(100vh - 130px); overflow-y: auto; z-index: 30;
+  background: color-mix(in srgb, var(--bg-card) 96%, transparent);
+  border: 1px solid var(--border-soft); border-radius: 14px;
+  padding: 18px 16px; backdrop-filter: blur(14px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.30);
+  display: flex; flex-direction: column; gap: 10px;
+  scrollbar-width: thin;
+}
+.cs-params::-webkit-scrollbar { width: 4px; }
+.cs-params::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 2px; }
+
+/* Le canevas se centre dans l'espace laissé libre par le panneau flottant. */
+.cs-main { max-width: 800px; margin: 0 auto; padding: 0 32px; }
+@media (min-width: 1700px) { .cs-main { max-width: 900px; } }
+
+.cs-p-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.cs-p-title { font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+.cs-p-gear { color: var(--text-disabled); } .cs-p-gear svg { width: 15px; height: 15px; }
+
+/* Réglages — cartes bordées, comme la maquette */
+.cs-set { display: flex; align-items: flex-start; gap: 11px; padding: 13px 13px; border: 1px solid var(--border-soft); border-radius: 11px; background: color-mix(in srgb, var(--text-primary) 1.6%, transparent); cursor: pointer; transition: 0.15s; position: relative; }
+.cs-set:hover { border-color: var(--border-medium); }
+details.cs-set { display: block; padding: 0; }
+details.cs-set > .cs-set-row { display: flex; align-items: flex-start; gap: 11px; padding: 13px; list-style: none; cursor: pointer; }
+details.cs-set > .cs-set-row::-webkit-details-marker { display: none; }
+details.cs-set[open] { border-color: var(--border-champagne); }
+.cs-set-ic { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.cs-set-ic svg { width: 15px; height: 15px; }
+.cs-set-ic.pen, .cs-set-ic.emo { background: color-mix(in srgb, var(--champagne) 14%, transparent); color: var(--champagne); }
+.cs-set-ic.li  { background: color-mix(in srgb, var(--accent-blue, #5B8ED0) 15%, transparent); color: var(--accent-blue, #5B8ED0); }
+.cs-set-ic.obj { background: color-mix(in srgb, var(--color-opportunity, #6BBF8A) 15%, transparent); color: var(--color-opportunity, #6BBF8A); }
+.cs-set-ic.fmt { background: color-mix(in srgb, var(--champagne) 12%, transparent); color: var(--champagne-soft); }
+.cs-set-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cs-set-lbl  { font-size: 10.5px; color: var(--text-muted); line-height: 1.4; }
+.cs-opt      { color: var(--text-disabled); }
+.cs-set-val  { font-size: 14px; font-weight: 600; color: var(--champagne); margin: 2px 0 3px; letter-spacing: -0.01em; }
+.cs-set-val.muted { color: var(--text-secondary); font-weight: 500; }
+.cs-set-desc { font-size: 10.5px; color: var(--text-muted); line-height: 1.45; }
+.cs-set-chev { color: var(--text-disabled); flex-shrink: 0; align-self: center; transition: 0.15s; }
+.cs-set-chev svg { width: 15px; height: 15px; }
+.cs-set:hover .cs-set-chev { color: var(--text-muted); transform: translateX(2px); }
+details.cs-set[open] .cs-set-chev { transform: rotate(90deg); }
+.cs-set-opts { padding: 0 13px 14px; border-top: 1px solid var(--border-soft); margin-top: 2px; padding-top: 12px; }
+.cs-set-opts .cre-tones { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cs-set-opts .cre-tone { padding: 8px 6px; font-size: 11.5px; border-radius: 7px; }
+.cs-set-opts .cre-emo-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cs-set-opts .cre-emo-free { width: 100%; margin-top: 10px; }
+/* Le select natif se superpose à la ligne : on clique la carte, le menu s'ouvre. */
+.cs-set-sel { position: relative; }
+.cs-native { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; }
+
+.cs-creat { padding: 14px 13px 16px; border: 1px solid var(--border-soft); border-radius: 11px; background: color-mix(in srgb, var(--text-primary) 1.6%, transparent); }
+.cs-creat-row { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+.cs-creat-ic { width: 16px; color: var(--champagne); } .cs-creat-ic svg { width: 15px; height: 15px; }
+.cs-creat-l { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; }
+.cs-creat-v { margin-left: auto; font-size: 10.5px; color: var(--text-muted); }
+.cs-range { width: 100%; }
+
+.cs-reco { padding: 14px; border: 1px solid var(--border-champagne); border-radius: 11px; background: color-mix(in srgb, var(--champagne) 5%, transparent); }
+.cs-reco-h { display: flex; align-items: center; gap: 7px; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--champagne-soft); font-weight: 600; margin-bottom: 9px; }
+.cs-reco-h svg { width: 13px; height: 13px; }
+.cs-reco-b { font-size: 11.5px; line-height: 1.7; color: var(--text-secondary); }
+.cs-reco-b b { color: var(--champagne-soft); font-weight: 600; }
+.cs-ctx { margin-top: 2px; }
+
+/* Hero */
+.cs-hero { margin-bottom: 40px; }
+.cs-kicker { display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: color-mix(in srgb, var(--champagne) 62%, transparent); font-weight: 600; margin-bottom: 16px; }
+.cs-h1 { font-size: clamp(27px, 3vw, 36px); font-weight: 640; line-height: 1.16; letter-spacing: -0.022em; color: var(--text-primary); }
+.cs-accent { color: var(--champagne); }
+.cs-sub { margin-top: 15px; font-size: 14px; line-height: 1.72; color: var(--text-muted); max-width: 560px; }
+
+/* (2) Zone de flux : suggestions, chargement, résultat — défile dans la page */
+.cs-flow { min-height: 180px; }
+
+.cs-sugg-wrap { padding: 18px; border: 1px solid var(--border-soft); border-radius: 13px; background: color-mix(in srgb, var(--text-primary) 1.4%, transparent); }
+.cs-sugg-lbl { display: flex; align-items: center; gap: 8px; font-size: 9.5px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 14px; }
+.cs-sugg-lbl svg { width: 12px; height: 12px; }
+.cs-sugg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; }
+.cs-sugg { position: relative; text-align: left; display: flex; flex-direction: column; gap: 7px; padding: 15px 14px 34px; background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 10px; cursor: pointer; transition: 0.16s; }
+.cs-sugg:hover { border-color: var(--border-champagne); transform: translateY(-2px); }
+.cs-sugg-ic { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+.cs-sugg-ic svg { width: 14px; height: 14px; }
+.cs-sugg-ic.li   { background: color-mix(in srgb, var(--accent-blue, #5B8ED0) 16%, transparent); color: var(--accent-blue, #5B8ED0); }
+.cs-sugg-ic.vid  { background: color-mix(in srgb, #D0785B 16%, transparent); color: #D0785B; }
+.cs-sugg-ic.mail { background: color-mix(in srgb, var(--champagne) 16%, transparent); color: var(--champagne); }
+.cs-sugg-t { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+.cs-sugg-d { font-size: 11px; line-height: 1.5; color: var(--text-muted); }
+.cs-sugg-ar { position: absolute; right: 12px; bottom: 12px; color: var(--text-disabled); transition: 0.16s; }
+.cs-sugg-ar svg { width: 14px; height: 14px; }
+.cs-sugg:hover .cs-sugg-ar { color: var(--champagne); transform: translateX(3px); }
+
+/* (3) Saisie qui grandit avec le contenu */
+.cs-composer { display: flex; align-items: flex-end; gap: 8px; margin-top: 26px; padding: 10px 12px; border: 1px solid var(--border-soft); border-radius: 26px; background: color-mix(in srgb, var(--text-primary) 3%, transparent); transition: border-color 0.18s; }
+.cs-composer:focus-within { border-color: var(--border-champagne); }
+.cs-composer.invalid { border-color: color-mix(in srgb, #d65b5b 45%, transparent); }
+.cs-input { flex: 1; background: none; border: none; outline: none; resize: none; overflow-y: auto;
+  color: var(--text-primary); font-family: inherit; font-size: 14.5px; line-height: 1.65;
+  padding: 9px 4px; min-height: 24px; max-height: 260px; }
+.cs-input::placeholder { color: var(--text-disabled); }
+/* padding:0 est indispensable : le bouton d'envoi porte aussi la classe
+   .cre-btn (héritée, gardée pour la compatibilité) qui impose
+   padding:11px 20px — sur un bouton rond de 36 px, ce remplissage dépassait
+   la largeur et réduisait l'icône à 0 px : le bouton devenait invisible. */
+.cs-comp-btn { width: 36px; height: 36px; flex-shrink: 0; padding: 0; border-radius: 50%; border: none; background: transparent; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s; }
+.cs-comp-btn:hover { background: color-mix(in srgb, var(--champagne) 13%, transparent); color: var(--text-secondary); }
+.cs-comp-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.cs-composer .cs-comp-btn.send { transform: none; }
+.cs-comp-btn.send { color: var(--champagne); }
+.cs-comp-btn.send:disabled { opacity: 0.35; cursor: default; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+/* Options secondaires sous la barre de saisie */
+.cs-underbar { display: flex; align-items: center; gap: 16px; margin-top: 12px; padding: 0 6px; }
+.cs-variant { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+.cs-variant input { accent-color: var(--champagne); }
+.cs-variant:hover { color: var(--text-secondary); }
+.cs-underbar .cre-count { font-size: 10.5px; color: var(--text-disabled); white-space: nowrap; }
+.cs-histo-btn { margin-left: auto; background: none; border: none; color: var(--text-muted); font-size: 10.5px; letter-spacing: 0.13em; text-transform: uppercase; cursor: pointer; font-family: inherit; }
+.cs-histo-btn:hover { color: var(--text-secondary); }
+
+/* (2) Résultat : défile naturellement dans la page, jamais de hauteur figée */
+.cs-flow .cre-result, .cs-flow .cre-loading { margin-top: 26px; max-height: none; overflow: visible; }
+
+@media (max-width: 1180px) {
+  .cre-studio { padding-right: 0; }
+  .cs-params { position: static; width: auto; max-height: none; margin: 26px auto 0; max-width: 780px; backdrop-filter: none; box-shadow: none; }
+}
+@media (max-width: 680px) {
+  .cs-sugg-grid { grid-template-columns: 1fr; }
+  .cs-main { padding: 0 18px; }
+  .cs-params { margin-inline: 18px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   (ancien parcours guidé — conservé sans effet, plus rendu)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cre-wizard { max-width: none; padding: 0; }
+.cw-layout { display: grid; grid-template-columns: 288px minmax(0, 1fr); min-height: calc(100vh - 120px); }
+
+/* Stepper */
+.cw-stepper { padding: 40px 30px; border-right: 1px solid var(--border-soft); display: flex; flex-direction: column; }
+.cw-kicker { display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: color-mix(in srgb, var(--champagne) 62%, transparent); font-weight: 600; margin-bottom: 32px; }
+.cw-step { position: relative; display: flex; gap: 14px; padding: 0 0 34px; background: none; border: none; text-align: left; width: 100%; cursor: pointer; }
+.cw-step:last-of-type { padding-bottom: 0; }
+.cw-dot { position: relative; z-index: 1; width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; border: 1.5px solid var(--border-medium); background: var(--bg-main); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.cw-dot svg { width: 11px; height: 11px; stroke: var(--bg-main); opacity: 0; }
+.cw-step:not(:last-of-type) .cw-dot::after { content: ""; position: absolute; top: 24px; left: 50%; transform: translateX(-50%); width: 1.5px; height: 44px; background: repeating-linear-gradient(var(--border-medium) 0 3px, transparent 3px 7px); }
+.cw-step.done .cw-dot { background: var(--champagne); border-color: var(--champagne); }
+.cw-step.done .cw-dot svg { opacity: 1; }
+.cw-step.active .cw-dot { border-color: var(--champagne); }
+.cw-step.active .cw-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--champagne); }
+.cw-sb { padding-top: 1px; }
+.cw-st { display: block; font-size: 14px; font-weight: 600; color: var(--text-muted); letter-spacing: -0.01em; transition: 0.2s; }
+.cw-ss { display: block; font-size: 12px; color: var(--text-disabled); margin-top: 3px; line-height: 1.4; }
+.cw-step.active .cw-st { color: var(--champagne); }
+.cw-step.done .cw-st { color: var(--text-secondary); }
+.cw-stepper .cre-history { margin-top: auto; padding-top: 24px; }
+
+/* Contenu large */
+.cw-content { padding: 44px 56px 60px; max-width: 940px; }
+.cw-panel { display: none; animation: cre-rise 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+.cw-panel.on { display: block; }
+.cw-field { margin-bottom: 38px; }
+.cw-lbl { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--text-primary); }
+.cw-opt { color: var(--text-disabled); font-weight: 400; }
+.cw-lbl-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+.cw-emo-cur { color: var(--champagne-soft); } .cw-emo-cur.muted { color: var(--text-muted); }
+
+/* Cartes radio (type de contenu) */
+.cw-cards2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.cw-rcard { position: relative; text-align: left; background: var(--bg-card); border: 1.5px solid var(--border-soft); border-radius: 12px; padding: 18px; cursor: pointer; transition: 0.16s; display: flex; flex-direction: column; gap: 8px; }
+.cw-rcard:hover { border-color: var(--border-medium); }
+.cw-rcard.sel { border-color: var(--border-champagne); background: color-mix(in srgb, var(--champagne) 6%, var(--bg-card)); }
+.cw-rc-h { display: flex; align-items: center; gap: 9px; }
+.cw-rc-ic { width: 22px; height: 22px; color: var(--champagne); } .cw-rc-ic svg { width: 20px; height: 20px; }
+.cw-rc-t { font-size: 14.5px; font-weight: 600; color: var(--text-primary); }
+.cw-rc-d { font-size: 12.5px; line-height: 1.6; color: var(--text-muted); }
+.cw-check { position: absolute; top: 16px; right: 16px; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border-medium); }
+.cw-rcard.sel .cw-check { border-color: var(--champagne); background: var(--champagne) no-repeat center/10px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23151514' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E"); }
+
+.cw-select-field { display: block; margin-top: 18px; }
+.cw-select-lbl { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 7px; }
+.cw-select { max-width: 380px; padding: 11px 40px 11px 14px !important; border: 1px solid var(--border-medium) !important; border-radius: 9px !important; }
+
+/* Grille de tons */
+.cw-tones { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 9px; margin-top: 16px; }
+.cw-tones .cre-tone { padding: 11px 8px; border-radius: 9px; }
+
+/* Émotion / chips au large */
+.cw-panel .cre-emo-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.cw-panel .cre-emo-free { width: 100%; max-width: 440px; margin-top: 14px; }
+
+/* Lignes canal / objectif */
+.cw-row { display: flex; align-items: center; gap: 15px; padding: 16px 0; border-bottom: 1px solid var(--border-soft); cursor: pointer; }
+.cw-row:first-of-type { border-top: 1px solid var(--border-soft); margin-top: 14px; }
+.cw-row-ic { width: 20px; color: var(--champagne); } .cw-row-ic svg { width: 19px; height: 19px; }
+.cw-row-ic.li { color: var(--accent-blue, #5B8ED0); } .cw-row-ic.obj { color: var(--color-opportunity, #6BBF8A); }
+.cw-row-body { flex: 1; } .cw-row-lbl { font-size: 14px; font-weight: 600; }
+.cw-row-sel { margin-left: auto; max-width: 230px; padding: 9px 34px 9px 13px !important; border: 1px solid var(--border-medium) !important; border-radius: 8px !important; font-size: 13.5px !important; }
+
+.cw-creativity { max-width: 460px; }
+.cw-creat-row { display: flex; align-items: center; margin-bottom: 14px; }
+.cw-creat-l { font-size: 14px; font-weight: 600; } .cw-creat-v { margin-left: auto; font-size: 12px; color: var(--text-muted); }
+.cw-creativity .cre-range { margin-left: 0; width: 100%; }
+.cw-reco { margin-top: 4px; }
+.cw-ctx { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-soft); }
+
+/* Pied d'étape */
+.cw-foot { position: sticky; bottom: 0; margin-top: 8px; padding: 18px 0; display: flex; align-items: center; gap: 14px; background: linear-gradient(transparent, var(--bg-main) 45%); }
+.cw-spacer { flex: 1; }
+.cw-btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 24px; border-radius: 9px; border: none; font-size: 14px; font-weight: 600; font-family: inherit; }
+.cw-btn svg { width: 15px; height: 15px; }
+.cw-btn.primary { background: linear-gradient(135deg, var(--champagne), var(--champagne-soft)); color: #151514; }
+.cw-btn.primary svg { stroke: #151514; }
+.cw-btn.primary:hover { box-shadow: 0 6px 18px color-mix(in srgb, var(--champagne) 28%, transparent); transform: translateY(-1px); }
+.cw-btn.ghost { background: none; border: 1px solid var(--border-medium); color: var(--text-secondary); }
+.cw-btn.ghost:hover { color: var(--text-primary); border-color: var(--border-champagne); }
+
+/* Étape 3 : idle + résultat au large */
+.cw-idle { text-align: center; padding: 80px 24px; }
+.cw-idle-t { font-size: 17px; font-weight: 600; color: var(--text-primary); }
+.cw-idle-d { font-size: 13px; color: var(--text-muted); max-width: 420px; margin: 8px auto 0; line-height: 1.7; }
+.cw-panel .cre-loading, .cw-panel .cre-result { position: static; }
+
+@media (max-width: 860px) {
+  .cw-layout { grid-template-columns: 1fr; }
+  .cw-stepper { flex-direction: row; gap: 20px; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border-soft); padding: 18px 20px; }
+  .cw-kicker, .cw-ss { display: none; }
+  .cw-step { padding-bottom: 0; white-space: nowrap; }
+  .cw-step:not(:last-of-type) .cw-dot::after { display: none; }
+  .cw-stepper .cre-history { display: none; }
+  .cw-content { padding: 28px 20px 80px; }
+  .cw-cards2, .cw-tones { grid-template-columns: 1fr !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
    HARMONISATION open-space (langage du Stratège) — placée en fin de feuille
    pour gagner sur les définitions de cartes plus haut. Les GROS conteneurs
    s'effacent (fond et bordure retirés) pour que le contenu respire dans un
@@ -1326,6 +1576,127 @@
     padding-left: 0;
     padding-top: 20px;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PANNEAU « PARAMÈTRES DE CRÉATION » (maquette portée) — liste épurée de
+   réglages, sans cartes : chaque ligne = icône · libellé · valeur · chevron.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cre-params { display: flex; flex-direction: column; }
+.cre-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.cre-panel-title { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+.cre-panel-gear { color: var(--text-disabled); display: flex; }
+.cre-panel-gear svg { width: 15px; height: 15px; }
+
+.cre-set { border-bottom: 1px solid var(--border-soft); }
+.cre-set > summary { list-style: none; cursor: pointer; }
+.cre-set > summary::-webkit-details-marker { display: none; }
+.cre-set-row, .cre-set.cre-set-select {
+  display: flex; align-items: center; gap: 14px; padding: 15px 4px; width: 100%;
+}
+.cre-set.cre-set-select { border-bottom: 1px solid var(--border-soft); cursor: pointer; margin: 0; }
+.cre-set-ic { width: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.cre-set-ic svg { width: 18px; height: 18px; }
+.cre-set-ic.ic-pen svg, .cre-set-ic.ic-emo svg { color: var(--champagne); }
+.cre-set-ic.ic-li svg  { color: var(--accent-blue, #5B8ED0); }
+.cre-set-ic.ic-obj svg { color: var(--color-opportunity, #6BBF8A); }
+.cre-set-ic.ic-fmt svg { color: var(--text-secondary); }
+.cre-set-body { flex: 1; min-width: 0; }
+.cre-set-lbl { font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.02em; display: block; }
+.cre-set-opt { color: var(--text-disabled); }
+.cre-set-val { font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 2px 0 3px; letter-spacing: -0.01em; display: block; }
+.cre-set-val.muted { color: var(--text-secondary); font-weight: 500; }
+.cre-set-desc { font-size: 10.5px; color: var(--text-muted); display: block; }
+.cre-set-chev { color: var(--text-disabled); flex-shrink: 0; transition: transform 0.18s; }
+.cre-set-chev svg { width: 15px; height: 15px; }
+.cre-set[open] > summary .cre-set-chev { transform: rotate(90deg); }
+.cre-set-options { padding: 2px 0 16px; animation: cre-rise 0.28s ease both; }
+.cre-set-options .cre-tones { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.cre-set-options .cre-emo-chips { margin-bottom: 12px; }
+
+/* Sélecteurs natifs (Canal / Objectif / Format) présentés comme des lignes */
+.cre-set-native {
+  margin-left: auto; max-width: 58%; background: transparent; border: none;
+  color: var(--text-primary); font-weight: 600; font-size: 14px; font-family: inherit;
+  text-align: right; cursor: pointer; appearance: none; -webkit-appearance: none;
+  padding: 0 18px 0 0; outline: none; text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23817A70' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right center; background-size: 13px;
+}
+.cre-set-native option { background: var(--bg-card); color: var(--text-primary); font-weight: 400; }
+
+/* Niveau de créativité */
+.cre-set.cre-creativity { padding: 18px 4px 20px; }
+.cre-creativity-row { display: flex; align-items: center; gap: 14px; margin-bottom: 15px; }
+.cre-creativity-row .cre-set-lbl { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; }
+.cre-creativity-val { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+.cre-range { -webkit-appearance: none; appearance: none; width: 100%; height: 2px; border-radius: 2px;
+  background: var(--border-medium); outline: none; margin-left: 34px; width: calc(100% - 34px); }
+.cre-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--champagne); cursor: pointer;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--champagne) 45%, transparent); }
+.cre-range::-moz-range-thumb { width: 14px; height: 14px; border: none; border-radius: 50%;
+  background: var(--champagne); cursor: pointer; }
+
+/* Recommandation Gabriel — note discrète à filet champagne */
+.cre-reco { margin: 20px 0 0; padding: 2px 0 2px 16px; border-left: 2px solid var(--border-champagne); }
+.cre-reco-head { display: flex; align-items: center; gap: 7px; font-size: 9.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--champagne-soft); font-weight: 600; margin-bottom: 10px; }
+.cre-reco-head svg { width: 13px; height: 13px; }
+.cre-reco-body { font-size: 12px; line-height: 1.7; color: var(--text-secondary); }
+.cre-reco-body b { color: var(--champagne-soft); font-weight: 600; }
+
+.cre-params .cre-ctx { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border-soft); }
+.cre-params .cre-history { margin-top: 14px; }
+
+/* ── Zone gauche façon « studio » (maquette) : suggestions en cartes +
+      composer épuré, au lieu d'un grand pavé de formulaire. ── */
+.cre-sugg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 6px 0 20px; }
+.cre-sugg-card {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start;
+  text-align: left; gap: 8px; padding: 16px 15px; cursor: pointer;
+  background: transparent; border: 1px solid var(--border-soft); border-radius: 10px;
+  transition: border-color 0.16s, background 0.16s, transform 0.16s;
+}
+.cre-sugg-card:hover { border-color: var(--border-champagne); background: color-mix(in srgb, var(--champagne) 3.5%, transparent); transform: translateY(-2px); }
+.cre-sugg-ic { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+.cre-sugg-ic svg { width: 15px; height: 15px; }
+.cre-sugg-ic.li  { background: color-mix(in srgb, var(--accent-blue, #5B8ED0) 15%, transparent); color: var(--accent-blue, #5B8ED0); }
+.cre-sugg-ic.vid { background: color-mix(in srgb, var(--color-risk, #D0785B) 15%, transparent); color: var(--color-risk, #D0785B); }
+.cre-sugg-ic.hk  { background: color-mix(in srgb, var(--champagne) 15%, transparent); color: var(--champagne); }
+.cre-sugg-t { font-size: 13px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+.cre-sugg-d { font-size: 11.5px; line-height: 1.5; color: var(--text-muted); }
+
+.cre-composer {
+  display: flex; flex-direction: column; gap: 4px;
+  background: color-mix(in srgb, var(--text-primary) 2.5%, transparent);
+  border: 1px solid var(--border-soft); border-radius: 16px;
+  padding: 14px 16px 10px; transition: border-color 0.18s, box-shadow 0.18s;
+}
+.cre-composer:focus-within {
+  border-color: var(--border-champagne);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--champagne) 9%, transparent);
+}
+.cre-composer .cre-textarea {
+  min-height: 88px; max-height: 320px; font-size: 14.5px; color: var(--text-primary);
+  padding: 0; line-height: 1.7;
+}
+.cre-composer .cre-textarea::placeholder { color: var(--text-disabled); }
+.cre-composer-bar { display: flex; align-items: center; gap: 12px; padding-top: 6px; }
+.cre-composer-bar .cre-variant-toggle { margin: 0; font-size: 11.5px; gap: 7px; }
+.cre-composer-bar .cre-count { font-size: 11px; color: var(--text-disabled); }
+.cre-composer-bar .cre-input-clear { position: static; margin-left: auto; }
+.cre-composer-bar .cre-btn {
+  margin-left: auto; border-radius: 999px; padding: 9px 20px;
+  background: linear-gradient(135deg, var(--champagne), var(--champagne-soft));
+  color: #1a1510; border: none; font-weight: 600;
+}
+.cre-composer-bar .cre-input-clear + .cre-btn { margin-left: 8px; }
+.cre-composer-bar .cre-btn svg { stroke: #1a1510; }
+.cre-composer-bar .cre-btn:hover { box-shadow: 0 6px 18px color-mix(in srgb, var(--champagne) 28%, transparent); transform: translateY(-1px); }
+
+@media (max-width: 680px) {
+  .cre-sugg-grid { grid-template-columns: 1fr; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1474,237 +1845,43 @@
 {% endblock %}
 
 {% block content %}
-<div class="cre-page">
+<div class="cre-page cre-studio" id="cre-workspace">
 
-  <header class="cre-hero" id="cre-hero">
-    <div class="cre-eyebrow"><span class="cre-eyebrow-mark" aria-hidden="true"></span>Atelier de création</div>
-    <h1 class="cre-h1">
-      Transformez votre stratégie en <span class="cre-h1-accent">contenu prêt à publier.</span>
-    </h1>
-    <p class="cre-h2">Décrivez votre intention. Gabriel relie votre demande aux décisions du Stratège et aux signaux du Psychologue pour produire un contenu cohérent avec votre audience.</p>
-  </header>
+  <!-- ══ ZONE PRINCIPALE — hero, suggestions, saisie ══════════════════════ -->
+  <main class="cs-main" id="cre-main">
 
-  <div class="cre-workspace" id="cre-workspace">
-    <section class="cre-card" id="cre-card" data-tour="createur-start" aria-labelledby="cre-brief-title">
-      <div class="cre-section-head">
-        <span class="cre-step" aria-hidden="true">01</span>
-        <div>
-          <h2 class="cre-section-title" id="cre-brief-title">Définissez votre brief</h2>
-          <p class="cre-section-copy">Précisez le sujet, l’idée ou l’action que le contenu doit provoquer.</p>
+    <header class="cs-hero" id="cre-hero">
+      <div class="cs-kicker"><span class="cre-eyebrow-mark" aria-hidden="true"></span>Atelier de création</div>
+      <h1 class="cs-h1">Transformez votre stratégie<br>en contenu <span class="cs-accent">prêt à publier.</span></h1>
+      <p class="cs-sub">Décrivez votre intention. Gabriel relie votre demande aux décisions du Stratège et aux signaux du Psychologue pour produire un contenu cohérent avec votre audience.</p>
+    </header>
+
+    <div class="cs-flow" id="cre-flow">
+      <div class="cs-sugg-wrap">
+        <div class="cs-sugg-lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 10l5-5 5 5M7 14l5 5 5-5"/></svg>Suggestions personnalisées</div>
+        <div class="cs-sugg-grid">
+          <button type="button" class="cs-sugg" onclick="setPrompt('Transforme cette stratégie en post LinkedIn expert avec une conclusion actionnable.')">
+            <span class="cs-sugg-ic li"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4zm3.5 6H6v7h1.5v-7zm-.75-1a1 1 0 100-2 1 1 0 000 2zM18 17v-4c0-2-1.2-3-2.8-3-1 0-1.7.5-2 1V10H10v7h1.5v-3.8c0-.9.5-1.4 1.3-1.4.8 0 1.2.5 1.2 1.4V17H18z"/></svg></span>
+            <span class="cs-sugg-t">Post LinkedIn — Autorité</span>
+            <span class="cs-sugg-d">Positionnement fort autour de votre offre principale</span>
+            <span class="cs-sugg-ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
+          <button type="button" class="cs-sugg" onclick="setPrompt('Écris un script vidéo court qui traite l’objection principale de mon audience.')">
+            <span class="cs-sugg-ic vid"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7L8 5z"/></svg></span>
+            <span class="cs-sugg-t">Vidéo courte — Objection</span>
+            <span class="cs-sugg-d">Répondre au frein n°1 identifié par votre audience</span>
+            <span class="cs-sugg-ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
+          <button type="button" class="cs-sugg" onclick="setPrompt('Rédige une séquence email qui transforme l’intérêt en prise de rendez-vous.')">
+            <span class="cs-sugg-ic mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
+            <span class="cs-sugg-t">Email — Conversion</span>
+            <span class="cs-sugg-d">Transformer l’intérêt en prise de rendez-vous</span>
+            <span class="cs-sugg-ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
         </div>
       </div>
 
-      <label class="cre-field-label" for="cre-req">Votre demande</label>
-      <div class="cre-editor-wrap" id="cre-editor-wrap">
-        <textarea
-          class="cre-textarea"
-          id="cre-req"
-          maxlength="2000"
-          rows="6"
-          aria-describedby="cre-count cre-req-error"
-          placeholder="Ex. Écris un post LinkedIn qui présente cette offre, traite l’objection principale et invite à réserver un appel."
-          oninput="updateCount()"
-        ></textarea>
-        <button type="button" class="cre-input-clear hidden" id="cre-input-clear" onclick="clearPrompt()" title="Effacer la demande" aria-label="Effacer la demande">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <p class="cre-field-error hidden" id="cre-req-error" role="alert">Décrivez le contenu que vous souhaitez créer.</p>
-
-      <div class="cre-suggestions" aria-label="Exemples de demandes">
-        <button type="button" class="cre-suggestion" onclick="setPrompt('Transforme cette stratégie en post LinkedIn expert avec une conclusion actionnable.')">Post LinkedIn expert</button>
-        <button type="button" class="cre-suggestion" onclick="setPrompt('Écris un script vidéo court qui traite l’objection principale de mon audience.')">Script vidéo objection</button>
-        <button type="button" class="cre-suggestion" onclick="setPrompt('Crée cinq hooks distincts pour présenter cette offre sans promesse excessive.')">5 hooks pour l’offre</button>
-      </div>
-
-      <div class="cre-hr"></div>
-
-      <div class="cre-opts">
-        <label class="cre-opt" for="cre-fmt">
-          <span class="cre-opt-lbl">Format</span>
-          <select class="cre-select" id="cre-fmt">
-            <option value="script">Script court</option>
-            <option value="youtube">Script YouTube</option>
-            <option value="tiktok">Script TikTok / Reels</option>
-            <option value="hooks">Hooks d'accroche</option>
-            <option value="linkedin">Post LinkedIn</option>
-            <option value="post">Post réseaux sociaux</option>
-            <option value="email">Email séquence</option>
-            <option value="speech">Discours</option>
-            <option value="ad">Publicité</option>
-            <option value="sales_page">Page de vente</option>
-            <option value="angles">Angles de contenu</option>
-          </select>
-        </label>
-        <label class="cre-opt" for="cre-ch">
-          <span class="cre-opt-lbl">Canal</span>
-          <select class="cre-select" id="cre-ch">
-            <option value="">Automatique</option>
-            <option value="tiktok">TikTok</option>
-            <option value="youtube">YouTube</option>
-            <option value="instagram">Instagram</option>
-            <option value="linkedin">LinkedIn</option>
-            <option value="email">Email</option>
-            <option value="website">Site web</option>
-            <option value="ads">Publicités</option>
-          </select>
-        </label>
-        <label class="cre-opt" for="cre-obj">
-          <span class="cre-opt-lbl">Objectif</span>
-          <select class="cre-select" id="cre-obj">
-            <option value="">Automatique</option>
-            <option value="attention">Attention</option>
-            <option value="education">Éducation</option>
-            <option value="conversion">Conversion</option>
-            <option value="autorite">Autorité</option>
-            <option value="sales">Vente</option>
-            <option value="launch">Lancement</option>
-          </select>
-        </label>
-        <label class="cre-opt hidden" id="cre-opt-persona" for="cre-persona">
-          <span class="cre-opt-lbl">Persona ciblé</span>
-          <select class="cre-select" id="cre-persona">
-            <option value="">Audience générale</option>
-          </select>
-        </label>
-      </div>
-
-      <label class="cre-variant-toggle" for="cre-variant">
-        <input type="checkbox" id="cre-variant">
-        Générer aussi une variante avec un angle différent
-      </label>
-
-      <div class="cre-cta-row">
-        <span class="cre-count" id="cre-count">0 / 2000</span>
-        <button type="button" class="cre-btn" id="cre-gen" onclick="openEmotionStep()" data-tour="createur-start">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          <span id="cre-gen-label">Continuer</span>
-        </button>
-      </div>
-    </section>
-
-    <aside class="cre-side" aria-label="Réglages de création">
-      <section class="cre-tone-panel" aria-labelledby="cre-tone-title">
-        <div class="cre-side-head">
-          <h2 class="cre-side-title" id="cre-tone-title">Tonalité</h2>
-          <span class="cre-side-step">02</span>
-        </div>
-        <div class="cre-tones" id="cre-tones" role="radiogroup" aria-label="Tonalité du contenu">
-          <button type="button" class="cre-tone active" role="radio" aria-checked="true"
-            data-tone="expert"
-            data-desc="Diagnostic, précision, autorité, décision. Logique : signal → analyse → décision → action."
-            onclick="selectTone(this)">Expert</button>
-          <button type="button" class="cre-tone" role="radio" aria-checked="false"
-            data-tone="premium"
-            data-desc="Sobriété, valeur perçue, rareté, élégance. Moins de bruit → plus de précision → plus de valeur."
-            onclick="selectTone(this)">Premium</button>
-          <button type="button" class="cre-tone" role="radio" aria-checked="false"
-            data-tone="educational"
-            data-desc="Clarté, progression, exemples concrets, transmission. Du simple vers le complexe."
-            onclick="selectTone(this)">Éducatif</button>
-          <button type="button" class="cre-tone" role="radio" aria-checked="false"
-            data-tone="viral"
-            data-desc="Hook immédiat, tension, contraste, rétention. Logique : hook → tension → surprise → payoff → action."
-            onclick="selectTone(this)">Viral</button>
-          <button type="button" class="cre-tone" role="radio" aria-checked="false"
-            data-tone="direct_response"
-            data-desc="Douleur, bénéfice, preuve, CTA unique. Chaque ligne répond à : pourquoi agir maintenant ?"
-            onclick="selectTone(this)">Direct Response</button>
-          <button type="button" class="cre-tone" role="radio" aria-checked="false"
-            data-tone="emotional"
-            data-desc="Empathie, vécu, identification, vérité humaine. Logique : vécu → tension → vérité → ouverture → action."
-            onclick="selectTone(this)">Émotionnel</button>
-          <button type="button" class="cre-tone" role="radio" aria-checked="false"
-            data-tone="storytelling"
-            data-desc="Narration, bascule, transformation. Logique : situation → conflit → bascule → transformation."
-            onclick="selectTone(this)">Storytelling</button>
-          <button type="button" class="cre-tone" role="radio" aria-checked="false"
-            data-tone="autorite"
-            data-desc="Vision, prise de position, direction claire. Logique : constat → position → direction → action."
-            onclick="selectTone(this)">Autorité</button>
-        </div>
-        <p class="cre-desc" id="cre-desc">Diagnostic, précision, autorité, décision. Logique : signal → analyse → décision → action.</p>
-      </section>
-
-      <section class="cre-ctx" id="cre-ctx" aria-label="Contexte utilisé">
-        <div class="cre-ctx-head">
-          <span>Contexte utilisé</span>
-          <span class="cre-ctx-state">Connecté</span>
-        </div>
-        <div class="cre-ctx-item">
-          <div class="cre-ctx-dot off" id="ctx-p-dot"></div>
-          <span class="cre-ctx-label">Le Psychologue</span>
-          <span class="cre-ctx-val" id="ctx-p-val">Aucune analyse liée</span>
-        </div>
-        <div class="cre-ctx-sep"></div>
-        <div class="cre-ctx-item">
-          <div class="cre-ctx-dot off" id="ctx-s-dot"></div>
-          <span class="cre-ctx-label">Le Stratège</span>
-          <span class="cre-ctx-val" id="ctx-s-val">Aucune stratégie liée</span>
-        </div>
-      </section>
-
-      <section class="cre-history hidden" id="cre-history">
-        <button type="button" class="cre-history-head" onclick="toggleHistory()" aria-expanded="false" aria-controls="cre-history-list">
-          <span class="cre-history-title">
-            Créations récentes
-            <span class="cre-history-count" id="cre-history-count">0</span>
-          </span>
-          <span class="cre-history-toggle" id="cre-history-toggle-label">Afficher</span>
-        </button>
-        <div class="cre-history-list collapsed" id="cre-history-list"></div>
-      </section>
-    </aside>
-  </div>
-
-  <!-- ── Étape ÉMOTION (facultative) ────────────────────────────────────────
-       Nouvelle étape du parcours de création. Posée APRÈS le format, AVANT la
-       rédaction : « que doit ressentir votre audience ? » — la question d'un
-       copywriter senior. Présentée dans le langage visuel ouvert du Stratège
-       (espace libre, centré, aucune carte qui enferme), pilotée par
-       CreatorWorkspace. Facultative : « Passer » lance la rédaction sans
-       émotion. Le moteur derrière (agents/createur.py :: _EMOTION_DIRECTIVES)
-       traduit l'émotion choisie en directives d'écriture concrètes. -->
-  <section class="cre-emotion hidden" id="cre-emotion" aria-labelledby="cre-emo-title">
-    <div class="cre-emo-inner">
-      <div class="cre-emo-eyebrow">Avant de rédiger</div>
-      <h2 class="cre-emo-title" id="cre-emo-title">Quelle émotion voulez-vous faire vivre à votre audience ?</h2>
-      <p class="cre-emo-sub">Les meilleurs contenus pensent d’abord à l’impact. Choisissez un ressenti, décrivez-le librement, ou passez directement à la rédaction — cette étape est facultative.</p>
-
-      <div class="cre-emo-chips" id="cre-emo-chips" role="listbox" aria-label="Émotions proposées">
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="confiance"   onclick="selectEmotion(this)">Confiance</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="inspiration" onclick="selectEmotion(this)">Inspiration</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="motivation"  onclick="selectEmotion(this)">Motivation</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="urgence"     onclick="selectEmotion(this)">Urgence</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="curiosite"   onclick="selectEmotion(this)">Curiosité</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="surprise"    onclick="selectEmotion(this)">Surprise</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="admiration"  onclick="selectEmotion(this)">Admiration</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="empathie"    onclick="selectEmotion(this)">Empathie</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="fierte"      onclick="selectEmotion(this)">Fierté</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="espoir"      onclick="selectEmotion(this)">Espoir</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="joie"        onclick="selectEmotion(this)">Joie</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="reflexion"   onclick="selectEmotion(this)">Réflexion</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="autorite"    onclick="selectEmotion(this)">Autorité</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="luxe"        onclick="selectEmotion(this)">Luxe</button>
-        <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="liberte"     onclick="selectEmotion(this)">Liberté</button>
-      </div>
-
-      <input type="text" class="cre-emo-free" id="cre-emo-free" maxlength="120"
-        placeholder="…ou décrivez librement le ressenti visé" oninput="onEmotionFree()"
-        aria-label="Décrire librement l’émotion visée" />
-
-      <div class="cre-emo-actions">
-        <button type="button" class="cre-emo-skip" onclick="skipEmotion()">Passer cette étape</button>
-        <button type="button" class="cre-emo-go" id="cre-emo-go" onclick="confirmEmotion()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          Créer le contenu
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Loading -->
-  <div class="hidden cre-loading" id="cre-load" role="status" aria-live="polite">
+      <div class="hidden cre-loading" id="cre-load" role="status" aria-live="polite">
     <div class="cre-loading-mark" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
     </div>
@@ -1715,7 +1892,7 @@
   </div>
 
   <!-- Résultat -->
-  <div class="hidden cre-result" id="cre-out">
+      <div class="hidden cre-result" id="cre-out">
     <div class="cre-result-head">
       <div>
         <div class="cre-result-kicker">Création terminée</div>
@@ -1764,8 +1941,193 @@
       <button type="button" class="cre-act" onclick="changeTone()">Changer la tonalité</button>
     </div>
 
-  </div>
+      </div>
+    </div>
 
+    <!-- Barre de saisie — grandit avec le contenu.
+         Le libellé est masqué visuellement (la maquette n'en montre pas) mais
+         reste lu par les lecteurs d'écran : la zone doit être nommée. -->
+    <label class="sr-only" for="cre-req" id="cre-brief-title">Votre demande</label>
+    <div class="cs-composer" id="cre-editor-wrap">
+      <button type="button" class="cs-comp-btn" onclick="location.href='/dossiers'" title="Dossiers" aria-label="Dossiers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <textarea class="cs-input" id="cre-req" maxlength="2000" rows="1"
+        aria-describedby="cre-count cre-req-error"
+        placeholder="Décrivez le contenu à créer, ou choisissez une suggestion…"
+        oninput="updateCount(); autoGrow(this);"></textarea>
+      <button type="button" class="cs-comp-btn cre-input-clear hidden" id="cre-input-clear" onclick="clearPrompt()" title="Effacer" aria-label="Effacer la demande">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <button type="button" class="cs-comp-btn send cre-btn" id="cre-gen" onclick="generate()" data-tour="createur-start" title="Créer le contenu" aria-label="Créer le contenu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        <span id="cre-gen-label" class="sr-only">Créer le contenu</span>
+      </button>
+    </div>
+    <p class="cre-field-error hidden" id="cre-req-error" role="alert">Décrivez le contenu que vous souhaitez créer.</p>
+
+    <!-- Options secondaires sous la barre : la maquette garde la saisie nue. -->
+    <div class="cs-underbar">
+      <label class="cs-variant" for="cre-variant" title="Générer aussi une variante avec un angle différent"><input type="checkbox" id="cre-variant"><span>Générer une variante</span></label>
+      <span class="cre-count" id="cre-count">0 / 2000</span>
+      <button type="button" class="cs-histo-btn" onclick="toggleHistory()" aria-expanded="false" aria-controls="cre-history-list">Historiques</button>
+    </div>
+    <section class="cre-history hidden" id="cre-history">
+      <button type="button" class="cre-history-head" onclick="toggleHistory()" aria-expanded="false" aria-controls="cre-history-list">
+        <span class="cre-history-title">Créations récentes <span class="cre-history-count" id="cre-history-count">0</span></span>
+        <span class="cre-history-toggle" id="cre-history-toggle-label">Afficher</span>
+      </button>
+      <div class="cre-history-list collapsed" id="cre-history-list"></div>
+    </section>
+  </main>
+
+  <!-- ══ PANNEAU FLOTTANT — Paramètres de création ═══════════════════════ -->
+  <aside class="cs-params" id="cre-params" aria-label="Paramètres de création">
+    <div class="cs-p-head">
+      <span class="cs-p-title">Paramètres de création</span>
+      <span class="cs-p-gear" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></span>
+    </div>
+
+    <details class="cs-set">
+      <summary class="cs-set-row">
+        <span class="cs-set-ic pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
+        <span class="cs-set-body">
+          <span class="cs-set-lbl">Personnalité rédactionnelle</span>
+          <span class="cs-set-val" id="cre-tone-value">Expert</span>
+          <span class="cs-set-desc" id="cre-desc">Analyse · Précision · Autorité</span>
+        </span>
+        <span class="cs-set-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+      </summary>
+      <div class="cs-set-opts">
+        <div class="cre-tones" id="cre-tones" role="radiogroup" aria-label="Tonalité du contenu"><button type="button" class="cre-tone active" role="radio" aria-checked="true" data-tone="expert" data-label="Expert" data-desc="Diagnostic · précision · autorité" onclick="selectTone(this)">Expert</button>
+            <button type="button" class="cre-tone" role="radio" aria-checked="false" data-tone="premium" data-label="Premium" data-desc="Sobriété · valeur perçue · rareté" onclick="selectTone(this)">Premium</button>
+            <button type="button" class="cre-tone" role="radio" aria-checked="false" data-tone="educational" data-label="Éducatif" data-desc="Clarté · progression · exemples" onclick="selectTone(this)">Éducatif</button>
+            <button type="button" class="cre-tone" role="radio" aria-checked="false" data-tone="viral" data-label="Viral" data-desc="Hook · tension · rétention" onclick="selectTone(this)">Viral</button>
+            <button type="button" class="cre-tone" role="radio" aria-checked="false" data-tone="direct_response" data-label="Direct Response" data-desc="Douleur · bénéfice · preuve · CTA" onclick="selectTone(this)">Direct Response</button>
+            <button type="button" class="cre-tone" role="radio" aria-checked="false" data-tone="emotional" data-label="Émotionnel" data-desc="Empathie · vécu · identification" onclick="selectTone(this)">Émotionnel</button>
+            <button type="button" class="cre-tone" role="radio" aria-checked="false" data-tone="storytelling" data-label="Storytelling" data-desc="Narration · bascule · transformation" onclick="selectTone(this)">Storytelling</button>
+            <button type="button" class="cre-tone" role="radio" aria-checked="false" data-tone="autorite" data-label="Autorité" data-desc="Vision · prise de position · direction" onclick="selectTone(this)">Autorité</button></div>
+      </div>
+    </details>
+
+    <details class="cs-set">
+      <summary class="cs-set-row">
+        <span class="cs-set-ic emo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5s1.3 1.6 3.5 1.6 3.5-1.6 3.5-1.6"/><path d="M9 9.5h.01M15 9.5h.01"/></svg></span>
+        <span class="cs-set-body">
+          <span class="cs-set-lbl">Émotion cible <span class="cs-opt">· facultative</span></span>
+          <span class="cs-set-val muted" id="cre-emo-value">Aucune — choisir</span>
+          <span class="cs-set-desc">Ce que votre audience doit ressentir</span>
+        </span>
+        <span class="cs-set-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+      </summary>
+      <div class="cs-set-opts">
+        <div class="cre-emo-chips" id="cre-emo-chips" role="listbox" aria-label="Émotions proposées">
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="confiance"   onclick="selectEmotion(this)">Confiance</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="inspiration" onclick="selectEmotion(this)">Inspiration</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="motivation"  onclick="selectEmotion(this)">Motivation</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="urgence"     onclick="selectEmotion(this)">Urgence</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="curiosite"   onclick="selectEmotion(this)">Curiosité</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="surprise"    onclick="selectEmotion(this)">Surprise</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="admiration"  onclick="selectEmotion(this)">Admiration</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="empathie"    onclick="selectEmotion(this)">Empathie</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="fierte"      onclick="selectEmotion(this)">Fierté</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="espoir"      onclick="selectEmotion(this)">Espoir</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="joie"        onclick="selectEmotion(this)">Joie</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="reflexion"   onclick="selectEmotion(this)">Réflexion</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="autorite"    onclick="selectEmotion(this)">Autorité</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="luxe"        onclick="selectEmotion(this)">Luxe</button>
+            <button type="button" class="cre-emo-chip" role="option" aria-selected="false" data-emotion="liberte"     onclick="selectEmotion(this)">Liberté</button>
+          </div>
+        <input type="text" class="cre-emo-free" id="cre-emo-free" maxlength="120" placeholder="…ou décrivez librement" oninput="onEmotionFree()" aria-label="Décrire librement l’émotion visée" />
+      </div>
+    </details>
+
+    <label class="cs-set cs-set-sel" for="cre-ch">
+      <span class="cs-set-ic li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></svg></span>
+      <span class="cs-set-body">
+        <span class="cs-set-lbl">Canal</span>
+        <select class="cs-native" id="cre-ch" onchange="syncSetVal(this,'cre-ch-v')">
+          <option value="">Automatique</option>
+          <option value="tiktok">TikTok</option>
+          <option value="youtube">YouTube</option>
+          <option value="instagram">Instagram</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="email">Email</option>
+          <option value="website">Site web</option>
+          <option value="ads">Publicités</option>
+        </select>
+        <span class="cs-set-desc" id="cre-ch-v">Diffusion automatique</span>
+      </span>
+      <span class="cs-set-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </label>
+
+    <label class="cs-set cs-set-sel" for="cre-obj">
+      <span class="cs-set-ic obj"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1"/></svg></span>
+      <span class="cs-set-body">
+        <span class="cs-set-lbl">Objectif</span>
+        <select class="cs-native" id="cre-obj" onchange="updateReco(); syncSetVal(this,'cre-obj-v')">
+          <option value="">Automatique</option>
+          <option value="attention">Attention</option>
+          <option value="education">Éducation</option>
+          <option value="conversion">Conversion</option>
+          <option value="autorite">Autorité</option>
+          <option value="sales">Vente</option>
+          <option value="launch">Lancement</option>
+        </select>
+        <span class="cs-set-desc" id="cre-obj-v">Choisi automatiquement</span>
+      </span>
+      <span class="cs-set-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </label>
+
+    <label class="cs-set cs-set-sel" for="cre-fmt">
+      <span class="cs-set-ic fmt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg></span>
+      <span class="cs-set-body">
+        <span class="cs-set-lbl">Format</span>
+        <select class="cs-native" id="cre-fmt" onchange="syncSetVal(this,'cre-fmt-v')">
+              <option value="script">Script court</option>
+              <option value="youtube">Script YouTube</option>
+              <option value="tiktok">Script TikTok / Reels</option>
+              <option value="hooks">Hooks d'accroche</option>
+              <option value="linkedin">Post LinkedIn</option>
+              <option value="post">Post réseaux sociaux</option>
+              <option value="email">Email séquence</option>
+              <option value="speech">Discours</option>
+              <option value="ad">Publicité</option>
+              <option value="sales_page">Page de vente</option>
+              <option value="angles">Angles de contenu</option>
+            </select>
+        <span class="cs-set-desc" id="cre-fmt-v">Structure adaptée au format</span>
+      </span>
+      <span class="cs-set-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </label>
+
+    <label class="cs-set cs-set-sel hidden" id="cre-opt-persona" for="cre-persona">
+      <span class="cs-set-ic obj"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/></svg></span>
+      <span class="cs-set-body"><span class="cs-set-lbl">Persona ciblé</span><select class="cs-native" id="cre-persona"><option value="">Audience générale</option></select></span>
+      <span class="cs-set-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </label>
+
+    <div class="cs-creat">
+      <div class="cs-creat-row">
+        <span class="cs-creat-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.5L19 9l-5.2 1.5L12 16l-1.8-5.5L5 9l5.2-1.5z"/></svg></span>
+        <span class="cs-creat-l">Niveau de créativité</span>
+        <span class="cs-creat-v" id="cre-creativity-val">Équilibré</span>
+      </div>
+      <input type="range" class="cre-range cs-range" id="cre-creativity" min="0" max="100" value="50" step="1" oninput="onCreativity()" aria-label="Niveau de créativité">
+    </div>
+
+    <div class="cs-reco" id="cre-reco">
+      <div class="cs-reco-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2zM9 21h6M10 23h4"/></svg>Recommandation Gabriel</div>
+      <div class="cs-reco-b" id="cre-reco-body">Précisez un objectif : Gabriel vous recommandera les émotions les plus efficaces pour l’atteindre.</div>
+    </div>
+
+    <section class="cre-ctx cs-ctx" id="cre-ctx" aria-label="Contexte utilisé">
+      <div class="cre-ctx-head"><span>Contexte utilisé</span><span class="cre-ctx-state">Connecté</span></div>
+      <div class="cre-ctx-item"><div class="cre-ctx-dot off" id="ctx-p-dot"></div><span class="cre-ctx-label">Le Psychologue</span><span class="cre-ctx-val" id="ctx-p-val">Aucune analyse liée</span></div>
+      <div class="cre-ctx-sep"></div>
+      <div class="cre-ctx-item"><div class="cre-ctx-dot off" id="ctx-s-dot"></div><span class="cre-ctx-label">Le Stratège</span><span class="cre-ctx-val" id="ctx-s-val">Aucune stratégie liée</span></div>
+    </section>
+  </aside>
 </div>
 
 <div class="cre-toast" id="cre-toast" aria-live="polite"></div>
@@ -1985,6 +2347,17 @@ async function _loadFromFolder(folderId) {
 }
 
 /* ─── Init sessionStorage (arrivée depuis Stratège) ou dossier existant ──────── */
+/* L'Orchestrateur s'ouvre par défaut sur toutes les pages (voir base.html :
+   #orch-panel n'a pas la classe "hidden" au départ). Sur le Studio, il volait
+   340 px au canevas de création alors qu'il n'est pas l'outil principal ici —
+   on le replie en bulle au chargement, l'utilisateur l'ouvre s'il en a besoin.
+   Même parti pris que l'entretien du Stratège. */
+(function _collapseOrchestrateurOnLoad() {
+  const apply = () => { try { if (typeof orchClose === 'function') orchClose(); } catch (e) {} };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
+  else apply();
+})();
+
 (async function init() {
   loadCreatorHistory();  // indépendant du contexte Stratège/Psychologue — jamais bloquant
   const raw = sessionStorage.getItem('gabriel_for_createur');
@@ -2031,6 +2404,8 @@ function selectTone(btn) {
   btn.classList.add('active');
   btn.setAttribute('aria-checked', 'true');
   _tone = btn.dataset.tone;
+  // Refléter le choix dans la ligne du panneau (valeur + description courte).
+  const val = $('cre-tone-value'); if (val) val.textContent = btn.dataset.label || btn.textContent.trim();
   $('cre-desc').textContent = btn.dataset.desc || '';
 }
 
@@ -2126,39 +2501,43 @@ function setGenerating(isGenerating, label) {
  * dans stratege.html). La visibilité passe toujours par le workspace : un
  * seul endroit décide de l'écran affiché, jamais des sh()/hd() éparpillés.
  * ═══════════════════════════════════════════════════════════════════════════ */
-function _creShowOnly(visibleIds) {
-  ['cre-hero', 'cre-workspace', 'cre-emotion', 'cre-load', 'cre-out']
-    .forEach(id => (visibleIds.indexOf(id) === -1 ? hd(id) : sh(id)));
+/* ═══════════════════════════════════════════════════════════════════════════
+ * STUDIO — écran unique (maquette de référence). Plus de parcours par étapes :
+ * goStep est conservée en fonction neutre pour les appelants existants.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+function goStep() { /* écran unique — plus d'étapes à parcourir */ }
+
+/* (3) La zone de saisie grandit avec le contenu, jusqu'à un plafond au-delà
+   duquel elle défile — comportement attendu d'une vraie zone de dialogue. */
+function autoGrow(el) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 260) + 'px';
 }
 
-if (window.CreatorWorkspace) {
-  CreatorWorkspace.register('brief',      { enter: () => _creShowOnly(['cre-hero', 'cre-workspace']) });
-  CreatorWorkspace.register('emotion',    { enter: () => {
-    _creShowOnly(['cre-emotion']);
-    _smartScrollToResults('cre-emotion');
-    $('cre-emo-free')?.focus({preventScroll: true});
-  }});
-  CreatorWorkspace.register('generating', { enter: () => _creShowOnly(['cre-load']) });
-  CreatorWorkspace.register('result',     { enter: () => _creShowOnly(['cre-out']) });
-}
-
-/* ─── Étape ÉMOTION (facultative) ────────────────────────────────────────────
-   Posée entre le brief et la rédaction. « Répondre » lance la création avec
-   l'émotion choisie ; « Passer » la lance sans émotion. La validation du brief
-   reste faite ici, avant d'avancer, pour ne pas afficher l'étape émotion sur
-   un brief vide. */
-function openEmotionStep() {
-  if ($('cre-gen').disabled) return;
-  const userRequest = $('cre-req').value.trim();
-  if (!userRequest) {
-    $('cre-editor-wrap').classList.add('invalid');
-    sh('cre-req-error');
-    $('cre-req').focus();
-    toast('Ajoutez un brief avant de continuer.', true);
-    return;
+/* Reflète la valeur choisie d'un select dans la carte du panneau (le select
+   est invisible et superposé : c'est la carte qui affiche l'état). */
+function syncSetVal(sel, descId) {
+  if (!sel) return;
+  const txt = sel.options[sel.selectedIndex]?.text || '';
+  const card = sel.closest('.cs-set');
+  let val = card?.querySelector('.cs-set-val');
+  if (!val && card) {
+    val = document.createElement('span');
+    val.className = 'cs-set-val';
+    card.querySelector('.cs-set-lbl')?.insertAdjacentElement('afterend', val);
   }
-  if (window.CreatorWorkspace) CreatorWorkspace.goTo('emotion');
-  else _creShowOnly(['cre-emotion']);
+  if (val) val.textContent = txt;
+  const d = descId && $(descId);
+  if (d) d.textContent = txt && txt !== 'Automatique' ? 'Choix appliqué au contenu' : 'Choisi automatiquement';
+}
+
+/* Reflète l'émotion retenue dans la ligne du panneau. */
+function _setEmoValue(txt, chosen) {
+  const el = $('cre-emo-value');
+  if (!el) return;
+  el.textContent = txt;
+  el.classList.toggle('muted', !chosen);
 }
 
 function selectEmotion(btn) {
@@ -2168,11 +2547,13 @@ function selectEmotion(btn) {
   if (wasActive) {
     // Re-cliquer sur la puce active la désélectionne (aucune émotion).
     _emotion = '';
+    _setEmoValue('Aucune — choisir', false);
     return;
   }
   btn.classList.add('active');
   btn.setAttribute('aria-selected', 'true');
   _emotion = btn.dataset.emotion || '';
+  _setEmoValue(btn.textContent.trim(), true);
   const free = $('cre-emo-free');
   if (free) free.value = '';  // puce et texte libre s'excluent
 }
@@ -2184,24 +2565,43 @@ function onEmotionFree() {
       c.classList.remove('active'); c.setAttribute('aria-selected', 'false');
     });
     _emotion = val;
+    _setEmoValue(val.length > 24 ? val.slice(0, 24) + '…' : val, true);
   } else if (!document.querySelector('.cre-emo-chip.active')) {
     _emotion = '';
+    _setEmoValue('Aucune — choisir', false);
   }
 }
 
-function confirmEmotion() {
-  // _emotion est déjà à jour (puce ou texte libre). Vide = équivaut à passer.
-  generate();
+/* ─── Niveau de créativité → température (câblé au backend) ──────────────────── */
+let _creativity = 50;
+const _CREATIVITY_LABELS = [[20,'Sobre'],[40,'Mesuré'],[65,'Équilibré'],[85,'Audacieux'],[101,'Très libre']];
+function onCreativity() {
+  _creativity = parseInt($('cre-creativity')?.value || '50', 10);
+  const lbl = (_CREATIVITY_LABELS.find(([max]) => _creativity < max) || [,'Équilibré'])[1];
+  const el = $('cre-creativity-val'); if (el) el.textContent = lbl;
 }
 
-function skipEmotion() {
-  _emotion = '';
-  document.querySelectorAll('.cre-emo-chip').forEach(c => {
-    c.classList.remove('active'); c.setAttribute('aria-selected', 'false');
-  });
-  const free = $('cre-emo-free');
-  if (free) free.value = '';
-  generate();
+/* ─── Recommandation Gabriel (miroir du moteur émotion, côté client) ─────────── */
+const _RECO_BY_OBJECTIVE = {
+  conversion: ['confiance','urgence','motivation'],
+  sales:      ['confiance','urgence','motivation'],
+  autorite:   ['autorité','admiration','confiance'],
+  education:  ['curiosité','réflexion','confiance'],
+  attention:  ['curiosité','surprise','inspiration'],
+  launch:     ['urgence','curiosité','inspiration'],
+};
+function updateReco() {
+  const obj = ($('cre-obj')?.value || '').toLowerCase();
+  const body = $('cre-reco-body');
+  if (!body) return;
+  const reco = _RECO_BY_OBJECTIVE[obj];
+  if (!reco) {
+    body.textContent = "Précisez un objectif : Gabriel vous recommandera les émotions les plus efficaces pour l'atteindre.";
+    return;
+  }
+  body.innerHTML = "Pour cet objectif, Gabriel recommande de viser <b>" +
+    reco.slice(0, 2).join('</b>, <b>') + "</b> ou <b>" + reco[2] +
+    "</b> — vous restez libre de choisir.";
 }
 
 /* ─── Génération ─────────────────────────────────────────────────────────────── */
@@ -2209,6 +2609,7 @@ async function generate() {
   if ($('cre-gen').disabled) return;
   const userRequest = $('cre-req').value.trim();
   if (!userRequest) {
+    // Le brief est à l'étape 1 : on y ramène l'utilisateur pour montrer l'erreur.
     $('cre-editor-wrap').classList.add('invalid');
     sh('cre-req-error');
     $('cre-req').focus();
@@ -2217,9 +2618,8 @@ async function generate() {
   }
 
   _lastResult = null;
-  // Écran de génération propre quel que soit le point d'entrée (depuis le
-  // brief ou depuis l'étape émotion) : on masque toujours les écrans amont.
-  hd('cre-hero'); hd('cre-workspace'); hd('cre-emotion');
+  // La génération occupe l'étape 3 du parcours : on y bascule et on affiche
+  // l'écran de chargement (la progression par étape du moteur s'y affiche).
   hd('cre-out');
   sh('cre-load');
   _smartScrollToResults('cre-load');
@@ -2231,6 +2631,7 @@ async function generate() {
     channel:       $('cre-ch').value,
     tone:          _tone,
     emotion:       _emotion,
+    creativity:    _creativity,
     objective:     $('cre-obj').value,
     user_request:  userRequest,
     analysis_id:   _analysisId,
@@ -2275,6 +2676,8 @@ function poll(jid) {
   _pollTimer = setTimeout(async () => {
     _pollN++;
     if (_pollN > 120) { err('Temps dépassé. Réessayez.'); return; }
+    // Repli : tant que le serveur n'a pas encore renvoyé d'étape réelle, on
+    // fait défiler les étapes génériques au compteur (premières secondes).
     $('cre-load-lbl').textContent = STEPS[Math.min(_pollN - 1, STEPS.length - 1)];
     try {
       const r = await fetch(`/status/${jid}`);
@@ -2288,7 +2691,12 @@ function poll(jid) {
       if      (d.status === 'done')  renderResult(d.data);
       else if (d.status === 'error') err(d.error || 'Erreur interne.');
       else if (d.status === 'interrupted') err(d.error || 'Génération interrompue par un redémarrage du serveur. Réessayez.');
-      else    poll(jid);
+      else {
+        // Étape RÉELLE du pipeline (« Gabriel critique son propre texte… ») —
+        // elle remplace les étapes fictives dès qu'elle est disponible.
+        if (d.step) $('cre-load-lbl').textContent = d.step;
+        poll(jid);
+      }
     } catch(e) { poll(jid); }
   }, 3000);
 }
@@ -2299,6 +2707,8 @@ function renderResult(d) {
   stopCrePercent(true);
   _lastResult = d;
   setGenerating(false);
+  // Tout résultat s'affiche à l'étape 3 (y compris une stratégie restaurée
+  // depuis l'historique) — on garantit qu'on y est.
   hd('cre-load');
 
   // Brief chips
@@ -2437,13 +2847,11 @@ async function refine() {
 /* ─── Régénérer / changer tonalité ─────────────────────────────────────────── */
 function regen()       { hd('cre-out'); generate(); }
 function changeTone()  {
-  // Les tons vivent dans le brief (workspace) — masqué à l'écran résultat.
-  // On y revient d'abord, sinon on défilerait vers un élément invisible.
-  if (window.CreatorWorkspace) CreatorWorkspace.goTo('brief');
-  else _creShowOnly(['cre-hero', 'cre-workspace']);
+  // Les tons vivent à l'étape 2 (Style & intention) — on y revient.
+  goStep(2);
   const tones = $('cre-tones');
-  tones.scrollIntoView({behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center'});
-  tones.querySelector('.cre-tone.active')?.focus({preventScroll: true});
+  tones?.scrollIntoView({behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center'});
+  tones?.querySelector('.cre-tone.active')?.focus({preventScroll: true});
   toast('Choisissez une tonalité, puis relancez la création.');
 }
 
@@ -2532,16 +2940,15 @@ function reset() {
   updateCount();
   setGenerating(false);
   stopCrePercent();
-  // Retour à l'écran de départ (brief) — pas seulement masquer load/résultat :
-  // le hero et le workspace ont pu être masqués par l'étape émotion ou la
-  // génération. On réinitialise aussi l'émotion choisie.
+  // Nouvelle création : retour à l'étape 1, résultat/chargement masqués,
+  // idle réaffiché, émotion réinitialisée.
   _emotion = '';
   $('cre-emo-free') && ($('cre-emo-free').value = '');
   document.querySelectorAll('.cre-emo-chip').forEach(c => {
     c.classList.remove('active'); c.setAttribute('aria-selected', 'false');
   });
-  if (window.CreatorWorkspace) CreatorWorkspace.goTo('brief');
-  else _creShowOnly(['cre-hero', 'cre-workspace']);
+  _setEmoValue('aucune choisie', false);
+  hd('cre-out'); hd('cre-load');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelector('.app-content')?.scrollTo({top:0, behavior: reduced ? 'auto' : 'smooth'});
   setTimeout(() => $('cre-req').focus({preventScroll: true}), reduced ? 0 : 280);
@@ -2572,5 +2979,15 @@ function toast(msg, isErr = false) {
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
+/* Initialisation du parcours : carte de type synchronisée sur le format par
+   défaut, recommandation Gabriel calculée, curseur de créativité étiqueté. */
+try {
+  updateReco(); onCreativity();
+  syncSetVal($('cre-ch'),'cre-ch-v');
+  syncSetVal($('cre-obj'),'cre-obj-v');
+  syncSetVal($('cre-fmt'),'cre-fmt-v');
+  autoGrow($('cre-req'));
+} catch (e) {}
 </script>
 {% endblock %}

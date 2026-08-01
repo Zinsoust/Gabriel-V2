@@ -644,18 +644,22 @@ _SYSTEM_PROMPTS['publicite'] = _SYSTEM_PROMPTS['ad']
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def _call_mistral(prompt, max_tokens=3000):
+def _call_mistral(prompt, max_tokens=3000, temperature=None):
     from mistralai import Mistral
     key = os.environ.get("MISTRAL_API_KEY")
     if not key:
         raise RuntimeError("MISTRAL_API_KEY manquante — configurez-la dans les variables d'environnement Render.")
     client = Mistral(api_key=key, timeout_ms=120_000)
+    # temperature=None → comportement historique inchangé (défaut du modèle).
+    # Fournie, elle pilote le « niveau de créativité » du moteur de création.
+    extra = {} if temperature is None else {"temperature": max(0.0, min(1.0, float(temperature)))}
     for attempt in range(2):
         try:
             response = client.chat.complete(
                 model="mistral-large-latest",
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}],
+                **extra,
             )
             raw = response.choices[0].message.content.strip()
             print(f"[CREATEUR] LLM raw ({len(raw)} chars): {raw[:300]}")
