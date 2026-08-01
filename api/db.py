@@ -105,10 +105,15 @@ def save_analysis(entry, user_id=None, folder_id=None):
             if folder_id:
                 row['folder_id'] = folder_id
             _supabase.table(_T_ANALYSES).insert(row).execute()
+            return
         except Exception as e:
             print(f'[DB] save_analysis Supabase error: {e}')
 
-    # Toujours sauvegarder en local (fallback)
+    # Fallback local — uniquement si Supabase est absent ou vient d'échouer.
+    # Avant : ce fichier était réécrit en entier à CHAQUE analyse, même quand
+    # Supabase réussissait (donc pour rien) — un vrai/faux disque de secours
+    # jamais lu en production, mais dont la taille (et le coût de lecture +
+    # réécriture complète) grossit sans limite à chaque appel.
     _save_json_entry(entry)
 
 
@@ -236,10 +241,13 @@ def update_analysis_strategy(analysis_id, strategy_result, strategy_id=None, use
                 .eq('analysis_id', analysis_id)\
                 .eq('user_id', user_id)\
                 .execute()
+            return
         except Exception as e:
             print(f'[DB] update_analysis_strategy error: {e}')
 
-    # Fallback JSON
+    # Fallback JSON — uniquement si Supabase est absent ou a échoué. Avant :
+    # relecture + réécriture complète du fichier local à chaque génération de
+    # stratégie, même quand Supabase avait déjà réussi.
     history = _load_json_history()
     for e in history:
         if e.get('analysis_id') == analysis_id:
@@ -297,6 +305,7 @@ def save_strategy(strategy_data, user_id=None, analysis_id=None, business_contex
     created_at  = datetime.datetime.utcnow().isoformat()
     title       = _strategy_title(strategy_data)
 
+    saved_to_supabase = False
     if _supabase and user_id:
         try:
             row = {
@@ -310,25 +319,32 @@ def save_strategy(strategy_data, user_id=None, analysis_id=None, business_contex
             if folder_id:
                 row['folder_id'] = folder_id
             _supabase.table(_T_STRATEGIES).insert(row).execute()
+            saved_to_supabase = True
         except Exception as e:
             print(f'[DB] save_strategy Supabase error: {e}')
 
-    # Fallback JSON — toujours, pour que la stratégie survive à la navigation (dev + offline)
-    try:
-        rows = _load_json_strategies()
-        rows = [r for r in rows if r.get('strategy_id') != strategy_id]
-        rows.insert(0, {
-            'user_id':          user_id or 'local',
-            'strategy_id':      strategy_id,
-            'analysis_id':      analysis_id or '',
-            'title':            title,
-            'business_context': business_context or {},
-            'strategy_result':  strategy_data or {},
-            'created_at':       created_at,
-        })
-        _write_json_strategies(rows[:200])
-    except Exception as e:
-        print(f'[DB] save_strategy JSON error: {e}')
+    # Fallback JSON — uniquement si Supabase est absent ou a échoué (dev +
+    # offline). Avant : jusqu'à 200 stratégies complètes (chacune un JSON
+    # dense — décision, offre, pricing, plan 90 jours...) relues et
+    # réécrites en entier sur DISQUE à chaque génération, même quand
+    # Supabase venait de réussir et que ce fichier n'est jamais lu en
+    # production — le coût le plus élevé trouvé parmi les bugs de vitesse.
+    if not saved_to_supabase:
+        try:
+            rows = _load_json_strategies()
+            rows = [r for r in rows if r.get('strategy_id') != strategy_id]
+            rows.insert(0, {
+                'user_id':          user_id or 'local',
+                'strategy_id':      strategy_id,
+                'analysis_id':      analysis_id or '',
+                'title':            title,
+                'business_context': business_context or {},
+                'strategy_result':  strategy_data or {},
+                'created_at':       created_at,
+            })
+            _write_json_strategies(rows[:200])
+        except Exception as e:
+            print(f'[DB] save_strategy JSON error: {e}')
 
     return strategy_id
 
@@ -464,22 +480,25 @@ def save_feedback(feedback_data, user_id=None, analysis_id=None, strategy_id=Non
         except Exception as e:
             print(f'[DB] save_feedback Supabase error: {e}')
 
-    # Fallback JSON — toujours
-    try:
-        rows = _load_json_feedbacks()
-        rows.insert(0, {
-            'user_id':     user_id or 'local',
-            'analysis_id': analysis_id or '',
-            'strategy_id': strategy_id or '',
-            'usefulness':  usefulness,
-            'resultat':    resultat,
-            'comment':     comment,
-            'created_at':  created_at,
-        })
-        _write_json_feedbacks(rows[:500])
-        ok = True
-    except Exception as e:
-        print(f'[DB] save_feedback JSON error: {e}')
+    # Fallback JSON — uniquement si Supabase est absent ou a échoué. Avant :
+    # relu + réécrit en entier (jusqu'à 500 entrées) à chaque feedback, même
+    # quand Supabase avait déjà réussi (ok était déjà True).
+    if not ok:
+        try:
+            rows = _load_json_feedbacks()
+            rows.insert(0, {
+                'user_id':     user_id or 'local',
+                'analysis_id': analysis_id or '',
+                'strategy_id': strategy_id or '',
+                'usefulness':  usefulness,
+                'resultat':    resultat,
+                'comment':     comment,
+                'created_at':  created_at,
+            })
+            _write_json_feedbacks(rows[:500])
+            ok = True
+        except Exception as e:
+            print(f'[DB] save_feedback JSON error: {e}')
 
     return ok
 

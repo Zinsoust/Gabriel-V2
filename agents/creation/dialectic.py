@@ -44,7 +44,7 @@ def run(ctx) -> None:
     )
     try:
         from agents.createur import _call_mistral, _parse_json
-        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=800)
+        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=500)
         data = _parse_json(raw)
         if isinstance(data, dict) and not data.get("parse_error"):
             data.setdefault("faiblesses", [])

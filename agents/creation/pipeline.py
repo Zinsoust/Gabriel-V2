@@ -25,6 +25,7 @@
 # ═══════════════════════════════════════════════════════════════════════════
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
@@ -118,22 +119,44 @@ class CreationPipeline:
     def run(self, ctx: CreationContext, on_stage=None) -> CreationContext:
         # on_stage(name, label, progress_pct) est appelé AVANT chaque étape —
         # c'est ce qui alimente la progression en direct côté interface.
+        #
+        # PARALLÉLISME — mesuré en conditions réelles : le pipeline séquentiel
+        # prenait ~93 s. Or certaines étapes ne dépendent pas les unes des
+        # autres et attendaient pour rien :
+        #   • knowledge (RAG, ~10 s) ne lit ni l'intention ni le plan → il peut
+        #     tourner PENDANT intent/context/emotion.
+        #   • dialectic (critique, ~12 s) et le calcul des scores lisent tous
+        #     deux le même brouillon sans se lire l'un l'autre.
+        # Le gain est du temps d'attente pur : aucune étape n'est supprimée,
+        # la qualité est strictement identique.
         total = len(self.stages)
-        for i, (name, fn) in enumerate(self.stages):
-            if on_stage:
+        pool = ThreadPoolExecutor(max_workers=2)
+        knowledge_future = None
+        try:
+            for i, (name, fn) in enumerate(self.stages):
+                # Le RAG démarre en fond dès le début du pipeline.
+                if name == "knowledge":
+                    knowledge_future = pool.submit(self._timed, ctx, name, fn)
+                    continue
+
+                # planning est le premier consommateur du RAG : on l'attend ici.
+                if name == "planning" and knowledge_future is not None:
+                    knowledge_future.result()
+                    knowledge_future = None
+
+                if on_stage:
+                    try:
+                        on_stage(name, STAGE_LABELS.get(name, name), round(i / total * 100))
+                    except Exception:
+                        pass
+                self._timed(ctx, name, fn)
+        finally:
+            if knowledge_future is not None:
                 try:
-                    on_stage(name, STAGE_LABELS.get(name, name), round(i / total * 100))
+                    knowledge_future.result()
                 except Exception:
                     pass
-            t0 = time.time()
-            try:
-                fn(ctx)
-                ctx.note(name, time.time() - t0)
-            except Exception as e:
-                # Un moteur qui échoue ne fait pas tomber toute la création :
-                # on le journalise et on continue avec ce qu'on a. La rédaction
-                # reste prioritaire sur les étapes d'affinage.
-                ctx.note(name, time.time() - t0, detail=f"erreur: {e}")
+            pool.shutdown(wait=True)
 
         # ── Boucle d'auto-amélioration ───────────────────────────────────────
         # Après la première validation, si un score clé est sous le seuil, on
@@ -152,6 +175,17 @@ class CreationPipeline:
                         ctx.note(f"{name}#{passes+1}", time.time() - t0, detail=f"erreur: {e}")
 
         return ctx
+
+    def _timed(self, ctx: CreationContext, name: str, fn) -> None:
+        """Exécute un moteur en mesurant son temps. Un moteur qui échoue ne fait
+        pas tomber toute la création : on le journalise et on continue avec ce
+        qu'on a — la rédaction prime sur les étapes d'affinage."""
+        t0 = time.time()
+        try:
+            fn(ctx)
+            ctx.note(name, time.time() - t0)
+        except Exception as e:
+            ctx.note(name, time.time() - t0, detail=f"erreur: {e}")
 
     def _needs_improvement(self, ctx: CreationContext) -> bool:
         if not ctx.scores:

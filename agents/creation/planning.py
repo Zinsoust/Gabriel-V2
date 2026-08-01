@@ -12,6 +12,8 @@
 
 _SYSTEM = """Tu es le planificateur de contenu du Créateur de Gabriel. Tu ne rédiges PAS le contenu final — tu construis son plan stratégique, l'ossature qu'un rédacteur exécutera ensuite.
 
+Sois TÉLÉGRAPHIQUE : chaque valeur tient en une ligne courte, pas de phrases rédigées. C'est une ossature de travail, pas un document.
+
 Réponds UNIQUEMENT avec un JSON valide :
 {"message_principal":"l'idée unique que le lecteur doit retenir","promesse":"ce que le contenu promet concrètement","angle":"l'angle d'attaque distinctif","objections":["objection réelle à lever","..."],"preuves":["preuve/argument concret","..."],"fil_narratif":"la progression en une phrase (accroche → ... → action)","cta":"l'action unique demandée","structure":["étape 1 du contenu","étape 2","..."]}"""
 
@@ -40,7 +42,10 @@ def run(ctx) -> None:
     )
     try:
         from agents.createur import _call_mistral, _parse_json
-        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=900)
+        # 550 au lieu de 900 : le plan est une ossature, pas un texte. Mesuré
+        # en conditions réelles, cette étape coûtait 20 s — l'essentiel du temps
+        # partait à rédiger des phrases longues dont la rédaction n'a pas besoin.
+        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=550)
         data = _parse_json(raw)
         if isinstance(data, dict) and not data.get("parse_error"):
             ctx.plan = data

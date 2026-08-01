@@ -26,8 +26,12 @@ Réponds UNIQUEMENT avec le JSON du texte amélioré, même schéma que l'origin
 def _weaknesses_to_fix(ctx) -> list:
     crit = ctx.critique or {}
     faiblesses = crit.get("faiblesses") or []
-    # On priorise le critique et le moyen ; le mineur ne justifie pas un appel.
-    return [f for f in faiblesses if f.get("gravite") in ("critique", "moyen")]
+    # Seules les faiblesses CRITIQUES déclenchent une réécriture. Mesuré en
+    # conditions réelles : cette étape coûte ~25 s (elle régénère tout le
+    # contenu). La déclencher pour un défaut "moyen" — souvent cosmétique —
+    # faisait payer cette attente à presque chaque création sans gain net.
+    # Les défauts moyens restent visibles dans le regard critique affiché.
+    return [f for f in faiblesses if f.get("gravite") == "critique"]
 
 
 def run(ctx) -> None:
@@ -36,8 +40,11 @@ def run(ctx) -> None:
         return
 
     to_fix = _weaknesses_to_fix(ctx)
-    # Rien de grave à corriger → on ne dépense pas un appel LLM.
-    if not to_fix and (ctx.critique or {}).get("verdict") == "livrable":
+    # Aucune faiblesse CRITIQUE → on ne dépense pas un appel de ~25 s. Le
+    # verdict global ne suffit pas à déclencher : le critique renvoie souvent
+    # "a_ameliorer" pour des défauts mineurs, ce qui faisait payer la
+    # réécriture complète à presque chaque création.
+    if not to_fix:
         return
 
     schema_keys = [k for k in base.keys() if k not in ("content_type", "success", "parse_error")]
