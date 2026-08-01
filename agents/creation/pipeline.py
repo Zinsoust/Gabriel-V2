@@ -116,7 +116,7 @@ class CreationPipeline:
         self.quality_threshold = quality_threshold
         self.max_optim_passes = max_optim_passes
 
-    def run(self, ctx: CreationContext, on_stage=None) -> CreationContext:
+    def run(self, ctx: CreationContext, on_stage=None, on_draft=None) -> CreationContext:
         # on_stage(name, label, progress_pct) est appelé AVANT chaque étape —
         # c'est ce qui alimente la progression en direct côté interface.
         #
@@ -150,6 +150,17 @@ class CreationPipeline:
                     except Exception:
                         pass
                 self._timed(ctx, name, fn)
+
+                # LIVRAISON PROGRESSIVE — dès que le texte est écrit, on le
+                # remonte à l'écran sans attendre la critique, l'optimisation
+                # et la validation (~20 s de plus). L'utilisateur lit son
+                # contenu pendant que Gabriel le relit : le temps d'attente
+                # ressenti passe de ~58 s à ~32 s, sans rien retirer au travail.
+                if name == "writing" and on_draft and ctx.draft and not ctx.draft.get("parse_error"):
+                    try:
+                        on_draft(ctx)
+                    except Exception:
+                        pass
         finally:
             if knowledge_future is not None:
                 try:
@@ -216,14 +227,45 @@ def _default_stages() -> List[tuple]:
     ]
 
 
-def create(on_stage=None, **kwargs) -> CreationContext:
+def create(on_stage=None, on_draft=None, **kwargs) -> CreationContext:
     """Point d'entrée pratique : construit le contexte, lance le pipeline
     complet, renvoie le contexte final (dont ctx.final = le texte livré)."""
     ctx = CreationContext(**{k: v for k, v in kwargs.items() if k in CreationContext.__dataclass_fields__})
-    return CreationPipeline().run(ctx, on_stage=on_stage)
+    return CreationPipeline().run(ctx, on_stage=on_stage, on_draft=on_draft)
 
 
-def generate_result(on_stage=None, **kwargs) -> dict:
+def shape_draft(ctx) -> dict:
+    """Met un BROUILLON au format attendu par l'interface, pour l'afficher dès
+    qu'il est écrit — sans attendre la critique et l'optimisation. Même contrat
+    que generate_result, en plus léger (pas encore de scores ni de checklist).
+    Le drapeau `is_draft` permet à l'écran d'indiquer que Gabriel relit encore."""
+    draft = ctx.draft or {}
+    fmt_key = (ctx.content_type or "hooks").lower().replace("-", "_").replace(" ", "_")
+    try:
+        from agents.createur import Createur
+        full_text = Createur()._extract_full_text(draft, fmt_key)
+    except Exception:
+        full_text = ""
+    intent = ctx.intent or {}
+    digest = (ctx.business_context or {}).get("_digest", {})
+    return {
+        "writing_brief": {
+            "format":         ctx.content_type,
+            "channel":        ctx.channel,
+            "objective":      ctx.objective or intent.get("objectif", ""),
+            "target_persona": (ctx.persona or {}).get("nom", "") if isinstance(ctx.persona, dict) else "",
+            "main_angle":     digest.get("positionnement", ""),
+            "emotion_cible":  ctx.emotion or "",
+        },
+        "content":      draft,
+        "full_text":    full_text,
+        "content_type": ctx.content_type,
+        "success":      True,
+        "is_draft":     True,
+    }
+
+
+def generate_result(on_stage=None, on_draft=None, **kwargs) -> dict:
     """Lance le pipeline ET met le résultat au FORMAT attendu par l'interface
     (le même contrat que le Créateur historique : writing_brief, content,
     full_text, quality_check…), plus des bonus de transparence (auto-évaluation,
@@ -231,7 +273,7 @@ def generate_result(on_stage=None, **kwargs) -> dict:
 
     En cas de production vide/illisible, lève une exception → la route bascule
     sur le Créateur historique (repli). Aucune régression possible."""
-    ctx = create(on_stage=on_stage, **kwargs)
+    ctx = create(on_stage=on_stage, on_draft=on_draft, **kwargs)
     final = ctx.final or ctx.draft or {}
     if not final or final.get("parse_error") or final.get("success") is False:
         raise RuntimeError("pipeline: contenu illisible")

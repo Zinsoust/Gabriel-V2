@@ -207,6 +207,51 @@
   </div>
 </div>
 
+{# ── Bienvenue — crédits offerts à la première connexion ────────────────────
+   Affiché une seule fois par compte (marqueur en localStorage). Ton Gabriel :
+   on annonce ce qui est offert, on dit à quoi ça sert, on invite à décider —
+   pas de promotion, pas de superlatif. #}
+{% if session.get('user_id') %}
+<div class="gb-welcome-scrim" id="gb-welcome" hidden>
+  <div class="gb-welcome" role="dialog" aria-modal="true" aria-labelledby="gb-welcome-title">
+    <div class="gb-welcome-mark" aria-hidden="true">
+      <img src="{{ static_v('brand/gabriel-mark-gold.png') }}" alt="">
+    </div>
+    <div class="gb-welcome-kicker">Bienvenue dans Gabriel</div>
+    <h2 class="gb-welcome-title" id="gb-welcome-title">300 crédits vous sont offerts.</h2>
+    <p class="gb-welcome-copy">
+      De quoi analyser une audience, en tirer une stratégie et produire vos premiers
+      contenus — le parcours complet, sans rien avancer.
+    </p>
+    <ul class="gb-welcome-list">
+      <li><span>Le Psychologue</span> lit ce que votre audience ressent vraiment.</li>
+      <li><span>Le Stratège</span> en tire une décision, pas un rapport.</li>
+      <li><span>Le Créateur</span> transforme cette décision en contenus prêts à publier.</li>
+    </ul>
+    <p class="gb-welcome-note">Vos crédits se consomment à l'usage. Rien ne s'active sans vous.</p>
+    <button type="button" class="gb-welcome-cta" onclick="gbWelcomeClose()">Commencer</button>
+  </div>
+</div>
+<script>
+/* Une seule fois par compte : le marqueur inclut l'identifiant utilisateur,
+   sinon deux comptes sur le même navigateur se voleraient l'accueil. */
+(function () {
+  var KEY = 'gabriel_welcome_v1_{{ session.get("user_id") }}';
+  window.gbWelcomeClose = function () {
+    var el = document.getElementById('gb-welcome');
+    if (el) el.hidden = true;
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+  };
+  try {
+    if (!localStorage.getItem(KEY)) {
+      var el = document.getElementById('gb-welcome');
+      if (el) el.hidden = false;
+    }
+  } catch (e) { /* navigation privée : on n'affiche rien plutôt que de boucler */ }
+})();
+</script>
+{% endif %}
+
 {% block scripts %}{% endblock %}
 <script src="{{ static_v('js/gabriel-survey.js') }}" defer></script>
 <script src="{{ static_v('js/gabriel-onboarding.js') }}" defer></script>

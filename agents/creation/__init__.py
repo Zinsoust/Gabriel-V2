@@ -21,6 +21,7 @@ from agents.creation.pipeline import (
     CreationPipeline,
     create,
     generate_result,
+    shape_draft,
 )
 
-__all__ = ["CreationContext", "CreationPipeline", "create", "generate_result"]
+__all__ = ["CreationContext", "CreationPipeline", "create", "generate_result", "shape_draft"]

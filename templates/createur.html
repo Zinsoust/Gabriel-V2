@@ -1895,7 +1895,7 @@ details.cs-set[open] .cs-set-chev { transform: rotate(90deg); }
       <div class="hidden cre-result" id="cre-out">
     <div class="cre-result-head">
       <div>
-        <div class="cre-result-kicker">Création terminée</div>
+        <div class="cre-result-kicker" id="cre-result-kicker">Création terminée</div>
         <h2 class="cre-result-title">Votre contenu est prêt.</h2>
       </div>
       <div class="cre-actions">
@@ -2148,6 +2148,7 @@ let _businessContext = {};
 let _analysisId = '';
 let _folderId   = '';
 let _lastResult = null;
+let _draftShown = false;   // brouillon déjà affiché (livraison progressive)
 let _pollTimer  = null;
 let _pollN      = 0;
 
@@ -2695,6 +2696,10 @@ function poll(jid) {
         // Étape RÉELLE du pipeline (« Gabriel critique son propre texte… ») —
         // elle remplace les étapes fictives dès qu'elle est disponible.
         if (d.step) $('cre-load-lbl').textContent = d.step;
+        // Livraison progressive : le brouillon s'affiche dès qu'il est écrit,
+        // pendant que Gabriel le relit. On ne l'affiche qu'une fois.
+        const draft = d.partial && d.partial.draft;
+        if (draft && !_draftShown) { _draftShown = true; renderResult(draft); }
         poll(jid);
       }
     } catch(e) { poll(jid); }
@@ -2703,13 +2708,21 @@ function poll(jid) {
 
 /* ─── Rendu ──────────────────────────────────────────────────────────────────── */
 function renderResult(d) {
-  if (_pollTimer) clearTimeout(_pollTimer);
-  stopCrePercent(true);
+  // Brouillon (livraison progressive) : on affiche le texte tout de suite,
+  // mais la génération continue en fond — on ne coupe donc ni le suivi ni la
+  // barre de progression, et on signale que Gabriel relit.
+  const isDraft = !!d.is_draft;
+  if (!isDraft) {
+    if (_pollTimer) clearTimeout(_pollTimer);
+    stopCrePercent(true);
+    setGenerating(false);
+    hd('cre-load');
+    _draftShown = false;
+  }
   _lastResult = d;
-  setGenerating(false);
-  // Tout résultat s'affiche à l'étape 3 (y compris une stratégie restaurée
-  // depuis l'historique) — on garantit qu'on y est.
-  hd('cre-load');
+  document.getElementById('cre-out')?.classList.toggle('is-draft', isDraft);
+  const kicker = $('cre-result-kicker');
+  if (kicker) kicker.textContent = isDraft ? 'Premier jet — Gabriel relit et affine…' : 'Création terminée';
 
   // Brief chips
   const brief = d.writing_brief || {};

@@ -1986,3 +1986,64 @@ body:has(.learn-page) .app-content {
     margin-right: calc(50% - 540px + 28px);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BIENVENUE — crédits offerts à la première connexion (voir base.html).
+   Ton Gabriel : sobre, centré, champagne. Aucun effet promotionnel.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.gb-welcome-scrim {
+  position: fixed; inset: 0; z-index: 400;
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  background: rgba(0, 0, 0, 0.62); backdrop-filter: blur(6px);
+  animation: gb-welcome-in 0.3s ease both;
+}
+.gb-welcome-scrim[hidden] { display: none; }
+@keyframes gb-welcome-in { from { opacity: 0; } to { opacity: 1; } }
+
+.gb-welcome {
+  width: 100%; max-width: 440px; text-align: center;
+  background: var(--bg-card); border: 1px solid var(--border-champagne);
+  border-radius: 16px; padding: 34px 30px 28px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  animation: gb-welcome-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes gb-welcome-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.gb-welcome-mark { width: 46px; height: 46px; margin: 0 auto 18px; border-radius: 11px; overflow: hidden; }
+.gb-welcome-mark img { width: 100%; height: 100%; object-fit: cover; }
+.gb-welcome-kicker {
+  font-size: 9.5px; letter-spacing: 0.17em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--champagne) 66%, transparent); font-weight: 600; margin-bottom: 12px;
+}
+.gb-welcome-title {
+  font-size: 25px; font-weight: 640; letter-spacing: -0.02em; line-height: 1.22;
+  color: var(--champagne); margin: 0 0 14px; text-wrap: balance;
+}
+.gb-welcome-copy {
+  font-size: 13.5px; line-height: 1.75; color: var(--text-secondary);
+  margin: 0 auto 22px; max-width: 340px;
+}
+.gb-welcome-list {
+  list-style: none; margin: 0 0 20px; padding: 20px 0; text-align: left;
+  border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft);
+  display: flex; flex-direction: column; gap: 11px;
+}
+.gb-welcome-list li { font-size: 12.5px; line-height: 1.6; color: var(--text-muted); }
+.gb-welcome-list li span { color: var(--text-primary); font-weight: 600; }
+.gb-welcome-note { font-size: 11px; color: var(--text-muted); margin: 0 0 22px; }
+.gb-welcome-cta {
+  width: 100%; padding: 13px; border: none; border-radius: 9px; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 600; color: #1a1510;
+  background: linear-gradient(135deg, var(--champagne), var(--champagne-soft));
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.gb-welcome-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 26px color-mix(in srgb, var(--champagne) 28%, transparent); }
+.gb-welcome-cta:focus-visible { outline: 2px solid var(--champagne); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gb-welcome-scrim, .gb-welcome { animation: none; }
+}
+@media (max-width: 480px) {
+  .gb-welcome { padding: 28px 22px 24px; }
+  .gb-welcome-title { font-size: 22px; }
+}
