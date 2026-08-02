@@ -193,19 +193,25 @@
   }
   .listening-wave.wave-fallback span { animation:voice-live-bar-fallback 1.6s ease-in-out infinite; }
 
-  .ctx-fields-panel { background:var(--bg-card); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:12px 14px; }
-  .ctx-fields { display:flex; flex-direction:column; gap:4px; }
-  .ctx-field { display:flex; align-items:flex-start; gap:7px; padding:5px 6px; border-radius:2px; }
+  .ctx-fields-panel { background:none; border:none; padding:0; }
+  /* Échelle d'espace du langage de design Gabriel (docs/gabriel-design-language.html :
+     --s0 8px, --s1 16px) — la liste utilisait des valeurs ad hoc (4px de gap,
+     5px/6px de padding) qui tassaient les items les uns sur les autres.
+     C'est ce qui donnait l'impression d'une liste "bricolée" malgré un texte
+     déjà petit : le défaut n'était pas la taille, c'était l'absence d'air
+     entre les lignes. */
+  .ctx-fields { display:flex; flex-direction:column; gap:2px; }
+  .ctx-field { display:flex; align-items:flex-start; gap:10px; padding:8px; border-radius:8px; }
   .ctx-field.filled { background:color-mix(in srgb, var(--text-primary) 1.2%, transparent); }
-  .ctx-field-icon { width:14px; height:14px; border-radius:50%; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:600; }
+  .ctx-field-icon { width:16px; height:16px; border-radius:50%; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:600; }
   .ctx-field-icon.ok      { background:rgba(120,200,140,0.15); color:rgba(120,200,140,0.7); }
   .ctx-field-icon.partial { background:color-mix(in srgb, var(--champagne) 12%, transparent); color:var(--champagne); }
   .ctx-field-icon.miss    { background:color-mix(in srgb, var(--text-primary) 4%, transparent); color:var(--text-disabled); }
-  .ctx-field-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:500; line-height:1.3; }
-  .ctx-field-val { font-size:10px; color:var(--text-secondary); line-height:1.5; margin-top:1px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .ctx-field-label { font-size:9.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); font-weight:500; line-height:1.3; }
+  .ctx-field-val { font-size:10.5px; color:var(--text-secondary); line-height:1.6; margin-top:2px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
-  .strat-cta { display:flex; flex-direction:column; gap:6px; }
-  .strat-cta-btn { width:100%; padding:11px; font-size:12px; font-weight:500; letter-spacing:0.03em; border:none; border-radius:var(--radius-md); cursor:pointer; transition:all 0.2s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; }
+  .strat-cta { display:flex; flex-direction:column; gap:8px; }
+  .strat-cta-btn { width:100%; padding:13px; font-size:12.5px; font-weight:500; letter-spacing:0.03em; border:none; border-radius:var(--radius-md); cursor:pointer; transition:all 0.2s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; }
   .strat-cta-btn.ready  { background:color-mix(in srgb, var(--champagne) 10%, transparent); color:var(--champagne); border:1px solid color-mix(in srgb, var(--champagne) 25%, transparent); }
   .strat-cta-btn.ready:hover { background:color-mix(in srgb, var(--champagne-accent) 17%, transparent); color:var(--champagne-accent); border-color:color-mix(in srgb, var(--champagne-accent) 40%, transparent); transform:translateY(-1px); box-shadow:0 4px 16px color-mix(in srgb, var(--champagne-accent) 16%, transparent); }
   .strat-cta-btn.locked { background:color-mix(in srgb, var(--text-primary) 3%, transparent); color:var(--text-disabled); border:1px solid var(--border-soft); cursor:not-allowed; }
@@ -2684,7 +2690,7 @@
      la carte flottante : on redonne une réserve pour que le texte ne passe
      jamais dessous. */
   @media (max-width:1360px) {
-    .ctx-panel:not(.step-welcome) { padding-right:310px; }
+    .ctx-panel:not(.step-welcome) { padding-right:340px; }
   }
 
   /* ── Zone A — colonne principale ─────────────────────────────────────
@@ -2890,35 +2896,42 @@
      colonne dans la mise en page — ils se posent par-dessus, en haut à
      droite. La conversation retrouve ainsi toute la largeur, et le suivi
      reste visible en permanence sans découper l'écran en deux. */
+  /* Carte flottante — refonte ergonomique (référence : la maquette envoyée,
+     esprit ChatGPT adapté aux composants Gabriel). Le contenu ne change pas
+     et la mécanique "carte qui survole la page" non plus (ce qui marchait
+     déjà) — seuls l'espace interne et le poids visuel bougent. Élargie de
+     274 à 300px : c'est ce qui évite au badge de titre de casser sur deux
+     lignes serrées, la cause la plus visible de l'effet "bricolé". Padding
+     et gaps alignés sur l'échelle d'espace de docs/gabriel-design-language.html
+     (8/16/24px) au lieu de valeurs ad hoc (14px, 18px, 12px…) choisies au cas
+     par cas — c'est cette absence de rythme commun qui donnait l'impression
+     de densité, pas la taille du texte, déjà petite. */
   .interview-side {
-    position:fixed; top:100px; right:24px; width:274px; z-index:60;
+    position:fixed; top:100px; right:24px; width:300px; z-index:60;
     display:flex; flex-direction:column;
     max-height:calc(100vh - 140px); min-height:0; overflow-y:auto; scrollbar-width:thin;
-    padding:14px 14px 12px; border:1px solid var(--border-soft); border-radius:12px;
+    padding:20px; border:1px solid var(--border-soft); border-radius:16px;
     background:color-mix(in srgb, var(--bg-card) 94%, transparent);
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-    box-shadow:0 18px 48px rgba(0,0,0,0.28);
+    box-shadow:0 16px 40px rgba(0,0,0,0.22);
     animation:step-in 0.45s cubic-bezier(0.22,1,.36,1) both;
   }
-  .interview-side .ctx-badge { margin-bottom:10px; font-size:9.5px; }
-  .interview-side .ctx-progress { margin:0 0 14px; }
-  .interview-side .ctx-progress-label { font-size:9.5px; }
+  .interview-side .ctx-badge { margin-bottom:16px; font-size:10.5px; padding:6px 12px; line-height:1.5; }
+  .interview-side .ctx-progress { margin:0 0 20px; }
+  .interview-side .ctx-progress-label { font-size:10px; }
 
-  .interview-tabs { display:flex; gap:18px; border-bottom:1px solid var(--border-soft); margin-bottom:14px; }
+  .interview-tabs { display:flex; gap:20px; border-bottom:1px solid var(--border-soft); margin-bottom:20px; }
   .interview-tab {
-    font-size:11.5px; font-weight:500; color:var(--text-muted); padding:0 0 9px; margin-bottom:-1px;
+    font-size:12px; font-weight:500; color:var(--text-muted); padding:0 0 10px; margin-bottom:-1px;
     border:none; border-bottom:2px solid transparent; background:none; cursor:pointer; font-family:inherit;
   }
   .interview-tab.active { color:var(--text-primary); border-bottom-color:var(--champagne); }
   .interview-tab-panel { flex:1; }
   .interview-tab-panel.hidden { display:none; }
 
-  /* Liste des dimensions — ctx-fields-panel n'est plus un tiroir qu'on
-     ouvre/ferme : il vit en permanence dans l'onglet "Progression". */
-  .ctx-fields-panel { background:none; border:none; padding:0; }
-  .progress-human-group { margin-bottom:18px; }
-  .progress-human-group-title { font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-disabled); font-weight:600; margin-bottom:6px; }
-  .progress-human-list { display:flex; flex-direction:column; gap:1px; }
+  .progress-human-group { margin-bottom:24px; }
+  .progress-human-group-title { font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-disabled); font-weight:600; margin-bottom:10px; }
+  .progress-human-list { display:flex; flex-direction:column; gap:2px; }
   .ctx-field:hover { background:var(--bg-card); }
 
   /* Historique — ancien .strat-memory, devient le contenu de l'onglet
@@ -2929,7 +2942,7 @@
   .interview-side .strat-memory-item { background:none; }
   .interview-side .strat-memory-item:hover { background:var(--bg-card); transform:none; }
 
-  .strat-cta { margin-top:auto; padding-top:18px; }
+  .strat-cta { margin-top:auto; padding-top:24px; }
 
   @media (max-width:900px) {
     .ctx-panel { grid-template-columns:1fr; }
@@ -4939,6 +4952,14 @@ async function submitStrategie() {
     });
     const raw = await r.json();
 
+    if (r.status === 402 && raw.error === 'credits_insufficient') {
+      clearInterval(timer); clearInterval(pctTimer); hide('strat-loading');
+      window.gbShowUpgrade && window.gbShowUpgrade(
+        `Il vous faut ${raw.cost} crédits pour une stratégie — il vous en reste ${raw.credits}. ` +
+        `Passez sur une offre payante pour continuer.`);
+      return;
+    }
+
     if (raw.error) {
       clearInterval(timer); clearInterval(pctTimer); hide('strat-loading');
       showStratErr(raw.error);
@@ -4967,6 +4988,7 @@ function _finishStrategie(raw) {
   _strategyId = raw.strategy_id || null;
   _analysisId = raw.analysis_id || _linkedAnalysisId || null;
   renderStrat(stratData);
+  window.gbRefreshCredits && window.gbRefreshCredits();
   if (typeof GabrielSurvey !== 'undefined') {
     GabrielSurvey.trigger({
       eventType:  'after_strategy',
