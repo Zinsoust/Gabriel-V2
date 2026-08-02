@@ -3999,6 +3999,14 @@ function _fmtDate(iso) {
 /* ── Psycho banner helpers ──────────────────────────── */
 function _showPsychoBanner(stored) {
   hide('strat-idle');
+  // .chat-window et #strat-psycho-banner partagent la même case de grille
+  // (grid-row:2) — sans ce masquage explicite, les deux s'affichaient en
+  // même temps et leurs textes se superposaient (signalé comme "bug",
+  // capture à l'appui). _forceHide (display:none !important) plutôt que
+  // la classe .hidden : la classe seule peut être neutralisée par une
+  // règle plus spécifique ailleurs dans cette feuille, déjà vu sur cette
+  // page pour d'autres éléments.
+  _forceHide(document.querySelector('.chat-window'));
   const banner = document.getElementById('strat-psycho-banner');
   banner.classList.remove('hidden');
 
@@ -4025,6 +4033,7 @@ function acceptPsychoAnalysis() {
   _linkedPsychoData = stored.psycho_data || {};
 
   hide('strat-psycho-banner');
+  _forceShow(document.querySelector('.chat-window'));
   _showPsychoLinked(stored.psycho_brief || '', stored.analysis_id);
   showAnalyzeSection();
 
@@ -4035,6 +4044,7 @@ function skipPsychoImport() {
   _pendingPsychoRaw = null;
   sessionStorage.removeItem('gabriel_for_stratege');
   hide('strat-psycho-banner');
+  _forceShow(document.querySelector('.chat-window'));
   _maybeShowInterviewHero({messages: []});
 }
 
