@@ -3116,7 +3116,35 @@
   </div>
 </footer>
 
+<script src="{{ static_v('js/vendor/gsap.min.js') }}"></script>
+<script src="{{ static_v('js/vendor/ScrollTrigger.min.js') }}"></script>
+<script src="{{ static_v('js/vendor/lenis.min.js') }}"></script>
 <script>
+/* ── SCROLL FLUIDE (Lenis) + GSAP ScrollTrigger ──────────────────────────
+   Lenis pilote le scroll ; ScrollTrigger doit se synchroniser dessus plutôt
+   que sur le scroll natif, sinon les deux désynchronisent (animations qui
+   se déclenchent en retard ou en avance sur ce que l'œil voit). Motif
+   d'intégration recommandé par GSAP lui-même. Désactivé si l'utilisateur a
+   demandé moins de mouvement — un scroll "adouci" reste un mouvement
+   supplémentaire imposé, exactement ce que prefers-reduced-motion demande
+   d'éviter. Les révélations au scroll (.lreveal) restent inchangées : elles
+   utilisent IntersectionObserver, indépendant de la mécanique de scroll. */
+(function () {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (typeof Lenis === 'undefined' || typeof gsap === 'undefined') return;
+
+  const lenis = new Lenis({ autoRaf: false });
+
+  if (typeof ScrollTrigger !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+  } else {
+    requestAnimationFrame(function raf(time) { lenis.raf(time); requestAnimationFrame(raf); });
+  }
+})();
+
 /* ── THÈME GLOBAL ── */
 function landingToggleTheme() {
   var root = document.documentElement;
