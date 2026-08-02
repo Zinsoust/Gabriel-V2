@@ -344,23 +344,43 @@ body.page-dossiers .app-footer {
   fill: none;
   stroke-width: 1.6;
 }
-.sidebar-agent-img {
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
+/* Bureau de chaque agent : un rond de la même famille que les avatars, mais
+   une marque au trait champagne — jamais une photo de stock, qui détonnait
+   avec le reste de l'identité (or/noir, épurée, aucune autre photo dans le
+   rail). Même gabarit que l'ancien avatar-photo pour ne rien casser du
+   rythme visuel du rail. */
+.sidebar-agent-slot {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
-  object-fit: cover;
-  /* Photo de l'agent affichée en permanence (replié ET survolé), à la place
-     de l'icône au trait — la taille réelle vient de .sidebar-agent-item .sidebar-agent-img */
-  display: block;
-  filter: grayscale(20%);
-  transition: filter 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--champagne) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--champagne) 18%, transparent);
+  box-shadow: 0 7px 18px rgba(0,0,0,0.22);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
-/* Icône au trait des agents : désormais remplacée par la photo, jamais affichée */
-.sidebar-agent-icon { display: none; }
-.sidebar-item:hover .sidebar-agent-img,
-.sidebar-item.active .sidebar-agent-img {
-  filter: grayscale(0%) brightness(1.08);
+.sidebar-agent-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  stroke: color-mix(in srgb, var(--champagne) 85%, var(--text-primary));
+  fill: none;
+  transition: stroke 0.2s ease;
+}
+.sidebar-item:hover .sidebar-agent-slot,
+.sidebar-item.active .sidebar-agent-slot {
+  background: color-mix(in srgb, var(--champagne) 14%, transparent);
+  border-color: color-mix(in srgb, var(--champagne) 32%, transparent);
+}
+.sidebar-item:hover .sidebar-agent-icon,
+.sidebar-item.active .sidebar-agent-icon {
+  stroke: var(--champagne);
 }
 .sidebar-agent-item {
   height: 38px;
@@ -373,16 +393,6 @@ body.page-dossiers .app-footer {
   background: transparent;
   overflow: visible;
 }
-.sidebar-agent-item .sidebar-agent-img {
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
-  aspect-ratio: 1 / 1;
-  border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
-  border-radius: 50%;
-  box-shadow: 0 7px 18px rgba(0,0,0,0.22);
-}
 .app-sidebar:hover .sidebar-agent-item {
   width: auto;
   margin: 0 10px 2px;
@@ -391,7 +401,7 @@ body.page-dossiers .app-footer {
   height: 46px;
   padding: 0 12px;
 }
-.app-sidebar:hover .sidebar-agent-item .sidebar-agent-img {
+.app-sidebar:hover .sidebar-agent-slot {
   width: 30px;
   height: 30px;
   min-width: 30px;
@@ -407,9 +417,9 @@ body.page-dossiers .app-footer {
   background: transparent;
   color: var(--text-primary);
 }
-.sidebar-agent-item.active .sidebar-agent-img {
-  border-color: color-mix(in srgb, var(--champagne) 36%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--champagne) 6%, transparent), 0 10px 24px rgba(0,0,0,0.26);
+.sidebar-agent-item.active .sidebar-agent-slot {
+  border-color: color-mix(in srgb, var(--champagne) 45%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--champagne) 8%, transparent), 0 10px 24px rgba(0,0,0,0.26);
 }
 .sidebar-agent-item:hover {
   background: transparent;
