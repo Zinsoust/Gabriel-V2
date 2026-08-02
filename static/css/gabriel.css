@@ -537,6 +537,8 @@ body.page-dossiers .app-footer {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 500;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 .header-brand-mark {
   display: inline-flex;
@@ -553,8 +555,22 @@ body.page-dossiers .app-footer {
   height: 100%;
   object-fit: contain;
 }
-.header-title .sep { color: var(--text-disabled); }
-.header-title .page { color: var(--text-muted); }
+.header-title .sep { color: var(--text-disabled); flex-shrink: 0; }
+/* Cause du chevauchement signalé (reproduit à ~844px) : ce titre pouvait
+   casser sur deux lignes ("LE" / "STRATÈGE") faute de protection contre le
+   retour à la ligne. La "plaque de bureau" juste à côté (.cabinet-room)
+   reste centrée verticalement sur toute la hauteur du titre — si celui-ci
+   passe sur deux lignes, elle se retrouve entre les deux et les textes se
+   chevauchent visuellement. white-space:nowrap empêche la casse ; en
+   dernier recours (vraiment plus de place), on tronque proprement avec
+   des points de suspension plutôt que de laisser déborder ou casser. */
+.header-title .page {
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
 .header-actions {
   display: flex;
   align-items: center;
