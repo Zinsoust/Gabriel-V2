@@ -2491,7 +2491,10 @@ function setGenerating(isGenerating, label) {
   const button = $('cre-gen');
   button.disabled = isGenerating;
   button.setAttribute('aria-busy', String(isGenerating));
-  $('cre-card').setAttribute('aria-busy', String(isGenerating));
+  // #cre-card n'existe plus depuis la refonte Studio (écran unique) — cet
+  // appel plantait silencieusement ici et interrompait generate() avant même
+  // l'appel réseau, laissant la barre de progression figée indéfiniment.
+  $('cre-editor-wrap')?.setAttribute('aria-busy', String(isGenerating));
   $('cre-gen-label').textContent = isGenerating ? (label || 'Création en cours…') : 'Créer le contenu';
 }
 
@@ -2657,7 +2660,7 @@ async function generate() {
     }
     const d = await r.json();
     if (!r.ok || d.error) { err(d.error || 'La création n’a pas pu démarrer.'); return; }
-    if (d.job_id) { _pollN = 0; poll(d.job_id); }
+    if (d.job_id) { _pollN = 0; _pollFailN = 0; poll(d.job_id); }
     else renderResult(d.data || d);
   } catch(e) {
     err('Erreur réseau. Réessayez.');
@@ -2672,6 +2675,7 @@ const STEPS = [
   'Gabriel rédige avec la tonalité choisie…',
   'Gabriel peaufine la cohérence finale…',
 ];
+let _pollFailN = 0;   // échecs réseau consécutifs — distinct de _pollN (tentatives totales)
 function poll(jid) {
   if (_pollTimer) clearTimeout(_pollTimer);
   _pollTimer = setTimeout(async () => {
@@ -2688,21 +2692,39 @@ function poll(jid) {
         return;
       }
       if (r.status === 429) { err('Trop de requêtes — réessayez dans quelques instants.'); return; }
+      _pollFailN = 0;   // une réponse HTTP valide arrive : on repart à zéro
       const d = await r.json();
       if      (d.status === 'done')  renderResult(d.data);
       else if (d.status === 'error') err(d.error || 'Erreur interne.');
       else if (d.status === 'interrupted') err(d.error || 'Génération interrompue par un redémarrage du serveur. Réessayez.');
+      else if (d.status === 'not_found') {
+        // Trouvé en conditions réelles : ce cas (job perdu — redémarrage du
+        // serveur pendant la génération, ou job jamais persisté) tombait dans
+        // la branche générique ci-dessous et relançait poll() indéfiniment —
+        // l'écran restait bloqué sans jamais prévenir l'utilisateur.
+        err(d.error || 'La génération a été interrompue. Relancez la création.');
+      }
       else {
         // Étape RÉELLE du pipeline (« Gabriel critique son propre texte… ») —
         // elle remplace les étapes fictives dès qu'elle est disponible.
         if (d.step) $('cre-load-lbl').textContent = d.step;
         // Livraison progressive : le brouillon s'affiche dès qu'il est écrit,
-        // pendant que Gabriel le relit. On ne l'affiche qu'une fois.
-        const draft = d.partial && d.partial.draft;
-        if (draft && !_draftShown) { _draftShown = true; renderResult(draft); }
+        // pendant que Gabriel le relit. On ne l'affiche qu'une fois. Protégé :
+        // un brouillon malformé ne doit jamais interrompre le suivi en cours.
+        try {
+          const draft = d.partial && d.partial.draft;
+          if (draft && !_draftShown) { _draftShown = true; renderResult(draft); }
+        } catch (e) { console.error('[Créateur] brouillon ignoré :', e); }
         poll(jid);
       }
-    } catch(e) { poll(jid); }
+    } catch(e) {
+      // Échec réseau (coupure, CORS, JSON invalide…) : on retente, mais pas
+      // indéfiniment en silence — trouvé en conditions réelles, ce cas
+      // bouclait sans jamais informer l'utilisateur d'un problème persistant.
+      _pollFailN++;
+      if (_pollFailN >= 5) { err('Connexion perdue avec le serveur. Réessayez.'); return; }
+      poll(jid);
+    }
   }, 3000);
 }
 
