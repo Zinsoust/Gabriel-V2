@@ -182,6 +182,12 @@
       </div>
       <div class="header-actions">
         {% block header_actions %}{% endblock %}
+        {% if nav_credits is not none %}
+        <span class="header-credits" id="gb-credits-badge" title="Crédits restants — Psychologue, Stratège, Créateur">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          <span id="gb-credits-value">{{ nav_credits }}</span> crédits
+        </span>
+        {% endif %}
         {% if current_user and active_page not in ('upgrade', 'tarifs') %}
         <a href="/upgrade" class="btn btn-primary btn-sm header-upgrade-btn">Upgrade</a>
         {% endif %}
@@ -249,6 +255,55 @@
     }
   } catch (e) { /* navigation privée : on n'affiche rien plutôt que de boucler */ }
 })();
+</script>
+
+{# ── Crédits épuisés — modal partagée par les 3 agents ───────────────────────
+   Déclenchée par gbShowUpgrade() quand une route agent répond 402
+   credits_insufficient. Un seul endroit à maintenir pour les trois pages. #}
+<div class="gb-credits-scrim" id="gb-credits-modal" hidden>
+  <div class="gb-credits-modal" role="dialog" aria-modal="true" aria-labelledby="gb-credits-title">
+    <div class="gb-credits-kicker">Crédits épuisés</div>
+    <h2 class="gb-credits-title" id="gb-credits-title">Vos crédits offerts sont utilisés.</h2>
+    <p class="gb-credits-copy" id="gb-credits-copy">
+      Passez sur une offre payante pour continuer à utiliser le Psychologue, le Stratège
+      et le Créateur, avec plus de crédits et de fonctionnalités.
+    </p>
+    <div class="gb-credits-actions">
+      <a href="/upgrade" class="gb-credits-cta">Voir les offres</a>
+      <button type="button" class="gb-credits-dismiss" onclick="gbHideUpgrade()">Plus tard</button>
+    </div>
+  </div>
+</div>
+<script>
+/* Badge de crédits (nav) + modal de blocage — partagés par toutes les pages. */
+window.gbRefreshCredits = function () {
+  var badge = document.getElementById('gb-credits-badge');
+  if (!badge) return;
+  fetch('/credits').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    if (!d || typeof d.credits !== 'number') return;
+    var valEl = document.getElementById('gb-credits-value');
+    if (valEl) valEl.textContent = d.credits;
+    badge.classList.toggle('is-empty', d.credits <= 0);
+    badge.classList.toggle('is-low', d.credits > 0 && d.credits < 40);
+    badge.classList.remove('pulse');
+    void badge.offsetWidth; /* relance l'animation même si déjà appliquée */
+    badge.classList.add('pulse');
+  }).catch(function () {});
+};
+
+window.gbShowUpgrade = function (message) {
+  var modal = document.getElementById('gb-credits-modal');
+  if (!modal) return;
+  var copy = document.getElementById('gb-credits-copy');
+  if (copy && message) copy.textContent = message;
+  modal.hidden = false;
+  window.gbRefreshCredits();
+};
+
+window.gbHideUpgrade = function () {
+  var modal = document.getElementById('gb-credits-modal');
+  if (modal) modal.hidden = true;
+};
 </script>
 {% endif %}
 

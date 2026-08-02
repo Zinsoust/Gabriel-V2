@@ -77,6 +77,17 @@ def _inject_active_folder():
     return {'has_active_folder': bool(session.get('active_folder_id'))}
 
 
+@app.context_processor
+def _inject_credits():
+    """Solde de crédits pour le badge de navigation (base.html) — rendu
+    initial côté serveur, rafraîchi côté client via /credits après chaque
+    usage d'agent (voir gbRefreshCredits() dans base.html)."""
+    uid = session.get('user_id')
+    if not uid:
+        return {'nav_credits': None}
+    return {'nav_credits': _db.get_user_credits(uid)}
+
+
 # ── Cache-busting des assets statiques ────────────────────────────────────────
 # Le navigateur met en cache css/js de façon agressive (aucune version dans l'URL
 # par défaut). Après une modif de gabriel.css, une copie périmée pouvait rester
@@ -522,6 +533,16 @@ def analyze():
                 'plan':             usage.get('plan', 'free'),
             }), 403
 
+    # Vérifier le solde de crédits (transversal aux 3 agents — voir api/db.py)
+    _cost_psycho = _db.CREDIT_COSTS['psychologue']
+    if uid_early and not _db.has_enough_credits(uid_early, _cost_psycho, email=email_early):
+        return jsonify({
+            'error':            'credits_insufficient',
+            'upgrade_required': True,
+            'credits':          _db.get_user_credits(uid_early),
+            'cost':             _cost_psycho,
+        }), 402
+
     comments      = []
     video_context = ""
     video_title   = ""
@@ -696,6 +717,8 @@ def analyze():
                 print("[ANALYZE] supabase_save_done")
                 print(f"[PSYCHO_TIMING] total_request={time.perf_counter()-_t_request_start:.2f}s")
 
+                if uid:
+                    _db.deduct_credits(uid, _cost_psycho, reason='psychologue')
                 if job_id in _jobs:
                     _jobs[job_id]['result'] = result
                     _jobs[job_id]['status'] = 'done'
@@ -897,6 +920,19 @@ def strategize():
     psycho_text    = data.get('psycho_summary', '') # texte libre du Psychologue
     folder_id_strat = str(data.get('folder_id') or '').strip()[:64] or None
 
+    # Vérifier le solde de crédits avant tout travail — commun aux deux flux.
+    _cu_strat_early = current_user() or {}
+    _uid_strat_credits = _cu_strat_early.get('user_id')
+    _cost_stratege = _db.CREDIT_COSTS['stratege']
+    if _uid_strat_credits and not _db.has_enough_credits(
+            _uid_strat_credits, _cost_stratege, email=_cu_strat_early.get('email', '')):
+        return jsonify({
+            'error':            'credits_insufficient',
+            'upgrade_required': True,
+            'credits':          _db.get_user_credits(_uid_strat_credits),
+            'cost':             _cost_stratege,
+        }), 402
+
     # ── Flux Context Builder ──────────────────────────────────
     if cb_context and not analysis_id:
         # Le Context Builder V1.1 (agents/context_builder/schema.py) est la
@@ -943,6 +979,8 @@ def strategize():
             # aussi, un feedback post-génération.
             if strategy_id:
                 user_mem.add_case(strategy_id, psycho_data, strategie, effective_profile, user_id=uid)
+            if uid:
+                _db.deduct_credits(uid, _cost_stratege, reason='stratege_cb')
             return jsonify({**strategie, 'success': True, 'strategy_id': strategy_id, 'memory': memory_summary})
         except Exception as e:
             import traceback; traceback.print_exc()
@@ -1030,6 +1068,8 @@ def strategize():
             if folder_id_strat:
                 _db.update_folder(folder_id_strat, uid, strategy_id=strategy_id, step='stratege')
             user_mem.add_case(analysis_id, psycho_data, strat_data, effective_profile, user_id=uid)
+            if uid:
+                _db.deduct_credits(uid, _cost_stratege, reason='stratege')
             job_result = {'success': True, 'data': result, 'memory': memory_summary,
                           'strategy_id': strategy_id, 'analysis_id': analysis_id}
             _jobs[job_id] = {'status': 'done', 'result': job_result, 'user_id': uid}
@@ -1190,6 +1230,15 @@ def creator_generate():
     if not ok:
         return jsonify({'error': err}), 400
 
+    _cost_createur = _db.CREDIT_COSTS['createur']
+    if uid and not _db.has_enough_credits(uid, _cost_createur, email=(current_user() or {}).get('email', '')):
+        return jsonify({
+            'error':            'credits_insufficient',
+            'upgrade_required': True,
+            'credits':          _db.get_user_credits(uid),
+            'cost':             _cost_createur,
+        }), 402
+
     psycho_data = _resolve_psycho(data, uid)
     strategy    = _resolve_strategy(data, uid)
 
@@ -1296,6 +1345,8 @@ def creator_generate():
     def _run():
         try:
             result = _job()
+            if uid:
+                _db.deduct_credits(uid, _cost_createur, reason='createur')
             _jobs[job_id] = {'status': 'done', 'result': result, 'user_id': uid}
             _db.update_job(job_id, user_id=uid, status='completed',
                            progress=100, step='termine',
@@ -1619,6 +1670,16 @@ def usage():
         'used':    info.get('used', 0),
         'limit':   info.get('limit', _db.FREE_ANALYSES_LIMIT),
     })
+
+
+@app.route('/credits', methods=['GET'])
+@login_required
+def credits():
+    """Solde de crédits de l'utilisateur — utilisé pour rafraîchir le badge
+    de navigation après chaque génération (voir gbRefreshCredits() dans
+    base.html)."""
+    uid = (current_user() or {}).get('user_id')
+    return jsonify({'credits': _db.get_user_credits(uid) if uid else 0})
 
 
 @app.route('/memory/stats', methods=['GET'])

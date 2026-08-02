@@ -2659,6 +2659,14 @@ async function generate() {
       return;
     }
     const d = await r.json();
+    if (r.status === 402 && d.error === 'credits_insufficient') {
+      hd('cre-load');
+      setGenerating(false);
+      window.gbShowUpgrade && window.gbShowUpgrade(
+        `Il vous faut ${d.cost} crédits pour une création — il vous en reste ${d.credits}. ` +
+        `Passez sur une offre payante pour continuer.`);
+      return;
+    }
     if (!r.ok || d.error) { err(d.error || 'La création n’a pas pu démarrer.'); return; }
     if (d.job_id) { _pollN = 0; _pollFailN = 0; poll(d.job_id); }
     else renderResult(d.data || d);
@@ -2740,6 +2748,7 @@ function renderResult(d) {
     setGenerating(false);
     hd('cre-load');
     _draftShown = false;
+    window.gbRefreshCredits && window.gbRefreshCredits();
   }
   _lastResult = d;
   document.getElementById('cre-out')?.classList.toggle('is-draft', isDraft);

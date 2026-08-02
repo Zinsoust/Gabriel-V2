@@ -1287,6 +1287,13 @@ async function startAnalysis() {
       clearInterval(timer); clearInterval(pctTimer); hide('loading-section'); show('input-section');
       showUpgradeModal(d.analyses_used, d.analyses_limit); return;
     }
+    if (r.status === 402 && d.error === 'credits_insufficient') {
+      clearInterval(timer); clearInterval(pctTimer); hide('loading-section'); show('input-section');
+      window.gbShowUpgrade && window.gbShowUpgrade(
+        `Il vous faut ${d.cost} crédits pour une analyse — il vous en reste ${d.credits}. ` +
+        `Passez sur une offre payante pour continuer.`);
+      return;
+    }
     if (d.error) { clearInterval(timer); clearInterval(pctTimer); showError(d.error); return; }
     jobId = d.job_id;
   } catch(e) {
@@ -1379,6 +1386,7 @@ async function pollAnalysis(jobId, timer, pctTimer, t0) {
           renderDashboard(fullData);
         }
         loadUsageCounter();
+        window.gbRefreshCredits && window.gbRefreshCredits();
       }
       catch(e) { showError("Analyse terminée mais affichage échoué. Rechargez."); }
       if (typeof GabrielSurvey !== 'undefined') {

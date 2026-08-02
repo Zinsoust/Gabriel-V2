@@ -665,6 +665,94 @@ def upgrade_user_plan(user_id, plan):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CRÉDITS — solde partagé entre les 3 agents (Psychologue/Stratège/Créateur)
+#
+# 300 crédits offerts à l'inscription (voir gabriel_users.credits, DEFAULT 300
+# côté Supabase — supabase/credits_migration.sql). Indépendant de
+# FREE_ANALYSES_LIMIT ci-dessus (qui reste actif tel quel, cf. tests
+# existants) : les crédits sont la limite transversale, l'ancien compteur
+# reste une limite spécifique au Psychologue.
+# ─────────────────────────────────────────────────────────────────────────────
+
+DEFAULT_FREE_CREDITS = 300
+
+# Le Psychologue coûte le plus cher (scraping + analyse profonde d'audience),
+# le Créateur le moins cher (il exécute une décision déjà construite par les
+# deux agents précédents, pas de travail d'analyse).
+CREDIT_COSTS = {
+    'psychologue': 100,
+    'stratege':    60,
+    'createur':    20,
+}
+
+
+def get_user_credits(user_id):
+    """Solde de crédits de l'utilisateur. 300 par défaut (offerts à l'inscription,
+    y compris pour un compte créé avant l'introduction de ce champ)."""
+    if not user_id:
+        return 0
+    if _supabase:
+        try:
+            res = _supabase.table(_T_USERS).select('credits').eq('user_id', user_id).limit(1).execute()
+            rows = res.data or []
+            if rows:
+                credits = rows[0].get('credits')
+                return DEFAULT_FREE_CREDITS if credits is None else int(credits)
+        except Exception as e:
+            print(f'[DB] get_user_credits error: {e}')
+    users_file = os.path.join(_DATA_DIR, 'users.json')
+    if os.path.exists(users_file):
+        try:
+            with open(users_file, 'r', encoding='utf-8') as f:
+                users = json.load(f)
+            credits = users.get(user_id, {}).get('credits')
+            return DEFAULT_FREE_CREDITS if credits is None else int(credits)
+        except Exception:
+            pass
+    return DEFAULT_FREE_CREDITS
+
+
+def has_enough_credits(user_id, cost, email=None):
+    """Vérifie le solde avant de lancer un agent. Bypass admin/dev, cohérent
+    avec check_usage_limit ci-dessus."""
+    if email and email.strip().lower() in ADMIN_EMAILS:
+        return True
+    if os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
+        return True
+    if not user_id:
+        return True
+    return get_user_credits(user_id) >= cost
+
+
+def deduct_credits(user_id, cost, reason=''):
+    """Débite `cost` crédits après un usage réussi d'un agent (jamais avant —
+    un échec ne doit pas coûter de crédits). Ne descend jamais sous zéro.
+    Retourne le nouveau solde."""
+    if not user_id or cost <= 0:
+        return get_user_credits(user_id)
+    new_balance = max(0, get_user_credits(user_id) - cost)
+    if _supabase:
+        try:
+            _supabase.table(_T_USERS).update({'credits': new_balance}).eq('user_id', user_id).execute()
+        except Exception as e:
+            print(f'[DB] deduct_credits error: {e}')
+    else:
+        users_file = os.path.join(_DATA_DIR, 'users.json')
+        if os.path.exists(users_file):
+            try:
+                with open(users_file, 'r', encoding='utf-8') as f:
+                    users = json.load(f)
+                if user_id in users:
+                    users[user_id]['credits'] = new_balance
+                    with open(users_file, 'w', encoding='utf-8') as f:
+                        json.dump(users, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                print(f'[DB] deduct_credits json error: {e}')
+    print(f'[CREDITS] user={user_id} -{cost} ({reason}) -> {new_balance}')
+    return new_balance
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # EXPORTS
 # ─────────────────────────────────────────────────────────────────────────────
 

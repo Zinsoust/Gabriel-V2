@@ -184,6 +184,10 @@ def _sb_upsert_google(info):
         'created_at': now,
         'last_login': now,
     }
+    # 'credits' est fourni par le DEFAULT 300 de la colonne côté Supabase (voir
+    # supabase/credits_migration.sql) — jamais envoyé explicitement ici : tant
+    # que la migration n'a pas tourné sur l'instance Supabase, une clé
+    # inconnue dans l'insert fait échouer TOUTE création de compte (PGRST204).
     _supabase.table(_TABLE).insert(row).execute()
     return row
 
@@ -211,6 +215,7 @@ def register_email_user(email, password, name=''):
             'created_at':    now,
             'last_login':    now,
         }
+        # Pas de 'credits' explicite ici — voir commentaire dans _sb_upsert_google.
         _supabase.table(_TABLE).insert(row).execute()
         return row, None
     else:
@@ -227,6 +232,7 @@ def register_email_user(email, password, name=''):
             'password_hash': generate_password_hash(password, method=_PASSWORD_HASH_METHOD),
             'created_at':    now,
             'last_login':    now,
+            'credits':       300,
         }
         _save_json_users(users)
         return users[uid], None
@@ -272,6 +278,7 @@ def _json_upsert_google(info):
             'name':      info.get('name', ''),
             'picture':   info.get('picture', ''),
             'created_at': now,
+            'credits':   300,
         }
     users[gid]['last_login'] = now
     _save_json_users(users)
