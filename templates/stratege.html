@@ -214,6 +214,24 @@
   .strat-cta-btn { width:100%; padding:13px; font-size:12.5px; font-weight:500; letter-spacing:0.03em; border:none; border-radius:var(--radius-md); cursor:pointer; transition:all 0.2s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:7px; }
   .strat-cta-btn.ready  { background:color-mix(in srgb, var(--champagne) 10%, transparent); color:var(--champagne); border:1px solid color-mix(in srgb, var(--champagne) 25%, transparent); }
   .strat-cta-btn.ready:hover { background:color-mix(in srgb, var(--champagne-accent) 17%, transparent); color:var(--champagne-accent); border-color:color-mix(in srgb, var(--champagne-accent) 40%, transparent); transform:translateY(-1px); box-shadow:0 4px 16px color-mix(in srgb, var(--champagne-accent) 16%, transparent); }
+  /* Reflet discret sur le libellé (esprit "ShinyText") une fois l'action
+     débloquée — un seul passage lent de lumière, jamais un clignotement :
+     le champagne reste posé, comme le reste de la direction. Sur le texte
+     uniquement (pas le bouton entier) pour rester "épuré" plutôt que criard.
+     Désactivé si l'utilisateur a demandé moins d'animations. */
+  .strat-cta-btn.ready .strat-cta-label {
+    background:linear-gradient(100deg,
+      color-mix(in srgb, var(--champagne) 88%, transparent) 42%,
+      var(--champagne-light, #f1d7a8) 50%,
+      color-mix(in srgb, var(--champagne) 88%, transparent) 58%);
+    background-size:220% 100%;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation:strat-cta-shine 3.4s ease-in-out infinite;
+  }
+  @keyframes strat-cta-shine { 0%,20% { background-position:160% 0; } 80%,100% { background-position:-60% 0; } }
+  @media (prefers-reduced-motion:reduce) {
+    .strat-cta-btn.ready .strat-cta-label { animation:none; background:none; -webkit-background-clip:unset; background-clip:unset; color:inherit; }
+  }
   .strat-cta-btn.locked { background:color-mix(in srgb, var(--text-primary) 3%, transparent); color:var(--text-disabled); border:1px solid var(--border-soft); cursor:not-allowed; }
   .strat-cta-hint { font-size:10px; color:var(--text-disabled); text-align:center; }
 
@@ -3377,7 +3395,7 @@
       <div class="strat-cta">
         <button type="button" class="strat-cta-btn locked" id="strat-launch-btn" onclick="launchStratege()" disabled data-tour="stratege-start">
           <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          Générer la stratégie
+          <span class="strat-cta-label">Générer la stratégie</span>
         </button>
         <div class="strat-cta-hint" id="strat-cta-hint">Complétez le contexte pour débloquer le Stratège</div>
       </div>
@@ -3433,6 +3451,14 @@
 <!-- Conteneur du parcours (machine à états). Chargé avant le script de la
      page : les écrans s'enregistrent auprès de lui dès leur définition. -->
 <script src="{{ static_v('js/strategy-workspace.js') }}"></script>
+<!-- GSAP + SplitText : réservés à un seul moment, le titre d'accueil de
+     l'entretien (voir _setGate ci-dessous) — pas de dépendance sur chaque
+     page, pas de React (aucun outil de build disponible pour compiler du
+     JSX ici ; ce même effet visuel, texte qui se révèle mot par mot, est
+     ce que produit le composant SplitText de React Bits — obtenu ici sans
+     React, avec la bibliothèque officielle GSAP). -->
+<script src="{{ static_v('js/vendor/gsap.min.js') }}"></script>
+<script src="{{ static_v('js/vendor/SplitText.min.js') }}"></script>
 <script>
 document.body.classList.add('page-stratege');
 
@@ -3680,6 +3706,21 @@ function _setGate(name) {
   document.getElementById('gate-intro')?.classList.toggle('hidden', name !== 'intro');
   const chat = document.querySelector('.chat-window');
   if (name === null) _forceShow(chat); else _forceHide(chat);
+  if (name === 'welcome') _revealWelcomeTitle();
+}
+
+/* Révélation mot par mot du titre d'accueil — une seule fois par visite de
+   cet écran (data-split-done), jamais répétée à chaque re-rendu de _setGate.
+   Sans effet si GSAP/SplitText n'a pas chargé (aucune dépendance dure) ou
+   si l'utilisateur préfère moins d'animations. */
+function _revealWelcomeTitle() {
+  const titleEl = document.querySelector('#gate-welcome .gate-title');
+  if (!titleEl || titleEl.dataset.splitDone) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (typeof gsap === 'undefined' || typeof SplitText === 'undefined') return;
+  titleEl.dataset.splitDone = '1';
+  const split = new SplitText(titleEl, { type: 'words' });
+  gsap.from(split.words, { opacity: 0, y: 14, stagger: 0.05, duration: 0.65, ease: 'power3.out' });
 }
 
 /* ── Écrans du parcours ────────────────────────────────
