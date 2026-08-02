@@ -1385,6 +1385,12 @@ details.cs-set[open] .cs-set-chev { transform: rotate(90deg); }
 .cs-input { flex: 1; background: none; border: none; outline: none; resize: none; overflow-y: auto;
   color: var(--text-primary); font-family: inherit; font-size: 14.5px; line-height: 1.65;
   padding: 9px 4px; min-height: 24px; max-height: 260px; }
+/* Le contour bleu générique d'accessibilité (.cre-page textarea:focus-visible,
+   plus bas) ajoute un cadre disqualifiant sur ce champ précis — le pill
+   .cs-composer porte déjà son propre indicateur de focus (bordure champagne),
+   pas besoin d'un second contour qui casse l'UX volontairement sobre
+   (référence : zone de saisie ChatGPT, sans encadré visible). */
+.cs-input:focus-visible { outline: none; }
 .cs-input::placeholder { color: var(--text-disabled); }
 /* padding:0 est indispensable : le bouton d'envoi porte aussi la classe
    .cre-btn (héritée, gardée pour la compatibilité) qui impose
