@@ -53,7 +53,7 @@
   color: var(--accent-blue);
 }
 
-:root[data-theme="light"] .sidebar-agent-item.active .sidebar-agent-slot {
+:root[data-theme="light"] .sidebar-agent-item.active .sidebar-agent-img {
   box-shadow: 0 0 0 2px #F7F7F5, 0 0 0 3px var(--accent-blue-border);
 }
 
