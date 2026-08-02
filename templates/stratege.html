@@ -91,7 +91,7 @@
      coins toujours arrondis mais la barre elle-même plus fine. */
   .chat-input-row {
     display:flex; align-items:flex-end; gap:6px;
-    margin:0 16px 16px; padding:6px 6px 6px 16px;
+    margin:0 16px 8px; padding:6px 6px 6px 16px;
     border:1px solid var(--border-soft); border-radius:22px;
     background:var(--bg-card);
     box-shadow:0 10px 28px rgba(0,0,0,0.16), inset 0 1px 0 color-mix(in srgb, var(--text-primary) 3%, transparent);
@@ -2647,8 +2647,12 @@
     display:grid; grid-template-columns:minmax(0,1fr) 336px; column-gap:32px; row-gap:0;
     align-items:start; max-width:none;
     /* Le parcours occupe toute la hauteur : chaque étape est un écran, pas
-       un bloc posé en haut de page. */
-    min-height:calc(100vh - 210px);
+       un bloc posé en haut de page. 210px sous-estimait l'espace vraiment
+       disponible (mesuré en conditions réelles : la barre de saisie
+       s'arrêtait 78px avant le bas de l'écran, signalé comme "pas assez
+       bas dans sa zone") — 170px correspond à ce qui est effectivement
+       réservé au-dessus (barre de session + fil d'étapes). */
+    min-height:calc(100vh - 170px);
     /* Trois rangées : l'en-tête de session, l'étape en cours (qui prend
        toute la place disponible), puis la barre de saisie ancrée en bas.
        Chaque élément est placé explicitement — sans quoi le placement
@@ -2706,18 +2710,23 @@
   .ctx-panel { grid-template-columns:minmax(0,1fr); position:relative; }
 
   /* Largeur de lecture de la conversation — le seul garde-fou. Tout ce qui
-     appartient au fil (messages, écrans d'étape) partage cette largeur et
-     ce centrage, pour que la colonne reste la même d'un écran à l'autre. */
+     appartient au fil (messages, écrans d'étape) partage cette largeur,
+     pour que la colonne reste la même d'un écran à l'autre.
+     Centrer (margin-inline:auto) créait, sur écran large, une marge vide
+     ÉGALE des deux côtés — mais celle de droite est en partie récupérée
+     par la carte flottante, alors que celle de gauche restait un vide pur,
+     signalé comme "zone vide" à agrandir. Ancrée à gauche à la place : la
+     conversation démarre juste après la barre latérale, sans mur vide. */
   .page-stratege .chat-window,
   .page-stratege .interview-gate:not(#gate-welcome) {
-    max-width:780px; margin-inline:auto;
+    max-width:780px; margin-left:0; margin-right:auto;
   }
 
   /* En dessous de cette largeur, la marge naturelle ne suffit plus à loger
      la carte flottante : on redonne une réserve pour que le texte ne passe
      jamais dessous. */
   @media (max-width:1360px) {
-    .ctx-panel:not(.step-welcome) { padding-right:290px; }
+    .ctx-panel:not(.step-welcome) { padding-right:255px; }
   }
 
   /* ── Zone A — colonne principale ─────────────────────────────────────
@@ -2942,31 +2951,33 @@
      compacte que même la version d'origine (274px) — priorité donnée à la
      densité, l'espacement reste juste assez net pour ne pas recoller les
      lignes entre elles. */
+  /* Encore réduite après retour direct ("trop grand, encore en plus
+     petit") — deuxième passe de réduction. */
   .interview-side {
-    position:fixed; top:100px; right:24px; width:250px; z-index:60;
+    position:fixed; top:100px; right:24px; width:215px; z-index:60;
     display:flex; flex-direction:column;
     max-height:calc(100vh - 140px); min-height:0; overflow-y:auto; scrollbar-width:thin;
-    padding:14px; border:1px solid var(--border-soft); border-radius:12px;
+    padding:10px; border:1px solid var(--border-soft); border-radius:10px;
     background:color-mix(in srgb, var(--bg-card) 94%, transparent);
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-    box-shadow:0 14px 34px rgba(0,0,0,0.2);
+    box-shadow:0 12px 28px rgba(0,0,0,0.2);
     animation:step-in 0.45s cubic-bezier(0.22,1,.36,1) both;
   }
-  .interview-side .ctx-badge { margin-bottom:10px; font-size:9px; padding:4px 9px; line-height:1.4; }
-  .interview-side .ctx-progress { margin:0 0 12px; }
-  .interview-side .ctx-progress-label { font-size:9px; }
+  .interview-side .ctx-badge { margin-bottom:8px; font-size:8.5px; padding:3px 8px; line-height:1.4; }
+  .interview-side .ctx-progress { margin:0 0 9px; }
+  .interview-side .ctx-progress-label { font-size:8.5px; }
 
-  .interview-tabs { display:flex; gap:14px; border-bottom:1px solid var(--border-soft); margin-bottom:12px; }
+  .interview-tabs { display:flex; gap:10px; border-bottom:1px solid var(--border-soft); margin-bottom:9px; }
   .interview-tab {
-    font-size:10.5px; font-weight:500; color:var(--text-muted); padding:0 0 7px; margin-bottom:-1px;
+    font-size:9.5px; font-weight:500; color:var(--text-muted); padding:0 0 6px; margin-bottom:-1px;
     border:none; border-bottom:2px solid transparent; background:none; cursor:pointer; font-family:inherit;
   }
   .interview-tab.active { color:var(--text-primary); border-bottom-color:var(--champagne); }
   .interview-tab-panel { flex:1; }
   .interview-tab-panel.hidden { display:none; }
 
-  .progress-human-group { margin-bottom:14px; }
-  .progress-human-group-title { font-size:8.5px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-disabled); font-weight:600; margin-bottom:6px; }
+  .progress-human-group { margin-bottom:10px; }
+  .progress-human-group-title { font-size:8px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-disabled); font-weight:600; margin-bottom:5px; }
   .progress-human-list { display:flex; flex-direction:column; gap:1px; }
   .ctx-field:hover { background:var(--bg-card); }
 
@@ -2978,7 +2989,7 @@
   .interview-side .strat-memory-item { background:none; }
   .interview-side .strat-memory-item:hover { background:var(--bg-card); transform:none; }
 
-  .strat-cta { margin-top:auto; padding-top:14px; }
+  .strat-cta { margin-top:auto; padding-top:10px; }
 
   @media (max-width:900px) {
     .ctx-panel { grid-template-columns:1fr; }
