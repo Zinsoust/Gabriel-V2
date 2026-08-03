@@ -36,6 +36,11 @@
   .pipeline-step.done  .pipeline-step-num { background:rgba(120,200,140,0.14); color:rgba(120,200,140,0.75); }
   .pipeline-step.active .pipeline-step-num { background:color-mix(in srgb, var(--champagne) 15%, transparent); color:color-mix(in srgb, var(--champagne) 90%, transparent); }
   .pipeline-step.next  .pipeline-step-num { background:color-mix(in srgb, var(--text-primary) 4%, transparent); color:var(--text-disabled); }
+  /* Même portrait que dans la barre latérale (cohérence visuelle) — la
+     pastille numéro/coche reste seule à porter l'état (fait/en cours/à
+     venir), l'image ne fait qu'identifier l'agent. */
+  .pipeline-step-avatar { width:17px; height:17px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+  .pipeline-step.next .pipeline-step-avatar { opacity:0.45; }
   .pipeline-arrow { font-size:11px; color:var(--border-soft); margin:0 2px; flex-shrink:0; }
 
   .strat-layout { display:grid; grid-template-columns:1fr; gap:18px; align-items:start; }
@@ -3180,16 +3185,19 @@
 <!-- Pipeline breadcrumb -->
 <div class="pipeline-bar">
   <div class="pipeline-step done">
+    <img src="{{ static_v('images/psychologue-agent.jpeg') }}" alt="" class="pipeline-step-avatar" style="object-position: center 15%;">
     <div class="pipeline-step-num">✓</div>
     Psychologue
   </div>
   <span class="pipeline-arrow">›</span>
   <div class="pipeline-step active">
+    <img src="{{ static_v('images/personas/p2.jpeg') }}" alt="" class="pipeline-step-avatar" style="object-position: center 28%;">
     <div class="pipeline-step-num">2</div>
     Stratège
   </div>
   <span class="pipeline-arrow">›</span>
   <div class="pipeline-step next">
+    <img src="{{ static_v('images/createur-agent.jpeg') }}" alt="" class="pipeline-step-avatar" style="object-position: center 20%;">
     <div class="pipeline-step-num">3</div>
     Créateur
   </div>
