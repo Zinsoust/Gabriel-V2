@@ -5,120 +5,153 @@
 {% block head %}
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
-   LE HALL — page de l'Orchestrateur. Plein écran, épuré, façon conversation.
-   Tout est ancré sur les tokens réels de gabriel.css (aucune couleur inventée).
+   L'ORCHESTRATEUR — Le Hall. Point d'entrée : « Prenez de meilleures décisions ».
+   Ancré sur les tokens réels de gabriel.css. Les tailles/espaces proviennent
+   des réglages validés au studio (portés ici en variables, faciles à ajuster).
    ═══════════════════════════════════════════════════════════════════════════ */
 .orch-page {
-  max-width: none;
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 132px);   /* header + footer déduits */
-  min-height: 480px;
-}
+  /* — Réglages UX validés — */
+  --hero: 42px;      --heroweight: 100;  --sub: 12.5px;    --chat: 12px;      --chip: 10px;
+  --projlabel: 11.5px; --projtitle: 10.5px;
+  --chatw: 790px;    --chatminh: 130px;  --chatradius: 18px; --send: 33px;    --chipradius: 100px; --projradius: 12px;
+  --heromt: 119px;   --chatmt: 19px;     --chipsmt: 22px;  --projmt: 50px;    --chipsgap: 7px;   --projgap: 18px;
+  --cwidth: 770px;   --cgap: 6px;        --cuser: 15px;    --cagent: 12px;    --crecotitle: 11.5px; --crecoreason: 8.5px;
+  --ccomposer: 11.5px; --ccomposerpad: 2px; --ccomposerradius: 34px; --clabel: 10.5px; --cpad: 2px; --cusermax: 440px;
+  --convocomppadt: 27px; --convocomppadb: 10px;
 
-/* Zone de conversation défilante */
-.op-scroll { flex: 1; overflow-y: auto; padding: 8px 0 12px; }
-.op-thread { max-width: 720px; margin: 0 auto; padding: 0 24px; display: flex; flex-direction: column; gap: 22px; }
+  display: flex; flex-direction: column; min-height: calc(100vh - var(--header-h, 52px));
+}
+/* La page gère sa propre largeur (pleine largeur, pas la colonne 1080). */
+body.page-orchestrateur .app-content { max-width: none; padding: 0; }
+body.page-orchestrateur .app-footer { display: none; }
 
-/* ── État d'accueil (aucun message encore) ─────────────────────────────── */
-.op-hero { max-width: 620px; margin: 0 auto; padding: 48px 24px 8px; text-align: center; }
-.op-hero-kicker {
-  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: color-mix(in srgb, var(--champagne) 66%, transparent); font-weight: 600; margin-bottom: 16px;
-}
-.op-hero-title {
-  font-family: var(--font-serif); font-weight: 400; font-size: 30px; line-height: 1.25;
-  letter-spacing: -0.015em; color: var(--text-primary); margin: 0 0 14px; text-wrap: balance;
-}
-.op-hero-copy { font-size: 14px; line-height: 1.7; color: var(--text-secondary); margin: 0 auto; max-width: 46ch; }
-.op-suggests { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 26px; }
-.op-suggest {
-  font-family: var(--font-main); font-size: 12.5px; color: var(--text-secondary);
-  background: none; border: 1px solid var(--border-soft); border-radius: 100px; padding: 9px 15px;
-  cursor: pointer; transition: color 0.2s, border-color 0.2s;
-}
-.op-suggest:hover { color: var(--text-primary); border-color: var(--border-champagne); }
+/* Léger ajustement d'en-tête — UNIQUEMENT sur cette page (le composant partagé
+   reste intact sur les autres pages). */
+body.page-orchestrateur .header-title .page { font-size: 12px; }
 
-/* ── Messages — texte nu (aucune bulle, aucun avatar) ──────────────────── */
-.op-msg { display: flex; flex-direction: column; gap: 8px; animation: op-in 0.45s cubic-bezier(0.16,1,0.3,1) both; }
-@keyframes op-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .op-msg { animation: none; } }
-
-.op-agent { align-items: flex-start; }
-.op-user { align-items: flex-end; align-self: flex-end; max-width: 460px; }
-.op-label { font-size: 10.5px; font-weight: 600; letter-spacing: 0.01em; color: var(--text-muted); }
-
-.op-agent .op-text {
-  font-family: var(--font-main); font-size: 14px; line-height: 1.7; color: var(--text-secondary); max-width: 62ch;
+/* ── LAUNCHER ──────────────────────────────────────────────────────────── */
+.orl { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 40px 20px; }
+.orl-hero {
+  margin: var(--heromt) 0 0; text-align: center;
+  font-family: var(--font-main); font-weight: var(--heroweight); font-size: var(--hero);
+  line-height: 1.05; letter-spacing: -0.03em; color: var(--text-primary);
 }
-.op-agent .op-text b, .op-agent .op-text strong { color: var(--text-primary); font-weight: 600; }
-.op-agent .op-text p { margin: 0 0 10px; }
-.op-agent .op-text p:last-child { margin-bottom: 0; }
+.orl-hero span { color: var(--champagne); }
+.orl-sub {
+  margin: 22px auto 0; text-align: center; white-space: nowrap;
+  font-size: var(--sub); font-weight: 300; line-height: 1.55; color: var(--text-muted);
+}
+.orl-chatbox {
+  position: relative; margin-top: var(--chatmt); width: min(var(--chatw), 100%);
+  border: 1px solid var(--border-soft); border-radius: var(--chatradius);
+  background: color-mix(in srgb, var(--bg-card) 55%, transparent); transition: border-color 0.25s, box-shadow 0.25s;
+}
+.orl-chatbox:focus-within { border-color: var(--border-champagne); box-shadow: 0 0 0 4px color-mix(in srgb, var(--champagne) 5%, transparent); }
+.orl-chatbox textarea {
+  width: 100%; background: none; border: none; outline: none; resize: none; color: var(--text-primary);
+  font-family: var(--font-main); font-size: var(--chat); font-weight: 300; line-height: 1.6;
+  padding: 26px 76px 26px 26px; min-height: var(--chatminh); max-height: 300px; overflow-y: auto;
+}
+.orl-chatbox textarea::placeholder { color: var(--text-muted); font-weight: 300; }
+.orl-send {
+  position: absolute; right: 18px; bottom: 18px; width: var(--send); height: var(--send); border-radius: 50%;
+  border: none; cursor: pointer; background: linear-gradient(135deg, var(--champagne), var(--champagne-soft)); color: #16130f;
+  display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s;
+}
+.orl-send:hover { transform: translateY(-1px); box-shadow: 0 10px 24px color-mix(in srgb, var(--champagne) 28%, transparent); }
+.orl-send svg { width: calc(var(--send) * 0.5); height: calc(var(--send) * 0.5); }
 
-.op-user .op-text {
-  font-family: var(--font-serif); font-weight: 400; font-size: 16px; line-height: 1.4;
-  color: var(--text-primary); border-left: 2px solid var(--border-soft); padding-left: 14px;
+.orl-chips { display: flex; flex-wrap: wrap; gap: var(--chipsgap); justify-content: center; margin-top: var(--chipsmt); }
+.orl-chip {
+  display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-main); font-size: var(--chip); color: var(--text-secondary);
+  background: none; border: 1px solid var(--border-soft); border-radius: var(--chipradius); padding: 10px 15px; cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
 }
-.op-time { font-size: 9.5px; color: var(--text-disabled); font-variant-numeric: tabular-nums; align-self: flex-end; }
+.orl-chip:hover { color: var(--text-primary); border-color: var(--border-champagne); background: color-mix(in srgb, var(--champagne) 5%, transparent); }
+.orl-chip svg { width: calc(var(--chip) * 1.3); height: calc(var(--chip) * 1.3); color: var(--text-muted); }
+.orl-chip:hover svg { color: var(--champagne); }
 
-/* ── Carte d'orientation (recommandation vers un bureau) ───────────────── */
-.op-reco {
-  display: flex; flex-direction: column; gap: 8px; max-width: 460px;
-  border: 1px solid var(--reco-border, var(--border-champagne));
-  background: var(--reco-bg, color-mix(in srgb, var(--champagne) 7%, transparent));
-  border-radius: var(--radius-lg); padding: 15px 17px; cursor: pointer;
-  text-decoration: none; transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s;
-  animation: op-in 0.5s cubic-bezier(0.16,1,0.3,1) both;
+.orl-projects { width: min(1160px, 100%); margin-top: var(--projmt); }
+.orl-projects-label { font-size: var(--projlabel); font-weight: 500; color: var(--text-primary); margin: 0 0 16px; padding-left: 2px; }
+.orl-proj-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--projgap); }
+.orl-proj {
+  display: flex; flex-direction: column; min-height: 128px; text-decoration: none;
+  border: 1px solid var(--border-soft); border-radius: var(--projradius); padding: 18px;
+  background: color-mix(in srgb, var(--bg-card) 40%, transparent);
+  transition: transform 0.2s, border-color 0.2s, background 0.2s;
 }
-.op-reco:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(0,0,0,0.28); }
-.op-reco-eyebrow { font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--reco-accent, var(--champagne)); font-weight: 600; }
-.op-reco-title { font-family: var(--font-serif); font-size: 15px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.01em; }
-.op-reco-reason { font-size: 12.5px; line-height: 1.55; color: var(--text-muted); }
-.op-reco-cta {
-  align-self: flex-start; margin-top: 3px; font-size: 12px; font-weight: 600; color: var(--bg-main);
-  background: var(--reco-accent, var(--champagne)); padding: 8px 14px; border-radius: 100px;
-}
-/* Accents par bureau — repris de gabriel-cabinet.css (aucune couleur inventée) */
-.op-reco[data-agent="psychologue"] { --reco-accent: #C9986B; --reco-border: color-mix(in srgb, #C9986B 42%, transparent); --reco-bg: color-mix(in srgb, #C9986B 8%, transparent); }
-.op-reco[data-agent="stratege"]    { --reco-accent: #8A9099; --reco-border: color-mix(in srgb, #8A9099 42%, transparent); --reco-bg: color-mix(in srgb, #8A9099 8%, transparent); }
-.op-reco[data-agent="createur"]    { --reco-accent: #D0895E; --reco-border: color-mix(in srgb, #D0895E 42%, transparent); --reco-bg: color-mix(in srgb, #D0895E 8%, transparent); }
-.op-reco[data-agent="createur"] .op-reco-cta,
-.op-reco[data-agent="psychologue"] .op-reco-cta { color: #16130f; }
+.orl-proj:hover { transform: translateY(-3px); border-color: var(--border-champagne); background: color-mix(in srgb, var(--bg-card) 80%, transparent); }
+.orl-proj-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.orl-proj-title { font-size: var(--projtitle); font-weight: 500; color: var(--text-primary); }
+.orl-proj-ico { color: var(--text-muted); flex-shrink: 0; }
+.orl-proj-ico svg { width: 15px; height: 15px; }
+.orl-proj-tag { font-size: calc(var(--projtitle) - 1.5px); color: var(--text-muted); margin-top: 5px; }
+.orl-proj-meta { font-size: calc(var(--projtitle) - 2.5px); color: var(--text-disabled); margin-top: auto; padding-top: 14px; }
+.orl-proj.new { align-items: flex-start; }
+.orl-proj.new .plus { color: var(--champagne); }
+.orl-proj.new .plus svg { width: 24px; height: 24px; }
+.orl-proj.new .orl-proj-title { margin-top: 8px; }
 
-/* Indicateur de frappe */
-.op-typing { display: flex; gap: 5px; padding: 4px 0; }
-.op-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--text-disabled); animation: op-blink 1.3s infinite ease-in-out both; }
-.op-typing span:nth-child(2) { animation-delay: 0.18s; }
-.op-typing span:nth-child(3) { animation-delay: 0.36s; }
-@keyframes op-blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .op-typing span { animation: none; opacity: 0.6; } }
+.orl-foot { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 30px 0 8px; font-size: 12px; color: var(--text-muted); }
+.orl-foot svg { width: 13px; height: 13px; }
 
-/* ── Composer ──────────────────────────────────────────────────────────── */
-.op-composer-wrap { flex-shrink: 0; padding: 14px 24px 6px; border-top: 1px solid var(--border-soft); }
-.op-composer {
-  max-width: 720px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px;
-  border: 1px solid var(--border-soft); border-radius: 22px; padding: 10px 10px 10px 18px;
-  background: var(--bg-card); transition: border-color 0.2s;
-}
-.op-composer:focus-within { border-color: var(--border-champagne); }
-.op-input {
-  flex: 1; background: none; border: none; outline: none; resize: none; color: var(--text-primary);
-  font-family: var(--font-main); font-size: 14px; line-height: 1.5; max-height: 160px; overflow-y: auto;
-  padding: 5px 0;
-}
-.op-input::placeholder { color: var(--text-muted); }
-.op-send {
-  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; border: none; cursor: pointer;
-  background: var(--champagne); color: var(--bg-main); display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.2s;
-}
-.op-send:disabled { opacity: 0.4; cursor: default; }
-.op-send svg { width: 16px; height: 16px; }
-.op-hint { max-width: 720px; margin: 8px auto 0; text-align: center; font-size: 10.5px; color: var(--text-muted); }
+/* ── CONVERSATION (même DA) ────────────────────────────────────────────── */
+.orc { display: none; flex-direction: column; height: calc(100vh - var(--header-h, 52px)); min-height: 0; }
+.orc.on { display: flex; }
+.orc-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: var(--cpad) 0; }
+.orc-thread { max-width: var(--cwidth); margin: 0 auto; padding: 0 40px; display: flex; flex-direction: column; gap: var(--cgap); }
+.orc-msg { display: flex; flex-direction: column; gap: 8px; animation: orc-in 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+@keyframes orc-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .orc-msg { animation: none; } }
+.orc-label { font-size: var(--clabel); font-weight: 600; color: var(--text-muted); }
+.orc-user { align-items: flex-end; align-self: flex-end; max-width: var(--cusermax); }
+.orc-user .orc-text { font-family: var(--font-serif); font-weight: 400; font-size: var(--cuser); line-height: 1.4; color: var(--text-primary); border-left: 2px solid var(--border-soft); padding-left: 14px; }
+.orc-agent .orc-text { font-family: var(--font-main); font-size: var(--cagent); font-weight: 300; line-height: 1.75; color: var(--text-secondary); max-width: 64ch; }
+.orc-agent .orc-text b { color: var(--text-primary); font-weight: 600; }
+.orc-agent .orc-text p { margin: 0 0 9px; }
+.orc-agent .orc-text p:last-child { margin-bottom: 0; }
 
-@media (max-width: 720px) {
-  .orch-page { height: calc(100vh - 118px); }
-  .op-hero-title { font-size: 25px; }
+.orc-reco {
+  display: flex; flex-direction: column; gap: 7px; max-width: var(--cusermax); text-decoration: none; cursor: pointer;
+  border: 1px solid var(--r-border, var(--border-champagne)); background: var(--r-bg, color-mix(in srgb, var(--champagne) 7%, transparent));
+  border-radius: var(--radius-lg); padding: 14px 16px; transition: transform 0.2s, box-shadow 0.2s;
+}
+.orc-reco:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(0,0,0,0.28); }
+.orc-reco-eyebrow { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--r-accent, var(--champagne)); font-weight: 600; }
+.orc-reco-title { font-family: var(--font-serif); font-size: var(--crecotitle); font-weight: 500; color: var(--text-primary); }
+.orc-reco-reason { font-size: var(--crecoreason); line-height: 1.55; color: var(--text-muted); }
+.orc-reco-cta { align-self: flex-start; margin-top: 3px; font-size: calc(var(--crecoreason) + 1px); font-weight: 600; color: #16130f; background: var(--r-accent, var(--champagne)); padding: 7px 13px; border-radius: 100px; }
+.orc-reco[data-agent="psychologue"] { --r-accent: #C9986B; --r-border: color-mix(in srgb, #C9986B 42%, transparent); --r-bg: color-mix(in srgb, #C9986B 8%, transparent); }
+.orc-reco[data-agent="stratege"]    { --r-accent: #8A9099; --r-border: color-mix(in srgb, #8A9099 42%, transparent); --r-bg: color-mix(in srgb, #8A9099 8%, transparent); }
+.orc-reco[data-agent="createur"]    { --r-accent: #D0895E; --r-border: color-mix(in srgb, #D0895E 42%, transparent); --r-bg: color-mix(in srgb, #D0895E 8%, transparent); }
+
+.orc-typing { display: flex; gap: 5px; padding: 4px 0; }
+.orc-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--text-disabled); animation: orc-blink 1.3s infinite ease-in-out both; }
+.orc-typing span:nth-child(2) { animation-delay: 0.18s; }
+.orc-typing span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes orc-blink { 0%,80%,100% { opacity: 0.25; } 40% { opacity: 1; } }
+
+.orc-back { max-width: var(--cwidth); margin: 0 auto; padding: 8px 40px 0; }
+.orc-back-btn { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-main); font-size: 12px; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 4px 0; }
+.orc-back-btn:hover { color: var(--text-primary); }
+.orc-back-btn svg { width: 14px; height: 14px; }
+
+.orc-composer { flex-shrink: 0; padding: var(--convocomppadt) 40px var(--convocomppadb); border-top: 1px solid var(--border-soft); }
+.orc-composer-inner {
+  max-width: var(--cwidth); margin: 0 auto; display: flex; align-items: flex-end; gap: 10px;
+  border: 1px solid var(--border-soft); border-radius: var(--ccomposerradius); padding: var(--ccomposerpad) 10px var(--ccomposerpad) 18px; background: var(--bg-card);
+}
+.orc-composer-inner:focus-within { border-color: var(--border-champagne); }
+.orc-composer textarea { flex: 1; background: none; border: none; outline: none; resize: none; color: var(--text-primary); font-family: var(--font-main); font-size: var(--ccomposer); font-weight: 300; line-height: 1.5; max-height: 140px; padding: 6px 0; }
+.orc-composer textarea::placeholder { color: var(--text-muted); }
+.orc-send { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--champagne); color: #16130f; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.orc-send svg { width: 15px; height: 15px; }
+
+@media (max-width: 760px) {
+  .orl { padding: 0 20px 20px; }
+  .orl-hero { --hero: 30px; margin-top: 48px; }
+  .orl-sub { white-space: normal; max-width: 34ch; }
+  .orl-proj-grid { grid-template-columns: 1fr 1fr; }
 }
 </style>
 {% endblock %}
@@ -126,35 +159,70 @@
 {% block content %}
 <div class="orch-page" id="orch-page">
 
-  <div class="op-scroll" id="op-scroll">
-    <!-- Accueil : disparaît au premier message -->
-    <div class="op-hero" id="op-hero">
-      <div class="op-hero-kicker">Le Hall — Gabriel</div>
-      <h1 class="op-hero-title">Par où commençons-nous&nbsp;?</h1>
-      <p class="op-hero-copy">
-        Décrivez votre activité ou ce que vous cherchez à décider. Je vous oriente vers
-        le bon bureau — et je prépare le terrain pour qu'il travaille bien.
-      </p>
-      <div class="op-suggests">
-        <button class="op-suggest" type="button" onclick="opSuggest(this)">Ma cible est-elle la bonne&nbsp;?</button>
-        <button class="op-suggest" type="button" onclick="opSuggest(this)">Comment analyser mon audience&nbsp;?</button>
-        <button class="op-suggest" type="button" onclick="opSuggest(this)">Je veux créer un contenu</button>
+  <!-- ── LAUNCHER ── -->
+  <div class="orl" id="orl">
+    <h1 class="orl-hero">Prenez de <span>meilleures décisions</span></h1>
+    <p class="orl-sub">Gabriel analyse votre demande, mobilise les experts et construit une stratégie sur-mesure.</p>
+
+    <div class="orl-chatbox">
+      <textarea id="orl-input" rows="1" placeholder="Décrivez votre objectif, votre audience ou votre problématique…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();orlStart();}"
+        oninput="orlGrow(this)"></textarea>
+      <button class="orl-send" type="button" onclick="orlStart()" aria-label="Envoyer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+      </button>
+    </div>
+
+    <div class="orl-chips">
+      <button class="orl-chip" type="button" onclick="orlChip('Analyse de marché')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Analyse de marché</button>
+      <button class="orl-chip" type="button" onclick="orlChip('Stratégie de contenu')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2 2 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Stratégie de contenu</button>
+      <button class="orl-chip" type="button" onclick="orlChip('Positionnement')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Positionnement</button>
+      <button class="orl-chip" type="button" onclick="orlChip('Campagne LinkedIn')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 13h5l1.5 2.5h5L16 13h5" stroke-linejoin="round"/></svg>Campagne LinkedIn</button>
+    </div>
+
+    <div class="orl-projects">
+      <p class="orl-projects-label">Vos projets récents</p>
+      <div class="orl-proj-grid">
+        {% for f in recent_folders %}
+        <a class="orl-proj" href="/dossiers">
+          <div class="orl-proj-head">
+            <span class="orl-proj-title">{{ f.title or 'Dossier' }}</span>
+            <span class="orl-proj-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+          </div>
+          <div class="orl-proj-tag">{{ f.objective or (f.folder_type|capitalize if f.folder_type else 'Projet') }}</div>
+          <div class="orl-proj-meta">{{ f.step|capitalize if f.step else 'À démarrer' }}</div>
+        </a>
+        {% endfor %}
+        <a class="orl-proj new" href="/dossiers">
+          <span class="plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span class="orl-proj-title">Nouveau projet</span>
+          <div class="orl-proj-tag">Démarrer une nouvelle analyse</div>
+        </a>
       </div>
     </div>
 
-    <div class="op-thread" id="op-thread"></div>
+    <div class="orl-foot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      Confidentiel. Vos données sont sécurisées et jamais partagées.
+    </div>
   </div>
 
-  <div class="op-composer-wrap">
-    <div class="op-composer">
-      <textarea class="op-input" id="op-input" rows="1" placeholder="Décrivez votre activité, votre cible, ou ce que vous cherchez à décider…"
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();opSend();}"
-        oninput="opGrow(this)"></textarea>
-      <button class="op-send" id="op-send" type="button" onclick="opSend()" aria-label="Envoyer">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 11.5 21 3l-8.5 18-2.2-7.3L3 11.5Z"/></svg>
-      </button>
+  <!-- ── CONVERSATION ── -->
+  <div class="orc" id="orc">
+    <div class="orc-back"><button class="orc-back-btn" type="button" onclick="orcBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Retour au Hall</button></div>
+    <div class="orc-scroll" id="orc-scroll">
+      <div class="orc-thread" id="orc-thread"></div>
     </div>
-    <div class="op-hint">L'Orchestrateur comprend, oriente et coordonne — il ne remplace aucun agent.</div>
+    <div class="orc-composer">
+      <div class="orc-composer-inner">
+        <textarea id="orc-input" rows="1" placeholder="Poursuivez la conversation…"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();orcSend();}"
+          oninput="orcGrow(this)"></textarea>
+        <button class="orc-send" type="button" onclick="orcSend()" aria-label="Envoyer">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 11.5 21 3l-8.5 18-2.2-7.3L3 11.5Z"/></svg>
+        </button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -162,136 +230,117 @@
 
 {% block scripts %}
 <script>
-let _opHistory = [];
-let _opWaiting = false;
+let _orHistory = [];
+let _orWaiting = false;
 
-function opGrow(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
-}
+function orlGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 300) + 'px'; }
+function orcGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 140) + 'px'; }
 
-function opSuggest(btn) {
-  const input = document.getElementById('op-input');
-  input.value = btn.textContent.replace(/ /g, ' ').trim();
-  opGrow(input);
-  opSend();
-}
-
-function _opEsc(s) {
-  const d = document.createElement('div');
-  d.textContent = s == null ? '' : String(s);
-  return d.innerHTML;
-}
-
-/* Formatage minimal : **gras** + paragraphes. L'Orchestrateur n'émet jamais de titres. */
-function _opFormat(raw) {
-  const esc = _opEsc(raw).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+function _orEsc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+function _orFormat(raw) {
+  const esc = _orEsc(raw).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
   return esc.split(/\n{2,}/).map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
 }
+function _orScrollBottom() { const s = document.getElementById('orc-scroll'); if (s) s.scrollTo({ top: s.scrollHeight, behavior: 'smooth' }); }
 
-function _opNow() {
-  const d = new Date();
-  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+function orlChip(text) { document.getElementById('orl-input').value = text; orlStart(); }
+
+/* Passe du Hall à la conversation avec le premier message. */
+function orlStart() {
+  const v = (document.getElementById('orl-input').value || '').trim();
+  if (!v) return;
+  document.getElementById('orl').style.display = 'none';
+  document.getElementById('orc').classList.add('on');
+  document.getElementById('orl-input').value = '';
+  _orSend(v);
+  setTimeout(() => document.getElementById('orc-input')?.focus(), 60);
 }
 
-function _opScrollBottom() {
-  const s = document.getElementById('op-scroll');
-  s.scrollTo({ top: s.scrollHeight, behavior: 'smooth' });
+function orcBack() {
+  document.getElementById('orc').classList.remove('on');
+  document.getElementById('orl').style.display = 'flex';
+  document.getElementById('orc-thread').innerHTML = '';
+  _orHistory = [];
+  setTimeout(() => document.getElementById('orl-input')?.focus(), 60);
 }
 
-function _opHideHero() {
-  const hero = document.getElementById('op-hero');
-  if (hero) hero.style.display = 'none';
-}
-
-function opAddUser(text) {
-  _opHideHero();
+function _orAddUser(text) {
   const el = document.createElement('div');
-  el.className = 'op-msg op-user';
-  el.innerHTML = '<div class="op-label">Vous</div>'
-    + '<div class="op-text">' + _opEsc(text) + '</div>'
-    + '<div class="op-time">' + _opNow() + '</div>';
-  document.getElementById('op-thread').appendChild(el);
-  _opScrollBottom();
+  el.className = 'orc-msg orc-user';
+  el.innerHTML = '<div class="orc-label">Vous</div><div class="orc-text">' + _orEsc(text) + '</div>';
+  document.getElementById('orc-thread').appendChild(el);
+  _orScrollBottom();
 }
-
-function opAddAgent(text) {
+function _orAddAgent(text) {
   const el = document.createElement('div');
-  el.className = 'op-msg op-agent';
-  el.innerHTML = '<div class="op-label">Gabriel</div><div class="op-text">' + _opFormat(text) + '</div>';
-  document.getElementById('op-thread').appendChild(el);
-  _opScrollBottom();
+  el.className = 'orc-msg orc-agent';
+  el.innerHTML = '<div class="orc-label">Gabriel</div><div class="orc-text">' + _orFormat(text) + '</div>';
+  document.getElementById('orc-thread').appendChild(el);
+  _orScrollBottom();
 }
-
-function opAddReco(reco, handoff) {
+function _orAddReco(reco, handoff) {
   if (!reco || !reco.agent) return;
   const a = document.createElement('a');
-  a.className = 'op-reco';
+  a.className = 'orc-msg orc-reco';
   a.setAttribute('data-agent', reco.agent);
   a.href = reco.href || '#';
   a.innerHTML =
-    '<div class="op-reco-eyebrow">Direction recommandée</div>'
-    + '<div class="op-reco-title">' + _opEsc(reco.label) + '</div>'
-    + '<div class="op-reco-reason">' + _opEsc(reco.reason) + '</div>'
-    + '<span class="op-reco-cta">' + _opEsc(reco.cta || 'Ouvrir') + ' →</span>';
+    '<div class="orc-reco-eyebrow">Direction recommandée</div>'
+    + '<div class="orc-reco-title">' + _orEsc(reco.label) + '</div>'
+    + '<div class="orc-reco-reason">' + _orEsc(reco.reason) + '</div>'
+    + '<span class="orc-reco-cta">' + _orEsc(reco.cta || 'Ouvrir') + ' →</span>';
   a.addEventListener('click', function () {
-    // Handoff : on transmet le contexte au bureau ciblé (paquet compact).
     try { if (handoff) sessionStorage.setItem('gabriel_handoff', JSON.stringify(handoff)); } catch (e) {}
   });
-  document.getElementById('op-thread').appendChild(a);
-  _opScrollBottom();
+  document.getElementById('orc-thread').appendChild(a);
+  _orScrollBottom();
 }
-
-function _opShowTyping() {
+function _orShowTyping() {
   const el = document.createElement('div');
-  el.className = 'op-msg op-agent';
-  el.id = 'op-typing-msg';
-  el.innerHTML = '<div class="op-label">Gabriel</div><div class="op-typing"><span></span><span></span><span></span></div>';
-  document.getElementById('op-thread').appendChild(el);
-  _opScrollBottom();
+  el.className = 'orc-msg orc-agent'; el.id = 'orc-typing';
+  el.innerHTML = '<div class="orc-label">Gabriel</div><div class="orc-typing"><span></span><span></span><span></span></div>';
+  document.getElementById('orc-thread').appendChild(el);
+  _orScrollBottom();
 }
-function _opHideTyping() { document.getElementById('op-typing-msg')?.remove(); }
+function _orHideTyping() { document.getElementById('orc-typing')?.remove(); }
 
-async function opSend() {
-  if (_opWaiting) return;
-  const input = document.getElementById('op-input');
-  const msg = (input.value || '').trim();
-  if (!msg) return;
-
-  opAddUser(msg);
-  input.value = ''; input.style.height = 'auto';
-  _opHistory.push({ role: 'user', content: msg });
-  _opWaiting = true;
-  const btn = document.getElementById('op-send');
-  if (btn) btn.disabled = true;
-  _opShowTyping();
-
+async function _orSend(msg) {
+  if (_orWaiting) return;
+  _orAddUser(msg);
+  _orHistory.push({ role: 'user', content: msg });
+  _orWaiting = true;
+  _orShowTyping();
   try {
     const r = await fetch('/orchestrator_chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, history: _opHistory.slice(-12) }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, history: _orHistory.slice(-12) }),
     });
     if (r.status === 401) { window.location.href = '/login'; return; }
     const d = await r.json();
-    _opHideTyping();
-    if (d.error) { opAddAgent(d.error); return; }
+    _orHideTyping();
+    if (d.error) { _orAddAgent(d.error); return; }
     const reply = d.reply || 'Erreur de réponse.';
-    opAddAgent(reply);
-    _opHistory.push({ role: 'assistant', content: reply });
-    if (d.recommendation) opAddReco(d.recommendation, d.handoff);
+    _orAddAgent(reply);
+    _orHistory.push({ role: 'assistant', content: reply });
+    if (d.recommendation) _orAddReco(d.recommendation, d.handoff);
   } catch (e) {
-    _opHideTyping();
-    opAddAgent('Une erreur de connexion est survenue. Veuillez réessayer.');
+    _orHideTyping();
+    _orAddAgent('Une erreur de connexion est survenue. Veuillez réessayer.');
   } finally {
-    _opWaiting = false;
-    if (btn) btn.disabled = false;
-    input.focus();
+    _orWaiting = false;
   }
 }
 
+function orcSend() {
+  const el = document.getElementById('orc-input');
+  const v = (el.value || '').trim();
+  if (!v) return;
+  el.value = ''; el.style.height = 'auto';
+  _orSend(v);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-  document.getElementById('op-input')?.focus();
+  document.getElementById('orl-input')?.focus();
 });
 </script>
 {% endblock %}

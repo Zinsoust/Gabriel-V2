@@ -118,7 +118,8 @@ def test_orchestrateur_page_renders_without_folder():
     assert r.status_code == 200
     html = r.get_data(as_text=True)
     assert 'id="orch-page"' in html
-    assert 'id="op-thread"' in html
+    assert 'id="orc-thread"' in html          # zone de conversation
+    assert 'meilleures décisions' in html      # hero du launcher
     assert 'data-office="orchestrateur"' in html
 
 

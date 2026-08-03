@@ -1107,10 +1107,13 @@ def orchestrateur_page():
     """Le Hall — page dédiée de l'Orchestrateur, plein écran, point d'entrée
     conversationnel. Ne requiert pas de dossier actif : c'est ici que le
     parcours commence."""
+    uid = (current_user() or {}).get('user_id')
+    recent_folders = _db.get_folders(uid, limit=3) if uid else []
     resp = make_response(render_template(
         'orchestrateur.html',
         current_user=current_user(),
         active_page='orchestrateur',
+        recent_folders=recent_folders,
     ))
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
     return resp
