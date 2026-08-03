@@ -1101,6 +1101,21 @@ def createur_page():
     return resp
 
 
+@app.route('/orchestrateur')
+@login_required
+def orchestrateur_page():
+    """Le Hall — page dédiée de l'Orchestrateur, plein écran, point d'entrée
+    conversationnel. Ne requiert pas de dossier actif : c'est ici que le
+    parcours commence."""
+    resp = make_response(render_template(
+        'orchestrateur.html',
+        current_user=current_user(),
+        active_page='orchestrateur',
+    ))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    return resp
+
+
 @app.route('/create', methods=['POST'])
 @login_required
 @_rl(_RL_CREATOR)
@@ -2653,6 +2668,40 @@ def orchestrator_chat():
         + f"\n\n{context_block}"
     )
 
+    # ── Routage d'intention (heuristique, instantané) ────────────────────────
+    # L'Orchestrateur qualifie la demande AVANT de répondre : niveau de réponse
+    # attendu, bureau vers lequel orienter, contexte à transmettre. Additif —
+    # aucun impact sur le champ 'reply' historique.
+    from agents.orchestrator import (
+        classify_intent, build_recommendation, build_handoff, response_max_tokens,
+    )
+    has_psycho    = bool(psycho_data)
+    has_strategy  = bool(strategy_data)
+    has_createur  = bool(createur_data)
+    intent = classify_intent(message, has_psycho=has_psycho,
+                             has_strategy=has_strategy, has_createur=has_createur)
+    recommendation = build_recommendation(intent, has_psycho=has_psycho,
+                                          has_strategy=has_strategy, has_createur=has_createur)
+    handoff = None
+    if recommendation:
+        handoff = build_handoff(recommendation['agent'], message,
+                               business_context=brain_ctx,
+                               has_psycho=has_psycho, has_strategy=has_strategy)
+
+    # Le niveau pilote la longueur ET la posture de la réponse : rapide =
+    # orientation nette et concise ; approfondi = vraie lecture raisonnée.
+    level = intent['level']
+    level_directive = (
+        "\n\n━━━ NIVEAU DE RÉPONSE : APPROFONDI ━━━\n"
+        "La demande porte un vrai raisonnement. Prenez le temps d'une lecture "
+        "structurée : position, raisonnement, point de vigilance, prochaine étape."
+        if level == "deep" else
+        "\n\n━━━ NIVEAU DE RÉPONSE : RAPIDE ━━━\n"
+        "La demande est directe. Répondez en quelques phrases nettes, sans "
+        "délayer. Orientez clairement vers la bonne étape si c'est utile."
+    )
+    system_prompt = system_prompt + level_directive
+
     messages = [
         {"role": "user",      "content": system_prompt + "\n\n— Prenez connaissance du contexte disponible sur ce dossier."},
         {"role": "assistant", "content": "J'ai pris connaissance des éléments disponibles. Je suis prêt. Quelle est votre question ?"},
@@ -2666,10 +2715,15 @@ def orchestrator_chat():
         client = _get_mistral_client(timeout_ms=90_000)
         response = client.chat.complete(
             model="mistral-large-latest",
-            max_tokens=1200,
+            max_tokens=response_max_tokens(level),
             messages=messages,
         )
-        return jsonify({'reply': response.choices[0].message.content.strip()})
+        return jsonify({
+            'reply':          response.choices[0].message.content.strip(),
+            'level':          level,
+            'recommendation': recommendation,
+            'handoff':        handoff,
+        })
     except Exception as e:
         safe_log_event('orchestrator_chat_error', user_id=uid_chat, error=e)
         return jsonify({'error': "Une erreur est survenue. Veuillez réessayer dans quelques instants."}), 500

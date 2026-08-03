@@ -43,6 +43,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         <span class="sidebar-label">Dossiers</span>
       </a>
+      <a href="/orchestrateur" class="sidebar-item {% if active_page == 'orchestrateur' %}active{% endif %}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
+        <span class="sidebar-label">Orchestrateur</span>
+      </a>
       {% if has_active_folder %}
       <div class="sidebar-section-label sidebar-team-label">Ma team</div>
       <a href="/psychologue" data-tour="psychologue-start" class="sidebar-item sidebar-agent-item {% if active_page == 'psychologue' %}active{% endif %}">

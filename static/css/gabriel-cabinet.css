@@ -60,6 +60,15 @@ body[data-office="dossiers"] {
   --office-plate:    'Hall d’accueil';
 }
 
+/* L'Orchestrateur — le Hall vivant. Même champagne discret, un souffle de
+   lumière en plus : c'est la pièce d'où part le parcours. */
+body[data-office="orchestrateur"] {
+  --office-accent:   var(--champagne);
+  --office-accent-2: var(--champagne-soft);
+  --office-glow:     0.055;
+  --office-plate:    'Le Hall';
+}
+
 /* En thème clair, la lumière d'ambiance s'atténue (fond déjà clair). */
 :root[data-theme="light"] body[data-office] { --office-glow: 0.028; }
 
