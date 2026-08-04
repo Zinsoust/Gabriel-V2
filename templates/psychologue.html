@@ -700,18 +700,34 @@
 .rag-rule-tag{padding:1px 6px;border-radius:2px;background:color-mix(in srgb, var(--text-primary) 4%, transparent);border:1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);font-size:8px;color:color-mix(in srgb, var(--text-primary) 30%, transparent);font-family:monospace;}
 @media(max-width:680px){.rag-interp-grid{grid-template-columns:1fr;}}
 
-/* ── UX Studio : éléments rendus ajustables (ciblés sur cette page) ──────── */
-body.page-psychologue .page-heading      { font-size: var(--ux-psy-heading, 20px); }
-body.page-psychologue .page-label,
-body.page-psychologue .sec-title         { font-size: var(--ux-psy-label, 10px); }
-body.page-psychologue .psycho-summary-text { font-size: var(--ux-psy-summary, 14px); }
-body.page-psychologue .psycho-summary    { padding: var(--ux-psy-summary-pad, 20px) 22px; border-radius: var(--ux-psy-radius, 5px); }
-body.page-psychologue .snap-value        { font-size: var(--ux-psy-snapval, 18px); }
-body.page-psychologue .snap-label        { font-size: var(--ux-psy-snaplabel, 9px); }
-body.page-psychologue .persona-name-v2   { font-size: var(--ux-psy-persona, 14px); }
-body.page-psychologue .persona-quote     { font-size: var(--ux-psy-quote, 12px); }
-body.page-psychologue .psycho-pill       { font-size: var(--ux-psy-pill, 11px); }
-body.page-psychologue .analyse-btn       { font-size: var(--ux-psy-btn, 11px); }
+/* ── Réglages UX validés (studio) — ciblés sur cette page ────────────────
+   Valeurs par défaut = ce que vous avez validé ; le studio live peut encore
+   les surcharger via les variables --ux-*. */
+body.page-psychologue .page-label        { font-size: var(--ux-psy-eyebrow, 10px); margin-bottom: var(--ux-psy-eyebrowgap, 7px); }
+body.page-psychologue .page-heading      { font-size: var(--ux-psy-title, 27.5px); margin-bottom: var(--ux-psy-titlegap, 38px); }
+body.page-psychologue .input-zone        { max-width: var(--ux-psy-width, 810px); margin-left: auto; margin-right: auto; }
+body.page-psychologue .input-card        { border-radius: var(--ux-psy-cardradius, 16px); }
+body.page-psychologue .src-tab           { font-size: var(--ux-psy-tab, 9px); padding-top: var(--ux-psy-tabpad, 10px); padding-bottom: var(--ux-psy-tabpad, 10px); }
+body.page-psychologue .input-card textarea { font-size: var(--ux-psy-textarea, 12.5px); min-height: var(--ux-psy-textareah, 120px); }
+body.page-psychologue .comment-meta      { padding-bottom: var(--ux-psy-footpad, 7px); }
+body.page-psychologue .comment-meta-left { font-size: var(--ux-psy-foot, 10.5px); }
+body.page-psychologue .comment-count     { font-size: var(--ux-psy-count, 10px); }
+body.page-psychologue .status-msg        { font-size: var(--ux-psy-barlabel, 11.5px); }
+body.page-psychologue #usage-counter     { font-size: var(--ux-psy-remaining, 12px) !important; }
+body.page-psychologue .analyse-btn       { font-size: var(--ux-psy-btn, 13px); border-radius: var(--ux-psy-btnradius, 24px); }
+body.page-psychologue .dash-id           { font-size: var(--ux-psy-resultsmeta, 11.5px); }
+body.page-psychologue .dash-actions .btn { font-size: var(--ux-psy-navbtn, 13px); }
+body.page-psychologue .dash-results-title { font-size: var(--ux-psy-resultstitle, 20px); }
+/* En-tête + rail compactés (ciblés page ; --header-h et --sidebar-w inchangés). */
+body.page-psychologue .header-brand-mark img { width: 14px; }
+body.page-psychologue .header-title .page { font-size: 8.5px; }
+body.page-psychologue .header-actions,
+body.page-psychologue .header-credits,
+body.page-psychologue .header-upgrade-btn,
+body.page-psychologue .gb-help-btn,
+body.page-psychologue .header-user { font-size: 9.5px; }
+body.page-psychologue .sidebar-agent-item .sidebar-agent-img { width: 22px; height: 22px; min-width: 22px; min-height: 22px; }
+body.page-psychologue .sidebar-item svg { width: 13px; height: 13px; }
 </style>
 {% endblock %}
 
@@ -838,7 +854,7 @@ body.page-psychologue .analyse-btn       { font-size: var(--ux-psy-btn, 11px); }
 
   <div class="dash-header">
     <div>
-      <div style="font-size:15px;font-weight:500;color:var(--text-primary);">Résultats</div>
+      <div class="dash-results-title" style="font-weight:500;color:var(--text-primary);">Résultats</div>
       <div class="dash-id" id="dash-id"></div>
     </div>
     <div class="dash-actions">
@@ -1058,23 +1074,34 @@ document.addEventListener('DOMContentLoaded', function () {
     pageKey: 'psychologue',
     groups: [
       { label: 'Typographie', items: [
-        { key: 'psy-heading',  label: 'Titre de page',        def: 20, min: 12, max: 40, step: 0.5 },
-        { key: 'psy-label',    label: 'Labels / sections',     def: 10, min: 7,  max: 18, step: 0.5 },
-        { key: 'psy-summary',  label: 'Texte de synthèse',     def: 14, min: 8,  max: 24, step: 0.5 },
-        { key: 'psy-snapval',  label: 'Chiffres KPI',          def: 18, min: 10, max: 34, step: 0.5 },
-        { key: 'psy-snaplabel',label: 'Libellés KPI',          def: 9,  min: 6,  max: 16, step: 0.5 },
-        { key: 'psy-persona',  label: 'Nom de persona',        def: 14, min: 8,  max: 24, step: 0.5 },
-        { key: 'psy-quote',    label: 'Citation persona',      def: 12, min: 8,  max: 20, step: 0.5 },
-        { key: 'psy-pill',     label: 'Pastilles (pills)',     def: 11, min: 7,  max: 18, step: 0.5 },
-        { key: 'psy-btn',      label: 'Bouton d’action',       def: 11, min: 8,  max: 18, step: 0.5 },
+        { key: 'psy-eyebrow',     label: 'Sur-titre (Le Psychologue)', def: 10,   min: 8,  max: 18, step: 0.5 },
+        { key: 'psy-title',       label: 'Titre',                      def: 27.5, min: 14, max: 48, step: 0.5 },
+        { key: 'psy-tab',         label: 'Onglets',                    def: 9,    min: 8,  max: 18, step: 0.5 },
+        { key: 'psy-textarea',    label: 'Zone de commentaires',       def: 12.5, min: 8,  max: 22, step: 0.5 },
+        { key: 'psy-foot',        label: 'Aide sous la zone',          def: 10.5, min: 8,  max: 16, step: 0.5 },
+        { key: 'psy-count',       label: 'Compteur commentaires',      def: 10,   min: 8,  max: 16, step: 0.5 },
+        { key: 'psy-barlabel',    label: 'Libellé de la barre',        def: 11.5, min: 8,  max: 18, step: 0.5 },
+        { key: 'psy-remaining',   label: 'Analyses restantes',         def: 12,   min: 8,  max: 16, step: 0.5 },
+        { key: 'psy-btn',         label: 'Bouton Lancer',              def: 13,   min: 8,  max: 18, step: 0.5 },
+        { key: 'psy-resultstitle',label: 'Titre Résultats',           def: 20,   min: 10, max: 32, step: 0.5 },
+        { key: 'psy-resultsmeta', label: 'Méta Résultats',            def: 11.5, min: 8,  max: 16, step: 0.5 },
+        { key: 'psy-navbtn',      label: 'Boutons navigation',         def: 13,   min: 8,  max: 18, step: 0.5 },
       ]},
       { label: 'Éléments', items: [
-        { key: 'psy-summary-pad', label: 'Marge carte synthèse', def: 20, min: 6,  max: 44, step: 1 },
-        { key: 'psy-radius',      label: 'Arrondi carte synthèse',def: 5, min: 0,  max: 24, step: 1 },
+        { key: 'psy-width',      label: 'Largeur du contenu',       def: 810, min: 560, max: 1080, step: 10 },
+        { key: 'psy-cardradius', label: 'Arrondi de la carte',      def: 16,  min: 0,   max: 28,   step: 1 },
+        { key: 'psy-textareah',  label: 'Hauteur zone commentaires',def: 120, min: 120, max: 420,  step: 5 },
+        { key: 'psy-tabpad',     label: 'Hauteur des onglets',      def: 10,  min: 8,   max: 28,   step: 1 },
+        { key: 'psy-btnradius',  label: 'Arrondi des boutons',      def: 24,  min: 0,   max: 24,   step: 1 },
+      ]},
+      { label: 'Espacement', items: [
+        { key: 'psy-eyebrowgap', label: 'Sur-titre → titre', def: 7,  min: 2, max: 30, step: 1 },
+        { key: 'psy-titlegap',   label: 'Titre → carte',     def: 38, min: 8, max: 60, step: 1 },
+        { key: 'psy-footpad',    label: 'Marge bas de zone', def: 7,  min: 0, max: 36, step: 1 },
       ]},
       { label: 'Couleurs (global)', colors: [
-        { key: 'ux-champagne', label: 'Accent champagne', def: '#d8b982', cssVar: '--champagne' },
-        { key: 'ux-textprimary', label: 'Texte principal', def: '#f4f1ea', cssVar: '--text-primary' },
+        { key: 'ux-champagne',   label: 'Accent champagne', def: '#d8b982', cssVar: '--champagne' },
+        { key: 'ux-textprimary', label: 'Texte principal',  def: '#f4f1ea', cssVar: '--text-primary' },
       ]},
     ],
   });

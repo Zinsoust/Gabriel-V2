@@ -10,14 +10,14 @@
    des réglages validés au studio (portés ici en variables, faciles à ajuster).
    ═══════════════════════════════════════════════════════════════════════════ */
 .orch-page {
-  /* — Réglages UX validés — */
-  --hero: 42px;      --heroweight: 100;  --sub: 12.5px;    --chat: 12px;      --chip: 10px;
+  /* — Réglages UX validés (studio) — */
+  --hero: 42px;      --heroweight: 100;  --sub: 11.5px;    --chat: 12px;      --chip: 10px;
   --projlabel: 11.5px; --projtitle: 10.5px;
   --chatw: 790px;    --chatminh: 130px;  --chatradius: 18px; --send: 33px;    --chipradius: 100px; --projradius: 12px;
-  --heromt: 119px;   --chatmt: 19px;     --chipsmt: 22px;  --projmt: 50px;    --chipsgap: 7px;   --projgap: 18px;
-  --cwidth: 770px;   --cgap: 6px;        --cuser: 15px;    --cagent: 12px;    --crecotitle: 11.5px; --crecoreason: 8.5px;
-  --ccomposer: 11.5px; --ccomposerpad: 2px; --ccomposerradius: 34px; --clabel: 10.5px; --cpad: 2px; --cusermax: 440px;
-  --convocomppadt: 27px; --convocomppadb: 10px;
+  --heromt: 120px;   --chatmt: 15px;     --chipsmt: 29px;  --projmt: 86px;    --chipsgap: 7px;   --projgap: 20px;
+  --cwidth: 770px;   --cgap: 6px;        --cuser: 14px;    --cagent: 12px;    --crecotitle: 11.5px; --crecoreason: 8.5px;
+  --ccomposer: 12.5px; --ccomposerpad: 6px; --ccomposerradius: 34px; --clabel: 10.5px; --cpad: 24px; --cusermax: 440px;
+  --convocomppadt: 21px; --convocomppadb: 8px;
 
   display: flex; flex-direction: column; min-height: calc(100vh - var(--header-h, 52px));
 }
@@ -25,9 +25,18 @@
 body.page-orchestrateur .app-content { max-width: none; padding: 0; }
 body.page-orchestrateur .app-footer { display: none; }
 
-/* Léger ajustement d'en-tête — UNIQUEMENT sur cette page (le composant partagé
-   reste intact sur les autres pages). */
-body.page-orchestrateur .header-title .page { font-size: 12px; }
+/* En-tête + rail compactés selon vos réglages — UNIQUEMENT sur cette page
+   (composants partagés : les autres pages ne sont pas touchées ; on ne change
+   ni --header-h ni --sidebar-w pour ne pas casser la mise en page globale). */
+body.page-orchestrateur .header-brand-mark img { width: 14px; }
+body.page-orchestrateur .header-title .page { font-size: 8.5px; }
+body.page-orchestrateur .header-actions,
+body.page-orchestrateur .header-credits,
+body.page-orchestrateur .header-upgrade-btn,
+body.page-orchestrateur .gb-help-btn,
+body.page-orchestrateur .header-user { font-size: 8.5px; }
+body.page-orchestrateur .sidebar-agent-item .sidebar-agent-img { width: 20px; height: 20px; min-width: 20px; min-height: 20px; }
+body.page-orchestrateur .sidebar-item svg { width: 12px; height: 12px; }
 
 /* ── LAUNCHER ──────────────────────────────────────────────────────────── */
 .orl { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 0 40px 20px; }
