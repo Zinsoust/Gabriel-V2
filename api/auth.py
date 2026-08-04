@@ -30,7 +30,10 @@ _REDIRECT_PLANS = {'early_access', 'standard', 'pme'}
 def _post_login_redirect(plan):
     if plan in _REDIRECT_PLANS:
         return redirect(f'/upgrade?plan={plan}')
-    return redirect('/dossiers')
+    # L'Orchestrateur est le point d'entrée du parcours — pas "Dossiers",
+    # qui n'est plus une étape obligatoire (un dossier est désormais créé
+    # silencieusement en arrière-plan dès qu'un agent est utilisé).
+    return redirect('/orchestrateur')
 
 _BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _USERS_FILE = os.path.join(_BASE_DIR, 'data', 'users.json')

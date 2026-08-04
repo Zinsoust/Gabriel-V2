@@ -431,22 +431,34 @@ def index():
     return redirect('/dossiers')
 
 
-def _requires_folder(f):
-    """Exige un dossier actif — sélectionné en session ou passé en paramètre — avant d'accéder à la page."""
+def _ensure_folder(f):
+    """Garantit un dossier actif avant d'accéder à la page — n'exige plus que
+    l'utilisateur en crée un lui-même au préalable : créer un dossier n'est
+    plus une étape obligatoire du parcours. Si aucun n'est sélectionné, un
+    dossier est créé silencieusement en arrière-plan et attaché à la
+    session ; l'utilisateur le retrouve ensuite dans "Dossiers" comme s'il
+    l'avait créé lui-même, sans jamais avoir eu à le faire explicitement.
+    S'appelait _requires_folder — renommé pour refléter ce changement de
+    comportement (il ne bloque plus jamais l'accès)."""
     @wraps(f)
     def decorated(*args, **kwargs):
         folder_id = request.args.get('folder_id')
         if folder_id:
             session['active_folder_id'] = folder_id
         elif not session.get('active_folder_id'):
-            return redirect('/dossiers')
+            uid = (current_user() or {}).get('user_id')
+            if uid:
+                new_folder_id = str(uuid.uuid4())[:16]
+                folder = _db.create_folder(new_folder_id, uid, 'Nouvel espace de travail')
+                if folder:
+                    session['active_folder_id'] = new_folder_id
         return f(*args, **kwargs)
     return decorated
 
 
 @app.route('/psychologue')
 @login_required
-@_requires_folder
+@_ensure_folder
 def psychologue_page():
     uid_psy      = (current_user() or {}).get('user_id')
     _psy_profile = _get_user_profile(uid_psy)
@@ -470,7 +482,7 @@ def psychologue_page():
 
 @app.route('/stratege')
 @login_required
-@_requires_folder
+@_ensure_folder
 def stratege_page():
     uid_strat        = (current_user() or {}).get('user_id')
     folder_id        = request.args.get('folder_id') or session.get('active_folder_id', '')
@@ -1090,7 +1102,7 @@ def strategize():
 
 @app.route('/createur')
 @login_required
-@_requires_folder
+@_ensure_folder
 def createur_page():
     resp = make_response(render_template(
         'createur.html',
@@ -1554,14 +1566,14 @@ def account_delete():
 
 @app.route('/mes-analyses')
 @login_required
-@_requires_folder
+@_ensure_folder
 def mes_analyses():
     return render_template('history.html', active_page='history', current_user=current_user())
 
 
 @app.route('/mes-strategies')
 @login_required
-@_requires_folder
+@_ensure_folder
 def mes_strategies():
     resp = make_response(render_template(
         'mes_strategies.html', active_page='strategies', current_user=current_user(),

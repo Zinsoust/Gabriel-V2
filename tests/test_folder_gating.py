@@ -1,9 +1,10 @@
 # ─── Gabriel — Tests verrouillage par dossier + résolution stratégie/psycho ───
 #
-# Couvre le décorateur _requires_folder (accès aux agents conditionné à un
-# dossier actif) et les helpers _resolve_psycho / _resolve_strategy utilisés
-# par /creator/generate pour ne jamais partir d'un contexte vide s'il est
-# disponible ailleurs (folder_id, strategy_id, cache).
+# Couvre le décorateur _ensure_folder (accès aux agents ne requiert plus de
+# dossier créé au préalable : un dossier est créé silencieusement en session
+# si aucun n'est actif) et les helpers _resolve_psycho / _resolve_strategy
+# utilisés par /creator/generate pour ne jamais partir d'un contexte vide
+# s'il est disponible ailleurs (folder_id, strategy_id, cache).
 # Lancer : cd /Users/easycash/Desktop/Gabriel && venv/bin/pytest tests/test_folder_gating.py -v
 
 import os
@@ -36,15 +37,17 @@ def _client():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 1. Verrouillage — aucun dossier actif
+# 1. Accès libre — aucun dossier actif ne bloque plus rien
 # ══════════════════════════════════════════════════════════════════════════════
-def test_gated_routes_redirect_without_active_folder():
-    """Sans dossier actif en session, chaque route agent redirige vers /dossiers."""
+def test_gated_routes_auto_create_folder_without_active_folder():
+    """Sans dossier actif en session, chaque route agent répond 200 et crée
+    silencieusement un dossier attaché à la session (plus de redirection)."""
     for route in GATED_ROUTES:
         c = _client()
         r = c.get(route)
-        assert r.status_code in (302, 301), f'{route} devrait rediriger'
-        assert 'dossiers' in r.headers.get('Location', ''), f'{route} devrait rediriger vers /dossiers'
+        assert r.status_code == 200, f'{route} devrait répondre 200 sans dossier actif'
+        with c.session_transaction() as s:
+            assert s.get('active_folder_id'), f'{route} devrait créer un dossier actif en session'
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -74,13 +77,14 @@ def test_folder_id_param_persists_in_session():
 
 def test_dossier_detail_page_sets_active_folder():
     """Ouvrir /dossiers/<folder_id> (même sur un dossier introuvable → redirect)
-    ne doit pas planter, et un dossier existant active la session."""
+    ne doit pas planter. Un dossier inconnu ne débloque rien lui-même, mais
+    l'accès aux agents reste garanti (dossier auto-créé si besoin)."""
     c = _client()
     # Dossier inconnu → redirige vers /dossiers, ne débloque rien
     r = c.get('/dossiers/unknown-folder-xyz')
     assert r.status_code in (302, 301)
     r2 = c.get('/psychologue')
-    assert r2.status_code in (302, 301)  # toujours verrouillé, le dossier n'existait pas
+    assert r2.status_code == 200  # accès libre : un dossier est auto-créé
 
 
 # ══════════════════════════════════════════════════════════════════════════════
