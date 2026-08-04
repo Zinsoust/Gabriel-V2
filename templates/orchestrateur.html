@@ -46,7 +46,7 @@ body.page-orchestrateur .header-title .page { font-size: 12px; }
   border: 1px solid var(--border-soft); border-radius: var(--chatradius); overflow: hidden;
   background: var(--bg-card); transition: border-color 0.25s, box-shadow 0.25s;
 }
-.orl-chatbox:focus-within { border-color: var(--border-champagne); box-shadow: 0 0 0 4px color-mix(in srgb, var(--champagne) 5%, transparent); }
+.orl-chatbox:focus-within { border-color: var(--border-champagne); }
 /* Neutralise entièrement le style global des textarea (fond + bordure + arrondi
    propres) qui laissait un rectangle apparaître dans les coins arrondis. */
 .orl-chatbox textarea, .orl-chatbox textarea:focus {
@@ -56,13 +56,29 @@ body.page-orchestrateur .header-title .page { font-size: 12px; }
   padding: 26px 76px 26px 26px; max-height: 300px; overflow-y: auto;
 }
 .orl-chatbox textarea::placeholder { color: var(--text-muted); font-weight: 300; }
-.orl-send {
-  position: absolute; right: 18px; bottom: 18px; width: var(--send); height: var(--send); border-radius: 50%;
-  border: none; cursor: pointer; background: linear-gradient(135deg, var(--champagne), var(--champagne-soft)); color: #16130f;
-  display: flex; align-items: center; justify-content: center; transition: transform 0.2s, box-shadow 0.2s;
+/* Boutons de la box (micro + envoi) — regroupés en bas à droite, sobres. */
+.orl-actions { position: absolute; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* Bouton d'envoi : noir, liseré + flèche dorés — simple, pas de remplissage doré. */
+.or-send {
+  width: var(--send); height: var(--send); border-radius: 50%; flex-shrink: 0; cursor: pointer;
+  background: var(--bg-main); border: 1px solid var(--border-champagne); color: var(--champagne);
+  display: flex; align-items: center; justify-content: center; transition: border-color 0.2s, background 0.2s, transform 0.2s;
 }
-.orl-send:hover { transform: translateY(-1px); box-shadow: 0 10px 24px color-mix(in srgb, var(--champagne) 28%, transparent); }
-.orl-send svg { width: calc(var(--send) * 0.5); height: calc(var(--send) * 0.5); }
+.or-send:hover { border-color: var(--champagne); background: color-mix(in srgb, var(--champagne) 8%, var(--bg-main)); transform: translateY(-1px); }
+.or-send svg { width: calc(var(--send) * 0.48); height: calc(var(--send) * 0.48); }
+
+/* Bouton micro (saisie vocale) — même famille sobre. */
+.or-mic {
+  width: var(--send); height: var(--send); border-radius: 50%; flex-shrink: 0; cursor: pointer;
+  background: transparent; border: 1px solid var(--border-soft); color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center; transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.or-mic:hover { color: var(--champagne); border-color: var(--border-champagne); }
+.or-mic.listening { color: var(--champagne); border-color: var(--champagne); background: color-mix(in srgb, var(--champagne) 10%, transparent); animation: or-mic-pulse 1.2s ease-in-out infinite; }
+.or-mic svg { width: calc(var(--send) * 0.46); height: calc(var(--send) * 0.46); }
+@keyframes or-mic-pulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--champagne) 30%, transparent); } 50% { box-shadow: 0 0 0 5px transparent; } }
+@media (prefers-reduced-motion: reduce) { .or-mic.listening { animation: none; } }
 
 .orl-chips { display: flex; flex-wrap: wrap; gap: var(--chipsgap); justify-content: center; margin-top: var(--chipsmt); }
 .orl-chip {
@@ -148,8 +164,6 @@ body.page-orchestrateur .header-title .page { font-size: 12px; }
 .orc-composer-inner:focus-within { border-color: var(--border-champagne); }
 .orc-composer textarea, .orc-composer textarea:focus { flex: 1; background: transparent; border: none; outline: none; box-shadow: none; border-radius: 0; resize: none; min-height: 0; color: var(--text-primary); font-family: var(--font-main); font-size: var(--ccomposer); font-weight: 300; line-height: 1.5; max-height: 140px; padding: 6px 0; }
 .orc-composer textarea::placeholder { color: var(--text-muted); }
-.orc-send { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--champagne); color: #16130f; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.orc-send svg { width: 15px; height: 15px; }
 
 @media (max-width: 760px) {
   .orl { padding: 0 20px 20px; }
@@ -172,9 +186,14 @@ body.page-orchestrateur .header-title .page { font-size: 12px; }
       <textarea id="orl-input" rows="1" placeholder="Décrivez votre objectif, votre audience ou votre problématique…"
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();orlStart();}"
         oninput="orlGrow(this)"></textarea>
-      <button class="orl-send" type="button" onclick="orlStart()" aria-label="Envoyer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
-      </button>
+      <div class="orl-actions">
+        <button class="or-mic" type="button" onclick="orVoice('orl-input', this)" aria-label="Saisie vocale" title="Saisie vocale">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </button>
+        <button class="or-send" type="button" onclick="orlStart()" aria-label="Envoyer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="orl-chips">
@@ -222,8 +241,11 @@ body.page-orchestrateur .header-title .page { font-size: 12px; }
         <textarea id="orc-input" rows="1" placeholder="Poursuivez la conversation…"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();orcSend();}"
           oninput="orcGrow(this)"></textarea>
-        <button class="orc-send" type="button" onclick="orcSend()" aria-label="Envoyer">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 11.5 21 3l-8.5 18-2.2-7.3L3 11.5Z"/></svg>
+        <button class="or-mic" type="button" onclick="orVoice('orc-input', this)" aria-label="Saisie vocale" title="Saisie vocale">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </button>
+        <button class="or-send" type="button" onclick="orcSend()" aria-label="Envoyer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
         </button>
       </div>
     </div>
@@ -239,6 +261,38 @@ let _orWaiting = false;
 
 function orlGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 300) + 'px'; }
 function orcGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 140) + 'px'; }
+
+/* ── Saisie vocale (mode vocal) — Web Speech API, dictée en français ──────── */
+let _orRec = null;
+function orVoice(inputId, btn) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('La saisie vocale n’est pas prise en charge par ce navigateur. Essayez Chrome.'); return; }
+  // Deuxième clic = on arrête.
+  if (_orRec) { try { _orRec.stop(); } catch (e) {} return; }
+
+  const input = document.getElementById(inputId);
+  const base = input.value ? input.value + ' ' : '';
+  const rec = new SR();
+  rec.lang = 'fr-FR';
+  rec.interimResults = true;
+  rec.continuous = false;
+  rec.onresult = function (e) {
+    let txt = '';
+    for (let i = 0; i < e.results.length; i++) txt += e.results[i][0].transcript;
+    input.value = base + txt;
+    input.dispatchEvent(new Event('input'));
+  };
+  rec.onerror = function () { stopVoice(btn); };
+  rec.onend = function () { stopVoice(btn); };
+  _orRec = rec;
+  btn.classList.add('listening');
+  try { rec.start(); } catch (e) { stopVoice(btn); }
+}
+function stopVoice(btn) {
+  if (btn) btn.classList.remove('listening');
+  document.querySelectorAll('.or-mic.listening').forEach(function (b) { b.classList.remove('listening'); });
+  _orRec = null;
+}
 
 function _orEsc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
 function _orFormat(raw) {
