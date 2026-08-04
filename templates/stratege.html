@@ -3173,6 +3173,18 @@
     max-height:340px; overflow:auto;
   }
 
+/* ── UX Studio : éléments rendus ajustables (ciblés sur cette page) ──────── */
+body.page-stratege .ctx-header-title   { font-size: var(--ux-st-ctxtitle, 13px); }
+body.page-stratege .ctx-field-label    { font-size: var(--ux-st-ctxfield, 8.5px); }
+body.page-stratege .decision-text      { font-size: var(--ux-st-decision, 18px); }
+body.page-stratege .decision-label     { font-size: var(--ux-st-decisionlabel, 10px); }
+body.page-stratege .dash-sec-title     { font-size: var(--ux-st-secttl, 13px); }
+body.page-stratege .strat-idle-title   { font-size: var(--ux-st-idletitle, 15px); }
+body.page-stratege .strat-idle-desc    { font-size: var(--ux-st-idledesc, 12px); }
+body.page-stratege .psycho-banner-title{ font-size: var(--ux-st-banner, 14px); }
+body.page-stratege .strat-memory-item-title { font-size: var(--ux-st-memitem, 12px); }
+body.page-stratege .strat-generate-btn { font-size: var(--ux-st-genbtn, 13px); }
+body.page-stratege .strat-cta-btn      { font-size: var(--ux-st-ctabtn, 11px); }
 </style>
 {% endblock %}
 
@@ -3485,6 +3497,39 @@
 {% endblock %}
 
 {% block scripts %}
+<link rel="stylesheet" href="{{ static_v('css/ux-studio.css') }}">
+<script src="{{ static_v('js/ux-studio.js') }}" defer></script>
+<script defer>
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.UxStudio) return;
+  UxStudio.mount({
+    pageKey: 'stratege',
+    groups: [
+      { label: 'Entretien', items: [
+        { key: 'st-ctxtitle', label: 'Titre d’entretien',  def: 13, min: 8,  max: 24, step: 0.5 },
+        { key: 'st-ctxfield', label: 'Libellés de champ',  def: 8.5,min: 6,  max: 16, step: 0.5 },
+        { key: 'st-idletitle',label: 'Titre (écran vide)', def: 15, min: 9,  max: 28, step: 0.5 },
+        { key: 'st-idledesc', label: 'Texte (écran vide)', def: 12, min: 8,  max: 20, step: 0.5 },
+        { key: 'st-banner',   label: 'Bandeau Psychologue',def: 14, min: 8,  max: 22, step: 0.5 },
+        { key: 'st-memitem',  label: 'Titre cas mémoire',  def: 12, min: 8,  max: 20, step: 0.5 },
+      ]},
+      { label: 'Stratégie (résultat)', items: [
+        { key: 'st-decision',     label: 'Décision (grand titre)', def: 18, min: 10, max: 36, step: 0.5 },
+        { key: 'st-decisionlabel',label: 'Libellé décision',       def: 10, min: 7,  max: 18, step: 0.5 },
+        { key: 'st-secttl',       label: 'Titres de section',      def: 13, min: 8,  max: 24, step: 0.5 },
+      ]},
+      { label: 'Boutons', items: [
+        { key: 'st-genbtn', label: 'Générer la stratégie', def: 13, min: 8,  max: 20, step: 0.5 },
+        { key: 'st-ctabtn', label: 'Bouton d’action',      def: 11, min: 8,  max: 18, step: 0.5 },
+      ]},
+      { label: 'Couleurs (global)', colors: [
+        { key: 'ux-champagne',   label: 'Accent champagne', def: '#d8b982', cssVar: '--champagne' },
+        { key: 'ux-textprimary', label: 'Texte principal',  def: '#f4f1ea', cssVar: '--text-primary' },
+      ]},
+    ],
+  });
+});
+</script>
 <!-- Conteneur du parcours (machine à états). Chargé avant le script de la
      page : les écrans s'enregistrent auprès de lui dès leur définition. -->
 <script src="{{ static_v('js/strategy-workspace.js') }}"></script>

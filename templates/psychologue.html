@@ -699,6 +699,19 @@
 .rag-rules{margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:8px;color:color-mix(in srgb, var(--text-primary) 25%, transparent);}
 .rag-rule-tag{padding:1px 6px;border-radius:2px;background:color-mix(in srgb, var(--text-primary) 4%, transparent);border:1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);font-size:8px;color:color-mix(in srgb, var(--text-primary) 30%, transparent);font-family:monospace;}
 @media(max-width:680px){.rag-interp-grid{grid-template-columns:1fr;}}
+
+/* ── UX Studio : éléments rendus ajustables (ciblés sur cette page) ──────── */
+body.page-psychologue .page-heading      { font-size: var(--ux-psy-heading, 20px); }
+body.page-psychologue .page-label,
+body.page-psychologue .sec-title         { font-size: var(--ux-psy-label, 10px); }
+body.page-psychologue .psycho-summary-text { font-size: var(--ux-psy-summary, 14px); }
+body.page-psychologue .psycho-summary    { padding: var(--ux-psy-summary-pad, 20px) 22px; border-radius: var(--ux-psy-radius, 5px); }
+body.page-psychologue .snap-value        { font-size: var(--ux-psy-snapval, 18px); }
+body.page-psychologue .snap-label        { font-size: var(--ux-psy-snaplabel, 9px); }
+body.page-psychologue .persona-name-v2   { font-size: var(--ux-psy-persona, 14px); }
+body.page-psychologue .persona-quote     { font-size: var(--ux-psy-quote, 12px); }
+body.page-psychologue .psycho-pill       { font-size: var(--ux-psy-pill, 11px); }
+body.page-psychologue .analyse-btn       { font-size: var(--ux-psy-btn, 11px); }
 </style>
 {% endblock %}
 
@@ -1036,6 +1049,37 @@
 {% endblock %}
 
 {% block scripts %}
+<link rel="stylesheet" href="{{ static_v('css/ux-studio.css') }}">
+<script src="{{ static_v('js/ux-studio.js') }}" defer></script>
+<script defer>
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.UxStudio) return;
+  UxStudio.mount({
+    pageKey: 'psychologue',
+    groups: [
+      { label: 'Typographie', items: [
+        { key: 'psy-heading',  label: 'Titre de page',        def: 20, min: 12, max: 40, step: 0.5 },
+        { key: 'psy-label',    label: 'Labels / sections',     def: 10, min: 7,  max: 18, step: 0.5 },
+        { key: 'psy-summary',  label: 'Texte de synthèse',     def: 14, min: 8,  max: 24, step: 0.5 },
+        { key: 'psy-snapval',  label: 'Chiffres KPI',          def: 18, min: 10, max: 34, step: 0.5 },
+        { key: 'psy-snaplabel',label: 'Libellés KPI',          def: 9,  min: 6,  max: 16, step: 0.5 },
+        { key: 'psy-persona',  label: 'Nom de persona',        def: 14, min: 8,  max: 24, step: 0.5 },
+        { key: 'psy-quote',    label: 'Citation persona',      def: 12, min: 8,  max: 20, step: 0.5 },
+        { key: 'psy-pill',     label: 'Pastilles (pills)',     def: 11, min: 7,  max: 18, step: 0.5 },
+        { key: 'psy-btn',      label: 'Bouton d’action',       def: 11, min: 8,  max: 18, step: 0.5 },
+      ]},
+      { label: 'Éléments', items: [
+        { key: 'psy-summary-pad', label: 'Marge carte synthèse', def: 20, min: 6,  max: 44, step: 1 },
+        { key: 'psy-radius',      label: 'Arrondi carte synthèse',def: 5, min: 0,  max: 24, step: 1 },
+      ]},
+      { label: 'Couleurs (global)', colors: [
+        { key: 'ux-champagne', label: 'Accent champagne', def: '#d8b982', cssVar: '--champagne' },
+        { key: 'ux-textprimary', label: 'Texte principal', def: '#f4f1ea', cssVar: '--text-primary' },
+      ]},
+    ],
+  });
+});
+</script>
 <script>
 /* ── Tab switching (input) ───────────────────────────────────────────── */
 function switchTab(tab) {

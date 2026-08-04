@@ -43,14 +43,17 @@ body.page-orchestrateur .header-title .page { font-size: 12px; }
 }
 .orl-chatbox {
   position: relative; margin-top: var(--chatmt); width: min(var(--chatw), 100%);
-  border: 1px solid var(--border-soft); border-radius: var(--chatradius);
-  background: color-mix(in srgb, var(--bg-card) 55%, transparent); transition: border-color 0.25s, box-shadow 0.25s;
+  border: 1px solid var(--border-soft); border-radius: var(--chatradius); overflow: hidden;
+  background: var(--bg-card); transition: border-color 0.25s, box-shadow 0.25s;
 }
 .orl-chatbox:focus-within { border-color: var(--border-champagne); box-shadow: 0 0 0 4px color-mix(in srgb, var(--champagne) 5%, transparent); }
-.orl-chatbox textarea {
-  width: 100%; background: none; border: none; outline: none; resize: none; color: var(--text-primary);
+/* Neutralise entièrement le style global des textarea (fond + bordure + arrondi
+   propres) qui laissait un rectangle apparaître dans les coins arrondis. */
+.orl-chatbox textarea, .orl-chatbox textarea:focus {
+  width: 100%; background: transparent; border: none; outline: none; box-shadow: none;
+  border-radius: 0; resize: none; min-height: var(--chatminh); color: var(--text-primary);
   font-family: var(--font-main); font-size: var(--chat); font-weight: 300; line-height: 1.6;
-  padding: 26px 76px 26px 26px; min-height: var(--chatminh); max-height: 300px; overflow-y: auto;
+  padding: 26px 76px 26px 26px; max-height: 300px; overflow-y: auto;
 }
 .orl-chatbox textarea::placeholder { color: var(--text-muted); font-weight: 300; }
 .orl-send {
@@ -141,8 +144,9 @@ body.page-orchestrateur .header-title .page { font-size: 12px; }
   max-width: var(--cwidth); margin: 0 auto; display: flex; align-items: flex-end; gap: 10px;
   border: 1px solid var(--border-soft); border-radius: var(--ccomposerradius); padding: var(--ccomposerpad) 10px var(--ccomposerpad) 18px; background: var(--bg-card);
 }
+.orc-composer-inner { overflow: hidden; }
 .orc-composer-inner:focus-within { border-color: var(--border-champagne); }
-.orc-composer textarea { flex: 1; background: none; border: none; outline: none; resize: none; color: var(--text-primary); font-family: var(--font-main); font-size: var(--ccomposer); font-weight: 300; line-height: 1.5; max-height: 140px; padding: 6px 0; }
+.orc-composer textarea, .orc-composer textarea:focus { flex: 1; background: transparent; border: none; outline: none; box-shadow: none; border-radius: 0; resize: none; min-height: 0; color: var(--text-primary); font-family: var(--font-main); font-size: var(--ccomposer); font-weight: 300; line-height: 1.5; max-height: 140px; padding: 6px 0; }
 .orc-composer textarea::placeholder { color: var(--text-muted); }
 .orc-send { width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: var(--champagne); color: #16130f; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .orc-send svg { width: 15px; height: 15px; }

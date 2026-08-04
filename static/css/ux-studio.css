@@ -1,0 +1,60 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   UX STUDIO — panneau de réglage live réutilisable (Gabriel).
+   Piloté par un schéma JS (voir ux-studio.js). Ancré sur les tokens gabriel.css.
+   Chaque réglage écrit une variable --ux-<clé> sur :root ; la page référence
+   var(--ux-<clé>, défaut) sur les éléments à rendre ajustables.
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* En bas à GAUCHE : la bulle Orchestrateur occupe déjà le coin bas-droit. */
+.uxs-fab {
+  position: fixed; left: 20px; bottom: 20px; z-index: 500; width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid var(--border-soft); background: var(--bg-card); color: var(--champagne); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  transition: transform 0.2s cubic-bezier(0.16,1,0.3,1);
+}
+.uxs-fab:hover { transform: rotate(35deg); }
+.uxs-fab svg { width: 22px; height: 22px; }
+
+.uxs {
+  position: fixed; top: 0; right: 0; z-index: 501; height: 100vh; width: 340px;
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  background: color-mix(in srgb, var(--bg-card) 98%, var(--bg-main)); border-left: 1px solid var(--border-soft);
+  box-shadow: -20px 0 60px rgba(0,0,0,0.4);
+  transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.uxs.open { transform: translateX(0); }
+.uxs::-webkit-scrollbar { width: 9px; }
+.uxs::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 9px; border: 2px solid transparent; background-clip: padding-box; }
+.uxs::-webkit-scrollbar-thumb:hover { background: var(--champagne-dark); background-clip: padding-box; }
+
+.uxs-head {
+  position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px 13px; border-bottom: 1px solid var(--border-soft);
+  background: color-mix(in srgb, var(--bg-card) 98%, var(--bg-main));
+}
+.uxs-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.uxs-x { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
+.uxs-x:hover { color: var(--text-primary); }
+.uxs-x svg { width: 18px; height: 18px; }
+.uxs-body { padding: 14px 18px 8px; }
+.uxs-note { font-size: 11px; color: var(--text-muted); line-height: 1.5; margin: 0 0 4px; }
+
+.uxs-group { margin-top: 20px; }
+.uxs-group-label { font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--champagne-soft); font-weight: 600; margin-bottom: 10px; }
+.uxs-row { margin-bottom: 13px; }
+.uxs-row-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+.uxs-row-label { font-size: 11.5px; color: var(--text-secondary); }
+.uxs-row-val { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.uxs-slider { width: 100%; -webkit-appearance: none; appearance: none; height: 3px; border-radius: 3px; background: var(--border-soft); outline: none; }
+.uxs-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--champagne); cursor: pointer; border: none; }
+.uxs-slider::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--champagne); cursor: pointer; border: none; }
+.uxs-color-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; }
+.uxs-color-row input[type=color] { width: 34px; height: 26px; border: 1px solid var(--border-soft); border-radius: 6px; background: none; cursor: pointer; padding: 2px; }
+
+.uxs-foot { position: sticky; bottom: 0; z-index: 3; border-top: 1px solid var(--border-soft); padding: 13px 18px; background: color-mix(in srgb, var(--bg-card) 99%, var(--bg-main)); }
+.uxs-actions { display: flex; flex-direction: column; gap: 9px; }
+.uxs-btn { font-family: inherit; font-size: 12.5px; font-weight: 600; border-radius: 10px; padding: 11px; cursor: pointer; border: 1px solid var(--border-soft); background: none; color: var(--text-secondary); transition: color 0.2s, border-color 0.2s; }
+.uxs-btn:hover { color: var(--text-primary); border-color: var(--champagne-dark); }
+.uxs-btn.primary { background: linear-gradient(135deg, var(--champagne), var(--champagne-soft)); color: #16130f; border: none; }
+.uxs-toast { position: fixed; bottom: 82px; left: 20px; z-index: 502; background: var(--bg-card); border: 1px solid var(--champagne-dark); color: var(--text-primary); font-size: 12px; padding: 9px 15px; border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.4); animation: uxs-toast-in 0.3s cubic-bezier(0.16,1,0.3,1); }
+@keyframes uxs-toast-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .uxs, .uxs-toast { transition: none; animation: none; } }
