@@ -1392,15 +1392,3 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
 
     # ── Rétrocompatibilité avec l'ancienne interface ──────────────────────────
 
-    def create_content(self, content_type, psycho_data, strategie_data, params=None):
-        """Ancienne interface — redirige vers generate_script_or_text()."""
-        params = params or {}
-        return self.generate_script_or_text(
-            content_type  = content_type,
-            psycho_data   = psycho_data,
-            strategy      = strategie_data,
-            channel       = params.get('platform', '').lower(),
-            tone          = params.get('tone', ''),
-            user_request  = params.get('topic', ''),
-            params        = params,
-        )

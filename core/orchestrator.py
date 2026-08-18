@@ -77,12 +77,3 @@ class Gabriel:
 
         ctx.record_step("[GABRIEL] Pipeline stratégique terminé")
         return ctx.to_response()
-
-    # ── Pipeline 3 : Création de Contenu ─────────────────────────────────────
-
-    def run_createur(self, content_type, psycho_data, strategie_data, params=None):
-        """
-        Génère du contenu créatif basé sur les insights psychologiques et la stratégie.
-        content_type : 'hooks' | 'script' | 'email' | 'post' | 'angles'
-        """
-        return self.createur.create_content(content_type, psycho_data, strategie_data, params)
