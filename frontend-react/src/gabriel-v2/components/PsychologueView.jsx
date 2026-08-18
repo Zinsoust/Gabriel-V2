@@ -20,6 +20,15 @@ import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
    vérifiable de bout en bout plutôt que de tout faire à moitié. */
 
 const PENDING_JOB_KEY = 'gabriel_pending_job';
+
+// Contrat repris de la page historique : ces trois plateformes ont une vraie
+// collecte de commentaires. Google est annoncé mais pas encore connecté ;
+// « Autre source » bascule simplement vers la saisie manuelle.
+const LINK_SOURCES = {
+  youtube: { label: 'YouTube', mark: '▶', placeholder: 'Collez le lien de la vidéo YouTube ici…', example: 'Exemple : youtube.com/watch?v=…' },
+  instagram: { label: 'Instagram', mark: '◎', placeholder: 'Collez le lien de la publication Instagram ici…', example: 'Exemple : instagram.com/reel/…' },
+  tiktok: { label: 'TikTok', mark: '♪', placeholder: 'Collez le lien de la vidéo TikTok ici…', example: 'Exemple : tiktok.com/@compte/video/…' },
+};
 const CROSS_MIN_SOURCES = 2;
 const CROSS_MAX_SOURCES = 5;
 
@@ -83,10 +92,19 @@ function categoryLabel(cat) {
 /* ── Saisie ──────────────────────────────────────────────────────────── */
 
 function PsychoInput({
-  mode, onModeChange, url, onUrlChange, manualText, onManualTextChange,
-  checking, onCheck, statusMsg, statusTone, previewCount, onLaunch, onOpenCross,
+  tab, onTabChange, platform, onPlatformChange,
+  url, onUrlChange, manualText, onManualTextChange,
+  checking, onCheck, statusMsg, statusTone, previewCount,
+  file, onFilePick, onColumnChange, uploading,
+  onLaunch, onOpenCross,
 }) {
-  const canLaunch = mode === 'youtube' ? previewCount > 0 : manualText.trim().split('\n').filter(Boolean).length >= 3;
+  const linkReady = Boolean(LINK_SOURCES[platform]) && previewCount > 0;
+  const manualCount = manualText.trim().split('\n').filter(Boolean).length;
+  const canLaunch = tab === 'link' ? linkReady
+    : tab === 'manual' ? manualCount >= 3
+    : Boolean(file && file.count >= 3);
+  const config = LINK_SOURCES[platform];
+
   return <section className="gv2-psy-input">
     <div className="gv2-psy-input-head">
       <div>
@@ -100,26 +118,73 @@ function PsychoInput({
     </div>
     <div className="gv2-psy-card">
       <div className="gv2-psy-tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={mode === 'youtube'} className={mode === 'youtube' ? 'is-active' : ''} onClick={() => onModeChange('youtube')}>Sources</button>
-        <button type="button" role="tab" aria-selected={mode === 'manual'} className={mode === 'manual' ? 'is-active' : ''} onClick={() => onModeChange('manual')}>Commentaires</button>
+        <button type="button" role="tab" aria-selected={tab === 'link'} className={tab === 'link' ? 'is-active' : ''} onClick={() => onTabChange('link')}>Sources</button>
+        <button type="button" role="tab" aria-selected={tab === 'manual'} className={tab === 'manual' ? 'is-active' : ''} onClick={() => onTabChange('manual')}>Commentaires</button>
+        <button type="button" role="tab" aria-selected={tab === 'file'} className={tab === 'file' ? 'is-active' : ''} onClick={() => onTabChange('file')}>Fichier</button>
       </div>
       <div className="gv2-psy-card-body">
-        {mode === 'youtube' ? <>
+        {tab === 'link' && <>
+          <div className="gv2-psy-platforms" role="tablist" aria-label="Plateforme à analyser">
+            {Object.entries(LINK_SOURCES).map(([key, meta]) => (
+              <button key={key} type="button" role="tab" aria-selected={platform === key}
+                      className={`gv2-psy-platform${platform === key ? ' is-active' : ''}`}
+                      onClick={() => onPlatformChange(key)}>
+                <span className="gv2-psy-platform-mark">{meta.mark}</span>{meta.label}
+              </button>
+            ))}
+            <button type="button" className={`gv2-psy-platform${platform === 'google' ? ' is-active' : ''}`}
+                    aria-selected={platform === 'google'} onClick={() => onPlatformChange('google')}>
+              <span className="gv2-psy-platform-mark">G</span>Google
+            </button>
+            <button type="button" className="gv2-psy-platform" onClick={() => onTabChange('manual')}>
+              <span className="gv2-psy-platform-mark">+</span>Autre source
+            </button>
+          </div>
           <div className="gv2-psy-link-row">
             <Icon name="link" size={16} />
-            <input type="url" value={url} onChange={event => onUrlChange(event.target.value)} placeholder="Collez le lien de la vidéo YouTube ici…" onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); onCheck(); } }} />
-            <button type="button" className="gv2-psy-check-btn" disabled={checking} onClick={onCheck} aria-label="Vérifier le lien" title="Vérifier le lien">
+            <input type="url" value={url} disabled={!config}
+                   onChange={event => onUrlChange(event.target.value)}
+                   placeholder={config ? config.placeholder : 'La collecte Google arrive prochainement…'}
+                   onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); onCheck(); } }} />
+            <button type="button" className="gv2-psy-check-btn" disabled={checking || !config} onClick={onCheck} aria-label="Vérifier le lien" title="Vérifier le lien">
               <Icon name={checking ? 'refresh' : 'send'} size={16} className={checking ? 'gv2-spin' : ''} />
             </button>
           </div>
-          <p className="gv2-psy-example">Exemple : youtube.com/watch?v=…</p>
+          <p className="gv2-psy-example">{config ? config.example : 'Pour l’instant, collez les avis dans « Commentaires ».'}</p>
           {statusMsg && <p className={`gv2-psy-status${statusTone ? ` is-${statusTone}` : ''}`} role="status">{statusMsg}</p>}
-        </> : <>
+        </>}
+
+        {tab === 'manual' && <>
           <textarea value={manualText} onChange={event => onManualTextChange(event.target.value)} placeholder="Collez vos commentaires ici, un par ligne…" rows={7} />
           <div className="gv2-psy-comment-meta">
             <span>Un commentaire par ligne · Min. 3</span>
-            <span className="gv2-psy-comment-count">{manualText.trim().split('\n').filter(Boolean).length}</span>
+            <span className="gv2-psy-comment-count">{manualCount}</span>
           </div>
+        </>}
+
+        {tab === 'file' && <>
+          <label className="gv2-psy-dropzone">
+            <input type="file" accept=".csv,.xlsx,.xls,.json,.txt" hidden
+                   onChange={event => onFilePick(event.target.files && event.target.files[0])} />
+            <Icon name="file" size={20} />
+            <span className="gv2-psy-dropzone-title">
+              {uploading ? 'Lecture du fichier…' : file ? file.name : 'Choisir un fichier de commentaires'}
+            </span>
+            <span className="gv2-psy-dropzone-hint">CSV, Excel, JSON ou TXT · 5 Mo maximum</span>
+          </label>
+          {file && file.columns && file.columns.length > 1 && (
+            <label className="gv2-psy-column-picker">
+              <span>Colonne à analyser</span>
+              <select value={file.column || ''} onChange={event => onColumnChange(event.target.value)}>
+                {file.columns.map(col => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </label>
+          )}
+          {file && <div className="gv2-psy-comment-meta">
+            <span>{file.warning || `${file.count} commentaire${file.count === 1 ? '' : 's'} lu${file.count === 1 ? '' : 's'}`}</span>
+            <span className="gv2-psy-comment-count">{file.count}</span>
+          </div>}
+          {statusMsg && statusTone !== 'success' && <p className={`gv2-psy-status${statusTone ? ` is-${statusTone}` : ''}`} role="status">{statusMsg}</p>}
         </>}
       </div>
       <div className="gv2-psy-card-footer">
@@ -132,6 +197,7 @@ function PsychoInput({
     </div>
   </section>;
 }
+
 
 /* ── Panneau flottant Cross Analyse ──────────────────────────────────── */
 
@@ -468,9 +534,12 @@ function PsychoCrossResult({ data, onReset }) {
 /* ── Racine ──────────────────────────────────────────────────────────── */
 
 export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent }) {
-  const [mode, setMode] = useState('youtube');
+  const [tab, setTab] = useState('link');
+  const [platform, setPlatform] = useState('youtube');
   const [url, setUrl] = useState('');
   const [manualText, setManualText] = useState('');
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [previewCount, setPreviewCount] = useState(0);
   const [checking, setChecking] = useState(false);
   const [statusMsg, setStatusMsg] = useState('Collez le lien d’une vidéo YouTube.');
@@ -554,15 +623,17 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
   }
 
   async function checkLink() {
+    const config = LINK_SOURCES[platform];
+    if (!config) return;
     const trimmed = url.trim();
-    if (!trimmed) { setStatusMsg('Collez d’abord le lien YouTube.'); setStatusTone('error'); return; }
+    if (!trimmed) { setStatusMsg(`Collez d’abord le lien ${config.label}.`); setStatusTone('error'); return; }
     setChecking(true);
     setStatusMsg('Vérification du lien et détection des commentaires…');
     setStatusTone('busy');
     try {
       const response = await fetchV2('/analyze', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'youtube', content: trimmed, preview_only: true }),
+        body: JSON.stringify({ source: platform, content: trimmed, preview_only: true }),
       });
       if (isLoginResponse(response)) { window.location.assign('/login'); return; }
       const data = await readApiPayload(response, 'La vérification du lien');
@@ -613,16 +684,81 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
     }
   }
 
+  function changeTab(next) {
+    setTab(next);
+    if (next === 'link') {
+      const config = LINK_SOURCES[platform];
+      setStatusMsg(config ? `Collez le lien ${config.label}, puis vérifiez les commentaires disponibles.` : '');
+    } else {
+      // Le statut est partagé entre onglets : sans ce nettoyage, le message du
+      // lien restait affiché sous la zone de dépôt de fichier.
+      setStatusMsg('');
+    }
+    setStatusTone('');
+  }
+
+  function changePlatform(next) {
+    setPlatform(next);
+    setUrl('');
+    setPreviewCount(0);
+    const config = LINK_SOURCES[next];
+    if (config) {
+      setStatusMsg(`Collez le lien ${config.label}, puis vérifiez les commentaires disponibles.`);
+      setStatusTone('');
+    } else {
+      // Google est annoncé dans l'interface mais pas encore collecté : le dire
+      // franchement plutôt que de laisser l'utilisateur essayer dans le vide.
+      setStatusMsg('Google sera connecté dès que cette source sera disponible dans votre workspace.');
+      setStatusTone('busy');
+    }
+  }
+
+  async function uploadFile(picked, forcedColumn = null) {
+    if (!picked) return;
+    setUploading(true);
+    setStatusMsg('Lecture du fichier…');
+    setStatusTone('busy');
+    try {
+      const form = new FormData();
+      form.append('file', picked);
+      if (forcedColumn) form.append('column', forcedColumn);
+      const response = await fetchV2('/upload-comments-file', { method: 'POST', body: form });
+      if (isLoginResponse(response)) { window.location.assign('/login'); return; }
+      const data = await readApiPayload(response, 'L’import du fichier');
+      if (!response.ok || !data.success) throw new Error(data.error || 'Impossible de lire ce fichier.');
+      setFile({
+        name: picked.name,
+        raw: picked,
+        count: data.comments_count || 0,
+        columns: data.detected_columns || [],
+        column: data.selected_column || '',
+        warning: data.warning || '',
+        comments: data.normalized_comments || [],
+      });
+      setStatusMsg(`${data.comments_count} commentaire${data.comments_count === 1 ? '' : 's'} lu${data.comments_count === 1 ? '' : 's'}.`);
+      setStatusTone('success');
+    } catch (error) {
+      setFile(null);
+      setStatusMsg(error.message || 'Impossible de lire ce fichier.');
+      setStatusTone('error');
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function launch() {
-    const isManual = mode === 'manual';
-    const comments = isManual ? manualText.split('\n').map(line => line.trim()).filter(Boolean) : null;
-    if (isManual && comments.length < 3) { setStatusMsg('Ajoutez au moins 3 commentaires.'); setStatusTone('error'); return; }
-    if (!isManual && previewCount <= 0) { setStatusMsg('Vérifiez d’abord le lien.'); setStatusTone('error'); return; }
+    const comments = manualText.split('\n').map(line => line.trim()).filter(Boolean);
+    if (tab === 'manual' && comments.length < 3) { setStatusMsg('Ajoutez au moins 3 commentaires.'); setStatusTone('error'); return; }
+    if (tab === 'link' && previewCount <= 0) { setStatusMsg('Vérifiez d’abord le lien.'); setStatusTone('error'); return; }
+    if (tab === 'file' && !(file && file.count >= 3)) { setStatusMsg('Importez d’abord un fichier d’au moins 3 commentaires.'); setStatusTone('error'); return; }
 
     setStage('loading'); setResultKind('single'); setProgress(0); setStep('Lecture des réactions du marché…'); setErrorMsg('');
-    const body = isManual
-      ? { source: 'text', content: manualText, comments, folder_id: workspace?.folder_id || undefined }
-      : { source: 'youtube', content: url.trim(), folder_id: workspace?.folder_id || undefined };
+    const folder_id = workspace?.folder_id || undefined;
+    const body = tab === 'manual'
+      ? { source: 'text', content: manualText, comments, folder_id }
+      : tab === 'file'
+        ? { source: 'file', content: file.name, comments: file.comments, folder_id }
+        : { source: platform, content: url.trim(), folder_id };
 
     try {
       const response = await fetchV2('/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -748,6 +884,7 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
   function reset() {
     setStage('input'); setResult(null); setCrossResult(null); setErrorMsg('');
     setUrl(''); setManualText(''); setPreviewCount(0);
+    setTab('link'); setPlatform('youtube'); setFile(null); setUploading(false);
     setStatusMsg('Collez le lien d’une vidéo YouTube.'); setStatusTone('');
     setCrossSources([]); setCrossUrl(''); setCrossPreviewCount(0);
     setCrossStatusMsg('Collez le lien d’une vidéo YouTube.'); setCrossStatusTone('');
@@ -760,12 +897,16 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
 
   return <>
     <PsychoInput
-      mode={mode} onModeChange={setMode}
+      tab={tab} onTabChange={changeTab}
+      platform={platform} onPlatformChange={changePlatform}
       url={url} onUrlChange={setUrl}
       manualText={manualText} onManualTextChange={setManualText}
       checking={checking} onCheck={checkLink}
       statusMsg={statusMsg} statusTone={statusTone}
       previewCount={previewCount}
+      file={file} uploading={uploading}
+      onFilePick={picked => uploadFile(picked)}
+      onColumnChange={column => uploadFile(file?.raw, column)}
       onLaunch={launch}
       onOpenCross={() => setCrossModalOpen(true)}
     />

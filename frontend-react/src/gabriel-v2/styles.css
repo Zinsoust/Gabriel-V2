@@ -1689,3 +1689,21 @@ html[data-gabriel-v2-theme="dark"] #gabriel-v2-root {
   .gv2-psy-cross-hero-score { flex-direction: row; padding-right: 0; padding-bottom: 14px; border-right: 0; border-bottom: 1px solid rgba(184,149,99,.28); }
   .gv2-psy-cross-snap-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Psychologue : sélecteur de plateforme et import de fichier ──────────── */
+.gv2-psy-platforms { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+.gv2-psy-platform { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--body); font-size: 11px; font-weight: 600; cursor: pointer; transition: border-color .18s ease, background .18s ease, color .18s ease; }
+.gv2-psy-platform:hover { border-color: var(--champagne); color: var(--ink); }
+.gv2-psy-platform.is-active { background: var(--ink); border-color: var(--ink); color: var(--canvas); }
+.gv2-psy-platform-mark { display: grid; width: 17px; height: 17px; place-items: center; border-radius: 50%; background: var(--soft); color: var(--ink); font-size: 10px; font-weight: 800; line-height: 1; }
+.gv2-psy-platform.is-active .gv2-psy-platform-mark { background: var(--canvas); color: var(--ink); }
+
+.gv2-psy-dropzone { display: grid; justify-items: center; gap: 5px; padding: 26px 18px; border: 1px dashed var(--line); border-radius: 14px; background: var(--soft); color: var(--muted); cursor: pointer; text-align: center; transition: border-color .18s ease, background .18s ease; }
+.gv2-psy-dropzone:hover { border-color: var(--champagne); background: var(--surface); }
+.gv2-psy-dropzone-title { color: var(--ink); font-size: 12.5px; font-weight: 600; }
+.gv2-psy-dropzone-hint { color: var(--muted); font-size: 10.5px; }
+.gv2-psy-column-picker { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--body); font-size: 11px; }
+.gv2-psy-column-picker select { border: 1px solid var(--line); border-radius: 7px; background: var(--soft); color: var(--ink); padding: 5px 8px; font: inherit; font-size: 11px; }
+
+.gv2-theme-dark .gv2-psy-platform, .gv2-theme-dark .gv2-psy-dropzone, .gv2-theme-dark .gv2-psy-column-picker { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.1); }
+.gv2-theme-dark .gv2-psy-platform.is-active { background: var(--ink); color: var(--canvas); }
