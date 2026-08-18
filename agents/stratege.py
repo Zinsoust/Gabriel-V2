@@ -1,6 +1,7 @@
 import os
 import json
 from agents.base import BaseAgent
+from core import llm_client as _llm
 
 # ── Système prompt — 3 postures de raisonnement ──────────────────────────────
 
@@ -197,36 +198,28 @@ def _psycho_query_text(psycho_context: dict) -> str:
 
 # ── LLM call ─────────────────────────────────────────────────────────────────
 
-def _call_mistral(prompt, max_tokens=5000, label=""):
-    from mistralai import Mistral
-    key = os.environ.get("MISTRAL_API_KEY")
-    if not key:
-        raise RuntimeError("MISTRAL_API_KEY manquante — configurez-la dans les variables d'environnement Render.")
-    # 270s < timeout Gunicorn (300s) : garantit une erreur propre plutôt qu'un
-    # worker tué par Gunicorn si l'appel Mistral traîne. /strategize est synchrone.
-    client = Mistral(api_key=key, timeout_ms=270_000)
-    for attempt in range(2):
-        try:
-            response = client.chat.complete(
-                model="mistral-large-latest",
-                max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            choice = response.choices[0]
-            usage  = response.usage
-            finish_reason = getattr(choice, 'finish_reason', None)
-            if usage:
-                print(f"[STRAT_TOKENS] label={label or '?'} prompt_tokens={usage.prompt_tokens} "
-                      f"completion_tokens={usage.completion_tokens} max_tokens={max_tokens} finish_reason={finish_reason}")
-            if finish_reason in ('length', 'model_length'):
-                print(f"[STRAT_TRUNCATION] label={label or '?'} max_tokens={max_tokens} "
-                      f"completion_tokens={getattr(usage, 'completion_tokens', '?')} — réponse coupée avant la fin")
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            status = getattr(e, 'status_code', None) or getattr(e, 'http_status', None)
-            if attempt == 0 and status in (429, 529):
-                import time; time.sleep(4); continue
-            raise
+def _call_llm(prompt, max_tokens=5000, label=""):
+    """Appelle le LLM via la couche fournisseur unifiée (``core.llm_client``).
+
+    Timeout à 270 s : sous le timeout Gunicorn (300 s), pour garantir une erreur
+    propre plutôt qu'un worker tué — ``/strategize`` est synchrone.
+    ``throttled=False`` pour la même raison : mettre un appel synchrone en file
+    d'attente n'ajouterait que de la latence dans la requête de l'utilisateur.
+    """
+    return _llm.complete_text(
+        prompt,
+        tier="deep",
+        max_tokens=max_tokens,
+        timeout_ms=270_000,
+        retry=_llm.RETRY_SIMPLE,
+        label=label,
+        throttled=False,
+    )
+
+
+# Ancien nom : il désignait le fournisseur au lieu du rôle. Conservé le temps
+# que les appelants migrent.
+_call_mistral = _call_llm
 
 
 def _parse_json(text):

@@ -18,7 +18,8 @@ except ImportError as _mistral_import_err:
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from json_repair import repair_json
-from core.security import wrap_untrusted_content
+from core import llm_client as _llm
+from core.security import wrap_untrusted_content, PROMPT_INJECTION_GUARD
 
 # NLP Engine — couche de prétraitement linguistique et statistique
 try:
@@ -510,84 +511,54 @@ def score_comments_math(comments, nlp_data, title=""):
     return results
 
 
-# Rate-limit Mistral — deux garde-fous complémentaires :
-#  1. _MISTRAL_SEMAPHORE : plafonne le nombre d'appels SIMULTANÉS.
-#  2. _mistral_throttle() : espace les LANCEMENTS d'au moins MISTRAL_MIN_INTERVAL
-#     secondes (le vrai levier contre une limite « requêtes/seconde »).
-# Sans ça, l'étape parallèle du Psychologue tirait ~8 requêtes d'un coup
-# (personas ×3 + reco + brief + livrables + 2 interprétations) → 429 systématique
-# sur l'une d'elles, alors abandonnée (perte silencieuse d'un persona).
-_MISTRAL_MAX_CONCURRENCY = int(os.environ.get('MISTRAL_MAX_CONCURRENCY', '4'))
-_MISTRAL_SEMAPHORE = threading.Semaphore(_MISTRAL_MAX_CONCURRENCY)
-_MISTRAL_MIN_INTERVAL = float(os.environ.get('MISTRAL_MIN_INTERVAL', '0.5'))
-_mistral_rate_lock = threading.Lock()
-_mistral_last_launch = [0.0]
+# Les garde-fous de débit (espacement des lancements + plafond de concurrence)
+# vivent désormais dans core.llm_client, partagés par TOUS les appels LLM.
+# Auparavant ils ne protégeaient que ce fichier : le Stratège et le Créateur
+# les contournaient entièrement et pouvaient saturer le fournisseur pendant
+# qu'une analyse Psychologue se croyait protégée.
+
+# Source de vérité unique des modèles réellement appelés — un ``model_version``
+# persisté ailleurs (ex: Cross Analyse) doit lire CES constantes, jamais une
+# variable d'environnement séparée qui pourrait diverger silencieusement de
+# ce qui est vraiment envoyé au fournisseur.
+MISTRAL_MODELS = _llm.MODEL_TIERS
 
 
-def _mistral_throttle():
-    """Garantit un espacement minimum entre deux lancements de requêtes Mistral,
-    tous threads confondus. Appelé AVANT d'acquérir le sémaphore pour ne pas
-    consommer un créneau de concurrence pendant l'attente d'espacement."""
-    with _mistral_rate_lock:
-        now = time.time()
-        wait = _MISTRAL_MIN_INTERVAL - (now - _mistral_last_launch[0])
-        if wait > 0:
-            time.sleep(wait)
-            now = time.time()
-        _mistral_last_launch[0] = now
+def call_llm(prompt, max_tokens=5000, fast=False, label=""):
+    """Appelle le LLM via la couche fournisseur unifiée (``core.llm_client``).
+
+    fast=True → palier rapide ; fast=False → palier profond.
+    label : identifiant court du site d'appel, pour la journalisation.
+
+    Cette fonction s'appelait auparavant ``_call_claude`` alors qu'elle appelait
+    Mistral — un nom qui laissait croire que l'analyse psychologique de Gabriel
+    tournait sur Claude. La politique (réessais, débit, timeout) vit désormais
+    dans ``core.llm_client``, partagée avec le Stratège et le Créateur.
+    """
+    return _llm.complete_text(
+        prompt,
+        tier="fast" if fast else "deep",
+        max_tokens=max_tokens,
+        timeout_ms=300_000,
+        retry=_llm.RETRY_RESILIENT,
+        label=label,
+        throttled=True,
+    )
 
 
-def _call_claude(prompt, max_tokens=5000, fast=False, label=""):
-    """fast=True utilise mistral-small (rapide) — fast=False utilise mistral-large (profond).
-    label : identifiant court du site d'appel, utilisé uniquement pour les logs
-    [PSYCHO_TOKENS]/[PSYCHO_TRUNCATION] (permet de savoir quel prompt tronque).
-
-    Robustesse rate-limit : espacement des lancements + plafond de concurrence
-    + retry avec backoff exponentiel et jitter sur 429/529."""
-    client = _get_client()
-    model = "mistral-small-latest" if fast else "mistral-large-latest"
-    max_attempts = 6
-    for attempt in range(max_attempts):
-        try:
-            _mistral_throttle()
-            with _MISTRAL_SEMAPHORE:
-                response = client.chat.complete(
-                    model=model,
-                    max_tokens=max_tokens,
-                    messages=[{"role": "user", "content": prompt}]
-                )
-            choice = response.choices[0]
-            usage  = response.usage
-            finish_reason = getattr(choice, 'finish_reason', None)
-            if usage:
-                print(f"[PSYCHO_TOKENS] label={label or '?'} model={model} "
-                      f"prompt_tokens={usage.prompt_tokens} completion_tokens={usage.completion_tokens} "
-                      f"max_tokens={max_tokens} finish_reason={finish_reason}")
-            if finish_reason in ('length', 'model_length'):
-                print(f"[PSYCHO_TRUNCATION] label={label or '?'} model={model} max_tokens={max_tokens} "
-                      f"completion_tokens={getattr(usage, 'completion_tokens', '?')} "
-                      f"— reponse coupee avant la fin, JSON probablement incomplet")
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            status = getattr(e, 'status_code', None) or getattr(e, 'http_status', None)
-            if status in (429, 529) and attempt < max_attempts - 1:
-                # Backoff exponentiel + jitter : ~1, 2, 4, 8 s (plafonné à 16 s).
-                delay = min(2 ** attempt, 16) + random.uniform(0, 1.5)
-                print(f"[PSYCHO_RATELIMIT] label={label or '?'} status={status} "
-                      f"tentative={attempt + 1}/{max_attempts} → nouvel essai dans {delay:.1f}s")
-                time.sleep(delay)
-                continue
-            raise
+# Ancien nom conservé le temps que tous les appelants migrent. Il ne décrit pas
+# le fournisseur réel : ne pas l'utiliser dans du code neuf.
+_call_claude = call_llm
 
 
-# ─── COUCHE 1 : SCORING + LABELLISATION PAR COMMENTAIRE (Haiku — rapide) ───────
+# ─── COUCHE 1 : SCORING + LABELLISATION PAR COMMENTAIRE (palier rapide) ───────
 # Retourne pour chaque commentaire : score de corrélation + signaux structurés
 # (intention, émotion, positionnement, engagement, signal marketing)
 # Aucune analyse psychologique ici — détection rapide des types de signaux.
 
 def score_and_correlate(comments, title=""):
     """
-    Layer 1 — Haiku, batch, ultra-rapide.
+    Layer 1 — palier rapide, batch, ultra-rapide.
     Pour chaque commentaire :
       score    ∈ [-1.0, +1.0] — pertinence/corrélation avec le titre
       intention  — accord | desaccord | question | temoignage | humour | critique | validation | aide | provocation
@@ -603,10 +574,14 @@ def score_and_correlate(comments, title=""):
         likes = c.get('likes', 0)
         like_bonus = round(math.log1p(likes) / 10, 2) if likes > 0 else 0
         lines.append(f"{i+1}. [likes:{likes}|bonus:{like_bonus}] {txt}")
+    # Enveloppe les commentaires comme NON FIABLES (défense anti-injection) —
+    # même règle que _analyze_main, qui traite les mêmes commentaires bruts.
+    comments_block = wrap_untrusted_content(chr(10).join(lines))
 
     title_section = f'\nTITRE / SUJET : "{_sanitize(title)}"\n' if title else ""
 
     prompt = f"""Tu es un moteur de detection rapide de signaux humains.
+{PROMPT_INJECTION_GUARD}
 {title_section}
 Pour chaque commentaire ci-dessous, detecte :
 1. score : correlation avec le sujet ∈ [-1.0, +1.0]
@@ -624,7 +599,7 @@ Pour chaque commentaire ci-dessous, detecte :
 5. engagement: faible | moyen | fort
 6. signal    : besoin | objection | frustration | aspiration | desir | opportunite | question | aucun
 
-{chr(10).join(lines)}
+{comments_block}
 
 Reponds UNIQUEMENT avec ce JSON (exactement {n} objets dans "items") :
 {{
@@ -634,7 +609,7 @@ Reponds UNIQUEMENT avec ce JSON (exactement {n} objets dans "items") :
   ]
 }}"""
 
-    text = _call_claude(prompt, max_tokens=max(1500, n * 25), fast=True)
+    text = call_llm(prompt, max_tokens=max(1500, n * 25), fast=True)
     data = _parse_json(text)
     items = data.get("items", [])
 
@@ -832,7 +807,7 @@ def _analyze_main(filtered, brain_context, video_context, kpis, distribution,
     kpi_summary = " | ".join([f"{k}={v['score']}" for k, v in kpis.items()])
     distrib_summary = f"Tres positifs:{distribution['tres_positifs']} Positifs:{distribution['positifs']} Neutres:{distribution['neutres']} Negatifs:{distribution['negatifs']} Tres negatifs:{distribution['tres_negatifs']}"
 
-    # Résumé Layer 1 (pré-labellisé par Haiku — ne pas re-dériver, approfondir)
+    # Résumé Layer 1 (pré-labellisé par le palier rapide — ne pas re-dériver, approfondir)
     l1_section = ""
     if layer1_agg:
         intentions_str = " | ".join([f"{k}:{v}%" for k, v in (layer1_agg.get('intentions') or {}).items()])
@@ -1158,8 +1133,8 @@ Reponds UNIQUEMENT avec ce JSON :
 }}"""
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        fut_a = executor.submit(_call_claude, prompt_a, max_tokens=5000, label="main_a")
-        fut_b = executor.submit(_call_claude, prompt_b, max_tokens=7500, label="main_b")
+        fut_a = executor.submit(call_llm, prompt_a, max_tokens=5000, label="main_a")
+        fut_b = executor.submit(call_llm, prompt_b, max_tokens=7500, label="main_b")
         data_a = _parse_json(fut_a.result())
         data_b = _parse_json(fut_b.result())
 
@@ -1172,6 +1147,40 @@ Reponds UNIQUEMENT avec ce JSON :
 
 
 # ─── ÉTAPE 2B : PERSONAS (appel dédié) ───────────────────────────────────────
+
+def _ground_persona_against_clusters(persona, cluster_source, clusters):
+    """Vérifie mécaniquement l'ancrage revendiqué par le LLM, plutôt que de
+    faire confiance à la consigne de prompt "doit provenir d'un cluster
+    mesuré". Ne rejette jamais le persona (un hybride, ou un persona construit
+    sans cluster disponible, restent légitimes) — expose seulement si
+    l'ancrage est vérifiable, pour que l'appelant puisse le distinguer."""
+    if not clusters:
+        persona['cluster_grounded'] = False
+        persona['cluster_grounding_reason'] = 'aucun_cluster_mesure'
+        return persona
+    if cluster_source == 'hybride':
+        persona['cluster_grounded'] = 'hybride'
+        return persona
+
+    cluster = next(
+        (c for c in clusters if f"Cluster {c.get('cluster_id')}" == cluster_source), None
+    )
+    if cluster is None:
+        persona['cluster_grounded'] = False
+        persona['cluster_grounding_reason'] = 'cluster_source_inconnu'
+        return persona
+
+    tokens = {str(t).lower() for t in (cluster.get('top_tokens') or [])}
+    claimed = [str(s).lower() for s in (persona.get('signaux_mesures') or [])]
+    overlap = any(
+        tok in claim or claim in tok
+        for claim in claimed for tok in tokens
+    )
+    persona['cluster_grounded'] = overlap
+    if not overlap:
+        persona['cluster_grounding_reason'] = 'signaux_non_retrouves_dans_le_cluster'
+    return persona
+
 
 def _analyze_personas(filtered, brain_context, main_data, kpis,
                       nlp_data=None, dashboard=None):
@@ -1225,6 +1234,30 @@ Polarisation : {kpis.get('polarisation',{}).get('score',0)}/100
 
     lines = [f"- [r:{s:+.2f}] {_sanitize(c['text'])}" for c, s in filtered[:25]]
     brain_section = f"\nCONTEXTE METIER :\n{brain_context}\n" if brain_context else ""
+    # Enveloppe les commentaires comme NON FIABLES (défense anti-injection) —
+    # même règle que _analyze_main pour les mêmes commentaires bruts.
+    comments_block = wrap_untrusted_content(chr(10).join(lines))
+
+    # La consigne "doit provenir d'un cluster mesuré" n'a de sens que si des
+    # clusters existent réellement (clustering réussi, volume suffisant).
+    # L'affirmer quand cluster_ctx est vide revenait à demander au LLM
+    # d'inventer librement tout en prétendant être ancré dans des données.
+    if clusters:
+        grounding_rule = (
+            "RÈGLE ABSOLUE : le persona doit provenir d un cluster mesuré ci-dessus (sauf mention contraire).\n"
+            '"poids" = pourcentage du cluster source.\n'
+            '"signaux_mesures" = tokens/bigrams réels du cluster, pas inventés.\n'
+            '"confiance" = score ∈ [0,1] selon la solidité des signaux (0.7+ si cluster clair).'
+        )
+    else:
+        grounding_rule = (
+            "Aucun cluster comportemental mesuré n'est disponible pour cette vidéo "
+            "(volume insuffisant ou clustering indisponible) : construis le persona "
+            "uniquement à partir des métriques dashboard et des commentaires ci-dessus.\n"
+            '"poids" = estimation qualitative, pas un pourcentage de cluster mesuré.\n'
+            '"signaux_mesures" = expressions réellement présentes dans les commentaires ci-dessus.\n'
+            '"confiance" = score ∈ [0,1], plafonné à 0.6 en l\'absence de cluster mesuré.'
+        )
 
     shared = f"""{GABRIEL_SYSTEM}
 {brain_section}
@@ -1232,12 +1265,9 @@ DONNÉES MESURÉES :
 {ctx}
 
 COMMENTAIRES :
-{chr(10).join(lines)}
+{comments_block}
 
-RÈGLE ABSOLUE : le persona doit provenir d un cluster mesuré ci-dessus (sauf mention contraire).
-"poids" = pourcentage du cluster source.
-"signaux_mesures" = tokens/bigrams réels du cluster, pas inventés.
-"confiance" = score ∈ [0,1] selon la solidité des signaux (0.7+ si cluster clair).
+{grounding_rule}
 
 Ce persona incarne un SEGMENT RÉEL d audience — pas un personnage littéraire.
 Moins de roman. Plus de précision. Chaque champ doit être inférable des données.
@@ -1301,12 +1331,13 @@ Reponds UNIQUEMENT avec ce JSON (un seul persona) :
 
     def _one_persona(cluster_source, mission):
         prompt = f"{shared}\nTA MISSION : {mission}\n{persona_schema.format(cluster_source=cluster_source)}"
-        text = _call_claude(prompt, max_tokens=3000, label=f"persona[{cluster_source}]")
+        text = call_llm(prompt, max_tokens=3000, label=f"persona[{cluster_source}]")
         data = _parse_json(text)
         # Champs en toute fin de schéma — les premiers perdus si la réponse est tronquée
         _check_completeness(data, ["nom", "mission_cachee", "besoin_d_appartenance",
                                     "desir_de_legacy", "tension_existentielle"],
                             f"persona[{cluster_source}]")
+        _ground_persona_against_clusters(data, cluster_source, clusters)
         return data
 
     personas = []
@@ -1387,7 +1418,7 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
-    text = _call_claude(prompt, max_tokens=2500, label="recommandations")
+    text = call_llm(prompt, max_tokens=2500, label="recommandations")
     data = _parse_json(text)
     return data.get('recommandations', {})
 
@@ -1439,7 +1470,7 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
-    text = _call_claude(prompt, max_tokens=400, fast=True, label="brief")
+    text = call_llm(prompt, max_tokens=400, fast=True, label="brief")
     data = _parse_json(text)
     return data.get('brief', {})
 
@@ -1587,7 +1618,7 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
-    text = _call_claude(prompt, max_tokens=2000, label="livrables_ia")
+    text = call_llm(prompt, max_tokens=2000, label="livrables_ia")
     try:
         return _parse_json(text)
     except Exception as e:
@@ -1658,7 +1689,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
 }}"""
 
     try:
-        text = _call_claude(prompt, max_tokens=900, fast=True, label="interp_psycho")
+        text = call_llm(prompt, max_tokens=900, fast=True, label="interp_psycho")
         data = _parse_json(text)
         if data and not data.get("parse_error"):
             print(f"[GABRIEL] Interprétation psychologique OK — insight: {str(data.get('main_insight',''))[:60]}")
@@ -1721,7 +1752,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
 }}"""
 
     try:
-        text = _call_claude(prompt, max_tokens=900, fast=True, label="interp_socio")
+        text = call_llm(prompt, max_tokens=900, fast=True, label="interp_socio")
         data = _parse_json(text)
         if data and not data.get("parse_error"):
             print(f"[GABRIEL] Interprétation socio-culturelle OK — insight: {str(data.get('main_insight',''))[:60]}")
@@ -2578,7 +2609,7 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
     _t = _mark('rag_retrieve', _t)
     print("[ANALYZE] rag_done")
 
-    # ── COUCHE 3A : Analyse qualitative principale (Sonnet — profond)
+    # ── COUCHE 3A : Analyse qualitative principale (palier profond)
     print("[ANALYZE] llm_start")
     _progress('llm_principal', 40)
     print("[GABRIEL] Couche 3 : analyse principale...")
@@ -2595,7 +2626,7 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
         raise
     _t = _mark('llm_main', _t)
 
-    # Injection des descriptions Claude dans les KPIs calculés
+    # Injection des descriptions du LLM dans les KPIs calculés
     kpi_desc = main_data.pop("kpi_descriptions", {})
     for k, desc in kpi_desc.items():
         if k in kpis:

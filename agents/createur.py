@@ -22,6 +22,7 @@ import os
 import json
 import re
 from core.security import wrap_untrusted_content, PROMPT_INJECTION_GUARD
+from core import llm_client as _llm
 from agents.base import BaseAgent
 
 # ─── Mapping RAG : (format, tone) → sources à chercher ──────────────────────
@@ -644,32 +645,27 @@ _SYSTEM_PROMPTS['publicite'] = _SYSTEM_PROMPTS['ad']
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def _call_mistral(prompt, max_tokens=3000, temperature=None):
-    from mistralai import Mistral
-    key = os.environ.get("MISTRAL_API_KEY")
-    if not key:
-        raise RuntimeError("MISTRAL_API_KEY manquante — configurez-la dans les variables d'environnement Render.")
-    client = Mistral(api_key=key, timeout_ms=120_000)
-    # temperature=None → comportement historique inchangé (défaut du modèle).
-    # Fournie, elle pilote le « niveau de créativité » du moteur de création.
-    extra = {} if temperature is None else {"temperature": max(0.0, min(1.0, float(temperature)))}
-    for attempt in range(2):
-        try:
-            response = client.chat.complete(
-                model="mistral-large-latest",
-                max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}],
-                **extra,
-            )
-            raw = response.choices[0].message.content.strip()
-            print(f"[CREATEUR] LLM raw ({len(raw)} chars): {raw[:300]}")
-            return raw
-        except Exception as e:
-            status = getattr(e, 'status_code', None) or getattr(e, 'http_status', None)
-            print(f"[CREATEUR] LLM error (attempt {attempt}): {e}")
-            if attempt == 0 and status in (429, 529):
-                import time; time.sleep(4); continue
-            raise
+def _call_llm(prompt, max_tokens=3000, temperature=None):
+    """Appelle le LLM via la couche fournisseur unifiée (``core.llm_client``).
+
+    ``temperature=None`` → défaut du modèle (comportement historique).
+    Fournie, elle pilote le « niveau de créativité » du moteur de création.
+    """
+    return _llm.complete_text(
+        prompt,
+        tier="deep",
+        max_tokens=max_tokens,
+        temperature=temperature,
+        timeout_ms=120_000,
+        retry=_llm.RETRY_SIMPLE,
+        label="createur",
+        throttled=True,
+    )
+
+
+# Ancien nom : il désignait le fournisseur au lieu du rôle. Conservé le temps
+# que les appelants migrent — le pipeline agents/creation/ l'importe encore.
+_call_mistral = _call_llm
 
 
 def _parse_json(text):
