@@ -14,6 +14,10 @@ __pycache__/
 dist/
 build/
 
+# Dépendances et cache frontend
+frontend-react/node_modules/
+.pnpm-store/
+
 # Système
 .DS_Store
 Thumbs.db
@@ -36,6 +40,7 @@ data/contexts/*.json
 data/memory_*.json
 data/feedbacks.json
 data/local_*.json
+data/ux_settings.json
 
 # Base de données locale
 *.db
@@ -55,3 +60,6 @@ photo/
 tmp/
 *_stderr.log
 *_stdout.log
+
+# Dépendances frontend (installées via pnpm)
+frontend-react/node_modules/

@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "build:strategy-studio": "vite build",
-    "build:gabriel-v2": "vite build --config vite.gabriel-v2.config.js"
+    "build:gabriel-v2": "vite build --config vite.gabriel-v2.config.js",
+    "test": "vitest run --config vitest.config.js",
+    "test:watch": "vitest --config vitest.config.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
@@ -14,5 +16,12 @@
     "react-dom": "latest",
     "vite": "latest"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.4",
+    "@vitest/ui": "^4.1.10",
+    "jsdom": "^30.0.1",
+    "vitest": "^4.1.10"
+  }
 }

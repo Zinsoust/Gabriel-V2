@@ -553,6 +553,15 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
   const [errorMsg, setErrorMsg] = useState('');
   const pollingRef = useRef(false);
   const crossPollingRef = useRef(false);
+  // Les boucles de suivi durent plusieurs minutes : sans ce drapeau, changer
+  // d'onglet laisse la boucle interroger le serveur indéfiniment en arrière-
+  // plan et écrire dans l'état d'un composant démonté.
+  const aliveRef = useRef(true);
+
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => { aliveRef.current = false; };
+  }, []);
 
   const [crossModalOpen, setCrossModalOpen] = useState(false);
   const [crossSources, setCrossSources] = useState([]);
@@ -660,6 +669,7 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
     try {
       for (let attempt = 0; attempt < 160; attempt += 1) {
         await pause(3000);
+        if (!aliveRef.current) return;
         const response = await fetchV2(`/status/${encodeURIComponent(jobId)}`);
         if (isLoginResponse(response)) { window.location.assign('/login'); return; }
         const payload = await readApiPayload(response, 'Le suivi de l’analyse');
@@ -678,6 +688,7 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
       throw new Error('L’analyse prend plus de temps que prévu.');
     } catch (error) {
       try { window.localStorage.removeItem(PENDING_JOB_KEY); } catch (_) {}
+      if (!aliveRef.current) return;
       setStage('error'); setErrorMsg(error.message || 'Une erreur est survenue.');
     } finally {
       pollingRef.current = false;
@@ -827,6 +838,7 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
     try {
       for (let attempt = 0; attempt < 160; attempt += 1) {
         await pause(3000);
+        if (!aliveRef.current) return;
         const response = await fetchV2(`/api/v2/agents/psychologue/cross-analyses/${encodeURIComponent(crossId)}/status`);
         if (isLoginResponse(response)) { window.location.assign('/login'); return; }
         const payload = await readApiPayload(response, 'Le suivi de la Cross Analyse');
@@ -849,6 +861,7 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
       throw new Error('La Cross Analyse prend plus de temps que prévu.');
     } catch (error) {
       try { window.localStorage.removeItem(PENDING_JOB_KEY); } catch (_) {}
+      if (!aliveRef.current) return;
       setStage('error'); setErrorMsg(error.message || 'Une erreur est survenue.');
     } finally {
       crossPollingRef.current = false;
