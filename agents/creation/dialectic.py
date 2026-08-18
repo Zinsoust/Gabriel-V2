@@ -43,8 +43,8 @@ def run(ctx) -> None:
         "Pourquoi pourrait-il ne pas atteindre son objectif ?"
     )
     try:
-        from agents.createur import _call_mistral, _parse_json
-        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=500)
+        from agents.createur import _call_llm, _parse_json
+        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=500)
         data = _parse_json(raw)
         if isinstance(data, dict) and not data.get("parse_error"):
             data.setdefault("faiblesses", [])

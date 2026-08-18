@@ -23,6 +23,7 @@ import json
 import re
 from core.security import wrap_untrusted_content, PROMPT_INJECTION_GUARD
 from core import llm_client as _llm
+from core.ai_json import parse_ai_json
 from agents.base import BaseAgent
 
 # ─── Mapping RAG : (format, tone) → sources à chercher ──────────────────────
@@ -663,23 +664,12 @@ def _call_llm(prompt, max_tokens=3000, temperature=None):
     )
 
 
-# Ancien nom : il désignait le fournisseur au lieu du rôle. Conservé le temps
-# que les appelants migrent — le pipeline agents/creation/ l'importe encore.
-_call_mistral = _call_llm
 
 
 def _parse_json(text):
-    text = text.strip()
-    text = re.sub(r'^```(?:json)?\s*', '', text, flags=re.MULTILINE)
-    text = re.sub(r'\s*```\s*$', '', text, flags=re.MULTILINE)
-    try:
-        return json.loads(text)
-    except Exception:
-        try:
-            from json_repair import repair_json
-            return json.loads(repair_json(text))
-        except Exception:
-            return {"raw": text, "parse_error": True}
+    """Contrat historique : dégrade au lieu de lever, pour rendre au moins le
+    texte brut à l'utilisateur. Implémentation dans core.ai_json."""
+    return parse_ai_json(text, on_error="sentinel", label="createur")
 
 
 # ─── Classe principale ────────────────────────────────────────────────────────
@@ -1111,7 +1101,7 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
         if generate_variant:
             from concurrent.futures import ThreadPoolExecutor
             with ThreadPoolExecutor(max_workers=2) as pool:
-                main_future    = pool.submit(_call_mistral, prompt, 3000)
+                main_future    = pool.submit(_call_llm, prompt, 3000)
                 variant_future = pool.submit(self._generate_variant, content_type, brief_text, rag_block, tone, fmt_key)
                 raw = main_future.result()
                 try:
@@ -1119,7 +1109,7 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
                 except Exception as e:
                     print(f"[CREATEUR] Génération de variante échouée (non bloquant) : {e}")
         else:
-            raw = _call_mistral(prompt, max_tokens=3000)
+            raw = _call_llm(prompt, max_tokens=3000)
 
         content_result = _parse_json(raw)
         content_result['content_type'] = content_type
@@ -1197,7 +1187,7 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
             "en respectant la discipline de tonalité. JSON pur, sans markdown."
         )
 
-        raw = _call_mistral(prompt, max_tokens=2500)
+        raw = _call_llm(prompt, max_tokens=2500)
         result = _parse_json(raw)
         result['refined']      = True
         result['instruction']  = instruction
@@ -1242,7 +1232,7 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
             f"{brief_text}\n\n"
             "Génère une VARIANTE avec cette discipline. Même structure JSON, logique d'écriture différente. JSON pur."
         )
-        raw = _call_mistral(prompt, max_tokens=2000)
+        raw = _call_llm(prompt, max_tokens=2000)
         var = _parse_json(raw)
         return {
             'angle':     alt_tone,

@@ -143,28 +143,19 @@ def wrap_untrusted_content(content):
 # ─── Validation des sorties JSON IA ───────────────────────────────────────────
 
 def safe_parse_ai_json(text, schema_name='generic', required_keys=None):
+    """Variante « tuple » du parseur commun : (dict|None, erreur|None).
+
+    Contrat conservé pour ses appelants ; la lecture elle-même est déléguée à
+    core.ai_json, seule implémentation du dépôt.
     """
-    Parse la réponse JSON d'un LLM de façon sécurisée.
-    Retourne (parsed: dict|None, error: str|None).
-    """
+    from core.ai_json import parse_ai_json
+
     if not text:
         return None, "Réponse IA vide"
 
-    # Supprimer les fences markdown
-    clean = re.sub(r'^```(?:json)?\s*', '', text.strip())
-    clean = re.sub(r'\s*```$', '', clean.strip())
-
-    try:
-        result = json.loads(clean)
-    except json.JSONDecodeError:
-        try:
-            from json_repair import repair_json
-            result = json.loads(repair_json(clean))
-        except Exception as exc:
-            return None, f"JSON IA invalide pour {schema_name}: {str(exc)[:80]}"
-
-    if not isinstance(result, dict):
-        return None, f"Sortie IA non-dict pour {schema_name}"
+    result = parse_ai_json(text, on_error='sentinel', label=schema_name)
+    if result.get('parse_error'):
+        return None, f"JSON IA invalide pour {schema_name}"
 
     if required_keys:
         missing = [k for k in required_keys if k not in result]

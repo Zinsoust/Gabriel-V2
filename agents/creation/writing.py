@@ -66,11 +66,11 @@ def _build_prompt(ctx) -> tuple:
 
 def run(ctx) -> None:
     try:
-        from agents.createur import _call_mistral, _parse_json
+        from agents.createur import _call_llm, _parse_json
         prompt, _ = _build_prompt(ctx)
         # Le niveau de créativité pilote la température : c'est à la RÉDACTION
         # qu'il compte le plus (le reste du pipeline reste déterministe).
-        raw = _call_mistral(prompt, max_tokens=3000, temperature=ctx.temperature())
+        raw = _call_llm(prompt, max_tokens=3000, temperature=ctx.temperature())
         draft = _parse_json(raw)
         draft["content_type"] = ctx.content_type
         draft["success"] = not draft.get("parse_error", False)

@@ -2,6 +2,7 @@ import os
 import json
 from agents.base import BaseAgent
 from core import llm_client as _llm
+from core.ai_json import parse_ai_json
 
 # ── Système prompt — 3 postures de raisonnement ──────────────────────────────
 
@@ -217,30 +218,11 @@ def _call_llm(prompt, max_tokens=5000, label=""):
     )
 
 
-# Ancien nom : il désignait le fournisseur au lieu du rôle. Conservé le temps
-# que les appelants migrent.
-_call_mistral = _call_llm
 
 
 def _parse_json(text):
-    import re
-    from json_repair import repair_json
-    start = text.find('{')
-    end   = text.rfind('}') + 1
-    if start == -1:
-        raise ValueError("Pas de JSON dans la réponse du Stratège")
-    raw = text[start:end] if end > start else text[start:]
-    for fn in [
-        lambda r: json.loads(r),
-        lambda r: repair_json(r, return_objects=True),
-    ]:
-        try:
-            result = fn(raw)
-            if isinstance(result, dict):
-                return result
-        except Exception:
-            pass
-    raise ValueError("Impossible de parser la réponse JSON du Stratège")
+    """Contrat historique : lève en cas d'échec. Implémentation dans core.ai_json."""
+    return parse_ai_json(text, on_error="raise", label="stratege")
 
 
 # ── RAG stratégique ───────────────────────────────────────────────────────────
@@ -385,7 +367,7 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown) :
 
 Le confidence_score_independant est TA propre estimation (0 à 1), indépendante de celle affichée dans la stratégie — ne la recopie pas, ré-évalue depuis zéro à partir des signaux d'audience et du contexte business ci-dessus."""
 
-    text = _call_mistral(prompt, max_tokens=1500, label="critique")
+    text = _call_llm(prompt, max_tokens=1500, label="critique")
     result = _parse_json(text)
     expected = ["point_faible_principal", "angle_contrarien", "risque_non_couvert",
                 "ajustement_recommande", "confidence_score_independant", "verdict"]
@@ -608,7 +590,7 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown, sans texte avant ou apr�
 RÈGLE FINALE : Si l'objectif utilisateur est flou, remplis questions_a_clarifier ET reasoning_trace.questions_to_clarify.
 Si les données d'audience sont insuffisantes, marque les hypothèses avec '(à valider)' dans les champs concernés."""
 
-        text = _call_mistral(prompt, max_tokens=8000, label="strategie")
+        text = _call_llm(prompt, max_tokens=8000, label="strategie")
         data = _parse_json(text)
 
         # Normaliser : certains LLMs peuvent nommer le champ pricing_logic_legacy → pricing_logic

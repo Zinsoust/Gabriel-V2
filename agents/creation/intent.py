@@ -49,8 +49,8 @@ def run(ctx) -> None:
         "Formule l'intention réelle."
     )
     try:
-        from agents.createur import _call_mistral, _parse_json
-        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=320)
+        from agents.createur import _call_llm, _parse_json
+        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=320)
         data = _parse_json(raw)
         if isinstance(data, dict) and not data.get("parse_error"):
             ctx.intent = data

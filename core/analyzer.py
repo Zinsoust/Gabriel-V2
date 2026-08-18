@@ -17,8 +17,8 @@ except ImportError as _mistral_import_err:
     ) from _mistral_import_err
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
-from json_repair import repair_json
 from core import llm_client as _llm
+from core.ai_json import parse_ai_json
 from core.security import wrap_untrusted_content, PROMPT_INJECTION_GUARD
 
 # NLP Engine — couche de prétraitement linguistique et statistique
@@ -134,35 +134,9 @@ def _sanitize(text):
     return text.strip()[:350]
 
 
-def _try_repair_json(raw):
-    """Tente repair_json une seule fois — lève ValueError si le résultat n'est pas un dict."""
-    res = repair_json(raw, return_objects=True)
-    if isinstance(res, dict):
-        return res
-    raise ValueError(f"repair_json a retourné {type(res).__name__}, pas un dict")
-
-
-def _parse_json(text):
-    start = text.find('{')
-    end = text.rfind('}') + 1
-    if start == -1:
-        preview = text[:300].replace('\n', ' ') if text else "(réponse vide)"
-        print(f"[GABRIEL DEBUG] Pas de JSON — réponse reçue : {preview}")
-        raise ValueError(f"Aucun JSON dans la reponse. Début reçu : {preview[:120]}")
-    raw = text[start:end] if end > start else text[start:]
-    for fn in [
-        lambda r: json.loads(r),
-        _try_repair_json,
-        lambda r: json.loads(re.sub(r',\s*([}\]])', r'\1', re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', r))),
-        lambda r: repair_json(r, return_objects=True, skip_json_loads=True),
-    ]:
-        try:
-            result = fn(raw)
-            if result and isinstance(result, dict):
-                return result
-        except Exception:
-            pass
-    raise ValueError("Impossible de parser le JSON")
+def _parse_json(text, label=""):
+    """Contrat historique : lève en cas d'échec. Implémentation dans core.ai_json."""
+    return parse_ai_json(text, on_error="raise", label=label)
 
 
 def _check_completeness(data, expected_keys, label):

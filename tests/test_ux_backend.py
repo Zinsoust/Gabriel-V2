@@ -587,6 +587,86 @@ def test_welcome_screen_matches_product_spec():
     assert 'js/strategy-workspace.js' in html
 
 
+def test_strategist_generation_uses_is_ready_as_single_source_of_truth():
+    """Lier le Psychologue ne doit ni afficher ni autoriser prématurément la
+    génération lorsque le contexte business reste incomplet."""
+    c = _app.app.test_client()
+    _auth_session(c)
+    with c.session_transaction() as s:
+        s['active_folder_id'] = 'folder-ready-contract'
+    html = c.get('/stratege').get_data(as_text=True)
+
+    accept_body = html.split('function acceptPsychoAnalysis()', 1)[1].split(
+        'function skipPsychoImport()', 1
+    )[0]
+    launch_body = html.split('function launchStratege()', 1)[1].split(
+        'async function submitStrategie()', 1
+    )[0]
+    submit_body = html.split('async function submitStrategie()', 1)[1].split(
+        'const STRAT_PENDING_JOB_KEY', 1
+    )[0]
+
+    assert 'showAnalyzeSection()' not in accept_body
+    assert 'if (!isReady) return;' in launch_body
+    assert 'if (!isReady) return;' in submit_body
+    assert 'Continuons à préciser votre entreprise' in accept_body
+
+
+def test_strategy_studio_is_admin_only_and_uses_react_bundle(monkeypatch):
+    non_admin = _app.app.test_client()
+    _auth_session(non_admin)
+    assert non_admin.get('/studio/stratege').status_code == 403
+
+    monkeypatch.setattr(_app._db, 'ADMIN_EMAILS', frozenset({'test@example.com'}))
+    admin = _app.app.test_client()
+    _auth_session(admin)
+    response = admin.get('/studio/stratege')
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert 'id="strategy-studio-root"' in html
+    assert 'strategy-studio/studio.js' in html
+    assert 'type="module"' in html
+
+
+def test_strategy_studio_api_sanitizes_and_bounds_settings(monkeypatch):
+    monkeypatch.setattr(_app._db, 'ADMIN_EMAILS', frozenset({'test@example.com'}))
+    monkeypatch.setattr(_app._db, 'get_ux_settings', lambda page: None)
+    saved = {}
+    monkeypatch.setattr(
+        _app._db, 'save_ux_draft',
+        lambda page, settings, author: saved.update(settings) or True,
+    )
+    admin = _app.app.test_client()
+    _auth_session(admin)
+    response = admin.put('/api/studio/stratege/settings', json={'settings': {
+        'st-chatwidth': 99999,
+        'ux-champagne': 'red; background:url(https://evil.test)',
+        'unknown-css': 'position:fixed',
+    }})
+    assert response.status_code == 200
+    assert saved['st-chatwidth'] == 1100
+    assert saved['ux-champagne'] == '#d8b982'
+    assert 'unknown-css' not in saved
+
+
+def test_strategy_studio_preview_is_real_strategist_without_folder(monkeypatch):
+    monkeypatch.setattr(_app._db, 'ADMIN_EMAILS', frozenset({'test@example.com'}))
+    monkeypatch.setattr(_app._db, 'get_ux_settings', lambda page: None)
+    admin = _app.app.test_client()
+    _auth_session(admin)
+    response = admin.get('/studio/stratege/preview')
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert 'const STRATEGY_STUDIO_PREVIEW = true' in html
+    assert 'class="interview-side"' in html
+    assert 'gabriel-strategy-ux' in html
+    assert "_forceHide(document.getElementById('strat-idle'))" in html
+    assert 'grid-template-columns:minmax(0,1fr) var(--ux-st-sidewidth, 215px)' in html
+    assert 'position:relative; z-index:40; justify-self:center; align-self:end' in html
+    assert 'class="interview-progress-backdrop"' in html
+    assert 'width:min(var(--ux-st-sidewidth, 180px), 240px, calc(100vw - 20px))' in html
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # TEST — Moteur d'émotion cible du Créateur (étape facultative)
 # ════════════════════════════════════════════════════════════════════════════
@@ -655,7 +735,7 @@ def test_creation_pipeline_runs_all_stages_in_order(monkeypatch):
                                        "type": "promesse", "persona_cible": "PME"}],
                             "note_strategique": "n", "angle_utilise": "a"})
 
-    monkeypatch.setattr(_legacy, "_call_mistral", _fake_llm)
+    monkeypatch.setattr(_legacy, "_call_llm", _fake_llm)
 
     ctx = create(
         user_request="Un post pour attirer des dirigeants de PME",

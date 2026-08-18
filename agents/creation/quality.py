@@ -39,8 +39,8 @@ def _scores(ctx) -> dict:
         "Note ce contenu sur les 6 axes."
     )
     try:
-        from agents.createur import _call_mistral, _parse_json
-        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=300)
+        from agents.createur import _call_llm, _parse_json
+        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=300)
         data = _parse_json(raw)
         if isinstance(data, dict) and not data.get("parse_error"):
             return data

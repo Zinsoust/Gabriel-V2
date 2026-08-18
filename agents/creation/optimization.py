@@ -60,8 +60,8 @@ def run(ctx) -> None:
         "Produis la version améliorée (même schéma JSON)."
     )
     try:
-        from agents.createur import _call_mistral, _parse_json
-        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=3000)
+        from agents.createur import _call_llm, _parse_json
+        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=3000)
         improved = _parse_json(raw)
         if isinstance(improved, dict) and not improved.get("parse_error"):
             improved["content_type"] = ctx.content_type

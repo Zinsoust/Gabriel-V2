@@ -41,11 +41,11 @@ def run(ctx) -> None:
         "Construis le plan stratégique de ce contenu."
     )
     try:
-        from agents.createur import _call_mistral, _parse_json
+        from agents.createur import _call_llm, _parse_json
         # 550 au lieu de 900 : le plan est une ossature, pas un texte. Mesuré
         # en conditions réelles, cette étape coûtait 20 s — l'essentiel du temps
         # partait à rédiger des phrases longues dont la rédaction n'a pas besoin.
-        raw = _call_mistral(_SYSTEM + "\n\n" + prompt, max_tokens=550)
+        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=550)
         data = _parse_json(raw)
         if isinstance(data, dict) and not data.get("parse_error"):
             ctx.plan = data
