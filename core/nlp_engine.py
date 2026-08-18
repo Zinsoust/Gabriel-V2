@@ -88,6 +88,11 @@ def _tokenize(text):
 
 # ─── VECTORISATION ────────────────────────────────────────────────────────────
 
+# Nom exposé (au lieu de le laisser codé en dur dans _get_model) pour que
+# tout consommateur du résultat de run_nlp_pipeline puisse savoir quel modèle
+# a réellement tourné, sans deviner depuis les logs serveur.
+EMBEDDING_MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
+
 _model_cache = None
 _model_status = "unloaded"   # unloaded | loaded | unavailable
 
@@ -114,7 +119,7 @@ def _get_model():
         torch.set_num_threads(1)
         from sentence_transformers import SentenceTransformer
         print("[NLP] Chargement modèle sémantique multilingue (premier lancement)…")
-        _model_cache = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+        _model_cache = SentenceTransformer(EMBEDDING_MODEL_NAME)
         _model_status = "loaded"
         print("[NLP] Modèle prêt.")
         return _model_cache
@@ -617,47 +622,13 @@ def run_nlp_pipeline(comments, title=""):
         "semantic_diversity":     diversity,               # float ∈ [0,1]
         "relevance_distribution": relevance_dist,          # dict | None
         "n_comments":             n,
+        # Avant ce champ, seul un print() console distinguait un run
+        # sémantique d'un repli TF-IDF (modèle indisponible) — impossible à
+        # relire après coup pour une analyse donnée.
+        "embedding_mode":         "semantic" if comment_vecs is not None else "tfidf_fallback",
+        "embedding_model":        EMBEDDING_MODEL_NAME if comment_vecs is not None else None,
     }
 
 
 # ─── PREPROCESSING PAR COMMENTAIRE ────────────────────────────────────────────
 
-def preprocess_comment(text):
-    """
-    Prétraitement d'un commentaire individuel.
-    Retourne : {text, clean_text, tokens, is_spam, is_short, word_count}
-    """
-    if not text or not text.strip():
-        return {
-            "text":       text or "",
-            "clean_text": "",
-            "tokens":     [],
-            "is_spam":    True,
-            "is_short":   True,
-            "word_count": 0,
-        }
-    clean      = _clean(text)
-    tokens     = _tokenize(text)
-    word_count = len(text.split())
-    alpha_ratio = sum(1 for ch in text if ch.isalpha()) / max(len(text), 1)
-    has_url    = bool(re.search(r'https?://', text))
-    is_spam    = has_url or (word_count <= 2 and alpha_ratio < 0.3)
-    is_short   = word_count <= 4
-    return {
-        "text":       text,
-        "clean_text": clean,
-        "tokens":     tokens,
-        "is_spam":    is_spam,
-        "is_short":   is_short,
-        "word_count": word_count,
-    }
-
-
-def compute_engagement_weight(likes, relevance_score, emotion_intensity):
-    """
-    Poids d'engagement d'un commentaire.
-    Formule : (1 + log(1+likes)) × max(relevance_score, 0.1) × (1 + emotion_intensity)
-    Plafonné à 5.0.
-    """
-    weight = (1.0 + math.log1p(likes)) * max(relevance_score, 0.1) * (1.0 + emotion_intensity)
-    return round(min(weight, 5.0), 3)

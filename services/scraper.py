@@ -1,8 +1,18 @@
 import os
 import re
+import json
+import time
+import httplib2
 import requests
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+# Même délai que les appels RapidAPI de ce fichier (timeout=15 plus bas).
+# Sans timeout explicite, httplib2 n'en applique aucun par défaut : une
+# connexion qui reste ouverte peut bloquer le thread de requête indéfiniment —
+# critique sur un déploiement à un seul worker (voir Procfile).
+_YOUTUBE_API_TIMEOUT_SECONDS = 15
 
 _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(_env_path, override=True)
@@ -15,10 +25,71 @@ class RapidAPIUnavailable(Exception):
         super().__init__(f"RapidAPI non abonné pour {platform}")
 
 
+class YouTubeCollectionError(RuntimeError):
+    """Erreur de collecte YouTube avec une cause identifiée (``reason``),
+    au lieu d'un message générique unique pour vidéo privée, supprimée,
+    commentaires désactivés ou quota dépassé — des situations que
+    l'utilisateur (et l'admin, pour le quota) doivent pouvoir distinguer."""
+    def __init__(self, reason, message):
+        self.reason = reason
+        super().__init__(message)
+
+
+# Erreurs transitoires : le prochain essai peut réussir, ça vaut la peine de
+# réessayer. Le quota (dépassement journalier), les vidéos privées/supprimées
+# et les commentaires désactivés sont permanents pour la requête en cours —
+# réessayer ne changerait rien, mieux vaut échouer vite avec un message clair.
+_YOUTUBE_RETRYABLE_REASONS = {'rateLimitExceeded', 'userRateLimitExceeded', 'backendError', 'internalError'}
+_YOUTUBE_RETRYABLE_STATUSES = {500, 502, 503, 504}
+
+_YOUTUBE_ERROR_MESSAGES = {
+    'commentsDisabled': "Les commentaires sont désactivés sur cette vidéo.",
+    'videoNotFound': "Cette vidéo est introuvable, privée ou a été supprimée.",
+    'quotaExceeded': "Le quota YouTube quotidien est dépassé. Réessayez plus tard.",
+    'dailyLimitExceeded': "Le quota YouTube quotidien est dépassé. Réessayez plus tard.",
+    'forbidden': "Accès refusé à cette vidéo (privée ou restreinte).",
+}
+
+
+def _youtube_error_reason(http_error):
+    """Lit le motif structuré de l'erreur (format standard des API Google),
+    plutôt que de se rabattre uniquement sur le code HTTP générique."""
+    try:
+        body = json.loads(http_error.content.decode('utf-8'))
+        errors = (body.get('error') or {}).get('errors') or []
+        if errors:
+            return errors[0].get('reason', '')
+    except Exception:
+        pass
+    return ''
+
+
+def _call_youtube_with_retry(fn, *, max_attempts=3):
+    """Rejoue une erreur transitoire avec un backoff court ; échoue
+    immédiatement — avec un message identifiant la cause — sur une erreur
+    permanente qu'aucun nouvel essai ne résoudrait."""
+    last_exc = None
+    for attempt in range(max_attempts):
+        try:
+            return fn()
+        except HttpError as exc:
+            last_exc = exc
+            reason = _youtube_error_reason(exc)
+            status = getattr(exc.resp, 'status', None)
+            retryable = reason in _YOUTUBE_RETRYABLE_REASONS or status in _YOUTUBE_RETRYABLE_STATUSES
+            if retryable and attempt < max_attempts - 1:
+                time.sleep(min(2 ** attempt, 8))
+                continue
+            message = _YOUTUBE_ERROR_MESSAGES.get(reason, f"Erreur YouTube ({reason or status or 'inconnue'}).")
+            raise YouTubeCollectionError(reason or str(status or ''), message) from exc
+    raise YouTubeCollectionError('unknown', "Erreur YouTube inconnue.") from last_exc
+
+
 def extract_youtube_id(url_or_id):
     patterns = [
         r'(?:v=|youtu\.be/)([a-zA-Z0-9_-]{11})',
         r'shorts/([a-zA-Z0-9_-]{11})',
+        r'(?:embed|live)/([a-zA-Z0-9_-]{11})',
         r'^([a-zA-Z0-9_-]{11})$'
     ]
     for pattern in patterns:
@@ -28,7 +99,14 @@ def extract_youtube_id(url_or_id):
     return None  # aucun ID de vidéo valide (chaîne, playlist, handle…)
 
 
-def scrape_youtube(url_or_id):
+def scrape_youtube(url_or_id, max_comments=150):
+    """Collecte les commentaires principaux d'une vidéo YouTube.
+
+    ``max_comments`` est additif : l'analyse simple conserve son comportement
+    historique à 150 commentaires tant qu'elle ne transmet pas d'option.
+    La limite physique est bornée à 200 pour préserver le quota et la latence
+    déjà calibrés du collecteur actuel.
+    """
     api_key = os.environ.get("YOUTUBE_API_KEY")
     if not api_key:
         # Erreur de configuration serveur (pas une faute utilisateur) → 500 + log
@@ -41,15 +119,47 @@ def scrape_youtube(url_or_id):
             "Ce lien n'est pas une vidéo. Collez l'URL d'une vidéo YouTube précise "
             "(ex. youtube.com/watch?v=…), pas d'une chaîne ou d'une playlist."
         )
-    youtube = build('youtube', 'v3', developerKey=api_key)
+    youtube = build(
+        'youtube', 'v3', developerKey=api_key,
+        http=httplib2.Http(timeout=_YOUTUBE_API_TIMEOUT_SECONDS),
+    )
 
-    # Récupère aussi le titre de la vidéo pour contexte
-    video_info = {}
     try:
-        vr = youtube.videos().list(part='snippet', id=video_id).execute()
+        max_comments = int(max_comments)
+    except (TypeError, ValueError):
+        max_comments = 150
+    max_comments = max(1, min(max_comments, 200))
+
+    # Récupère aussi le titre de la vidéo pour contexte. L'identité de la
+    # vidéo est disponible même si l'appel de métadonnées échoue.
+    video_info = {
+        'video_id': video_id,
+        'canonical_url': f'https://www.youtube.com/watch?v={video_id}',
+    }
+    try:
+        # 'statistics' et 'contentDetails' ajoutés : vues/likes/nb commentaires
+        # et durée n'étaient jamais capturés (seul 'snippet' était demandé),
+        # alors que le contrat SourceAnalysis les prévoit explicitement.
+        vr = youtube.videos().list(part='snippet,statistics,contentDetails', id=video_id).execute()
         if vr.get('items'):
-            snip = vr['items'][0]['snippet']
-            video_info = {'title': snip.get('title', ''), 'channel': snip.get('channelTitle', ''), 'description': snip.get('description', '')[:600]}
+            item = vr['items'][0]
+            snip = item.get('snippet', {})
+            stats = item.get('statistics', {})
+            details = item.get('contentDetails', {})
+            video_info.update({
+                'title': snip.get('title', ''),
+                'channel': snip.get('channelTitle', ''),
+                'description': snip.get('description', '')[:600],
+                'published_at': snip.get('publishedAt', ''),
+                # likeCount est absent si le créateur masque le compteur — ne
+                # jamais le confondre avec "0 like réel".
+                'view_count': int(stats.get('viewCount', 0) or 0),
+                'like_count': int(stats['likeCount']) if 'likeCount' in stats else None,
+                'comment_count': int(stats.get('commentCount', 0) or 0),
+                # Format ISO 8601 natif de l'API (ex: "PT4M13S") — pas reformaté
+                # ici pour rester une donnée brute, pas une interprétation.
+                'duration': details.get('duration', ''),
+            })
     except Exception:
         pass
 
@@ -58,22 +168,31 @@ def scrape_youtube(url_or_id):
         page_token = None
         while len(result) < target:
             batch = min(target - len(result), 100)
-            resp = youtube.commentThreads().list(
+            resp = _call_youtube_with_retry(lambda: youtube.commentThreads().list(
                 part='snippet',
                 videoId=video_id,
                 maxResults=batch,
                 pageToken=page_token,
                 textFormat='plainText',
                 order=order
-            ).execute()
+            ).execute())
             for item in resp.get('items', []):
-                top = item['snippet']['topLevelComment']['snippet']
+                top_level = item['snippet']['topLevelComment']
+                top = top_level['snippet']
                 text = top.get('textDisplay', '').strip()
                 if text:
                     result.append({
+                        # Champs historiques, consommés par l'analyse simple.
                         'text':   text,
                         'likes':  top.get('likeCount', 0),
-                        'author': top.get('authorDisplayName', '')
+                        'author': top.get('authorDisplayName', ''),
+                        # Champs additifs : requis par la provenance Cross Analyse.
+                        'comment_id': top_level.get('id', ''),
+                        'external_comment_id': top_level.get('id', ''),
+                        'video_id': video_id,
+                        'published_at': top.get('publishedAt', ''),
+                        'updated_at': top.get('updatedAt', ''),
+                        'reply_count': item.get('snippet', {}).get('totalReplyCount', 0),
                     })
             page_token = resp.get('nextPageToken')
             if not page_token or len(result) >= target:
@@ -81,17 +200,18 @@ def scrape_youtube(url_or_id):
         return result
 
     # Priorité : pertinence (meilleur signal), fallback temps si peu de résultats
-    comments = _fetch_comments('relevance', target=200)
+    comments = _fetch_comments('relevance', target=max_comments)
     if len(comments) < 20:
-        by_time = _fetch_comments('time', target=200)
+        by_time = _fetch_comments('time', target=max_comments)
         if len(by_time) > len(comments):
             comments = by_time
 
     # Trier par likes décroissants → les signaux les plus amplifiés d'abord
     comments.sort(key=lambda c: c.get('likes', 0), reverse=True)
 
-    # Garder les 150 plus représentatifs (plus de données = meilleure analyse)
-    return comments[:150], video_info
+    # Garder les commentaires les plus représentatifs sans dépasser la limite
+    # explicitement demandée par l'appelant.
+    return comments[:max_comments], video_info
 
 
 def scrape_instagram_rapidapi(url):
@@ -228,17 +348,6 @@ def scrape_tiktok_rapidapi(url):
     # Trier par likes décroissants, garder les 100 plus représentatifs
     comments.sort(key=lambda c: c.get('likes', 0), reverse=True)
     return comments[:100], video_info
-
-
-def scrape_tiktok_meta(url):
-    """Legacy — conservé pour compatibilité."""
-    try:
-        r = requests.get("https://www.tiktok.com/oembed", params={"url": url}, timeout=8)
-        if r.status_code == 200:
-            return r.json()
-    except Exception:
-        pass
-    return {}
 
 
 def parse_manual_comments(text):
