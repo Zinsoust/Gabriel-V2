@@ -1,0 +1,18 @@
+{
+  "name": "gabriel-strategy-studio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:strategy-studio": "vite build",
+    "build:gabriel-v2": "vite build --config vite.gabriel-v2.config.js"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "gsap": "latest",
+    "lenis": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {}
+}

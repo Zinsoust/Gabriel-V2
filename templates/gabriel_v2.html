@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>Gabriel.ai</title>
+  <link rel="icon" type="image/png" href="{{ static_v('brand/gabriel-mark-gold.png') }}">
+  <link rel="stylesheet" href="{{ static_v('gabriel-v2/app.css') }}">
+</head>
+<body>
+  <div id="gabriel-v2-root"></div>
+  <script>
+    window.__GABRIEL_V2__ = {{ {
+      'workspaces': recent_folders | default([], true),
+      'selectedWorkspaceId': (selected_folder or {}).get('folder_id') if selected_folder else None,
+      'user': {
+        'name': (current_user or {}).get('name', ''),
+        'email': (current_user or {}).get('email', '')
+      }
+    } | tojson }};
+  </script>
+  <script type="module" src="{{ static_v('gabriel-v2/app.js') }}"></script>
+</body>
+</html>
