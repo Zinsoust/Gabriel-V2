@@ -1811,11 +1811,16 @@ def _resolve_business_context(data, uid):
     pendant l'entretien vocal — silencieusement, sans erreur."""
     business_context = data.get('business_context') or {}
     if business_context:
-        return business_context
+        return _normalize_profile(business_context)
     if uid:
+        # L'Entretien stratégique nomme ses champs autrement (activity,
+        # priority_offer, target_audience…). Les renvoyer bruts revenait à
+        # livrer un contexte que personne ne sait lire : les agents cherchent
+        # 'activite'/'offre'/'cible' et trouvaient None, donc se croyaient
+        # sans contexte alors que l'entretien l'avait bien collecté.
         v1_fields = _db.get_context_fields(uid)
         if v1_fields:
-            return v1_fields
+            return _normalize_profile(v1_fields)
     return _get_user_profile(uid) or {}
 
 
@@ -3054,8 +3059,11 @@ def strategy_chat():
         if entry:
             psycho = entry.get('full_result') or {}
 
-    # Contexte business per-user
-    brain_ctx = _get_user_profile(uid_chat)
+    # Contexte business : passe par le résolveur commun (Entretien stratégique
+    # d'abord, ancien profil fichier en repli) plutôt que de lire directement
+    # l'ancien magasin, qui ignorait tout ce que l'utilisateur a déclaré
+    # pendant l'entretien.
+    brain_ctx = _resolve_business_context({}, uid_chat)
 
     # Construire l'analyse psychologique complète
     brief      = psycho.get('brief', {})
@@ -3708,7 +3716,7 @@ def orchestrator_chat():
             'conversation_id': conversation_id,
         }))
 
-    brain_ctx = _get_user_profile(uid_chat)
+    brain_ctx = _resolve_business_context({}, uid_chat)
 
     # Première lecture : le dossier et ses identifiants uniquement. Les rapports
     # complets ne sont pas chargés à ce stade ; le plan de contexte ci-dessous
