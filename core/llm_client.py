@@ -99,6 +99,11 @@ RETRY_RESILIENT = RetryPolicy(max_attempts=6, exponential=True, jitter=True)
 # Politique historique de Stratège / Créateur : appels isolés, un seul réessai.
 RETRY_SIMPLE = RetryPolicy(max_attempts=2, base_delay=4.0)
 
+# Aucun réessai : sites qui préfèrent échouer vite et se rabattre sur une
+# réponse de secours plutôt que faire attendre l'utilisateur (voix, rendu
+# de ton — où une seconde d'attente se remarque).
+RETRY_NONE = RetryPolicy(max_attempts=1)
+
 
 # ── Garde-fous de débit (partagés par tout le processus) ─────────────────────
 # Deux leviers complémentaires : le sémaphore plafonne les appels SIMULTANÉS,
@@ -137,9 +142,14 @@ class LLMProvider(ABC):
     @abstractmethod
     def complete(self, prompt: str, *, model: str, max_tokens: int,
                  temperature: Optional[float] = None,
-                 timeout_ms: int = 300_000) -> LLMResponse:
+                 timeout_ms: int = 300_000,
+                 system: Optional[str] = None) -> LLMResponse:
         """Un aller-retour avec le modèle. Lève en cas d'échec — la politique de
-        réessai est appliquée par ``complete()`` au niveau du module, pas ici."""
+        réessai est appliquée par ``complete()`` au niveau du module, pas ici.
+
+        ``system`` porte les instructions de rôle, séparées de la demande. Les
+        mélanger au prompt utilisateur affaiblit la frontière que la couche de
+        sécurité pose entre consigne et contenu non fiable."""
         raise NotImplementedError
 
 
@@ -150,8 +160,17 @@ class MistralProvider(LLMProvider):
 
     def complete(self, prompt: str, *, model: str, max_tokens: int,
                  temperature: Optional[float] = None,
-                 timeout_ms: int = 300_000) -> LLMResponse:
-        from mistralai import Mistral
+                 timeout_ms: int = 300_000,
+                 system: Optional[str] = None) -> LLMResponse:
+        try:
+            from mistralai import Mistral
+        except ImportError as err:  # pragma: no cover - dépend de l'installation
+            raise ImportError(
+                "Le SDK 'mistralai' installé est incompatible (classe 'Mistral' "
+                "introuvable). Ce projet requiert mistralai==1.10.0 (voir "
+                "requirements.txt) — vérifiez qu'aucune dépendance ne force une "
+                "autre version, et videz le cache de build en production."
+            ) from err
         key = os.environ.get("MISTRAL_API_KEY")
         if not key:
             raise RuntimeError(
@@ -162,10 +181,14 @@ class MistralProvider(LLMProvider):
         extra = {} if temperature is None else {
             "temperature": max(0.0, min(1.0, float(temperature)))
         }
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
         response = client.chat.complete(
             model=model,
             max_tokens=max_tokens,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
             **extra,
         )
         choice = response.choices[0]
@@ -198,7 +221,8 @@ def set_provider(provider: LLMProvider) -> None:
 def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
              temperature: Optional[float] = None, timeout_ms: int = 300_000,
              retry: RetryPolicy = RETRY_SIMPLE, label: str = "",
-             throttled: bool = True, provider: Optional[LLMProvider] = None) -> LLMResponse:
+             throttled: bool = True, provider: Optional[LLMProvider] = None,
+             system: Optional[str] = None) -> LLMResponse:
     """Appelle un LLM avec réessais, garde-fous de débit et journalisation.
 
     ``throttled=False`` désactive l'espacement/plafond de concurrence pour un
@@ -222,6 +246,7 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
                 response = engine.complete(
                     prompt, model=model, max_tokens=max_tokens,
                     temperature=temperature, timeout_ms=timeout_ms,
+                    system=system,
                 )
             finally:
                 if throttled:

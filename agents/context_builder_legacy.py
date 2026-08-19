@@ -1,4 +1,6 @@
 import os
+
+from core import llm_client as _llm
 import json
 from core.security import wrap_untrusted_content
 
@@ -116,23 +118,18 @@ Règles :
 Réponds UNIQUEMENT avec ta réponse conversationnelle, sans balises ni explications."""
 
 
-def _call_mistral(prompt, system, max_tokens=800):
-    key = os.environ.get("MISTRAL_API_KEY", "")
-    if not key:
-        raise RuntimeError("MISTRAL_API_KEY manquante")
-    from mistralai import Mistral
-    client = Mistral(api_key=key, timeout_ms=60_000)
-    resp = client.chat.complete(
-        model="mistral-large-latest",
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user",   "content": prompt},
-        ],
+def _call_llm(prompt, system, max_tokens=800):
+    """Entretien historique (/context-chat) — passe par la couche commune."""
+    return _llm.complete_text(
+        prompt,
+        tier="deep",
         max_tokens=max_tokens,
         temperature=0.1,
+        timeout_ms=60_000,
+        retry=_llm.RETRY_NONE,
+        label="context_chat_legacy",
+        system=system,
     )
-    return resp.choices[0].message.content.strip()
-
 
 # Le prompt d'extraction demande déjà de rejeter les réponses vagues (règle 4),
 # mais rien ne vérifiait que ce soit vraiment appliqué — un LLM a tendance à
@@ -170,7 +167,7 @@ def extract_context(message: str, current_context: dict) -> dict:
 
     prompt = f"{ctx_summary}Message de l'utilisateur (extraire l'information uniquement) :\n{wrap_untrusted_content(message)}"
     try:
-        raw = _call_mistral(prompt, _EXTRACT_SYSTEM, max_tokens=500)
+        raw = _call_llm(prompt, _EXTRACT_SYSTEM, max_tokens=500)
         start = raw.find('{')
         end   = raw.rfind('}') + 1
         extracted = json.loads(raw[start:end]) if start >= 0 and end > start else {}
@@ -266,7 +263,7 @@ def generate_response(message: str, updated_context: dict, rejected_vague: list 
     )
 
     try:
-        return _call_mistral(prompt, _CONVERSATION_SYSTEM, max_tokens=150)
+        return _call_llm(prompt, _CONVERSATION_SYSTEM, max_tokens=150)
     except Exception:
         return next_field["question"]
 

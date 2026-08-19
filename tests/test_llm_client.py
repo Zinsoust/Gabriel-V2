@@ -29,10 +29,10 @@ class FakeProvider(LLMProvider):
         self._responses = list(responses or [])
         self._errors = list(errors or [])
 
-    def complete(self, prompt, *, model, max_tokens, temperature=None, timeout_ms=300_000):
+    def complete(self, prompt, *, model, max_tokens, temperature=None, timeout_ms=300_000, system=None):
         self.calls.append({
             "prompt": prompt, "model": model, "max_tokens": max_tokens,
-            "temperature": temperature, "timeout_ms": timeout_ms,
+            "temperature": temperature, "timeout_ms": timeout_ms, "system": system,
         })
         if self._errors:
             error = self._errors.pop(0)
@@ -124,3 +124,37 @@ def test_temperature_is_passed_through_and_clamped_by_provider_contract():
 def test_complete_text_returns_the_plain_string():
     fake = FakeProvider()
     assert complete_text("prompt", provider=fake, throttled=False) == "ok"
+
+
+class TestMessageSysteme:
+    """Trois appelants (extraction de réponses, rendu de ton, entretien legacy)
+    séparent depuis toujours les instructions de rôle de la demande. Les fondre
+    dans un seul prompt affaiblirait la frontière que la couche de sécurité pose
+    entre consigne et contenu non fiable."""
+
+    def test_le_message_systeme_est_transmis_au_fournisseur(self):
+        fake = FakeProvider()
+        complete("demande", provider=fake, throttled=False, system="Tu es un extracteur.")
+        assert fake.calls[0]["system"] == "Tu es un extracteur."
+
+    def test_son_absence_reste_le_defaut(self):
+        fake = FakeProvider()
+        complete("demande", provider=fake, throttled=False)
+        assert fake.calls[0]["system"] is None
+
+    def test_il_ne_se_melange_pas_au_prompt_utilisateur(self):
+        fake = FakeProvider()
+        complete("contenu utilisateur", provider=fake, throttled=False, system="consigne")
+        assert fake.calls[0]["prompt"] == "contenu utilisateur"
+        assert "consigne" not in fake.calls[0]["prompt"]
+
+
+class TestPolitiqueSansReessai:
+    def test_retry_none_n_essaie_qu_une_seule_fois(self):
+        """Certains appels (voix, rendu de ton) préfèrent échouer vite et
+        basculer sur une réponse de secours plutôt que faire patienter."""
+        from core.llm_client import RETRY_NONE
+        fake = FakeProvider(errors=[StatusError(429)])
+        with pytest.raises(StatusError):
+            complete("demande", provider=fake, retry=RETRY_NONE, throttled=False)
+        assert len(fake.calls) == 1

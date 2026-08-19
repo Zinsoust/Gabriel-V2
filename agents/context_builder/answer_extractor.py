@@ -8,6 +8,8 @@
 # ═══════════════════════════════════════════════════════════════════════════
 
 import os
+
+from core import llm_client as _llm
 import json
 import re
 
@@ -32,54 +34,28 @@ def _is_specific_enough(value: str) -> bool:
     return not any(p in v for p in _VAGUE_PATTERNS)
 
 
-def _call_mistral(prompt: str, system: str, max_tokens: int = 600) -> str:
-    from mistralai import Mistral
-    key = os.environ.get("MISTRAL_API_KEY")
-    if not key:
-        raise RuntimeError("MISTRAL_API_KEY manquante.")
-    # NE PAS ajouter response_format={"type":"json_object"} : mesuré à environ
-    # 60x plus lent (31s contre 0.5s) sur ce projet pour un résultat identique
-    # — le modèle respecte déjà le format JSON demandé dans le prompt. Parsing
-    # manuel du JSON dans le texte, comme partout ailleurs dans Gabriel.
-    #
-    # mistral-small-latest a été mesuré ici même en conditions réelles :
-    # taux d'échec (JSON vide {} sur un message pourtant clair) trop élevé
-    # pour être fiable sur cette tâche. mistral-large-latest, testé sur le
-    # même cas, s'est montré nettement plus fiable — le coût en latence
-    # (~1.3s) est justifié : c'est le cœur de la compréhension de Gabriel,
-    # une extraction ratée fait juste répéter la question sans explication.
-    client = Mistral(api_key=key, timeout_ms=30_000)
-    for attempt in range(2):
-        try:
-            response = client.chat.complete(
-                model="mistral-large-latest",
-                max_tokens=max_tokens,
-                # Température basse : cette tâche est fondamentalement
-                # déterministe (extraire ce qui est dit, rien de plus) — pas
-                # besoin de créativité, et une température par défaut plus
-                # haute a été observée, en conditions réelles, produire des
-                # JSON vides sans raison sur des messages pourtant clairs.
-                temperature=0.1,
-                messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
-            )
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            status = getattr(e, 'status_code', None) or getattr(e, 'http_status', None)
-            if attempt == 0 and status in (429, 529):
-                import time; time.sleep(4); continue
-            raise
+def _call_llm(prompt: str, system: str, max_tokens: int = 600) -> str:
+    """Extraction structurée — passe par la couche fournisseur commune.
 
-
-_EXTRACT_SYSTEM = """Tu extrais des informations business structurées depuis un message en langage naturel.
-
-RÈGLES STRICTES :
-1. Extraire UNIQUEMENT ce qui est explicitement dit — ne jamais inférer ni inventer.
-2. Si un champ n'est pas mentionné dans le message, ne pas l'inclure dans le JSON.
-3. Les valeurs doivent être des phrases courtes et précises, pas des mots seuls.
-4. Un seul message peut renseigner plusieurs champs à la fois — extrais tout ce qui est présent.
-
-Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour."""
-
+    Choix conservés tels quels, tous mesurés en conditions réelles :
+    - palier profond : le palier rapide produisait trop de JSON vides sur des
+      messages pourtant clairs ; une extraction ratée fait juste répéter la
+      question sans explication, donc la fiabilité prime sur ~1,3 s de latence ;
+    - température 0.1 : la tâche est déterministe (extraire ce qui est dit) ;
+      une température plus haute produisait des JSON vides sans raison ;
+    - pas de response_format JSON : mesuré ~60× plus lent (31 s contre 0,5 s)
+      pour un résultat identique, le modèle respectant déjà le format demandé.
+    """
+    return _llm.complete_text(
+        prompt,
+        tier="deep",
+        max_tokens=max_tokens,
+        temperature=0.1,
+        timeout_ms=30_000,
+        retry=_llm.RETRY_SIMPLE,
+        label="context_extraction",
+        system=system,
+    )
 
 def extract_answer(dimension_key: str, message: str, already_known: dict = None) -> dict:
     """Extrait les champs de la dimension donnée depuis un message libre.
@@ -116,7 +92,7 @@ def extract_answer(dimension_key: str, message: str, already_known: dict = None)
     extracted_raw = {}
     for _attempt in range(2):
         try:
-            raw = _call_mistral(prompt, _EXTRACT_SYSTEM)
+            raw = _call_llm(prompt, _EXTRACT_SYSTEM)
             start, end = raw.find('{'), raw.rfind('}') + 1
             extracted_raw = json.loads(raw[start:end]) if start >= 0 and end > start else {}
         except Exception:
@@ -211,7 +187,7 @@ def extract_answer_freeform(message: str, already_known: dict = None) -> dict:
     extracted_raw = {}
     for _attempt in range(2):
         try:
-            raw = _call_mistral(prompt, _FREEFORM_EXTRACT_SYSTEM, max_tokens=1200)
+            raw = _call_llm(prompt, _FREEFORM_EXTRACT_SYSTEM, max_tokens=1200)
             start, end = raw.find('{'), raw.rfind('}') + 1
             extracted_raw = json.loads(raw[start:end]) if start >= 0 and end > start else {}
         except Exception:

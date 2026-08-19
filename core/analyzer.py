@@ -6,15 +6,6 @@ import time
 import random
 import threading
 from collections import Counter
-try:
-    from mistralai import Mistral
-except ImportError as _mistral_import_err:
-    raise ImportError(
-        "Le SDK 'mistralai' installé est incompatible (classe 'Mistral' introuvable dans "
-        "'mistralai'). Ce projet requiert mistralai==1.10.0 (voir requirements.txt) — "
-        "vérifiez qu'aucune autre dépendance ne force une version différente, et videz "
-        "le cache de build si le problème persiste en production."
-    ) from _mistral_import_err
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from core import llm_client as _llm
@@ -113,17 +104,6 @@ LOIS ABSOLUES DE GABRIEL
 
 
 # ─── UTILITAIRES ──────────────────────────────────────────────────────────────
-
-_client = None
-
-def _get_client():
-    global _client
-    if _client is None:
-        key = os.environ.get("MISTRAL_API_KEY")
-        if not key:
-            raise ValueError("MISTRAL_API_KEY introuvable dans .env")
-        _client = Mistral(api_key=key, timeout_ms=300_000)
-    return _client
 
 
 def _sanitize(text):

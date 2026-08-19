@@ -23,6 +23,8 @@
 # ═══════════════════════════════════════════════════════════════════════════
 
 import os
+
+from core import llm_client as _llm
 import json
 from agents.context_builder.schema import FIELD_LABEL_BY_KEY
 
@@ -100,19 +102,21 @@ def _speech_profile_for(stance: str) -> dict:
     return {"pace": _PACE_BY_STANCE.get(stance, "measured"), "emphasis": [], "pause_after": []}
 
 
-def _call_mistral(prompt: str, max_tokens: int = 350, system: str = None) -> str:
-    from mistralai import Mistral
-    key = os.environ.get("MISTRAL_API_KEY")
-    if not key:
-        raise RuntimeError("MISTRAL_API_KEY manquante.")
-    client = Mistral(api_key=key, timeout_ms=20_000)
-    response = client.chat.complete(
-        model="mistral-small-latest",
-        max_tokens=max_tokens,
-        messages=[{"role": "system", "content": system or _GABRIEL_SYSTEM}, {"role": "user", "content": prompt}],
-    )
-    return response.choices[0].message.content.strip()
+def _call_llm(prompt: str, max_tokens: int = 350, system: str = None) -> str:
+    """Rendu de la voix de Gabriel — palier rapide, sans réessai.
 
+    Un échec bascule sur ``_fallback_utterance`` : mieux vaut une phrase plate
+    immédiate qu'une attente supplémentaire dans un échange parlé.
+    """
+    return _llm.complete_text(
+        prompt,
+        tier="fast",
+        max_tokens=max_tokens,
+        timeout_ms=20_000,
+        retry=_llm.RETRY_NONE,
+        label="tone_rendering",
+        system=system or _GABRIEL_SYSTEM,
+    )
 
 def _fallback_utterance(text: str, stance: str = "clarify", next_question: str = "") -> dict:
     """Utilisée uniquement si l'appel Mistral échoue — un texte plat vaut
@@ -175,7 +179,7 @@ def _render(prompt: str, fallback_text: str, fallback_stance: str, *, max_tokens
     modèle ne se voie côté utilisateur."""
     for _attempt in range(2):
         try:
-            raw = _call_mistral(prompt, max_tokens=max_tokens, system=system)
+            raw = _call_llm(prompt, max_tokens=max_tokens, system=system)
         except Exception:
             continue
         parsed = _try_parse(raw, fallback_stance)

@@ -25,7 +25,7 @@ from core.llm_client import LLMProvider, LLMResponse
 class _FakeProvider(LLMProvider):
     name = "fake"
 
-    def complete(self, prompt, *, model, max_tokens, temperature=None, timeout_ms=300_000):
+    def complete(self, prompt, *, model, max_tokens, temperature=None, timeout_ms=300_000, system=None):
         return LLMResponse(text="ok", model=model, finish_reason="stop")
 
 
