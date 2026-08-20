@@ -21,6 +21,7 @@ from tools import strategic_memory  # noqa: F401  (enregistre l'outil de mémoir
 from tools import statistics  # noqa: F401  (enregistre l'outil des livrables statistiques)
 from tools import content_quality  # noqa: F401  (enregistre l'outil de contrôle qualité)
 from tools import grounding  # noqa: F401  (enregistre l'outil anti-hallucination)
+from tools import adaptation  # noqa: F401  (enregistre l'outil d'adaptation psycho→stratège)
 
 __all__ = [
     "Tool", "ToolSpec", "ToolInput", "FunctionTool",

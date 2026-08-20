@@ -400,8 +400,11 @@ class Stratege(BaseAgent):
         memory_context = ctx.memory_context
         title          = ctx.title
 
-        psycho_context = _build_psycho_context(psycho_data)
-        psycho_query   = _psycho_query_text(psycho_context)
+        from tools import registry as tool_registry
+        _adapted        = tool_registry.get('adaptation.psycho_to_strategy_context').run(
+            psycho_data=psycho_data)
+        psycho_context = _adapted['context']
+        psycho_query   = _adapted['query_text']
         psycho_json    = json.dumps(psycho_context, ensure_ascii=False, indent=2)
 
         memory_section = ""
