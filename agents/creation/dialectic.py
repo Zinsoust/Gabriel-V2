@@ -42,15 +42,12 @@ def run(ctx) -> None:
         "Attaque ce texte. Où est-il faible, générique, ou artificiel ? "
         "Pourquoi pourrait-il ne pas atteindre son objectif ?"
     )
-    try:
-        from agents.createur import _call_llm, _parse_json
-        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=500)
-        data = _parse_json(raw)
-        if isinstance(data, dict) and not data.get("parse_error"):
-            data.setdefault("faiblesses", [])
-            data.setdefault("verdict", "a_ameliorer" if data["faiblesses"] else "livrable")
-            ctx.critique = data
-            return
-    except Exception as e:
-        print(f"[CREATION/dialectic] critique ignorée : {e}")
-    ctx.critique = {"faiblesses": [], "risque_principal": "", "verdict": "livrable"}
+    from agents.createur import _call_llm, _parse_json
+    from core.critic import critic
+    from core.critiques import CREATION_CRITIQUE
+
+    ctx.critique = critic.review(
+        CREATION_CRITIQUE, _SYSTEM + "\n\n" + prompt,
+        call_llm=lambda p, max_tokens: _call_llm(p, max_tokens=max_tokens),
+        parse_json=_parse_json, max_tokens=500,
+    ).data

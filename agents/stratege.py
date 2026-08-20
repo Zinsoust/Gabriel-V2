@@ -367,14 +367,15 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown) :
 
 Le confidence_score_independant est TA propre estimation (0 à 1), indépendante de celle affichée dans la stratégie — ne la recopie pas, ré-évalue depuis zéro à partir des signaux d'audience et du contexte business ci-dessus."""
 
-    text = _call_llm(prompt, max_tokens=1500, label="critique")
-    result = _parse_json(text)
-    expected = ["point_faible_principal", "angle_contrarien", "risque_non_couvert",
-                "ajustement_recommande", "confidence_score_independant", "verdict"]
-    missing = [k for k in expected if not result.get(k) and result.get(k) != 0]
-    if missing:
-        print(f"[STRATÈGE] Critique incomplète — clefs manquantes={missing} (JSON probablement tronqué puis réparé)")
-    return result
+    from core.critic import critic
+    from core.critiques import STRATEGY_CRITIQUE
+
+    return critic.review(
+        STRATEGY_CRITIQUE, prompt,
+        call_llm=lambda p, max_tokens: _call_llm(p, max_tokens=max_tokens,
+                                                 label="critique"),
+        parse_json=_parse_json, max_tokens=1500,
+    ).data
 
 
 # ── Agent ─────────────────────────────────────────────────────────────────────
