@@ -380,6 +380,16 @@ Le confidence_score_independant est TA propre estimation (0 à 1), indépendante
 
 # ── Agent ─────────────────────────────────────────────────────────────────────
 
+def _strategy_reasoning() -> str:
+    """Raisonnement stratégique — voir skills/strategy.py.
+
+    Le texte reste défini une seule fois dans _STRATEGE_SYSTEM ; le Skill le
+    référence, ne le recopie pas.
+    """
+    from skills import registry as skill_registry
+    return skill_registry.render('strategy.decision_reasoning', 'stratege').content
+
+
 class Stratege(BaseAgent):
     AGENT_ID   = "stratege"
     AGENT_NAME = "Le Stratège"
@@ -402,7 +412,7 @@ class Stratege(BaseAgent):
 
         rag_section = _load_rag_rules(psycho_query, brain_context)
 
-        prompt = f"""{_STRATEGE_SYSTEM}
+        prompt = f"""{_strategy_reasoning()}
 
 ━━━ PROFIL BUSINESS DE L'UTILISATEUR ━━━
 {brain_context or '(non renseigné — raisonner par hypothèse et lister les questions à clarifier)'}

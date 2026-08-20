@@ -70,6 +70,7 @@ _DECLARATIONS = (
             # Souple : app.py lance aussi le Stratège sur un brief texte seul.
             optional_consumes=('psychologue',),
             produces='stratege',
+            skills=('strategy.decision_reasoning',),
             route='/stratege',
         ),
         'agents.stratege', 'Stratege', STATUS_AVAILABLE,
