@@ -15,6 +15,7 @@ from tools import audience    # noqa: F401  (enregistre les outils d'audience)
 from tools import collection  # noqa: F401  (enregistre les outils de collecte)
 from tools import files       # noqa: F401  (enregistre les outils de fichiers)
 from tools import knowledge   # noqa: F401  (enregistre l'outil de recherche documentaire)
+from tools import comparison  # noqa: F401  (enregistre l'outil de comparaison multi-sources)
 
 __all__ = [
     "Tool", "ToolSpec", "ToolInput", "FunctionTool",
