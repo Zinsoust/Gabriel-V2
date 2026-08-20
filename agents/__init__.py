@@ -1,6 +1,12 @@
-# ─── Registre des agents Gabriel ─────────────────────────────────────────────
-# Ce fichier garantit aussi que le répertoire racine du projet
-# est toujours dans sys.path — peu importe d'où Python est lancé.
+# ─── Accès aux classes d'agents ──────────────────────────────────────────────
+# Ce fichier n'est PAS le registre des agents : il expose les classes et
+# garantit que la racine du projet est dans sys.path, peu importe d'où Python
+# est lancé. Le registre — statuts réels, points d'entrée réels, outils et
+# savoir-faire autorisés — vit dans agents/catalog.py.
+#
+# Il n'est volontairement pas importé ici : `agents.catalog` dépend des
+# registres d'outils et de savoir-faire, qui dépendent eux-mêmes des agents.
+# L'importer depuis ce fichier créerait un cycle.
 
 import sys
 import os
