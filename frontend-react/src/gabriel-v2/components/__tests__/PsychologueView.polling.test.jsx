@@ -8,11 +8,18 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, waitFor, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PsychologueView } from '../PsychologueView.jsx';
 
 const PENDING_JOB_KEY = 'gabriel_pending_job';
+
+/** La saisie manuelle se choisit dans le sélecteur de source de la barre. */
+async function choisirSaisieManuelle(user) {
+  await user.click(screen.getByRole('button', { name: /Changer de source/ }));
+  const menu = screen.getByRole('listbox', { name: 'Choisir une source' });
+  await user.click(within(menu).getByRole('option', { name: 'Commentaires' }));
+}
 
 function jsonResponse(payload, ok = true) {
   return {
@@ -65,7 +72,7 @@ describe('Suivi d’une analyse', () => {
 
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('tab', { name: 'Commentaires' }));
+    await choisirSaisieManuelle(user);
     await user.type(screen.getByPlaceholderText(/Collez vos commentaires ici/), 'un\ndeux\ntrois');
     await user.click(screen.getByRole('button', { name: /Lancer l'analyse/ }));
 
@@ -83,7 +90,7 @@ describe('Suivi d’une analyse', () => {
 
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('tab', { name: 'Commentaires' }));
+    await choisirSaisieManuelle(user);
     await user.type(screen.getByPlaceholderText(/Collez vos commentaires ici/), 'un\ndeux\ntrois');
     await user.click(screen.getByRole('button', { name: /Lancer l'analyse/ }));
 
@@ -102,7 +109,7 @@ describe('Suivi d’une analyse', () => {
 
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('tab', { name: 'Commentaires' }));
+    await choisirSaisieManuelle(user);
     await user.type(screen.getByPlaceholderText(/Collez vos commentaires ici/), 'un\ndeux\ntrois');
     await user.click(screen.getByRole('button', { name: /Lancer l'analyse/ }));
 
@@ -148,7 +155,7 @@ describe('Reprise après rechargement', () => {
   it('ne reprend rien quand aucun job n’est en attente', () => {
     global.fetch = vi.fn();
     render(<PsychologueView workspace={null} />);
-    expect(screen.getByRole('tab', { name: 'Sources' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Changer de source/ })).toBeInTheDocument();
     expect(screen.queryByText(/Gabriel analyse votre audience/)).not.toBeInTheDocument();
   });
 });

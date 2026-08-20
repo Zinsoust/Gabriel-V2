@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from core import llm_client as _llm
 from core.ai_json import parse_ai_json
 from core.security import wrap_untrusted_content, PROMPT_INJECTION_GUARD
+from tools import registry as tool_registry
 
 # NLP Engine — couche de prétraitement linguistique et statistique
 try:
@@ -2376,14 +2377,17 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
 
     # ── Couche 1 : scoring purement mathématique (VADER + cosine sim — zéro LLM)
     print("[GABRIEL] Couche 1 : scoring mathématique (VADER + cosine sim)...")
-    layer1 = score_comments_math(comments, nlp_data, _target)
+    layer1 = tool_registry.get("audience.score_comments").run(
+        comments=comments, nlp_data=nlp_data, title=_target)
     print(f"[GABRIEL] Couche 1 OK — {len(layer1)} commentaires scorés")
 
     # Extraction des scores float pour les KPIs mathématiques
     scores = [item["score"] for item in layer1]
 
     # ── KPIs mathématiques (Python pur — zéro IA)
-    kpis, distribution = calculate_math_kpis(comments, scores, title)
+    _kpi_out = tool_registry.get("audience.compute_kpis").run(
+        comments=comments, scores=scores, title=title)
+    kpis, distribution = _kpi_out["kpis"], _kpi_out["distribution"]
 
     # ── COUCHE 2 : Sélection des commentaires à forte valeur (Python pur)
     filtered, layer1_agg = _select_high_value(comments, layer1)
@@ -2401,7 +2405,9 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
     _t = _mark('scoring', _t)
 
     # ── DASHBOARD (avant les appels LLM — sert de contexte aux personas et à l'analyse)
-    dashboard = _compute_dashboard(layer1, nlp_data, nb_total, title=_target)
+    dashboard = tool_registry.get("audience.compute_dashboard").run(
+        scored_comments=layer1, nlp_data=nlp_data,
+        total_comments=nb_total, title=_target)
     print(f"[GABRIEL] Dashboard OK — emotion={dashboard.get('dominant_emotion')} | stance={dashboard.get('dominant_stance')} | opp={dashboard.get('opportunity_score')}")
     _t = _mark('dashboard', _t)
 

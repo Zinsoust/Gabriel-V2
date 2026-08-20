@@ -98,102 +98,99 @@ function PsychoInput({
   file, onFilePick, onColumnChange, uploading,
   onLaunch, onOpenCross,
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const linkReady = Boolean(LINK_SOURCES[platform]) && previewCount > 0;
   const manualCount = manualText.trim().split('\n').filter(Boolean).length;
   const canLaunch = tab === 'link' ? linkReady
     : tab === 'manual' ? manualCount >= 3
     : Boolean(file && file.count >= 3);
   const config = LINK_SOURCES[platform];
+  const currentLabel = tab === 'manual' ? 'Commentaires'
+    : tab === 'file' ? 'Fichier'
+    : (config?.label || 'Google');
+  const currentMark = tab === 'manual' ? '≡'
+    : tab === 'file' ? '↥'
+    : (config?.mark || 'G');
+  const canSubmit = tab === 'link' ? Boolean(config && url.trim()) : canLaunch;
+  const submitLabel = tab === 'link' && !linkReady ? 'Vérifier le lien' : "Lancer l'analyse";
 
-  return <section className="gv2-psy-input">
-    <div className="gv2-psy-input-head">
-      <div>
-        <span className="gv2-psy-eyebrow">Le Psychologue</span>
-        <h1>Analyse factuelle des commentaires</h1>
-      </div>
-      <button type="button" className="gv2-psy-cross-trigger" onClick={onOpenCross}>
-        <Icon name="activity" size={13} />
-        Cross Analyse
-      </button>
+  function selectSource(next) {
+    setMenuOpen(false);
+    if (next === 'manual') { onTabChange('manual'); return; }
+    if (next === 'file') { onTabChange('file'); return; }
+    onTabChange('link');
+    onPlatformChange(next);
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    if (tab === 'link') {
+      if (linkReady) onLaunch();
+      else if (config && url.trim()) onCheck();
+      return;
+    }
+    if (canLaunch) onLaunch();
+  }
+
+  return <section className="gv2-psy-input gv2-psy-landing">
+    <div className="gv2-psy-landing-copy">
+      <span className="gv2-psy-eyebrow">Le Psychologue</span>
+      <h1>Comprenez ce que votre audience ne vous dit pas.</h1>
+      <p>Analysez les conversations de votre audience pour révéler ce qu'elle ressent, ce qu'elle recherche et ce qui influence réellement ses décisions.</p>
     </div>
-    <div className="gv2-psy-card">
-      <div className="gv2-psy-tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={tab === 'link'} className={tab === 'link' ? 'is-active' : ''} onClick={() => onTabChange('link')}>Sources</button>
-        <button type="button" role="tab" aria-selected={tab === 'manual'} className={tab === 'manual' ? 'is-active' : ''} onClick={() => onTabChange('manual')}>Commentaires</button>
-        <button type="button" role="tab" aria-selected={tab === 'file'} className={tab === 'file' ? 'is-active' : ''} onClick={() => onTabChange('file')}>Fichier</button>
-      </div>
-      <div className="gv2-psy-card-body">
-        {tab === 'link' && <>
-          <div className="gv2-psy-platforms" role="tablist" aria-label="Plateforme à analyser">
-            {Object.entries(LINK_SOURCES).map(([key, meta]) => (
-              <button key={key} type="button" role="tab" aria-selected={platform === key}
-                      className={`gv2-psy-platform${platform === key ? ' is-active' : ''}`}
-                      onClick={() => onPlatformChange(key)}>
-                <span className="gv2-psy-platform-mark">{meta.mark}</span>{meta.label}
-              </button>
-            ))}
-            <button type="button" className={`gv2-psy-platform${platform === 'google' ? ' is-active' : ''}`}
-                    aria-selected={platform === 'google'} onClick={() => onPlatformChange('google')}>
-              <span className="gv2-psy-platform-mark">G</span>Google
-            </button>
-            <button type="button" className="gv2-psy-platform" onClick={() => onTabChange('manual')}>
-              <span className="gv2-psy-platform-mark">+</span>Autre source
-            </button>
-          </div>
-          <div className="gv2-psy-link-row">
-            <Icon name="link" size={16} />
-            <input type="url" value={url} disabled={!config}
-                   onChange={event => onUrlChange(event.target.value)}
-                   placeholder={config ? config.placeholder : 'La collecte Google arrive prochainement…'}
-                   onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); onCheck(); } }} />
-            <button type="button" className="gv2-psy-check-btn" disabled={checking || !config} onClick={onCheck} aria-label="Vérifier le lien" title="Vérifier le lien">
-              <Icon name={checking ? 'refresh' : 'send'} size={16} className={checking ? 'gv2-spin' : ''} />
-            </button>
-          </div>
-          <p className="gv2-psy-example">{config ? config.example : 'Pour l’instant, collez les avis dans « Commentaires ».'}</p>
-          {statusMsg && <p className={`gv2-psy-status${statusTone ? ` is-${statusTone}` : ''}`} role="status">{statusMsg}</p>}
-        </>}
 
-        {tab === 'manual' && <>
-          <textarea value={manualText} onChange={event => onManualTextChange(event.target.value)} placeholder="Collez vos commentaires ici, un par ligne…" rows={7} />
-          <div className="gv2-psy-comment-meta">
-            <span>Un commentaire par ligne · Min. 3</span>
-            <span className="gv2-psy-comment-count">{manualCount}</span>
-          </div>
-        </>}
-
-        {tab === 'file' && <>
-          <label className="gv2-psy-dropzone">
-            <input type="file" accept=".csv,.xlsx,.xls,.json,.txt" hidden
-                   onChange={event => onFilePick(event.target.files && event.target.files[0])} />
-            <Icon name="file" size={20} />
-            <span className="gv2-psy-dropzone-title">
-              {uploading ? 'Lecture du fichier…' : file ? file.name : 'Choisir un fichier de commentaires'}
-            </span>
-            <span className="gv2-psy-dropzone-hint">CSV, Excel, JSON ou TXT · 5 Mo maximum</span>
-          </label>
-          {file && file.columns && file.columns.length > 1 && (
-            <label className="gv2-psy-column-picker">
-              <span>Colonne à analyser</span>
-              <select value={file.column || ''} onChange={event => onColumnChange(event.target.value)}>
-                {file.columns.map(col => <option key={col} value={col}>{col}</option>)}
-              </select>
-            </label>
-          )}
-          {file && <div className="gv2-psy-comment-meta">
-            <span>{file.warning || `${file.count} commentaire${file.count === 1 ? '' : 's'} lu${file.count === 1 ? '' : 's'}`}</span>
-            <span className="gv2-psy-comment-count">{file.count}</span>
-          </div>}
-          {statusMsg && statusTone !== 'success' && <p className={`gv2-psy-status${statusTone ? ` is-${statusTone}` : ''}`} role="status">{statusMsg}</p>}
-        </>}
-      </div>
-      <div className="gv2-psy-card-footer">
-        <span className="gv2-psy-hint">Minimum 3 commentaires</span>
-        <button type="button" className="gv2-psy-launch-btn" disabled={!canLaunch} onClick={onLaunch}>
-          <Icon name="sparkle" size={14} />
-          Lancer l'analyse
+    <form className={`gv2-psy-composer${menuOpen ? ' is-menu-open' : ''}`} onSubmit={handleSubmit}>
+      <div className="gv2-psy-source-picker">
+        <button type="button" className="gv2-psy-source-trigger" onClick={() => setMenuOpen(open => !open)} aria-haspopup="listbox" aria-expanded={menuOpen} aria-label={`Source d'analyse : ${currentLabel}. Changer de source`}>
+          <span className="gv2-psy-source-mark" aria-hidden="true">{currentMark}</span>
+          <span>{currentLabel}</span>
+          <Icon name="chevronDown" size={15} className={menuOpen ? 'is-open' : ''} />
         </button>
+        {menuOpen && <div className="gv2-psy-source-menu" role="listbox" aria-label="Choisir une source">
+          {Object.entries(LINK_SOURCES).map(([key, meta]) => <button key={key} type="button" role="option" aria-selected={tab === 'link' && platform === key} onClick={() => selectSource(key)}>
+            <span className="gv2-psy-source-mark" aria-hidden="true">{meta.mark}</span>{meta.label}
+            {tab === 'link' && platform === key && <Icon name="check" size={14} />}
+          </button>)}
+          <button type="button" role="option" aria-selected={tab === 'link' && platform === 'google'} onClick={() => selectSource('google')}><span className="gv2-psy-source-mark" aria-hidden="true">G</span>Google</button>
+          <div className="gv2-psy-source-menu-separator" />
+          <button type="button" role="option" aria-selected={tab === 'manual'} onClick={() => selectSource('manual')}><span className="gv2-psy-source-mark" aria-hidden="true">≡</span>Commentaires</button>
+          <button type="button" role="option" aria-selected={tab === 'file'} onClick={() => selectSource('file')}><span className="gv2-psy-source-mark" aria-hidden="true">↥</span>Fichier</button>
+        </div>}
       </div>
+
+      <button type="button" className="gv2-psy-cross-trigger" onClick={onOpenCross} aria-label="Cross Analyse — comparer plusieurs audiences">
+        <Icon name="activity" size={15} />
+        <span>Cross</span>
+      </button>
+      <span className="gv2-psy-composer-separator" aria-hidden="true" />
+
+      {tab === 'link' && <input className="gv2-psy-composer-field" type="url" value={url} disabled={!config}
+        onChange={event => onUrlChange(event.target.value)}
+        placeholder={config ? config.placeholder : 'La collecte Google arrive prochainement…'} />}
+      {tab === 'manual' && <textarea className="gv2-psy-composer-field gv2-psy-composer-textarea" value={manualText} onChange={event => onManualTextChange(event.target.value)} placeholder="Collez vos commentaires ici, un par ligne…" rows={1} />}
+      {tab === 'file' && <label className="gv2-psy-composer-file">
+        <input type="file" accept=".csv,.xlsx,.xls,.json,.txt" hidden onChange={event => onFilePick(event.target.files && event.target.files[0])} />
+        <Icon name="paperclip" size={17} />
+        <span>{uploading ? 'Lecture du fichier…' : file ? file.name : 'Ajoutez un fichier de commentaires'}</span>
+      </label>}
+
+      <button type="submit" className="gv2-psy-composer-submit" disabled={checking || uploading || !canSubmit} aria-label={submitLabel} title={submitLabel}>
+        <Icon name={checking || uploading ? 'refresh' : 'send'} size={20} className={checking || uploading ? 'gv2-spin' : ''} />
+      </button>
+    </form>
+
+    {tab === 'manual' && <div className="gv2-psy-composer-meta"><span>Un commentaire par ligne · Minimum 3</span><span>{manualCount}</span></div>}
+    {tab === 'file' && <>
+      {file && file.columns && file.columns.length > 1 && <label className="gv2-psy-column-picker">
+        <span>Colonne à analyser</span>
+        <select value={file.column || ''} onChange={event => onColumnChange(event.target.value)}>{file.columns.map(col => <option key={col} value={col}>{col}</option>)}</select>
+      </label>}
+      <div className="gv2-psy-composer-meta"><span>{file ? (file.warning || `${file.count} commentaire${file.count === 1 ? '' : 's'} lu${file.count === 1 ? '' : 's'}`) : 'CSV, Excel, JSON ou TXT · 5 Mo maximum'}</span>{file && <span>{file.count}</span>}</div>
+    </>}
+
+    <div className="gv2-psy-composer-status" role="status">
+      <span className={statusTone ? `is-${statusTone}` : ''}>{tab === 'link' ? statusMsg : (statusMsg || 'Prêt à analyser votre audience.')}</span>
+      <button type="button" onClick={onOpenCross}><Icon name="activity" size={16} />Comparer plusieurs audiences <span aria-hidden="true">→</span></button>
     </div>
   </section>;
 }

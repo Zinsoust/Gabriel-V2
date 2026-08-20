@@ -9,7 +9,7 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PsychologueView } from '../PsychologueView.jsx';
 
@@ -31,28 +31,39 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+async function openSourceMenu(user) {
+  await user.click(screen.getByRole('button', { name: /Changer de source/ }));
+  return screen.getByRole('listbox', { name: 'Choisir une source' });
+}
+
+async function chooseSource(user, label) {
+  const menu = await openSourceMenu(user);
+  await user.click(within(menu).getByRole('option', { name: label }));
+}
+
 describe('Entrées disponibles', () => {
-  it('expose les trois onglets de saisie', () => {
+  it('réunit les modes de saisie dans le sélecteur de la barre', async () => {
+    const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    expect(screen.getByRole('tab', { name: 'Sources' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Commentaires' })).toBeInTheDocument();
-    // L'onglet Fichier avait purement disparu lors de la bascule.
-    expect(screen.getByRole('tab', { name: 'Fichier' })).toBeInTheDocument();
+    const menu = await openSourceMenu(user);
+    expect(within(menu).getByRole('option', { name: 'Commentaires' })).toBeInTheDocument();
+    expect(within(menu).getByRole('option', { name: 'Fichier' })).toBeInTheDocument();
   });
 
-  it('expose les cinq plateformes de collecte', () => {
+  it('expose les plateformes de collecte dans le sélecteur', async () => {
+    const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    // Seul YouTube avait survécu à la bascule.
-    ['YouTube', 'Instagram', 'TikTok', 'Google', 'Autre source'].forEach(label => {
-      expect(screen.getByText(label)).toBeInTheDocument();
+    const menu = await openSourceMenu(user);
+    ['YouTube', 'Instagram', 'TikTok', 'Google'].forEach(label => {
+      expect(within(menu).getByRole('option', { name: label })).toBeInTheDocument();
     });
   });
 
-  it('ouvre la zone de dépôt quand on choisit l’onglet Fichier', async () => {
+  it('ouvre le sélecteur de fichier quand on choisit Fichier', async () => {
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('tab', { name: 'Fichier' }));
-    expect(screen.getByText(/Choisir un fichier de commentaires/)).toBeInTheDocument();
+    await chooseSource(user, 'Fichier');
+    expect(screen.getByText(/Ajoutez un fichier de commentaires/)).toBeInTheDocument();
     expect(screen.getByText(/CSV, Excel, JSON ou TXT/)).toBeInTheDocument();
   });
 });
@@ -62,17 +73,17 @@ describe('Changement de plateforme', () => {
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
 
-    await user.click(screen.getByText('Instagram'));
+    await chooseSource(user, 'Instagram');
     expect(screen.getByPlaceholderText(/publication Instagram/)).toBeInTheDocument();
 
-    await user.click(screen.getByText('TikTok'));
+    await chooseSource(user, 'TikTok');
     expect(screen.getByPlaceholderText(/vidéo TikTok/)).toBeInTheDocument();
   });
 
   it('désactive la saisie pour Google et dit pourquoi', async () => {
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByText('Google'));
+    await chooseSource(user, 'Google');
 
     // Annoncer une source non connectée sans bloquer la saisie laisserait
     // l'utilisateur coller un lien qui ne sera jamais traité.
@@ -80,36 +91,36 @@ describe('Changement de plateforme', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/Google sera connecté/);
   });
 
-  it('bascule vers la saisie manuelle depuis « Autre source »', async () => {
+  it('bascule vers la saisie manuelle depuis le sélecteur', async () => {
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByText('Autre source'));
+    await chooseSource(user, 'Commentaires');
     expect(screen.getByPlaceholderText(/Collez vos commentaires ici/)).toBeInTheDocument();
   });
 
   it('ne laisse pas le message d’une plateforme fuiter dans l’onglet Fichier', async () => {
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByText('Instagram'));
+    await chooseSource(user, 'Instagram');
     expect(screen.getByRole('status')).toHaveTextContent(/Instagram/);
 
-    await user.click(screen.getByRole('tab', { name: 'Fichier' }));
+    await chooseSource(user, 'Fichier');
     // Le statut est un état partagé : sans nettoyage il restait affiché sous
     // la zone de dépôt, en parlant d'un lien qu'on ne saisit plus.
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).not.toHaveTextContent(/Instagram/);
   });
 });
 
 describe('Conditions de lancement', () => {
   it('refuse de lancer tant qu’aucune source n’est prête', () => {
     render(<PsychologueView workspace={null} />);
-    expect(screen.getByRole('button', { name: /Lancer l'analyse/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Vérifier le lien/ })).toBeDisabled();
   });
 
   it('refuse de lancer avec moins de trois commentaires manuels', async () => {
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('tab', { name: 'Commentaires' }));
+    await chooseSource(user, 'Commentaires');
     await user.type(screen.getByPlaceholderText(/Collez vos commentaires ici/), 'un\ndeux');
     expect(screen.getByRole('button', { name: /Lancer l'analyse/ })).toBeDisabled();
   });
@@ -117,7 +128,7 @@ describe('Conditions de lancement', () => {
   it('autorise le lancement à partir de trois commentaires manuels', async () => {
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('tab', { name: 'Commentaires' }));
+    await chooseSource(user, 'Commentaires');
     await user.type(screen.getByPlaceholderText(/Collez vos commentaires ici/), 'un\ndeux\ntrois');
     expect(screen.getByRole('button', { name: /Lancer l'analyse/ })).toBeEnabled();
   });
@@ -147,6 +158,16 @@ describe('Conditions de lancement', () => {
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(/Vidéo introuvable/);
     });
-    expect(screen.getByRole('button', { name: /Lancer l'analyse/ })).toBeDisabled();
+    // Un lien refusé ne doit ouvrir aucun chemin vers l'analyse : le composer
+    // reste sur la vérification tant que la source n'est pas validée.
+    expect(screen.queryByRole('button', { name: /Lancer l'analyse/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /Vérifier le lien/ })).toBeInTheDocument();
+
+    // Et surtout : aucune analyse réelle n'a été lancée. La vérification passe
+    // elle aussi par /analyze, mais en `preview_only` — c'est l'absence de ce
+    // drapeau qui signe un vrai lancement, facturé et long.
+    const lancements = global.fetch.mock.calls.filter(([url, init]) =>
+      String(url).includes('/analyze') && !JSON.parse(init?.body || '{}').preview_only);
+    expect(lancements).toHaveLength(0);
   });
 });
