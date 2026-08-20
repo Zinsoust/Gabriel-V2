@@ -11,6 +11,8 @@ from agents.context     import AnalysisContext
 from agents.psychologue import Psychologue
 from agents.stratege    import Stratege
 from agents.createur    import Createur
+from core.executor      import Executor
+from core.planner       import default_planner
 
 
 class Gabriel:
@@ -19,6 +21,13 @@ class Gabriel:
         self.psychologue = Psychologue()
         self.stratege    = Stratege()
         self.createur    = Createur()
+        # L'enchaînement des agents n'est plus écrit ici : il est déduit des
+        # dépendances déclarées au registre, puis déroulé par l'exécuteur.
+        # Les deux méthodes ci-dessous restent les points d'entrée publics et
+        # rendent exactement le même contenu qu'avant.
+        self.planner  = default_planner()
+        self.executor = Executor()
+        self.last_trace = None
 
     # ── Pipeline 1 : Analyse Psychologique ───────────────────────────────────
 
@@ -40,11 +49,8 @@ class Gabriel:
         ctx.partial_cb  = partial_cb
         ctx.record_step(f"[GABRIEL] Pipeline psychologique — {len(comments)} commentaires")
 
-        try:
-            ctx = self.psychologue.run(ctx)
-        except Exception as e:
-            ctx.record_error(self.psychologue.AGENT_ID, str(e))
-            raise RuntimeError(f"[{self.psychologue.AGENT_NAME}] Erreur critique : {e}") from e
+        ctx, self.last_trace = self.executor.execute(
+            self.planner.plan('psychologue'), ctx)
 
         ctx.record_step("[GABRIEL] Pipeline psychologique terminé")
         return ctx.to_response()
@@ -69,11 +75,9 @@ class Gabriel:
         ctx.add('psychologue', psycho_data)
         ctx.record_step("[GABRIEL] Pipeline stratégique démarré")
 
-        try:
-            ctx = self.stratege.run(ctx)
-        except Exception as e:
-            ctx.record_error(self.stratege.AGENT_ID, str(e))
-            raise RuntimeError(f"[{self.stratege.AGENT_NAME}] Erreur critique : {e}") from e
+        # Le rapport psychologique est déjà en main : le plan ne le rejoue pas.
+        ctx, self.last_trace = self.executor.execute(
+            self.planner.plan('stratege', available=('psychologue',)), ctx)
 
         ctx.record_step("[GABRIEL] Pipeline stratégique terminé")
         return ctx.to_response()
