@@ -430,13 +430,16 @@ def _get_emotion_directive(emotion: str) -> str:
     Texte libre non répertorié → gabarit générique qui oriente l'écriture vers
     ce ressenti précis, en traitant la saisie comme contenu non fiable (le texte
     libre entre dans le prompt LLM — même protection que user_request)."""
-    if not emotion or not emotion.strip():
-        return ''
-    key = _normalize_emotion_key(emotion)
-    if key in _EMOTION_DIRECTIVES:
-        return _EMOTION_DIRECTIVES[key]
-    # Émotion libre : gabarit générique, saisie neutralisée contre l'injection.
-    safe = wrap_untrusted_content(emotion.strip()[:120])
+    from skills import registry as skill_registry
+    return skill_registry.render('writing.emotion_directive', emotion).content
+
+
+def _free_emotion_directive(emotion: str) -> str:
+    """Gabarit générique pour une émotion hors catalogue.
+
+    La saisie est du texte libre qui entrera dans un prompt : elle est
+    neutralisée contre l'injection, au même titre que user_request."""
+    safe = wrap_untrusted_content((emotion or '').strip()[:120])
     return (
         "ÉMOTION CIBLE (libre)\n"
         f"Ce que l'audience doit ressentir : {safe}\n"
@@ -449,10 +452,8 @@ def _get_emotion_directive(emotion: str) -> str:
 
 def _get_tone_discipline(tone: str) -> str:
     """Retourne le bloc de discipline d'écriture pour une tonalité donnée."""
-    if not tone:
-        return ''
-    key = _TONE_ALIASES.get(tone.lower(), tone.lower())
-    return _TONE_DISCIPLINES.get(key, '')
+    from skills import registry as skill_registry
+    return skill_registry.render('writing.tone_discipline', tone).content
 
 # Format → libellé lisible pour le brief
 _FORMAT_LABEL = {
