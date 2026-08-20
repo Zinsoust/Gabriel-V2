@@ -16,6 +16,8 @@ from tools import collection  # noqa: F401  (enregistre les outils de collecte)
 from tools import files       # noqa: F401  (enregistre les outils de fichiers)
 from tools import knowledge   # noqa: F401  (enregistre l'outil de recherche documentaire)
 from tools import comparison  # noqa: F401  (enregistre l'outil de comparaison multi-sources)
+from tools import nlp         # noqa: F401  (enregistre l'outil du pipeline NLP)
+from tools import strategic_memory  # noqa: F401  (enregistre l'outil de mémoire stratégique)
 
 __all__ = [
     "Tool", "ToolSpec", "ToolInput", "FunctionTool",
