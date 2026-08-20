@@ -7,7 +7,11 @@ PURPOSE
     d'elles s'appelait ``_call_claude`` alors qu'elle appelait Mistral.
 
 RESPONSIBILITIES
-    - exposer une interface fournisseur (``LLMProvider``) et son implémentation Mistral ;
+    - exposer une interface fournisseur (``LLMProvider``) et ses implémentations
+      (Mistral, OpenAI) ;
+    - choisir le fournisseur actif (variable ``LLM_PROVIDER``) ;
+    - traduire un palier logique (rapide / profond) vers le catalogue du
+      fournisseur retenu ;
     - appliquer une politique de réessai explicite et paramétrable ;
     - appliquer les garde-fous de débit (espacement + plafond de concurrence) ;
     - renvoyer une réponse normalisée (texte + métriques d'usage).
@@ -17,9 +21,17 @@ NON-RESPONSIBILITIES
     - ne parse aucun JSON métier (voir ``core.security.safe_parse_ai_json``) ;
     - ne connaît aucune logique business (audience, stratégie, contenu).
 
-INPUTS   prompt (str) + politique d'appel (modèle, tokens, timeout, réessais)
+INPUTS   prompt (str) + politique d'appel (palier, tokens, timeout, réessais)
 OUTPUTS  ``LLMResponse`` (texte, modèle réellement appelé, tokens, troncature)
-DEPENDS  mistralai (SDK), variables d'environnement MISTRAL_*
+DEPENDS  mistralai (SDK) ou requests (OpenAI) selon le fournisseur actif ;
+         variables d'environnement MISTRAL_*, OPENAI_*, LLM_PROVIDER
+
+HORS PÉRIMÈTRE
+    L'appel OpenAI de l'orchestrateur conversationnel (``app.py``) reste
+    séparé : il utilise l'API Responses avec un historique multi-tours, un
+    effort de raisonnement et une recherche web hébergée. Cette dernière est
+    une capacité d'outil, pas de génération — la modéliser ici obligerait
+    *tout* fournisseur à l'implémenter.
 """
 
 from __future__ import annotations
@@ -130,6 +142,19 @@ def _throttle():
 
 # ── Interface fournisseur ────────────────────────────────────────────────────
 
+class ProviderHTTPError(RuntimeError):
+    """Échec HTTP d'un fournisseur, normalisé.
+
+    Chaque transport signale un statut à sa manière (attribut du SDK, réponse
+    ``requests``…). La politique de réessai ne doit pas connaître ces
+    variantes : elle lit toujours ``status_code``.
+    """
+
+    def __init__(self, status_code: Optional[int], message: str):
+        super().__init__(message)
+        self.status_code = status_code
+
+
 class LLMProvider(ABC):
     """Contrat que doit remplir tout fournisseur de LLM.
 
@@ -202,7 +227,107 @@ class MistralProvider(LLMProvider):
         )
 
 
-_default_provider: LLMProvider = MistralProvider()
+class OpenAIProvider(LLMProvider):
+    """Implémentation OpenAI via l'API Chat Completions.
+
+    Volontairement limitée au contrat agent (une consigne, une demande, une
+    réponse). L'orchestrateur conversationnel a des besoins plus riches
+    (historique multi-tours, effort de raisonnement, recherche web hébergée)
+    qui relèvent d'un outil et non du contrat de génération — les modéliser
+    ici alourdirait l'interface que doit implémenter *tout* fournisseur.
+
+    Pas de SDK : le projet appelle déjà OpenAI en HTTP direct, inutile
+    d'ajouter une dépendance pour un seul appel.
+    """
+
+    name = "openai"
+
+    # Paliers propres au fournisseur : un « palier rapide » ne désigne pas le
+    # même modèle d'un fournisseur à l'autre.
+    MODELS = {
+        "fast": os.environ.get("OPENAI_MODEL_FAST", "gpt-4o-mini"),
+        "deep": os.environ.get("OPENAI_MODEL_DEEP", "gpt-4o"),
+    }
+
+    def complete(self, prompt: str, *, model: str, max_tokens: int,
+                 temperature: Optional[float] = None,
+                 timeout_ms: int = 300_000,
+                 system: Optional[str] = None) -> LLMResponse:
+        import requests
+
+        key = os.environ.get("OPENAI_API_KEY")
+        if not key:
+            raise RuntimeError(
+                "OPENAI_API_KEY manquante — configurez-la dans les variables d'environnement."
+            )
+
+        # ``model`` arrive traduit par le palier Mistral : on retraduit vers
+        # l'équivalent OpenAI plutôt que d'envoyer un nom que l'API refuserait.
+        target = self.MODELS.get(_tier_of_model(model), self.MODELS["deep"])
+
+        messages = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+
+        payload = {"model": target, "messages": messages, "max_tokens": max_tokens}
+        if temperature is not None:
+            payload["temperature"] = max(0.0, min(1.0, float(temperature)))
+
+        try:
+            response = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                json=payload,
+                timeout=timeout_ms / 1000,
+            )
+        except requests.RequestException as err:
+            raise ProviderHTTPError(None, f"OpenAI injoignable : {err}") from err
+
+        if response.status_code >= 400:
+            raise ProviderHTTPError(
+                response.status_code,
+                f"OpenAI a répondu {response.status_code} : {response.text[:200]}",
+            )
+
+        data = response.json()
+        choice = (data.get("choices") or [{}])[0]
+        usage = data.get("usage") or {}
+        return LLMResponse(
+            text=((choice.get("message") or {}).get("content") or "").strip(),
+            model=target,
+            prompt_tokens=usage.get("prompt_tokens"),
+            completion_tokens=usage.get("completion_tokens"),
+            finish_reason=choice.get("finish_reason"),
+        )
+
+
+def _tier_of_model(model: str) -> str:
+    """Retrouve le palier logique à partir d'un identifiant de modèle."""
+    for tier, name in MODEL_TIERS.items():
+        if name == model:
+            return tier
+    return "deep"
+
+
+PROVIDERS = {
+    "mistral": MistralProvider,
+    "openai": OpenAIProvider,
+}
+
+
+def _provider_from_env() -> LLMProvider:
+    """Le fournisseur par défaut est configurable sans toucher au code."""
+    choice = os.environ.get("LLM_PROVIDER", "mistral").strip().lower()
+    factory = PROVIDERS.get(choice)
+    if factory is None:
+        raise ValueError(
+            f"LLM_PROVIDER inconnu : {choice!r} (attendu : {sorted(PROVIDERS)})"
+        )
+    return factory()
+
+
+_default_provider: LLMProvider = _provider_from_env()
 
 
 def get_provider() -> LLMProvider:
@@ -252,13 +377,17 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
                 if throttled:
                     _semaphore.release()
 
+            # On journalise le modèle RÉELLEMENT appelé (response.model), pas
+            # celui demandé : un fournisseur retraduit le palier vers son
+            # propre catalogue, et afficher le nom d'entrée ferait croire
+            # qu'un modèle Mistral a répondu alors qu'OpenAI a servi l'appel.
             if response.prompt_tokens is not None:
-                print(f"[LLM] label={label or '?'} provider={engine.name} model={model} "
+                print(f"[LLM] label={label or '?'} provider={engine.name} model={response.model} "
                       f"prompt_tokens={response.prompt_tokens} "
                       f"completion_tokens={response.completion_tokens} "
                       f"max_tokens={max_tokens} finish_reason={response.finish_reason}")
             if response.truncated:
-                print(f"[LLM_TRUNCATION] label={label or '?'} model={model} max_tokens={max_tokens} "
+                print(f"[LLM_TRUNCATION] label={label or '?'} model={response.model} max_tokens={max_tokens} "
                       f"completion_tokens={response.completion_tokens} "
                       f"— réponse coupée, JSON probablement incomplet")
             return response

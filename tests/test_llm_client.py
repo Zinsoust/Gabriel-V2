@@ -158,3 +158,133 @@ class TestPolitiqueSansReessai:
         with pytest.raises(StatusError):
             complete("demande", provider=fake, retry=RETRY_NONE, throttled=False)
         assert len(fake.calls) == 1
+
+
+class TestFournisseurOpenAI:
+    """Le découplage n'a de valeur que si un second fournisseur existe
+    réellement. Ces tests l'exercent sans aucun appel réseau."""
+
+    def _fake_post(self, capture, *, status=200, body=None):
+        class _Resp:
+            status_code = status
+            text = 'erreur'
+            def json(self_inner):
+                return body or {
+                    "choices": [{"message": {"content": " réponse "}, "finish_reason": "stop"}],
+                    "usage": {"prompt_tokens": 11, "completion_tokens": 7},
+                }
+        def _post(url, headers=None, json=None, timeout=None):
+            capture.update({"url": url, "headers": headers, "payload": json, "timeout": timeout})
+            return _Resp()
+        return _post
+
+    def test_appelle_le_bon_endpoint_et_normalise_la_reponse(self, monkeypatch):
+        import requests
+        from core.llm_client import OpenAIProvider
+        monkeypatch.setenv("OPENAI_API_KEY", "clé-de-test")
+        capture = {}
+        monkeypatch.setattr(requests, "post", self._fake_post(capture))
+
+        r = OpenAIProvider().complete("demande", model=MODEL_TIERS["deep"], max_tokens=100)
+
+        assert capture["url"] == "https://api.openai.com/v1/chat/completions"
+        assert r.text == "réponse"          # normalisé, sans espaces parasites
+        assert r.prompt_tokens == 11
+        assert r.finish_reason == "stop"
+
+    def test_traduit_le_palier_vers_un_modele_openai(self, monkeypatch):
+        """Envoyer tel quel un nom de modèle Mistral à OpenAI ferait échouer
+        l'appel avec une erreur incompréhensible."""
+        import requests
+        from core.llm_client import OpenAIProvider
+        monkeypatch.setenv("OPENAI_API_KEY", "clé-de-test")
+        capture = {}
+        monkeypatch.setattr(requests, "post", self._fake_post(capture))
+
+        OpenAIProvider().complete("d", model=MODEL_TIERS["fast"], max_tokens=10)
+        assert capture["payload"]["model"] == OpenAIProvider.MODELS["fast"]
+        assert "mistral" not in capture["payload"]["model"]
+
+    def test_separe_la_consigne_de_la_demande(self, monkeypatch):
+        import requests
+        from core.llm_client import OpenAIProvider
+        monkeypatch.setenv("OPENAI_API_KEY", "clé-de-test")
+        capture = {}
+        monkeypatch.setattr(requests, "post", self._fake_post(capture))
+
+        OpenAIProvider().complete("demande", model=MODEL_TIERS["deep"], max_tokens=10, system="consigne")
+        roles = [m["role"] for m in capture["payload"]["messages"]]
+        assert roles == ["system", "user"]
+
+    def test_une_erreur_http_porte_son_statut_pour_la_politique_de_reessai(self, monkeypatch):
+        """Sans statut normalisé, un 429 d'OpenAI ne déclencherait aucun
+        réessai alors que le même cas en déclenche chez Mistral."""
+        import requests
+        from core.llm_client import OpenAIProvider, ProviderHTTPError
+        monkeypatch.setenv("OPENAI_API_KEY", "clé-de-test")
+        monkeypatch.setattr(requests, "post", self._fake_post({}, status=429))
+
+        with pytest.raises(ProviderHTTPError) as err:
+            OpenAIProvider().complete("d", model=MODEL_TIERS["deep"], max_tokens=10)
+        assert err.value.status_code == 429
+
+    def test_un_429_openai_declenche_bien_un_reessai(self, monkeypatch):
+        """Vérifie la chaîne complète : erreur fournisseur → politique commune."""
+        import requests
+        from core.llm_client import OpenAIProvider
+        monkeypatch.setenv("OPENAI_API_KEY", "clé-de-test")
+        appels = {"n": 0}
+
+        class _Resp:
+            def __init__(self, code): self.status_code = code; self.text = 'x'
+            def json(self): return {"choices": [{"message": {"content": "ok"},
+                                                 "finish_reason": "stop"}], "usage": {}}
+        def _post(url, headers=None, json=None, timeout=None):
+            appels["n"] += 1
+            return _Resp(429 if appels["n"] == 1 else 200)
+        monkeypatch.setattr(requests, "post", _post)
+
+        r = complete("d", provider=OpenAIProvider(), throttled=False,
+                     retry=RetryPolicy(max_attempts=2, base_delay=0.0))
+        assert r.text == "ok"
+        assert appels["n"] == 2
+
+    def test_cle_absente_donne_un_message_clair(self, monkeypatch):
+        from core.llm_client import OpenAIProvider
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        with pytest.raises(RuntimeError, match="OPENAI_API_KEY manquante"):
+            OpenAIProvider().complete("d", model=MODEL_TIERS["deep"], max_tokens=10)
+
+
+class TestSelectionDuFournisseur:
+    def test_mistral_reste_le_defaut(self, monkeypatch):
+        monkeypatch.delenv("LLM_PROVIDER", raising=False)
+        from core.llm_client import _provider_from_env
+        assert _provider_from_env().name == "mistral"
+
+    def test_on_bascule_par_variable_d_environnement(self, monkeypatch):
+        """Changer de fournisseur ne doit demander aucune modification de code
+        dans les agents — c'est tout l'objet du découplage."""
+        monkeypatch.setenv("LLM_PROVIDER", "openai")
+        from core.llm_client import _provider_from_env
+        assert _provider_from_env().name == "openai"
+
+    def test_un_fournisseur_inconnu_echoue_au_demarrage(self, monkeypatch):
+        """Mieux vaut refuser de démarrer que retomber silencieusement sur un
+        fournisseur que l'exploitant ne croyait pas utiliser."""
+        monkeypatch.setenv("LLM_PROVIDER", "gemini")
+        from core.llm_client import _provider_from_env
+        with pytest.raises(ValueError, match="LLM_PROVIDER inconnu"):
+            _provider_from_env()
+
+
+def test_le_journal_annonce_le_modele_reellement_appele(monkeypatch, capsys):
+    """Un fournisseur retraduit le palier vers son propre catalogue. Journaliser
+    le modèle demandé ferait croire qu'un modèle Mistral a répondu alors
+    qu'OpenAI a servi l'appel — un journal qui ment sur ce qui s'est passé."""
+    fake = FakeProvider(responses=[LLMResponse(
+        text="ok", model="gpt-4o-mini", prompt_tokens=5, completion_tokens=3, finish_reason="stop")])
+    complete("demande", provider=fake, throttled=False, label="preuve")
+    sortie = capsys.readouterr().out
+    assert "model=gpt-4o-mini" in sortie
+    assert MODEL_TIERS["deep"] not in sortie
