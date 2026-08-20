@@ -11,7 +11,9 @@ from tools.registry import (  # noqa: F401
     ToolNotAllowed, ToolNotFound, ToolRegistry, registry,
 )
 
-from tools import audience  # noqa: F401  (enregistre les outils d'audience)
+from tools import audience    # noqa: F401  (enregistre les outils d'audience)
+from tools import collection  # noqa: F401  (enregistre les outils de collecte)
+from tools import files       # noqa: F401  (enregistre les outils de fichiers)
 
 __all__ = [
     "Tool", "ToolSpec", "ToolInput", "FunctionTool",

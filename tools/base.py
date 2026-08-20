@@ -75,6 +75,12 @@ class ToolSpec:
     # Vide = ouvert à tous. Sinon, liste blanche d'agents.
     allowed_agents: tuple[str, ...] = ()
 
+    # Coût réel non nul d'un appel — quota API, facturation, débit limité.
+    # Texte libre plutôt qu'un nombre : le coût d'un outil externe se mesure
+    # rarement dans une seule unité (quota YouTube ≠ $ OpenAI ≠ débit RapidAPI).
+    # Vide = gratuit / local.
+    cost_hint: str = ''
+
     def is_allowed_for(self, agent_id: str) -> bool:
         """Un outil sans liste blanche est ouvert ; sinon l'agent doit y figurer."""
         return not self.allowed_agents or agent_id in self.allowed_agents
@@ -99,6 +105,7 @@ class ToolSpec:
             "cacheable": self.cacheable,
             "timeout_s": self.timeout_s,
             "allowed_agents": list(self.allowed_agents),
+            "cost_hint": self.cost_hint,
         }
 
 
