@@ -122,6 +122,12 @@ class TestRegistre:
         with pytest.raises(AgentNotFound, match='psychologue'):
             registry.get('le-psychologue')
 
+    def test_declarer_facultatif_ce_qu_on_ne_consomme_pas_est_refuse(self):
+        """Sinon la fiche se contredit en silence : le planificateur lirait une
+        souplesse sur une dépendance qui n'existe pas."""
+        with pytest.raises(ValueError, match='facultatif ce qu.il ne consomme pas'):
+            _spec(consumes=('a',), optional_consumes=('b',))
+
     def test_un_statut_invalide_est_refuse(self):
         with pytest.raises(ValueError, match='Statut invalide'):
             _spec(status='peut-etre')

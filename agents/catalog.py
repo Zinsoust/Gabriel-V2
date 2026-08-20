@@ -66,6 +66,8 @@ _DECLARATIONS = (
             # Dépendance réelle : `run` lit ctx.get('psychologue'). Un plan qui
             # l'ignorerait produirait une stratégie sans matière.
             consumes=('psychologue',),
+            # Souple : app.py lance aussi le Stratège sur un brief texte seul.
+            optional_consumes=('psychologue',),
             produces='stratege',
             route='/stratege',
         ),
@@ -81,6 +83,9 @@ _DECLARATIONS = (
             # `run()` lève : le vrai point d'entrée a toujours été celui-ci.
             entrypoint='generate_script_or_text',
             consumes=('psychologue', 'stratege'),
+            # Souples également : `_resolve_psycho` peut ne rien rendre, et la
+            # stratégie est facultative dans la requête de génération.
+            optional_consumes=('psychologue', 'stratege'),
             produces='createur',
             skills=('writing.tone_discipline', 'writing.emotion_directive'),
             route='/createur',

@@ -58,6 +58,12 @@ class AgentSpec:
 
     # Ce dont l'agent a besoin dans le contexte, et ce qu'il y dépose.
     consumes: Tuple[str, ...] = ()
+    # Sous-ensemble de `consumes` dont l'agent peut se passer, en mode dégradé.
+    # Distinction tirée du code réel, pas d'un principe : le Stratège tourne
+    # aujourd'hui sur un simple brief texte, sans analyse d'audience
+    # (app.py — flux Context Builder). Confondre les deux ferait refuser un
+    # parcours qui fonctionne, ou promettre une qualité qui n'est pas là.
+    optional_consumes: Tuple[str, ...] = ()
     produces: str = ''
 
     # Ce qu'il mobilise. Vérifié contre les registres à l'enregistrement.
@@ -73,6 +79,11 @@ class AgentSpec:
             raise ValueError(
                 f"Statut invalide pour « {self.id} » : {self.status!r}. "
                 f"Attendu : {', '.join(_STATUSES)}.")
+        inconnus = set(self.optional_consumes) - set(self.consumes)
+        if inconnus:
+            raise ValueError(
+                f"L'agent « {self.id} » déclare facultatif ce qu'il ne consomme "
+                f"pas : {', '.join(sorted(inconnus))}.")
 
     @property
     def usable(self) -> bool:
@@ -87,6 +98,7 @@ class AgentSpec:
             'status': self.status,
             'usable': self.usable,
             'consumes': list(self.consumes),
+            'optional_consumes': list(self.optional_consumes),
             'produces': self.produces,
             'tools': list(self.tools),
             'skills': list(self.skills),
