@@ -19,6 +19,7 @@ from tools import comparison  # noqa: F401  (enregistre l'outil de comparaison m
 from tools import nlp         # noqa: F401  (enregistre l'outil du pipeline NLP)
 from tools import strategic_memory  # noqa: F401  (enregistre l'outil de mémoire stratégique)
 from tools import statistics  # noqa: F401  (enregistre l'outil des livrables statistiques)
+from tools import content_quality  # noqa: F401  (enregistre l'outil de contrôle qualité)
 
 __all__ = [
     "Tool", "ToolSpec", "ToolInput", "FunctionTool",
