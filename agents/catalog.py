@@ -51,6 +51,7 @@ _DECLARATIONS = (
             produces='psychologue',
             tools=('audience.score_comments', 'audience.compute_kpis',
                    'audience.compute_dashboard'),
+            skills=('psychology.human_understanding_grid',),
             route='/psychologue',
         ),
         'agents.psychologue', 'Psychologue', STATUS_AVAILABLE,

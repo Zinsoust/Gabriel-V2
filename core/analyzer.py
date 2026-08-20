@@ -104,6 +104,18 @@ LOIS ABSOLUES DE GABRIEL
 7. INTELLIGENCE EMOTIONNELLE — derriere une critique, cherche un espoir decu. Derriere un enthousiasme, cherche une aspiration nourrie. Derriere le silence, cherche une peur non exprimee."""
 
 
+def _psychology_grid() -> str:
+    """Grille de compréhension humaine — voir skills/psychology.py.
+
+    Le texte reste défini une seule fois dans GABRIEL_SYSTEM ; le Skill le
+    référence, ne le recopie pas. Passer par lui plutôt que par la constante
+    directement rend cette lecture consultable par le Core, comme les
+    disciplines de tonalité du Créateur le sont déjà.
+    """
+    from skills import registry as skill_registry
+    return skill_registry.render('psychology.human_understanding_grid', 'psychologue').content
+
+
 # ─── UTILITAIRES ──────────────────────────────────────────────────────────────
 
 
@@ -751,7 +763,7 @@ Polarisation={d.get('polarization_score',0)} | Opportunité={d.get('opportunity_
 Émotion dominante={d.get('dominant_emotion','')} | Stance dominante={d.get('dominant_stance','')} | Désir dominant={d.get('dominant_desire','')}
 """
 
-    shared_context = f"""{GABRIEL_SYSTEM}
+    shared_context = f"""{_psychology_grid()}
 {brain_section}{video_section}{rag_section}
 DONNEES MATHEMATIQUES DEJA CALCULEES :
 KPIs : {kpi_summary}
@@ -1138,7 +1150,7 @@ Polarisation : {kpis.get('polarisation',{}).get('score',0)}/100
             '"confiance" = score ∈ [0,1], plafonné à 0.6 en l\'absence de cluster mesuré.'
         )
 
-    shared = f"""{GABRIEL_SYSTEM}
+    shared = f"""{_psychology_grid()}
 {brain_section}
 DONNÉES MESURÉES :
 {ctx}
@@ -1266,7 +1278,7 @@ Opportunite : {kpis.get('opportunite',{}).get('score',0)}/100
 
     brain_section = f"\nCONTEXTE METIER :\n{brain_context}\n" if brain_context else ""
 
-    prompt = f"""{GABRIEL_SYSTEM}
+    prompt = f"""{_psychology_grid()}
 {brain_section}
 SYNTHESE ANALYSE :
 {ctx}
@@ -1326,7 +1338,7 @@ Opportunité : {kpis.get('opportunite',{}).get('score',0)}/100
 
     brain_section = f"\nCONTEXTE METIER :\n{brain_context}\n" if brain_context else ""
 
-    prompt = f"""{GABRIEL_SYSTEM}
+    prompt = f"""{_psychology_grid()}
 {brain_section}
 SYNTHESE ANALYSE :
 {ctx}
@@ -1443,7 +1455,7 @@ Ce qu'ils veulent devenir : {asp.get('ce_qu_ils_veulent_devenir','')}
     brain_section = f"\nCONTEXTE METIER :\n{brain_context}\n" if brain_context else ""
     video_section = f"SUJET : {video_context}\n" if video_context else ""
 
-    prompt = f"""{GABRIEL_SYSTEM}
+    prompt = f"""{_psychology_grid()}
 {brain_section}{video_section}
 {context}
 

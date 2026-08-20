@@ -94,15 +94,20 @@ class SkillSpec:
         }
 
     def is_fully_documented(self) -> bool:
-        """Les sept champs sont-ils réellement renseignés ?
+        """Les six champs textuels sont-ils réellement renseignés ?
 
         Un Skill enregistré sans cette fiche complète reste utilisable — on ne
         bloque personne — mais un planificateur qui choisit entre plusieurs
         Skills doit pouvoir écarter ceux qu'il ne peut pas encore évaluer.
+
+        `required_info` est délibérément exclu de ce test : un tuple vide y
+        est une réponse légitime (« ce Skill ne demande aucune information »,
+        vrai pour la grille psychologique) et non une case oubliée —
+        contrairement aux six champs textuels, qui n'ont pas de valeur vide
+        honnête.
         """
-        return all((self.solves, self.when_to_use, self.required_info,
-                   self.methodology_summary, self.limitations,
-                   self.output_format))
+        return all((self.solves, self.when_to_use, self.methodology_summary,
+                   self.limitations, self.output_format))
 
 
 class Skill(ABC):
