@@ -4,6 +4,9 @@ from skills.base import (CatalogSkill, Skill, SkillError, SkillFragment,
                          SkillSpec)
 from skills.registry import SkillNotFound, SkillRegistry, registry
 
+from tools import registry as _tool_registry  # noqa: E402
+registry.configure(tool_registry=_tool_registry)
+
 from skills import writing as _writing  # noqa: E402  (peuple le registre)
 
 _writing.register_all()

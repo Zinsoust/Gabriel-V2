@@ -61,6 +61,20 @@ class SkillSpec:
     injectable: bool = True     # destiné à entrer dans un prompt
     accepts_free_text: bool = False  # gère-t-il une demande hors catalogue ?
 
+    # Les sept questions qu'un planificateur doit pouvoir poser à un Skill
+    # avant de le mobiliser — pas des champs décoratifs : chacun répond à une
+    # décision réelle (le convoquer ou non, avec quoi, et jusqu'où lui faire
+    # confiance). Par défaut vides plutôt qu'obligatoires, pour ne pas casser
+    # un Skill déjà déclaré avant que sa fiche soit complétée — mais un Skill
+    # incomplet doit rester visible comme tel, pas silencieusement accepté.
+    solves: str = ''                        # ce qu'il sait résoudre
+    when_to_use: str = ''                    # quand le convoquer
+    required_info: tuple[str, ...] = ()      # ce qu'il faut lui fournir
+    methodology_summary: str = ''            # sa méthode, en une ou deux phrases
+    allowed_tools: tuple[str, ...] = ()      # Tools qu'il peut mobiliser
+    limitations: str = ''                    # ce qu'il ne couvre pas
+    output_format: str = ''                  # forme de ce qu'il produit
+
     def describe(self) -> dict:
         return {
             'id': self.id,
@@ -70,7 +84,25 @@ class SkillSpec:
             'source': self.source,
             'injectable': self.injectable,
             'accepts_free_text': self.accepts_free_text,
+            'solves': self.solves,
+            'when_to_use': self.when_to_use,
+            'required_info': list(self.required_info),
+            'methodology_summary': self.methodology_summary,
+            'allowed_tools': list(self.allowed_tools),
+            'limitations': self.limitations,
+            'output_format': self.output_format,
         }
+
+    def is_fully_documented(self) -> bool:
+        """Les sept champs sont-ils réellement renseignés ?
+
+        Un Skill enregistré sans cette fiche complète reste utilisable — on ne
+        bloque personne — mais un planificateur qui choisit entre plusieurs
+        Skills doit pouvoir écarter ceux qu'il ne peut pas encore évaluer.
+        """
+        return all((self.solves, self.when_to_use, self.required_info,
+                   self.methodology_summary, self.limitations,
+                   self.output_format))
 
 
 class Skill(ABC):
@@ -115,6 +147,11 @@ class CatalogSkill(Skill):
     aliases: Mapping[str, str] = field(default_factory=dict)
     normalizer: Optional[Callable[[str], str]] = None
     fallback: Optional[Callable[[str], str]] = None
+    # Clé substituée silencieusement sur une demande non reconnue — comportement
+    # historique du Créateur : un format inconnu se rabat sur 'hooks' plutôt que
+    # d'échouer. Distinct de `fallback` : ici on sert une entrée existante du
+    # catalogue, pas un texte généré pour l'occasion.
+    default_key: Optional[str] = None
 
     def keys(self) -> tuple:
         return tuple(sorted(self.catalog))
@@ -135,4 +172,10 @@ class CatalogSkill(Skill):
         if key and self.fallback is not None:
             return SkillFragment(self.spec.id, key, requested or '',
                                  self.fallback(requested), 'fallback')
+        if self.default_key is not None and self.default_key in self.catalog:
+            # Servi, mais ce n'est pas ce qui a été demandé : `known` doit
+            # rester faux, sinon un format mal orthographié passerait pour
+            # reconnu.
+            return SkillFragment(self.spec.id, self.default_key, requested or '',
+                                 self.catalog[self.default_key], 'default')
         return SkillFragment(self.spec.id, key, requested or '', '', 'none')

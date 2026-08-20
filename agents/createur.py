@@ -1028,7 +1028,8 @@ class Createur(BaseAgent):
 
         # ── 3. Choisir le prompt system ───────────────────────────────────────
         fmt_key    = (content_type or 'hooks').lower().replace('-', '_').replace(' ', '_')
-        system_pmt = _SYSTEM_PROMPTS.get(fmt_key, _SYSTEM_PROMPTS['hooks'])
+        from skills import registry as skill_registry
+        system_pmt = skill_registry.render('writing.content_structure', fmt_key).content
 
         # ── 4. Discipline de tonalité ─────────────────────────────────────────
         tone_discipline = _get_tone_discipline(tone or '')
@@ -1224,7 +1225,8 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
             "dans sa logique d'écriture, pas seulement dans le vocabulaire.\n"
         ) if alt_discipline else ""
 
-        system_pmt = _SYSTEM_PROMPTS.get(fmt_key, _SYSTEM_PROMPTS['hooks'])
+        from skills import registry as skill_registry
+        system_pmt = skill_registry.render('writing.content_structure', fmt_key).content
 
         prompt = (
             f"{system_pmt}\n\n"

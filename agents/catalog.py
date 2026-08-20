@@ -87,7 +87,8 @@ _DECLARATIONS = (
             # stratégie est facultative dans la requête de génération.
             optional_consumes=('psychologue', 'stratege'),
             produces='createur',
-            skills=('writing.tone_discipline', 'writing.emotion_directive'),
+            skills=('writing.tone_discipline', 'writing.emotion_directive',
+                   'writing.content_structure'),
             route='/createur',
         ),
         'agents.createur', 'Createur', STATUS_AVAILABLE,

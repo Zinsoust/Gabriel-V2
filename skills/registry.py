@@ -16,8 +16,14 @@ class SkillNotFound(SkillError, KeyError):
 
 
 class SkillRegistry:
-    def __init__(self) -> None:
+    def __init__(self, tool_registry=None) -> None:
         self._skills: Dict[str, Skill] = {}
+        self._tools = tool_registry
+
+    def configure(self, *, tool_registry) -> None:
+        """Attache le registre d'outils après coup — le singleton module-level
+        est créé avant que `tools` soit importé, pour éviter tout cycle."""
+        self._tools = tool_registry
 
     def register(self, skill: Skill) -> Skill:
         sid = skill.spec.id
@@ -25,6 +31,12 @@ class SkillRegistry:
             raise ValueError(
                 f"Skill « {sid} » déjà enregistré : deux méthodologies sous un "
                 f"même identifiant se masqueraient silencieusement.")
+        if self._tools is not None:
+            for tool_id in skill.spec.allowed_tools:
+                if tool_id not in self._tools:
+                    raise ValueError(
+                        f"Le skill « {sid} » déclare l'outil inconnu "
+                        f"« {tool_id} ».")
         self._skills[sid] = skill
         return skill
 
