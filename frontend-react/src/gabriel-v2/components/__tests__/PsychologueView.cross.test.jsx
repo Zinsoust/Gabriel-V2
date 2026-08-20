@@ -7,7 +7,7 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup, within } from '@testing-library/react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PsychologueView } from '../PsychologueView.jsx';
 
@@ -24,105 +24,101 @@ function routeFetch(routes) {
   });
 }
 
-const PREVIEW = { comments_preview: ['a'], comments_count: 150 };
-
-/** Le panneau flottant se superpose à la carte de saisie : les deux portent un
- *  champ de lien identique. Tout doit être cherché dans le panneau. */
-function panel() {
-  return within(screen.getByRole('dialog'));
+/** La Cross Analyse n'est plus un panneau flottant : c'est un mode du
+ *  composer. Ajouter une audience s'y fait sans aller-retour serveur — le lien
+ *  est reconnu localement. */
+async function activerCross(user) {
+  await user.click(screen.getByRole('button', { name: /Cross Analyse/ }));
 }
 
-/** Ajoute n vidéos vérifiées dans le panneau Cross Analyse. */
-async function addVideos(user, n) {
+async function ajouterAudiences(user, n) {
   for (let i = 0; i < n; i += 1) {
-    const input = panel().getByPlaceholderText(/vidéo YouTube/);
-    await user.clear(input);
-    await user.type(input, `https://youtube.com/watch?v=vid${i}`);
-    await user.click(panel().getByRole('button', { name: /Vérifier le lien/ }));
-    await waitFor(() => expect(panel().getByRole('status')).toHaveTextContent(/150 commentaires/));
-    const add = panel().queryByRole('button', { name: /Ajouter une autre vidéo/ });
-    if (add) await user.click(add);
+    const champ = screen.getByPlaceholderText(/Ajoutez une audience/);
+    await user.clear(champ);
+    await user.type(champ, `https://youtube.com/watch?v=audience${i}`);
+    await user.click(screen.getByRole('button', { name: /Ajouter cette audience/ }));
   }
 }
+
+const retraits = () => screen.queryAllByRole('button', { name: /Retirer l.audience/ });
 
 beforeEach(() => { window.localStorage.clear(); });
 afterEach(() => { vi.restoreAllMocks(); cleanup(); });
 
-describe('Panneau Cross Analyse', () => {
-  it('s’ouvre depuis l’en-tête du Psychologue', async () => {
+describe('Mode Cross Analyse', () => {
+  it('s’active depuis le composer', async () => {
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('button', { name: /Cross Analyse/ }));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText(/Comparez 2 à 5 audiences/)).toBeInTheDocument();
+    await activerCross(user);
+    expect(screen.getByRole('button', { name: /Cross Analyse/ }))
+      .toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByPlaceholderText(/Ajoutez une audience/)).toBeInTheDocument();
   });
 
   it('refuse de comparer une seule audience', async () => {
     const user = userEvent.setup();
-    global.fetch = routeFetch([['/analyze', PREVIEW]]);
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('button', { name: /Cross Analyse/ }));
-    await addVideos(user, 1);
+    await activerCross(user);
+    await ajouterAudiences(user, 1);
     // Le minimum de 2 est une règle métier du serveur : la refléter ici évite
     // un aller-retour qui échouera de toute façon.
-    expect(panel().getByRole('button', { name: /Comparer/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Comparer 1 audiences/ })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: /Comparer 1 audiences →/ })).toBeNull();
   });
 
   it('autorise la comparaison à partir de deux audiences', async () => {
     const user = userEvent.setup();
-    global.fetch = routeFetch([['/analyze', PREVIEW]]);
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('button', { name: /Cross Analyse/ }));
-    await addVideos(user, 2);
-    expect(panel().getByRole('button', { name: /Comparer/ })).toBeEnabled();
+    await activerCross(user);
+    await ajouterAudiences(user, 2);
+    // Deux chemins mènent au lancement : le bouton du composer et le bouton
+    // dédié. Les deux doivent s'ouvrir en même temps.
+    const lancements = screen.getAllByRole('button', { name: /Comparer 2 audiences/ });
+    expect(lancements).toHaveLength(2);
+    lancements.forEach(bouton => expect(bouton).toBeEnabled());
   });
 
-  it('cesse de proposer l’ajout au-delà de cinq audiences', async () => {
+  it('cesse d’accepter des audiences au-delà de cinq', async () => {
     const user = userEvent.setup();
-    global.fetch = routeFetch([['/analyze', PREVIEW]]);
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('button', { name: /Cross Analyse/ }));
-    await addVideos(user, 5);
-    expect(panel().getAllByRole('button', { name: /Retirer cette vidéo/ })).toHaveLength(5);
+    await activerCross(user);
+    await ajouterAudiences(user, 5);
+    expect(retraits()).toHaveLength(5);
 
-    // Une 6e vidéo vérifiée : c'est le seul état où le bouton d'ajout
-    // réapparaîtrait si le plafond n'était pas respecté. Sans cette 6e
-    // vérification, le test passerait même avec un plafond erroné, simplement
-    // parce que le champ est vidé après chaque ajout.
-    const input = panel().getByPlaceholderText(/vidéo YouTube/);
-    await user.type(input, 'https://youtube.com/watch?v=vid5');
-    await user.click(panel().getByRole('button', { name: /Vérifier le lien/ }));
-    await waitFor(() => expect(panel().getByRole('status')).toHaveTextContent(/150 commentaires/));
-
-    expect(panel().queryByRole('button', { name: /Ajouter une autre vidéo/ })).not.toBeInTheDocument();
+    // Une 6e audiences saisie : c'est le seul état où l'ajout redeviendrait
+    // possible si le plafond n'était pas respecté. Sans cette 6e saisie, le
+    // test passerait même avec un plafond erroné, simplement parce que le
+    // champ est vidé après chaque ajout.
+    await user.type(screen.getByPlaceholderText(/Ajoutez une audience/),
+                    'https://youtube.com/watch?v=audience5');
+    expect(screen.queryByRole('button', { name: /Ajouter cette audience/ })).toBeNull();
+    expect(retraits()).toHaveLength(5);
   });
 
   it('permet de retirer une audience déjà ajoutée', async () => {
     const user = userEvent.setup();
-    global.fetch = routeFetch([['/analyze', PREVIEW]]);
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('button', { name: /Cross Analyse/ }));
-    await addVideos(user, 2);
+    await activerCross(user);
+    await ajouterAudiences(user, 2);
 
-    const remove = panel().getAllByRole('button', { name: /Retirer cette vidéo/ });
-    expect(remove).toHaveLength(2);
-    await user.click(remove[0]);
-    expect(panel().getAllByRole('button', { name: /Retirer cette vidéo/ })).toHaveLength(1);
+    expect(retraits()).toHaveLength(2);
+    await user.click(retraits()[0]);
+    expect(retraits()).toHaveLength(1);
   });
 
-  it('refuse deux fois la même vidéo', async () => {
+  it('refuse deux fois la même audience', async () => {
     const user = userEvent.setup();
-    global.fetch = routeFetch([['/analyze', PREVIEW]]);
     render(<PsychologueView workspace={null} />);
-    await user.click(screen.getByRole('button', { name: /Cross Analyse/ }));
-    await addVideos(user, 1);
+    await activerCross(user);
+    await ajouterAudiences(user, 1);
 
-    const input = panel().getByPlaceholderText(/vidéo YouTube/);
-    await user.type(input, 'https://youtube.com/watch?v=vid0');
-    await user.click(panel().getByRole('button', { name: /Vérifier le lien/ }));
-    // Comparer une vidéo avec elle-même ne produit aucune divergence : le
+    await user.type(screen.getByPlaceholderText(/Ajoutez une audience/),
+                    'https://youtube.com/watch?v=audience0');
+    // Comparer une audience avec elle-même ne produit aucune divergence : le
     // serveur le rejette, l'interface doit le dire avant l'appel.
-    await waitFor(() => expect(panel().getByRole('status')).toHaveTextContent(/déjà dans la liste/));
+    expect(screen.getByText(/Déjà ajoutée/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Ajouter cette audience/ })).toBeNull();
+    expect(retraits()).toHaveLength(1);
   });
 });
 
