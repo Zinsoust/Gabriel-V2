@@ -1,16 +1,13 @@
 """Déclaration des cinq mémoires de Gabriel.
 
-``conversation`` et ``strategic`` sont branchées : leurs fonctions d'accès
-vivent dans des modules importables et sont référencées telles quelles.
-
-``user``, ``business`` et ``audience`` vivent aujourd'hui dans ``app.py`` —
-voir la note dans ``core/memory_manager.py``. Elles sont déclarées
-``STATUS_PLANNED`` : visibles dans le catalogue, honnêtes sur leur statut,
-prêtes à être branchées le jour où leurs fonctions d'accès seront extraites.
+Les cinq sont désormais branchées. ``user``, ``business`` et ``audience``
+vivaient dans ``app.py`` — inatteignable pour ce module (voir la note
+historique dans ``core/memory_manager.py``) — et ont été extraites vers
+``core/business_context.py`` sans changement de comportement, le même geste
+déjà fait pour les outils du Psychologue et les savoir-faire du Créateur.
 """
 
-from core.memory_manager import (STATUS_AVAILABLE, STATUS_PLANNED,
-                                 MemoryEntry, MemorySpec, registry)
+from core.memory_manager import STATUS_AVAILABLE, MemoryEntry, MemorySpec, registry
 
 
 def _fetch_conversation(*, previous: dict, message: str, history=(),
@@ -56,14 +53,41 @@ STRATEGIC_MEMORY = MemorySpec(
     source='core/memory.py::GabrielMemory',
 )
 
+def _fetch_user(*, uid) -> MemoryEntry:
+    from core.business_context import get_user_profile
+    profil = get_user_profile(uid)
+    return MemoryEntry('user', profil, not bool(profil), provenance='profile_file')
+
+
+def _fetch_business(*, data, uid) -> MemoryEntry:
+    from core.business_context import resolve_business_context
+    contexte = resolve_business_context(data, uid)
+    # La cascade retombe en silence sur trois sources : la déclarer ici évite
+    # qu'un appelant confonde un profil frais avec un legacy oublié.
+    if data.get('business_context'):
+        provenance = 'request_body'
+    elif uid:
+        provenance = 'context_builder_interview_or_legacy_profile'
+    else:
+        provenance = 'none'
+    return MemoryEntry('business', contexte, not bool(contexte), provenance=provenance)
+
+
+def _fetch_audience(*, folder_id, user_id, include_agents=()) -> MemoryEntry:
+    from core.business_context import load_workspace_context
+    contenu = load_workspace_context(folder_id, user_id, include_agents)
+    return MemoryEntry('audience', contenu, not bool(contenu.get('loaded_agents')),
+                       provenance='workspace_reports')
+
+
 USER_MEMORY = MemorySpec(
     id='user',
     name='Profil utilisateur (hérité)',
     description="Profil business par fichier, mécanisme antérieur à l'Entretien stratégique.",
     scope='user',
     required_keys=('uid',),
-    status=STATUS_PLANNED,
-    source='app.py::_get_user_profile',
+    status=STATUS_AVAILABLE,
+    source='core/business_context.py::get_user_profile',
 )
 
 BUSINESS_MEMORY = MemorySpec(
@@ -74,29 +98,29 @@ BUSINESS_MEMORY = MemorySpec(
         "stratégique (Supabase), puis profil hérité en dernier recours."),
     scope='user',
     required_keys=('data', 'uid'),
-    status=STATUS_PLANNED,
-    source='app.py::_resolve_business_context',
+    status=STATUS_AVAILABLE,
+    source='core/business_context.py::resolve_business_context',
 )
 
 AUDIENCE_MEMORY = MemorySpec(
     id='audience',
-    name='Rapports d\'agents (workspace)',
+    name="Rapports d'agents (workspace)",
     description=(
         "Rapports du Psychologue, du Stratège et du Créateur pour un "
         "workspace, chargés seulement quand la conversation les appelle."),
     scope='session',
     required_keys=('folder_id', 'user_id'),
-    status=STATUS_PLANNED,
-    source='app.py::_orchestrator_load_context',
+    status=STATUS_AVAILABLE,
+    source='core/business_context.py::load_workspace_context',
 )
 
 
 def register_all() -> None:
     registry.register(CONVERSATION_MEMORY, _fetch_conversation)
     registry.register(STRATEGIC_MEMORY, _fetch_strategic)
-    registry.register(USER_MEMORY)
-    registry.register(BUSINESS_MEMORY)
-    registry.register(AUDIENCE_MEMORY)
+    registry.register(USER_MEMORY, _fetch_user)
+    registry.register(BUSINESS_MEMORY, _fetch_business)
+    registry.register(AUDIENCE_MEMORY, _fetch_audience)
 
 
 register_all()

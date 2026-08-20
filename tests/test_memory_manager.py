@@ -16,27 +16,34 @@ from core.memory_manager import registry
 
 
 class TestHonneteteSurCeQuiEstBranche:
-    """Trois des cinq mémoires vivent dans app.py, qui n'est importé par aucun
-    autre module — l'y importer créerait une dépendance qui n'existe nulle
-    part ailleurs. Le registre le dit plutôt que de le cacher."""
+    """`user`, `business` et `audience` vivaient dans app.py, qui n'est importé
+    par aucun autre module — l'y importer aurait créé une dépendance qui
+    n'existe nulle part ailleurs. Elles ont depuis été extraites vers
+    core/business_context.py, sans changement de comportement, et sont
+    maintenant branchées comme les deux premières."""
 
-    def test_deux_memoires_sont_reellement_branchees(self):
-        assert {'conversation', 'strategic'} == {
+    def test_les_cinq_memoires_sont_reellement_branchees(self):
+        assert {'conversation', 'strategic', 'user', 'business', 'audience'} == {
             m.spec.id for m in registry.available()}
 
-    def test_trois_memoires_sont_declarees_sans_etre_lisibles(self):
-        for memory_id in ('user', 'business', 'audience'):
-            assert memory_id in registry
-            assert registry.get(memory_id).spec.usable is False
-
-    def test_lire_une_memoire_non_branchee_echoue_explicitement(self):
-        with pytest.raises(MemoryUnavailable, match='app.py'):
-            registry.fetch('business', data={}, uid='u1')
+    def test_une_mecanique_de_repli_existe_toujours_pour_ce_cas(self):
+        """Filet de sécurité : si une mémoire redevenait un jour non branchée
+        (régression, dépendance cassée), la lecture doit échouer explicitement
+        plutôt que renvoyer un contenu silencieusement faux."""
+        r = MemoryRegistry()
+        spec = MemorySpec(id='x', name='X', description='…', scope='global',
+                          status=STATUS_PLANNED, source='quelque part')
+        r.register(spec)
+        with pytest.raises(MemoryUnavailable, match='quelque part'):
+            r.fetch('x')
 
     def test_chaque_memoire_declaree_dit_ou_vit_son_vrai_mecanisme(self):
         """Traçabilité : une mémoire déclarée doit pouvoir être retrouvée."""
         for entry in registry.all():
             assert entry.spec.source, entry.spec.id
+            assert 'app.py' not in entry.spec.source, (
+                f"{entry.spec.id} référence encore app.py — "
+                f"app.py n'est importé par aucun autre module du projet.")
 
 
 class TestLectureDesMemoiresBranchees:
@@ -109,4 +116,4 @@ class TestRegistre:
 
     def test_le_registre_distingue_declarees_et_branchees(self):
         assert len(registry) == 5
-        assert len(registry.available()) == 2
+        assert len(registry.available()) == 5
