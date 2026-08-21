@@ -456,6 +456,12 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
 """
 
 
+_PERSONA_IMMERSION = """\
+── IMMERSION — TU ES CETTE PERSONNE ──
+Avant d'écrire une seule ligne, entre dans la peau de cette personne.
+Elle n'est pas ton audience. Elle est toi, 2 ans en arrière."""
+
+
 def _free_emotion_directive(emotion: str) -> str:
     """Gabarit générique pour une émotion hors catalogue.
 
@@ -835,9 +841,9 @@ class Createur(BaseAgent):
         espoir = emots.get('espoir_decu') or ''
         hooks_det = mkt.get('hooks_performants') or []
 
-        lines.append("\n── IMMERSION — TU ES CETTE PERSONNE ──")
-        lines.append("Avant d'écrire une seule ligne, entre dans la peau de cette personne.")
-        lines.append("Elle n'est pas ton audience. Elle est toi, 2 ans en arrière.")
+        from skills import registry as skill_registry
+        lines.append("\n" + skill_registry.render(
+            'writing.persona_immersion', 'createur').content)
 
         if brief.get('synthese'):
             lines.append(f"\nQui elle est : {brief['synthese'][:250]}")

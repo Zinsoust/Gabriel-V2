@@ -12,12 +12,14 @@ from skills import psychology as _psychology  # noqa: E402  (peuple le registre)
 from skills import strategy as _strategy      # noqa: E402  (peuple le registre)
 from skills import strategy_corpus as _strategy_corpus  # noqa: E402
 from skills import human_voice as _human_voice          # noqa: E402
+from skills import persona_immersion as _persona_immersion  # noqa: E402
 
 _writing.register_all()
 _psychology.register_all()
 _strategy.register_all()
 _strategy_corpus.register_all()
 _human_voice.register_all()
+_persona_immersion.register_all()
 
 __all__ = [
     'CatalogSkill', 'Skill', 'SkillError', 'SkillFragment', 'SkillSpec',
