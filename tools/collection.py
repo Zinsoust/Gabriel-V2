@@ -40,8 +40,60 @@ FETCH_YOUTUBE_COMMENTS = ToolSpec(
 )
 
 
+
+
+def _fetch_instagram_comments(url):
+    from services.scraper import scrape_instagram_rapidapi
+    comments, info = scrape_instagram_rapidapi(url)
+    return {"comments": comments, "post_info": info}
+
+
+def _fetch_tiktok_comments(url):
+    from services.scraper import scrape_tiktok_rapidapi
+    comments, info = scrape_tiktok_rapidapi(url)
+    return {"comments": comments, "video_info": info}
+
+
+FETCH_INSTAGRAM_COMMENTS = ToolSpec(
+    id='collection.fetch_instagram_comments',
+    name='Collecte des commentaires Instagram',
+    description=(
+        "Récupère les commentaires d'une publication Instagram (post ou reel). "
+        "Sur un lien, tout échec porte sa cause : lien non reconnu, service "
+        "indisponible, collecte non configurée."),
+    category='collection',
+    inputs=(ToolInput('url', "URL de la publication Instagram"),),
+    output="{comments: [...], post_info: {}}",
+    deterministic=False,   # les commentaires évoluent entre deux appels
+    parallel_safe=True,
+    cacheable=False,
+    timeout_s=15,          # timeout HTTP de services/scraper.py
+    cost_hint='Quota RapidAPI (instagram-scraper-api2) : 1 requête par publication.',
+)
+
+FETCH_TIKTOK_COMMENTS = ToolSpec(
+    id='collection.fetch_tiktok_comments',
+    name='Collecte des commentaires TikTok',
+    description=(
+        "Récupère les commentaires et les métadonnées d'une vidéo TikTok, "
+        "jusqu'à 100, triés par likes. Résout les liens courts vm.tiktok.com."),
+    category='collection',
+    inputs=(ToolInput('url', "URL de la vidéo TikTok, courte ou canonique"),),
+    output="{comments: [...], video_info: {title, channel}}",
+    deterministic=False,
+    parallel_safe=True,
+    cacheable=False,
+    timeout_s=15,
+    # Deux appels au minimum — métadonnées puis commentaires — plus la
+    # pagination : le coût n'est pas d'une requête par vidéo.
+    cost_hint='Quota RapidAPI (tiktok-api23) : 2 requêtes minimum, plus une par page de 50 commentaires.',
+)
+
+
 def register_all() -> None:
     registry.register(FunctionTool(FETCH_YOUTUBE_COMMENTS, _fetch_youtube_comments))
+    registry.register(FunctionTool(FETCH_INSTAGRAM_COMMENTS, _fetch_instagram_comments))
+    registry.register(FunctionTool(FETCH_TIKTOK_COMMENTS, _fetch_tiktok_comments))
 
 
 register_all()

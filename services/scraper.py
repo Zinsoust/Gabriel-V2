@@ -25,6 +25,52 @@ class RapidAPIUnavailable(Exception):
         super().__init__(f"RapidAPI non abonné pour {platform}")
 
 
+class SocialCollectionError(RuntimeError):
+    """Échec de collecte Instagram/TikTok avec une cause identifiée.
+
+    Pendant des plateformes sociales de ``YouTubeCollectionError``. Avant
+    cette classe, ces collecteurs renvoyaient ``([], {})`` pour **cinq
+    situations distinctes** — clé absente, lien non reconnu, API en panne,
+    exception réseau, et aucun commentaire réellement présent. L'appelant ne
+    pouvait pas les distinguer : l'utilisateur recevait un écran vide, sans
+    savoir si son lien était mauvais ou si le service était tombé.
+
+    Un seul de ces cas reste un retour vide, et c'est le seul qui le mérite :
+    la collecte a réussi et la publication n'a pas de commentaire.
+    """
+    def __init__(self, platform, reason, message):
+        self.platform = platform
+        self.reason = reason
+        super().__init__(message)
+
+
+# Causes distinguées, et ce qu'elles impliquent pour l'appelant.
+SOCIAL_ERROR_MESSAGES = {
+    'apiKeyMissing': ("La collecte {platform} n'est pas configurée côté Gabriel. "
+                      "Collez vos commentaires directement, ou réessayez plus tard."),
+    'invalidUrl':    ("Ce lien {platform} n'est pas reconnu. Collez l'adresse d'une "
+                      "publication précise."),
+    'apiError':      ("La collecte {platform} a échoué. Réessayez dans quelques "
+                      "minutes, ou collez vos commentaires directement."),
+}
+
+
+def _social_error(platform, reason):
+    modele = SOCIAL_ERROR_MESSAGES.get(reason, "Collecte {platform} impossible.")
+    return SocialCollectionError(platform, reason,
+                                 modele.format(platform=platform.capitalize()))
+
+
+def _is_link(value):
+    """Un lien collé, par opposition à des commentaires collés à la main.
+
+    Cette distinction décide de tout : sur du texte libre, un collecteur qui
+    lèverait une erreur casserait le collage manuel, qui fonctionne
+    aujourd'hui même sans clé API.
+    """
+    return (value or '').strip().lower().startswith(('http://', 'https://', 'www.'))
+
+
 class YouTubeCollectionError(RuntimeError):
     """Erreur de collecte YouTube avec une cause identifiée (``reason``),
     au lieu d'un message générique unique pour vidéo privée, supprimée,
@@ -215,13 +261,25 @@ def scrape_youtube(url_or_id, max_comments=150):
 
 
 def scrape_instagram_rapidapi(url):
+    """Collecte les commentaires d'une publication Instagram.
+
+    Sur un lien, tout échec lève une ``SocialCollectionError`` portant sa
+    cause. Sur du texte libre, la fonction rend un résultat vide sans lever :
+    l'appelant se rabat alors sur le collage manuel, qui doit continuer à
+    fonctionner même sans clé API.
+    """
+    lien = _is_link(url)
     api_key = os.environ.get("RAPIDAPI_KEY")
     if not api_key:
+        if lien:
+            raise _social_error('instagram', 'apiKeyMissing')
         return [], {}
 
     # Supporte /p/ et /reel/
     match = re.search(r'/(?:p|reel)/([A-Za-z0-9_-]+)', url)
     if not match:
+        if lien:
+            raise _social_error('instagram', 'invalidUrl')
         return [], {}
     shortcode = match.group(1)
 
@@ -241,7 +299,8 @@ def scrape_instagram_rapidapi(url):
             print(f"[SCRAPER] RapidAPI Instagram {response.status_code} — clé non abonnée à instagram-scraper-api2.")
             raise RapidAPIUnavailable('instagram')
         if response.status_code != 200:
-            return [], {}
+            print(f"[SCRAPER] Instagram HTTP {response.status_code}")
+            raise _social_error('instagram', 'apiError')
 
         data = response.json()
         comments = []
@@ -253,18 +312,34 @@ def scrape_instagram_rapidapi(url):
                     'likes': item.get('comment_like_count', 0),
                     'author': item.get('user', {}).get('username', '')
                 })
+        # Zéro commentaire ici est un vrai résultat : la collecte a réussi et
+        # la publication n'en a pas. C'est le seul cas qui mérite un vide.
         return comments, {}
-    except RapidAPIUnavailable:
+    except (RapidAPIUnavailable, SocialCollectionError):
         raise
-    except Exception:
-        return [], {}
+    except Exception as error:
+        print(f"[SCRAPER] Instagram échec réseau : {error}")
+        raise _social_error('instagram', 'apiError') from error
 
 
 def scrape_tiktok_rapidapi(url):
-    """Récupère les commentaires TikTok via RapidAPI (tiktok-api23)."""
+    """Récupère les commentaires TikTok via RapidAPI (tiktok-api23).
+
+    Même contrat qu'Instagram : sur un lien, tout échec lève une
+    ``SocialCollectionError`` portant sa cause ; sur du texte libre, retour
+    vide pour laisser le collage manuel fonctionner.
+    """
+    lien = _is_link(url)
+    if not lien:
+        # Du texte libre n'a rien à collecter : l'appelant se rabattra sur le
+        # collage manuel. Avant, cette entrée déclenchait quand même un appel
+        # réseau — dépense inutile, et une clé non abonnée y faisait échouer
+        # un collage manuel parfaitement valide.
+        return [], {}
+
     api_key = os.environ.get("RAPIDAPI_KEY")
     if not api_key:
-        return [], {}
+        raise _social_error('tiktok', 'apiKeyMissing')
 
     # Résoudre les URLs courtes vm.tiktok.com → URL canonique
     canonical = url
@@ -313,10 +388,15 @@ def scrape_tiktok_rapidapi(url):
         aweme = m.group(1) if m else ''
 
     if not aweme:
+        # Ni l'appel méta ni l'URL ne donnent l'identifiant de la vidéo :
+        # le lien n'est pas exploitable, et le dire vaut mieux qu'un vide.
+        if lien:
+            raise _social_error('tiktok', 'invalidUrl')
         return [], video_info
 
     # 2. Commentaires (jusqu'à 100)
     cursor = 0
+    premier_appel = True
     while len(comments) < 100:
         try:
             resp = requests.get(
@@ -326,6 +406,12 @@ def scrape_tiktok_rapidapi(url):
                 timeout=15
             )
             if resp.status_code != 200:
+                # Échouer au tout premier appel n'est pas la même chose que
+                # s'arrêter en cours de pagination : le premier ne rend rien
+                # du tout, le second garde ce qui a déjà été collecté.
+                if premier_appel and lien:
+                    print(f"[SCRAPER] TikTok HTTP {resp.status_code}")
+                    raise _social_error('tiktok', 'apiError')
                 break
             data = resp.json()
             items = data.get('data', {}).get('comments', [])
@@ -342,7 +428,13 @@ def scrape_tiktok_rapidapi(url):
             if not data.get('data', {}).get('has_more'):
                 break
             cursor = data.get('data', {}).get('cursor', cursor + 50)
-        except Exception:
+            premier_appel = False
+        except SocialCollectionError:
+            raise
+        except Exception as error:
+            if premier_appel and lien:
+                print(f"[SCRAPER] TikTok échec réseau : {error}")
+                raise _social_error('tiktok', 'apiError') from error
             break
 
     # Trier par likes décroissants, garder les 100 plus représentatifs

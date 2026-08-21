@@ -58,6 +58,7 @@ from services.scraper import (
     scrape_youtube,
     scrape_instagram_rapidapi,
     scrape_tiktok_rapidapi,
+    SocialCollectionError,
     parse_manual_comments,
     RapidAPIUnavailable,
 )
@@ -855,6 +856,13 @@ def analyze():
         threading.Thread(target=_run_analysis, daemon=True).start()
         return jsonify({'job_id': job_id, 'status': 'running'})
 
+    except SocialCollectionError as e:
+        # Cause identifiée : l'utilisateur apprend s'il doit corriger son lien
+        # ou réessayer plus tard, au lieu de recevoir un écran vide.
+        safe_log_event('social_collection_failed',
+                       metadata={'platform': e.platform, 'reason': e.reason})
+        statut = 400 if e.reason == 'invalidUrl' else 503
+        return jsonify({'error': str(e)}), statut
     except RapidAPIUnavailable as e:
         safe_log_event('rapidapi_not_subscribed', metadata={'platform': e.platform})
         return jsonify({
