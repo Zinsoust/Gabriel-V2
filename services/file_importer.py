@@ -1,4 +1,4 @@
-# ─── Gabriel — Import de fichiers commentaires (CSV / Excel / JSON) ───────────
+# ─── Gabriel — Import de fichiers commentaires (CSV / Excel / JSON / TXT) ─────
 #
 # Transforme un fichier uploadé en liste de commentaires au format standard
 # Gabriel, prêt pour le pipeline Psychologue. Aucun fichier n'est écrit sur
@@ -21,7 +21,7 @@ TEXT_MIN_CHARS  = 3                  # aligné sur parse_manual_comments (> 2)
 TEXT_MAX_CHARS  = 2000               # tronquer les textes très longs
 PREVIEW_COUNT   = 15
 
-ALLOWED_EXTENSIONS = {'.csv', '.xlsx', '.xls', '.json'}
+ALLOWED_EXTENSIONS = {'.csv', '.xlsx', '.xls', '.json', '.txt'}
 
 # MIME types tolérés (les navigateurs varient — l'extension + le parsing
 # réussi restent la vraie validation)
@@ -66,14 +66,14 @@ class FileImportError(Exception):
 
 def parse_comments_file(filename, raw_bytes, forced_column=None):
     """
-    Parse un fichier (CSV/XLSX/XLS/JSON) et retourne :
+    Parse un fichier (CSV/XLSX/XLS/JSON/TXT) et retourne :
       {file_type, detected_columns, selected_column, items, warning}
     items = liste de dicts bruts {'text': ..., méta éventuelle}.
     Lève FileImportError avec un message utilisateur en cas de problème.
     """
     ext = _extension(filename)
     if ext not in ALLOWED_EXTENSIONS:
-        raise FileImportError("Format non supporté. Formats acceptés : CSV, Excel (.xlsx/.xls), JSON.")
+        raise FileImportError("Format non supporté. Formats acceptés : CSV, Excel (.xlsx/.xls), JSON ou TXT.")
     if len(raw_bytes) > FILE_MAX_BYTES:
         raise FileImportError("Le fichier est trop lourd (maximum 5 MB).")
     if not raw_bytes:
@@ -85,9 +85,12 @@ def parse_comments_file(filename, raw_bytes, forced_column=None):
     elif ext in ('.xlsx', '.xls'):
         result = _parse_excel(raw_bytes, ext, forced_column)
         result['file_type'] = 'xlsx' if ext == '.xlsx' else 'xls'
-    else:
+    elif ext == '.json':
         result = _parse_json(raw_bytes, forced_column)
         result['file_type'] = 'json'
+    else:
+        result = _parse_txt(raw_bytes)
+        result['file_type'] = 'txt'
 
     if not result.get('items'):
         raise FileImportError("Aucune colonne de commentaire détectée dans le fichier.")
@@ -209,6 +212,22 @@ def _parse_json(raw_bytes, forced_column=None):
         raise FileImportError("Aucune donnée exploitable dans le fichier JSON.")
     columns = list({k for r in records for k in r.keys()})
     return _extract_from_records(records, columns, forced_column)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Texte brut — une ligne = un commentaire
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _parse_txt(raw_bytes):
+    items = [{'text': line.strip()} for line in _decode(raw_bytes).splitlines() if line.strip()]
+    if not items:
+        raise FileImportError("Aucun commentaire détecté dans le fichier texte.")
+    return {
+        'detected_columns': [],
+        'selected_column': '',
+        'items': items,
+        'warning': '',
+    }
 
 
 # ══════════════════════════════════════════════════════════════════════════════

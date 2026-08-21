@@ -134,6 +134,31 @@ def test_isolation_update_folder():
     assert result is False
 
 
+def test_workspace_cache_preserves_confirmed_folder_during_transient_db_error(monkeypatch):
+    """Une panne réseau ne transforme jamais un dossier déjà lu en faux 404."""
+    class _OfflineSupabase:
+        def table(self, _name):
+            raise OSError('temporary DNS failure')
+
+    _db._folder_cache.clear()
+    _db._cache_folder(UID_A, {
+        'folder_id': 'cached-workspace', 'title': 'Session en cours',
+        'user_id': UID_A, 'updated_at': '2026-08-12T10:00:00',
+    })
+    monkeypatch.setattr(_db, '_supabase', _OfflineSupabase())
+
+    try:
+        folder = _db.get_folder_by_id('cached-workspace', UID_A)
+        folders = _db.get_folders(UID_A)
+        foreign = _db.get_folder_by_id('cached-workspace', UID_B)
+    finally:
+        _db._folder_cache.clear()
+
+    assert folder['title'] == 'Session en cours'
+    assert [row['folder_id'] for row in folders] == ['cached-workspace']
+    assert foreign is None
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # 4. Page HTML dossiers — accès et affichage
 # ══════════════════════════════════════════════════════════════════════════════

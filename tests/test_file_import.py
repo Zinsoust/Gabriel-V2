@@ -1,4 +1,4 @@
-# ─── Gabriel — Tests import fichiers commentaires (CSV / Excel / JSON) ────────
+# ─── Gabriel — Tests import fichiers commentaires (CSV / Excel / JSON / TXT) ──
 #
 # Couvre le parsing, la détection de colonnes, la normalisation, les limites
 # de sécurité et l'intégration avec /analyze (source='file').
@@ -147,6 +147,20 @@ def test_json_array_of_strings():
     d = r.get_json()
     assert d['success'] is True
     assert d['comments_count'] == 3
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 8. TXT — une ligne = un commentaire
+# ════════════════════════════════════════════════════════════════════════════
+def test_text_file_one_comment_per_line():
+    text_data = "Très bon service client\nPrix trop élevé pour moi\nJe recommande sans hésiter\n"
+    r = _upload('commentaires.txt', text_data.encode('utf-8'))
+    d = r.get_json()
+    assert r.status_code == 200
+    assert d['success'] is True
+    assert d['file_type'] == 'txt'
+    assert d['comments_count'] == 3
+    assert d['normalized_comments'][1]['text'] == 'Prix trop élevé pour moi'
 
 
 # ════════════════════════════════════════════════════════════════════════════

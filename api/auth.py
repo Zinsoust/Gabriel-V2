@@ -70,8 +70,23 @@ def init_auth(app):
     supabase_key = os.environ.get('SUPABASE_KEY')
     if supabase_url and supabase_key:
         try:
-            from supabase import create_client
-            _supabase = create_client(supabase_url, supabase_key)
+            from supabase import create_client, ClientOptions
+            # Timeout explicite : constaté en conditions réelles qu'une
+            # connexion keep-alive du pool httpx peut finir en CLOSE_WAIT
+            # (l'autre bout a fermé, le socket local ne le voit jamais) —
+            # sans timeout explicite, l'appel .execute() bloque le thread
+            # indéfiniment, sans lever d'exception, donc sans jamais être
+            # rattrapé par les except Exception de db.py. Un job Cross Analyse
+            # peut alors rester bloqué à "running" pour toujours malgré un
+            # travail déjà terminé. Ce timeout transforme le blocage muet en
+            # exception rapide et journalisée, rattrapable normalement.
+            # `ClientOptions` doit venir de `supabase` (alias public de
+            # SyncClientOptions) et non de `supabase.lib.client_options` — ce
+            # dernier n'a pas le champ `storage` qu'attend create_client().
+            _supabase = create_client(
+                supabase_url, supabase_key,
+                options=ClientOptions(postgrest_client_timeout=30),
+            )
             print('[AUTH] Supabase connecté.')
         except Exception as e:
             print(f'[AUTH] Supabase indisponible, fallback users.json : {e}')

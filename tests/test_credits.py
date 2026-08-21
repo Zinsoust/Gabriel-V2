@@ -46,6 +46,14 @@ def test_get_user_credits_no_user_id():
     assert _db.get_user_credits('') == 0
 
 
+def test_agent_credit_costs_match_current_pricing():
+    assert _db.CREDIT_COSTS == {
+        'psychologue': 80,
+        'stratege': 50,
+        'createur': 20,
+    }
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # 2. Déduction — persistée en JSON, jamais sous zéro
 # ══════════════════════════════════════════════════════════════════════════════

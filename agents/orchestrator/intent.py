@@ -37,9 +37,6 @@ AGENTS = {
     },
 }
 
-_ORDER = ["psychologue", "stratege", "createur"]
-
-
 def _norm(text):
     """Minuscule sans accents — pour une correspondance de mots-clés robuste."""
     text = (text or "").lower()
@@ -81,6 +78,12 @@ _DEEP_SIGNALS = [
 ]
 
 _GREETING = re.compile(r"^\s*(bonjour|salut|hello|coucou|bonsoir|hey|yo)\b", re.I)
+_THANKS = re.compile(r"^\s*(merci|thanks|thank you)(?:\s+[!.?]*)?$", re.I)
+_TRANSVERSAL_SIGNALS = [
+    "resume", "synthese", "compare", "coherence", "coherent",
+    "contradiction", "verifie", "critique", "avis sur", "qu'en penses-tu",
+    "ce qui ne va pas", "point faible", "pourquoi cette strategie",
+]
 
 
 def _detect_agent(norm_msg):
@@ -125,6 +128,35 @@ def classify_intent(message, has_psycho=False, has_strategy=False, has_createur=
     level = _detect_level(norm)
     agent, score = _detect_agent(norm)
 
+    # Dans une conversation Gabriel, un lien social transmis seul est une
+    # source de travail implicite, pas une question vague. Cette règle évite de
+    # perdre le fil quand l'utilisateur répond simplement en collant son lien.
+    if not agent and any(host in norm for host in (
+        "youtube.com", "youtu.be", "instagram.com", "tiktok.com",
+    )):
+        agent, score = "psychologue", 2
+
+    is_bare_greeting = bool(_GREETING.match(norm)) and score == 0 and len(norm) < 40
+    if is_bare_greeting:
+        return {
+            "kind": "greeting", "level": "quick", "agent": None,
+            "reason": "", "confidence": 1.0,
+        }
+
+    if _THANKS.match(norm):
+        return {
+            "kind": "thanks", "level": "quick", "agent": None,
+            "reason": "", "confidence": 1.0,
+        }
+
+    # Synthétiser, comparer ou challenger des productions existantes est le
+    # cœur du rôle transversal : ne pas renvoyer l'utilisateur vers un bureau.
+    if any(signal in norm for signal in _TRANSVERSAL_SIGNALS):
+        return {
+            "kind": "transversal", "level": level, "agent": None,
+            "reason": "", "confidence": 0.9,
+        }
+
     # Journey : si l'utilisateur veut créer/décider mais que l'amont manque,
     # on le renvoie vers l'étape réellement nécessaire d'abord (le brief :
     # « avant de créer la publicité, je recommande de vérifier la cible »).
@@ -145,31 +177,14 @@ def classify_intent(message, has_psycho=False, has_strategy=False, has_createur=
     elif agent:
         reason = f"Pour cela, {AGENTS[agent]['purpose']}."
 
-    # Un simple bonjour n'appelle pas de carte d'orientation : on laisse
-    # l'Orchestrateur accueillir et demander le besoin avant d'orienter.
-    is_bare_greeting = bool(_GREETING.match(norm)) and score == 0 and len(norm) < 40
-    if is_bare_greeting:
-        return {"level": "quick", "agent": None, "reason": "", "confidence": 0.3}
-
-    # Si aucun mot-clé ne ressort, proposer la prochaine étape logique du parcours.
-    if agent is None:
-        agent = _next_step(has_psycho, has_strategy, has_createur)
-        if agent:
-            reason = f"Prochaine étape naturelle de votre dossier : {AGENTS[agent]['purpose']}."
-
     confidence = min(1.0, 0.4 + 0.2 * score) if score else 0.3
-    return {"level": level, "agent": agent, "reason": reason, "confidence": confidence}
-
-
-def _next_step(has_psycho, has_strategy, has_createur):
-    """Le prochain bureau non encore franchi, dans l'ordre du parcours."""
-    if not has_psycho:
-        return "psychologue"
-    if not has_strategy:
-        return "stratege"
-    if not has_createur:
-        return "createur"
-    return None
+    return {
+        "kind": "specialist_request" if agent else "conversation",
+        "level": level,
+        "agent": agent,
+        "reason": reason,
+        "confidence": confidence,
+    }
 
 
 def build_recommendation(intent, has_psycho=False, has_strategy=False, has_createur=False):

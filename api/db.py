@@ -8,7 +8,9 @@
 
 import os
 import json
+import time
 import uuid
+import tempfile
 import datetime
 
 _BASE_DIR     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,6 +18,8 @@ _DATA_DIR     = os.path.join(_BASE_DIR, 'data')
 _HISTORY_FILE    = os.path.join(_DATA_DIR, 'history.json')
 _STRATEGIES_FILE = os.path.join(_DATA_DIR, 'strategies.json')
 _FEEDBACKS_FILE  = os.path.join(_DATA_DIR, 'feedbacks.json')
+_UX_SETTINGS_FILE = os.path.join(_DATA_DIR, 'ux_settings.json')
+_CROSS_ANALYSES_FILE = os.path.join(_DATA_DIR, 'cross_analyses.json')
 
 _T_ANALYSES    = 'gabriel_analyses'
 _T_STRATEGIES  = 'gabriel_strategies'
@@ -33,6 +37,11 @@ _T_CTX_SESSIONS = 'gabriel_context_sessions'
 _T_CTX_MESSAGES = 'gabriel_context_messages'
 _T_CTX_FIELDS   = 'gabriel_context_fields'
 _T_MEMORY_CASES = 'gabriel_memory_cases'
+_T_UX_SETTINGS  = 'gabriel_ux_settings'
+_T_CROSS_ANALYSES = 'gabriel_cross_analyses'
+_T_PSYCHO_SOURCES = 'gabriel_psychologue_sources'
+_T_CROSS_SOURCES = 'gabriel_cross_analysis_sources'
+_T_SOURCE_COMMENTS = 'gabriel_source_comments'
 
 FREE_ANALYSES_LIMIT = 3
 
@@ -43,10 +52,205 @@ ADMIN_EMAILS = frozenset(e.strip().lower() for e in _admin_env.split(',') if e.s
 
 _supabase = None
 
+# Continuité de lecture des workspaces. Un incident réseau ponctuel vers
+# Supabase ne doit pas transformer un dossier déjà ouvert en faux 404 dans le
+# shell V2. Ce cache est volontairement éphémère (processus local), strictement
+# indexé par utilisateur et seulement alimenté après une lecture/écriture base
+# réussie : il ne remplace jamais Supabase ni ne masque une suppression validée.
+_folder_cache = {}
+
+
+def _cache_folder(user_id, folder):
+    """Mémorise une copie privée d'un dossier déjà confirmé par la base."""
+    if not (user_id and isinstance(folder, dict) and folder.get('folder_id')):
+        return
+    cached = dict(folder)
+    cached['user_id'] = user_id
+    _folder_cache[(str(user_id), str(cached['folder_id']))] = cached
+
+
+def _cached_folder(folder_id, user_id):
+    cached = _folder_cache.get((str(user_id), str(folder_id)))
+    return dict(cached) if isinstance(cached, dict) else None
+
+
+def _cached_folders(user_id, limit):
+    """Retourne les dossiers connus du seul utilisateur demandé, les plus récents d'abord."""
+    rows = [
+        dict(folder) for (cached_user_id, _), folder in _folder_cache.items()
+        if cached_user_id == str(user_id) and isinstance(folder, dict)
+    ]
+    rows.sort(key=lambda folder: str(folder.get('updated_at') or ''), reverse=True)
+    return rows[:max(int(limit or 0), 0)]
+
 
 def init_db(client):
     global _supabase
     _supabase = client
+
+
+def get_ux_settings(page_key):
+    """Retourne le document UX global, ou None si la table n'est pas déployée."""
+    if _supabase and page_key:
+        try:
+            res = _supabase.table(_T_UX_SETTINGS).select('*').eq(
+                'page_key', page_key
+            ).limit(1).execute()
+            row = (res.data or [None])[0]
+            if row:
+                return row
+        except Exception as e:
+            print(f'[DB] get_ux_settings error: {e}')
+    try:
+        with open(_UX_SETTINGS_FILE, 'r', encoding='utf-8') as handle:
+            return (json.load(handle) or {}).get(page_key)
+    except (OSError, ValueError):
+        return None
+
+
+def _save_ux_local(page_key, row):
+    try:
+        try:
+            with open(_UX_SETTINGS_FILE, 'r', encoding='utf-8') as handle:
+                data = json.load(handle) or {}
+        except (OSError, ValueError):
+            data = {}
+        data[page_key] = row
+        with open(_UX_SETTINGS_FILE, 'w', encoding='utf-8') as handle:
+            json.dump(data, handle, ensure_ascii=False, indent=2)
+        return True
+    except OSError as e:
+        print(f'[DB] _save_ux_local error: {e}')
+        return False
+
+
+def save_ux_draft(page_key, settings, updated_by):
+    if not page_key:
+        return False
+    current = get_ux_settings(page_key) or {'page_key': page_key}
+    row = {**current, 'page_key': page_key, 'draft': settings,
+           'updated_by': updated_by,
+           'updated_at': datetime.datetime.utcnow().isoformat()}
+    if _supabase:
+        try:
+            _supabase.table(_T_UX_SETTINGS).upsert(row, on_conflict='page_key').execute()
+            return True
+        except Exception as e:
+            print(f'[DB] save_ux_draft error: {e}')
+    return _save_ux_local(page_key, row)
+
+
+def publish_ux_settings(page_key, settings, updated_by):
+    if not page_key:
+        return None
+    try:
+        current = get_ux_settings(page_key) or {}
+        history = current.get('history') if isinstance(current.get('history'), list) else []
+        published = current.get('published') if isinstance(current.get('published'), dict) else {}
+        version = int(current.get('version') or 0) + 1
+        if published:
+            history.append({
+                'version': version - 1,
+                'settings': published,
+                'published_at': current.get('published_at'),
+            })
+        row = {
+            'page_key': page_key, 'draft': settings, 'published': settings,
+            'history': history[-20:], 'version': version,
+            'updated_by': updated_by,
+            'updated_at': datetime.datetime.utcnow().isoformat(),
+            'published_at': datetime.datetime.utcnow().isoformat(),
+        }
+        if _supabase:
+            try:
+                _supabase.table(_T_UX_SETTINGS).upsert(row, on_conflict='page_key').execute()
+                return row
+            except Exception as e:
+                print(f'[DB] publish_ux_settings Supabase error: {e}')
+        return row if _save_ux_local(page_key, row) else None
+    except Exception as e:
+        print(f'[DB] publish_ux_settings error: {e}')
+        return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SESSIONS DE L'ORCHESTRATEUR
+# Les tables existent déjà dans supabase/survey_migration.sql. Les fonctions
+# retournent None/False sans Supabase afin que l'application utilise son repli
+# JSON local de développement.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def get_orchestrator_session_state(user_id, conversation_id, folder_id=None):
+    """Retourne les messages et l'état de mission d'une conversation Gabriel.
+
+    Les missions résident dans le mental model déjà persisté avec la
+    conversation. On ne crée ainsi pas une table parallèle pour un état qui
+    doit rester strictement isolé par utilisateur et workspace.
+    """
+    if not (_supabase and user_id and conversation_id):
+        return None
+    try:
+        res = (
+            _supabase.table(_T_CHAT_CONV)
+            .select('id,metadata')
+            .eq('id', conversation_id)
+            .eq('user_id', user_id)
+            .eq('agent', 'orchestrateur')
+            .limit(1)
+            .execute()
+        )
+        row = (res.data or [None])[0]
+        # Une conversation absente est un état initial normal. Le contrat de
+        # cette fonction doit rester complet afin que l'Orchestrateur puisse
+        # démarrer une toute première discussion sans KeyError.
+        if not row:
+            return {'messages': [], 'mental_model': {}}
+        metadata = row.get('metadata') if isinstance(row.get('metadata'), dict) else {}
+        if (metadata.get('folder_id') or None) != (folder_id or None):
+            return {'messages': [], 'mental_model': {}}
+        messages = metadata.get('messages')
+        mental_model = metadata.get('mental_model')
+        return {
+            'messages': messages[-20:] if isinstance(messages, list) else [],
+            'mental_model': mental_model if isinstance(mental_model, dict) else {},
+        }
+    except Exception as e:
+        print(f'[DB] get_orchestrator_session_state error: {e}')
+        return None
+
+
+def get_orchestrator_session(user_id, conversation_id, folder_id=None):
+    """Compatibilité historique : retourne uniquement les messages."""
+    state = get_orchestrator_session_state(user_id, conversation_id, folder_id)
+    if state is None:
+        return None
+    return state.get('messages', [])
+
+
+def save_orchestrator_session(user_id, conversation_id, folder_id, title,
+                              messages, mental_model=None):
+    if not (_supabase and user_id and conversation_id):
+        return False
+    now = datetime.datetime.utcnow().isoformat()
+    row = {
+        'id': conversation_id,
+        'user_id': user_id,
+        'agent': 'orchestrateur',
+        'title': (title or 'Conversation Gabriel')[:120],
+        'updated_at': now,
+        'metadata': {
+            'folder_id': folder_id,
+            'messages': messages[-40:],
+            'mental_model': mental_model or {},
+            'is_training_allowed': False,
+        },
+    }
+    try:
+        _supabase.table(_T_CHAT_CONV).upsert(row, on_conflict='id').execute()
+        return True
+    except Exception as e:
+        print(f'[DB] save_orchestrator_session error: {e}')
+        return False
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -114,7 +318,12 @@ def save_analysis(entry, user_id=None, folder_id=None):
     # Supabase réussissait (donc pour rien) — un vrai/faux disque de secours
     # jamais lu en production, mais dont la taille (et le coût de lecture +
     # réécriture complète) grossit sans limite à chaque appel.
-    _save_json_entry(entry)
+    local_entry = dict(entry or {})
+    if user_id:
+        local_entry['user_id'] = user_id
+    if folder_id:
+        local_entry['folder_id'] = folder_id
+    _save_json_entry(local_entry)
 
 
 def get_analysis_by_id(analysis_id, user_id=None):
@@ -139,6 +348,7 @@ def get_analysis_by_id(analysis_id, user_id=None):
                     'source':          row.get('source', ''),
                     'title':           row.get('title', ''),
                     'date':            row.get('created_at', ''),
+                    'folder_id':       row.get('folder_id', ''),
                 }
         except Exception as e:
             print(f'[DB] get_analysis_by_id error: {e}')
@@ -153,6 +363,398 @@ def get_analysis_by_id(analysis_id, user_id=None):
             return None  # accès refusé
         return entry
     return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CROSS ANALYSES DU PSYCHOLOGUE
+#
+# Une Cross Analyse est un read-model multi-source. Les analyses individuelles
+# restent dans gabriel_analyses exactement comme avant ; cette couche les relie
+# par analysis_id et conserve la provenance primaire des commentaires.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _load_json_cross_analyses():
+    try:
+        with open(_CROSS_ANALYSES_FILE, 'r', encoding='utf-8') as handle:
+            payload = json.load(handle)
+            return payload if isinstance(payload, list) else []
+    except (OSError, ValueError):
+        return []
+
+
+def _write_json_cross_analyses(rows):
+    # Écriture atomique : un crash pendant json.dump() sur le fichier final
+    # laissait un JSON tronqué, et _load_json_cross_analyses() perdait alors
+    # silencieusement TOUT l'historique Cross (ValueError → []). Écrire sur un
+    # fichier temporaire puis os.replace() garantit que le fichier cible est
+    # soit l'ancienne version complète, soit la nouvelle — jamais un état
+    # intermédiaire corrompu.
+    os.makedirs(_DATA_DIR, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(
+        dir=_DATA_DIR, prefix='.cross_analyses.', suffix='.tmp',
+    )
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+            json.dump(rows, handle, ensure_ascii=False, indent=2, default=str)
+        os.replace(tmp_path, _CROSS_ANALYSES_FILE)
+    except BaseException:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
+
+
+def _cross_local_row(cross_analysis_id, user_id=None):
+    for row in _load_json_cross_analyses():
+        if row.get('cross_analysis_id') != cross_analysis_id:
+            continue
+        if user_id and row.get('user_id') and row.get('user_id') != user_id:
+            return None
+        return row
+    return None
+
+
+def _source_snapshot(source):
+    """Copie compacte de l'identité d'une source, sans commentaires."""
+    if not isinstance(source, dict):
+        return {}
+    return {
+        key: source.get(key) for key in (
+            'source_id', 'position', 'platform', 'source_type', 'external_id',
+            'video_id', 'input_url', 'canonical_url', 'label', 'metadata',
+        ) if source.get(key) not in (None, '')
+    }
+
+
+def create_cross_analysis(cross_analysis_id, user_id, sources, *, folder_id=None,
+                          options=None, job_id='', schema_version='1.0',
+                          pipeline_version='cross-v1'):
+    """Crée une session Cross sans modifier les analyses simples.
+
+    Retourne True si Supabase est complet, False si le repli JSON local a été
+    utilisé. Dans les deux cas, l'appelant peut continuer le job : le repli est
+    conforme au comportement historique de ``save_analysis`` en développement.
+    """
+    if not (cross_analysis_id and user_id and isinstance(sources, list)):
+        return False
+    now = datetime.datetime.utcnow().isoformat()
+    snapshots = [_source_snapshot(source) for source in sources]
+    initial_result = {
+        'options': dict(options or {}),
+        'source_definitions': snapshots,
+    }
+    master = {
+        'cross_analysis_id': cross_analysis_id,
+        'user_id': user_id,
+        'folder_id': folder_id or '',
+        'job_id': job_id or '',
+        'status': 'prepared',
+        'schema_version': schema_version or '1.0',
+        'pipeline_version': pipeline_version or 'cross-v1',
+        'source_count': len(snapshots),
+        'result_data': initial_result,
+        'created_at': now,
+        'updated_at': now,
+    }
+
+    if _supabase:
+        try:
+            _supabase.table(_T_CROSS_ANALYSES).insert(master).execute()
+            for source in snapshots:
+                source_id = source.get('source_id')
+                if not source_id:
+                    continue
+                _supabase.table(_T_PSYCHO_SOURCES).upsert({
+                    'source_id': source_id,
+                    'user_id': user_id,
+                    'platform': source.get('platform') or 'youtube',
+                    'external_id': source.get('external_id') or source.get('video_id') or '',
+                    'canonical_url': source.get('canonical_url') or source.get('input_url') or '',
+                    'source_metadata': source.get('metadata') or {},
+                }, on_conflict='source_id').execute()
+                _supabase.table(_T_CROSS_SOURCES).upsert({
+                    'cross_analysis_id': cross_analysis_id,
+                    'source_id': source_id,
+                    'user_id': user_id,
+                    'analysis_id': '',
+                    'position': int(source.get('position') or 0),
+                    'status': 'prepared',
+                    'source_snapshot': source,
+                    'source_analysis': {},
+                }, on_conflict='cross_analysis_id,source_id').execute()
+            return True
+        except Exception as e:
+            # La migration Cross peut ne pas être appliquée dans un environnement
+            # local. Comme le reste de cette DAL, garder un repli fonctionnel
+            # est plus sûr que casser l'analyse simple ou le job courant.
+            print(f'[DB] create_cross_analysis error: {e}')
+            # Compensation : ces écritures ne sont pas transactionnelles (pas de
+            # RPC Supabase pour l'instant). Sans nettoyage, un échec à mi-chemin
+            # laissait une ligne maître avec ``source_count`` annonçant N sources
+            # alors qu'aucune (ou une partie seulement) n'existait réellement —
+            # un état orphelin invisible pour get_cross_analysis(). On retire ce
+            # qui a pu être écrit pour CETTE session avant de retomber sur le
+            # JSON local, qui repart alors d'un état propre.
+            try:
+                _supabase.table(_T_CROSS_SOURCES).delete().eq(
+                    'cross_analysis_id', cross_analysis_id).execute()
+                _supabase.table(_T_CROSS_ANALYSES).delete().eq(
+                    'cross_analysis_id', cross_analysis_id).execute()
+            except Exception as cleanup_exc:
+                print(f'[DB] create_cross_analysis cleanup_error: {cleanup_exc}')
+
+    rows = _load_json_cross_analyses()
+    rows = [row for row in rows if row.get('cross_analysis_id') != cross_analysis_id]
+    master['source_records'] = [
+        {'source_snapshot': source, 'status': 'prepared', 'analysis_id': '', 'source_analysis': {}}
+        for source in snapshots
+    ]
+    rows.append(master)
+    _write_json_cross_analyses(rows)
+    return False
+
+
+def update_cross_analysis(cross_analysis_id, user_id, **fields):
+    """Met à jour uniquement les champs autorisés d'une session Cross."""
+    if not (cross_analysis_id and user_id):
+        return False
+    allowed = {
+        'job_id', 'status', 'result_data', 'error_message', 'schema_version',
+        'pipeline_version', 'model_version', 'embedding_version', 'source_count',
+    }
+    payload = {key: value for key, value in fields.items() if key in allowed}
+    if not payload:
+        return False
+    payload['updated_at'] = datetime.datetime.utcnow().isoformat()
+    if _supabase:
+        # Ce write porte le résultat final d'une Cross Analyse (LLM déjà
+        # payé, calcul déjà fait) : un blip réseau transitoire ([Errno 35]
+        # "Resource temporarily unavailable" observé en conditions réelles,
+        # sur une fenêtre de plusieurs secondes à chaque fois) ne doit pas
+        # faire perdre silencieusement un travail terminé et laisser le job
+        # bloqué à "running" pour toujours. Fenêtre de ré-essai plus longue
+        # que _call_youtube_with_retry (services/scraper.py) : ce write-ci
+        # est le seul qui livre le résultat à l'utilisateur, donc insister
+        # un peu plus avant d'abandonner coûte moins cher qu'un résultat
+        # perdu après plusieurs minutes de pipeline (scraping + LLM).
+        max_attempts = 5
+        last_exc = None
+        for attempt in range(max_attempts):
+            try:
+                _supabase.table(_T_CROSS_ANALYSES).update(payload)\
+                    .eq('cross_analysis_id', cross_analysis_id).eq('user_id', user_id).execute()
+                return True
+            except Exception as e:
+                last_exc = e
+                if attempt < max_attempts - 1:
+                    time.sleep(min(3 * (2 ** attempt), 20))
+                    continue
+        print(f'[DB] update_cross_analysis error (après {max_attempts} essais) : {last_exc}')
+
+    rows = _load_json_cross_analyses()
+    for row in rows:
+        if row.get('cross_analysis_id') == cross_analysis_id and row.get('user_id') == user_id:
+            row.update(payload)
+            _write_json_cross_analyses(rows)
+            return True
+    return False
+
+
+def update_cross_analysis_source(cross_analysis_id, user_id, source_id, *, status=None,
+                                 analysis_id=None, source_snapshot=None,
+                                 source_analysis=None):
+    """Persiste l'état d'une source sans mélanger son résultat aux autres."""
+    if not (cross_analysis_id and user_id and source_id):
+        return False
+    payload = {}
+    if status is not None:
+        payload['status'] = str(status)[:80]
+    if analysis_id is not None:
+        payload['analysis_id'] = str(analysis_id)[:120]
+    if isinstance(source_snapshot, dict):
+        payload['source_snapshot'] = source_snapshot
+    if isinstance(source_analysis, dict):
+        payload['source_analysis'] = source_analysis
+    if not payload:
+        return False
+
+    if _supabase:
+        try:
+            _supabase.table(_T_CROSS_SOURCES).update(payload)\
+                .eq('cross_analysis_id', cross_analysis_id).eq('source_id', source_id)\
+                .eq('user_id', user_id).execute()
+            return True
+        except Exception as e:
+            print(f'[DB] update_cross_analysis_source error: {e}')
+
+    rows = _load_json_cross_analyses()
+    for row in rows:
+        if row.get('cross_analysis_id') != cross_analysis_id or row.get('user_id') != user_id:
+            continue
+        records = row.setdefault('source_records', [])
+        for record in records:
+            snapshot = record.get('source_snapshot') or {}
+            if snapshot.get('source_id') == source_id:
+                record.update(payload)
+                _write_json_cross_analyses(rows)
+                return True
+        records.append({'source_snapshot': {'source_id': source_id}, **payload})
+        _write_json_cross_analyses(rows)
+        return True
+    return False
+
+
+def save_cross_source_comments(user_id, source, comments, *, cross_analysis_id=''):
+    """Sauvegarde la preuve primaire de *cette* source, jamais un corpus mixé."""
+    if not (user_id and isinstance(source, dict) and isinstance(comments, list)):
+        return False
+    source_id = source.get('source_id')
+    if not source_id:
+        return False
+    if not _supabase:
+        # En développement, conserver également la preuve primaire ; sans
+        # elle le repli local ne respecterait pas le même contrat de
+        # traçabilité que Supabase.
+        if not cross_analysis_id:
+            return False
+        rows = _load_json_cross_analyses()
+        for cross in rows:
+            if cross.get('cross_analysis_id') != cross_analysis_id or cross.get('user_id') != user_id:
+                continue
+            for record in cross.get('source_records', []):
+                snapshot = record.get('source_snapshot') or {}
+                if snapshot.get('source_id') == source_id:
+                    record['raw_comments'] = list(comments[:250])
+                    _write_json_cross_analyses(rows)
+                    return True
+        return False
+    try:
+        source_row = {
+            'source_id': source_id,
+            'user_id': user_id,
+            'platform': source.get('platform') or 'youtube',
+            'external_id': source.get('external_id') or source.get('video_id') or '',
+            'canonical_url': source.get('canonical_url') or source.get('input_url') or '',
+            'source_metadata': source.get('metadata') or {},
+        }
+        _supabase.table(_T_PSYCHO_SOURCES).upsert(source_row, on_conflict='source_id').execute()
+        rows = []
+        for comment in comments[:250]:
+            if not isinstance(comment, dict) or not comment.get('comment_id') or not comment.get('text'):
+                continue
+            try:
+                likes = max(0, int(comment.get('likes') or 0))
+            except (TypeError, ValueError):
+                likes = 0
+            rows.append({
+                'comment_id': str(comment['comment_id'])[:220],
+                'source_id': source_id,
+                'user_id': user_id,
+                'external_comment_id': str(comment.get('external_comment_id') or '')[:180],
+                'video_id': str(comment.get('video_id') or source.get('video_id') or '')[:160],
+                'text': str(comment.get('text') or '')[:10000],
+                'author': str(comment.get('author') or '')[:300],
+                'likes': likes,
+                'comment_metadata': comment.get('metadata') if isinstance(comment.get('metadata'), dict) else {},
+            })
+        if rows:
+            _supabase.table(_T_SOURCE_COMMENTS).upsert(rows, on_conflict='comment_id').execute()
+        return True
+    except Exception as e:
+        print(f'[DB] save_cross_source_comments error: {e}')
+        return False
+
+
+def get_cross_analysis(cross_analysis_id, user_id=None):
+    """Retourne une Cross et son état source par source, cloisonnés par user."""
+    if not cross_analysis_id:
+        return None
+    if _supabase and user_id:
+        try:
+            result = _supabase.table(_T_CROSS_ANALYSES).select('*')\
+                .eq('cross_analysis_id', cross_analysis_id).eq('user_id', user_id).limit(1).execute()
+            row = (result.data or [None])[0]
+            if not row:
+                return None
+            links = _supabase.table(_T_CROSS_SOURCES).select('*')\
+                .eq('cross_analysis_id', cross_analysis_id).eq('user_id', user_id)\
+                .order('position').execute()
+            row['source_records'] = links.data or []
+            return row
+        except Exception as e:
+            print(f'[DB] get_cross_analysis error: {e}')
+    return _cross_local_row(cross_analysis_id, user_id)
+
+
+def get_cross_analysis_source(cross_analysis_id, source_id, user_id=None):
+    """Retourne une analyse individuelle Cross sans exposer les autres sources."""
+    if not (cross_analysis_id and source_id):
+        return None
+    if _supabase and user_id:
+        try:
+            result = _supabase.table(_T_CROSS_SOURCES).select('*')\
+                .eq('cross_analysis_id', cross_analysis_id).eq('source_id', source_id)\
+                .eq('user_id', user_id).limit(1).execute()
+            row = (result.data or [None])[0]
+            if row:
+                return row
+        except Exception as e:
+            print(f'[DB] get_cross_analysis_source error: {e}')
+    cross = get_cross_analysis(cross_analysis_id, user_id) or _cross_local_row(cross_analysis_id, user_id)
+    for record in (cross or {}).get('source_records', []):
+        if (record.get('source_snapshot') or {}).get('source_id') == source_id:
+            return record
+    # Repli de lecture : si le résultat final a été sauvegardé mais que la
+    # table de liens vient juste d'être migrée, l'analyse détaillée reste
+    # accessible depuis le read-model maître.
+    source_definitions = ((cross or {}).get('result_data') or {}).get('source_definitions') or []
+    source_analyses = ((cross or {}).get('result_data') or {}).get('source_analyses') or []
+    source_analysis = next(
+        (item for item in source_analyses if isinstance(item, dict) and item.get('source_id') == source_id),
+        {},
+    )
+    snapshot = next(
+        (item for item in source_definitions if isinstance(item, dict) and item.get('source_id') == source_id),
+        {},
+    )
+    if source_analysis or snapshot:
+        return {
+            'source_snapshot': snapshot,
+            'source_analysis': source_analysis,
+            'analysis_id': source_analysis.get('analysis_id', ''),
+            'status': 'completed' if source_analysis else 'prepared',
+        }
+    return None
+
+
+def get_cross_source_comments(cross_analysis_id, source_id, user_id=None, limit=50):
+    """Lit les commentaires d'une source, toujours filtrés par user et source."""
+    if not (cross_analysis_id and source_id):
+        return []
+    try:
+        safe_limit = max(1, min(int(limit), 250))
+    except (TypeError, ValueError):
+        safe_limit = 50
+    if _supabase and user_id:
+        try:
+            result = _supabase.table(_T_SOURCE_COMMENTS)\
+                .select('comment_id,source_id,external_comment_id,video_id,text,author,likes,comment_metadata,created_at')\
+                .eq('source_id', source_id).eq('user_id', user_id)\
+                .order('likes', desc=True).limit(safe_limit).execute()
+            return result.data or []
+        except Exception as e:
+            print(f'[DB] get_cross_source_comments error: {e}')
+    source = get_cross_analysis_source(cross_analysis_id, source_id, user_id) or {}
+    return list(source.get('raw_comments') or [])[:safe_limit]
+
+
+def get_cross_analysis_evidence(cross_analysis_id, insight_id, user_id=None):
+    """Résout une preuve par insight_id depuis le résultat Cross persisté."""
+    cross = get_cross_analysis(cross_analysis_id, user_id)
+    result = (cross or {}).get('result_data') or {}
+    evidence = result.get('evidence_index') if isinstance(result, dict) else {}
+    return evidence.get(insight_id) if isinstance(evidence, dict) else None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -337,6 +939,7 @@ def save_strategy(strategy_data, user_id=None, analysis_id=None, business_contex
                 'user_id':          user_id or 'local',
                 'strategy_id':      strategy_id,
                 'analysis_id':      analysis_id or '',
+                'folder_id':        folder_id or '',
                 'title':            title,
                 'business_context': business_context or {},
                 'strategy_result':  strategy_data or {},
@@ -410,6 +1013,7 @@ def get_strategy_by_id(strategy_id, user_id=None):
                 return {
                     'strategy_id':      r.get('strategy_id'),
                     'analysis_id':      r.get('analysis_id', ''),
+                    'folder_id':        r.get('folder_id', ''),
                     'title':            _strategy_title(r.get('strategy_result') or {}),
                     'business_context': r.get('business_context') or {},
                     'strategy_result':  r.get('strategy_result') or {},
@@ -680,8 +1284,8 @@ DEFAULT_FREE_CREDITS = 300
 # le Créateur le moins cher (il exécute une décision déjà construite par les
 # deux agents précédents, pas de travail d'analyse).
 CREDIT_COSTS = {
-    'psychologue': 100,
-    'stratege':    60,
+    'psychologue': 80,
+    'stratege':    50,
     'createur':    20,
 }
 
@@ -1040,12 +1644,16 @@ def create_folder(folder_id, user_id, title, objective='', folder_type='audience
         'created_at':  now,
         'updated_at':  now,
     }
+    persisted = False
     if _supabase:
         try:
             _supabase.table(_T_FOLDERS).insert(row).execute()
+            persisted = True
         except Exception as e:
             print(f'[DB] create_folder error: {e}')
             return None
+    if persisted:
+        _cache_folder(user_id, row)
     return row
 
 
@@ -1057,16 +1665,23 @@ def get_folders(user_id, limit=50):
         try:
             res = (
                 _supabase.table(_T_FOLDERS)
-                .select('folder_id,title,objective,folder_type,status,step,analysis_id,created_at,updated_at')
+                .select('folder_id,title,objective,folder_type,status,step,analysis_id,cross_analysis_id,strategy_id,creator_output_id,source_type,source_summary,created_at,updated_at')
                 .eq('user_id', user_id)
                 .order('updated_at', desc=True)
                 .limit(limit)
                 .execute()
             )
-            return res.data or []
+            rows = res.data or []
+            for row in rows:
+                _cache_folder(user_id, row)
+            return rows
         except Exception as e:
             print(f'[DB] get_folders error: {e}')
-    return []
+            # Supabase est indisponible : conserver l'espace déjà visible au
+            # lieu de le faire disparaître. Les entrées restent cloisonnées par
+            # user_id et seront réconciliées à la prochaine lecture réussie.
+            return _cached_folders(user_id, limit)
+    return _cached_folders(user_id, limit)
 
 
 def get_folder_by_id(folder_id, user_id):
@@ -1084,10 +1699,17 @@ def get_folder_by_id(folder_id, user_id):
                 .execute()
             )
             rows = res.data or []
-            return rows[0] if rows else None
+            if rows:
+                _cache_folder(user_id, rows[0])
+                return rows[0]
+            # Une réponse valide mais vide confirme que le dossier n'existe
+            # plus : ne pas conserver une copie périmée dans ce cas précis.
+            _folder_cache.pop((str(user_id), str(folder_id)), None)
+            return None
         except Exception as e:
             print(f'[DB] get_folder_by_id error: {e}')
-    return None
+            return _cached_folder(folder_id, user_id)
+    return _cached_folder(folder_id, user_id)
 
 
 def update_folder(folder_id, user_id, **fields):
@@ -1095,7 +1717,7 @@ def update_folder(folder_id, user_id, **fields):
     if not (folder_id and user_id):
         return False
     allowed = {'title', 'objective', 'folder_type', 'status', 'step',
-               'analysis_id', 'strategy_id', 'creator_output_id',
+               'analysis_id', 'cross_analysis_id', 'strategy_id', 'creator_output_id',
                'source_type', 'source_summary'}
     payload = {k: v for k, v in fields.items() if k in allowed}
     if not payload:
@@ -1108,6 +1730,12 @@ def update_folder(folder_id, user_id, **fields):
                 .eq('folder_id', folder_id)\
                 .eq('user_id', user_id)\
                 .execute()
+            cached = _cached_folder(folder_id, user_id) or {
+                'folder_id': folder_id,
+                'user_id': user_id,
+            }
+            cached.update(payload)
+            _cache_folder(user_id, cached)
             return True
         except Exception as e:
             print(f'[DB] update_folder error: {e}')
@@ -1125,6 +1753,7 @@ def delete_folder(folder_id, user_id):
                 .eq('folder_id', folder_id)\
                 .eq('user_id', user_id)\
                 .execute()
+            _folder_cache.pop((str(user_id), str(folder_id)), None)
             return True
         except Exception as e:
             print(f'[DB] delete_folder error: {e}')
@@ -1354,7 +1983,8 @@ def upsert_context_field(user_id, field_key, value, status='extracted',
 # conformité (consentements, événements d'enquête) — suppression complète et
 # immédiate demandée explicitement, pas de conservation ni d'anonymisation.
 _ACCOUNT_DATA_TABLES = [
-    _T_FOLDERS, _T_JOBS, _T_ANALYSES, _T_STRATEGIES, _T_EXPORTS,
+    _T_FOLDERS, _T_JOBS, _T_CROSS_SOURCES, _T_SOURCE_COMMENTS,
+    _T_PSYCHO_SOURCES, _T_CROSS_ANALYSES, _T_ANALYSES, _T_STRATEGIES, _T_EXPORTS,
     _T_FEEDBACKS, _T_SURVEY_EVT, _T_SURVEY_RESP, _T_CONSENT,
     _T_CHAT_CONV, _T_CHAT_MSG, _T_TRAIN_CAND,
     _T_CTX_SESSIONS, _T_CTX_MESSAGES, _T_CTX_FIELDS, _T_MEMORY_CASES,
