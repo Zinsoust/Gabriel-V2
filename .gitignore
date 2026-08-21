@@ -31,16 +31,11 @@ gabriel_err.log
 brain_profile.json
 contexte_business.json
 history.json
-data/history.json
-data/strategies.json
-data/exports.json
-data/gabriel_memory.json
-data/conversations.json
-data/contexts/*.json
-data/memory_*.json
-data/feedbacks.json
-data/local_*.json
-data/ux_settings.json
+# Données utilisateur en bloc — profils, conversations, mémoire, analyses.
+# Énumérer fichier par fichier laissait passer les nouveaux (cross_analyses.json,
+# design_recipe_gaps.json) : ce sont les données business réelles des comptes,
+# elles ne doivent jamais partir sur GitHub.
+data/
 
 # Base de données locale
 *.db
@@ -63,3 +58,9 @@ tmp/
 
 # Dépendances frontend (installées via pnpm)
 frontend-react/node_modules/
+
+# Configuration d'éditeur, propre à chaque poste
+.vscode/
+
+# Images d'inspiration design (captures tierces, pas du code du produit)
+design card /
