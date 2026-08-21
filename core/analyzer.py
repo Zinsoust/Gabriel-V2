@@ -104,6 +104,30 @@ LOIS ABSOLUES DE GABRIEL
 7. INTELLIGENCE EMOTIONNELLE — derriere une critique, cherche un espoir decu. Derriere un enthousiasme, cherche une aspiration nourrie. Derriere le silence, cherche une peur non exprimee."""
 
 
+_NO_TECHNICAL_LEAKAGE = """\
+RÈGLE DE LANGAGE ABSOLUE :
+La base de connaissances contient des identifiants internes (noms de signaux, patterns, codes de concept).
+NE JAMAIS les reproduire dans tes textes. Traduis-les toujours en langage naturel, clair et professionnel.
+INTERDIT : signal : 'confusion', pattern [confused_audience], valeur = clarté, type = urgence, [SOC-001], signal_name
+CORRECT : "L'audience cherche de la clarté face à la complexité technique."\
+"""
+
+
+def _no_technical_leakage() -> str:
+    """Interdiction de laisser fuiter les identifiants techniques.
+
+    Ce bloc était écrit deux fois à l'identique — 434 caractères, au
+    caractère près — dans les deux interprétations (psychologique et
+    socio-culturelle). Une seule source désormais ; le texte injecté
+    n'a pas bougé d'un octet.
+
+    Voir skills/no_technical_leakage.py pour sa déclaration.
+    """
+    from skills import registry as skill_registry
+    return skill_registry.render('writing.no_technical_leakage',
+                                 'gabriel').content
+
+
 def _psychology_grid() -> str:
     """Grille de compréhension humaine — voir skills/psychology.py.
 
@@ -1558,11 +1582,7 @@ Ta mission : produire une interprétation psychologique PROFONDE et ACTIONNABLES
 Identifie les mécanismes réels (biais cognitifs, schémas émotionnels, peurs sous-jacentes, désirs profonds, croyances actives, facteurs de décision).
 Utilise les cartes de concept de la base de connaissances quand elles sont pertinentes — cite leur ID dans rules_used.
 
-RÈGLE DE LANGAGE ABSOLUE :
-La base de connaissances contient des identifiants internes (noms de signaux, patterns, codes de concept).
-NE JAMAIS les reproduire dans tes textes. Traduis-les toujours en langage naturel, clair et professionnel.
-INTERDIT : signal : 'confusion', pattern [confused_audience], valeur = clarté, type = urgence, [SOC-001], signal_name
-CORRECT : "L'audience cherche de la clarté face à la complexité technique."
+{_no_technical_leakage()}
 
 Réponds UNIQUEMENT en JSON valide, sans markdown :
 {{
@@ -1621,11 +1641,7 @@ Ta mission : produire une interprétation socio-culturelle PROFONDE et ACTIONNAB
 Identifie les dynamiques de groupe réelles (polarisation, conformisme, codes culturels, appartenance communautaire, croyances collectives, tensions sociales).
 Utilise les cartes de concept de la base de connaissances quand elles sont pertinentes — cite leur ID dans rules_used.
 
-RÈGLE DE LANGAGE ABSOLUE :
-La base de connaissances contient des identifiants internes (noms de signaux, patterns, codes de concept).
-NE JAMAIS les reproduire dans tes textes. Traduis-les toujours en langage naturel, clair et professionnel.
-INTERDIT : signal : 'confusion', pattern [confused_audience], valeur = clarté, type = urgence, [SOC-001], signal_name
-CORRECT : "L'audience cherche de la clarté face à la complexité technique."
+{_no_technical_leakage()}
 
 Réponds UNIQUEMENT en JSON valide, sans markdown :
 {{
