@@ -43,14 +43,16 @@ def _human_voice_skill() -> CatalogSkill:
                 "l'audience plutôt que des mots génériques."),
             allowed_tools=('content_quality.check',),
             limitations=(
-                "La consigne et son validateur ont divergé : six "
-                "interdictions du texte ne sont vérifiées par aucune regex "
-                "(« se transformer », « devenir la meilleure version », "
-                "« bonjour à tous », « bienvenue sur », « nous vivons dans "
-                "une époque », métaphores de voyage). L'écart est mesuré et "
-                "figé par un test plutôt que corrigé en passant : élargir la "
-                "regex changerait le taux de rejet du contrôle qualité en "
-                "production."),
+                "La consigne et son validateur avaient divergé sur six "
+                "interdictions. Trois sont désormais vérifiées — des formules "
+                "d'ouverture (« bonjour à tous », « bienvenue sur », « nous "
+                "vivons dans une époque ») mesurées à zéro faux positif. "
+                "Trois restent hors du validateur, délibérément : "
+                "« se transformer », « meilleure version » et les métaphores "
+                "de voyage sont du vocabulaire marketing français courant — "
+                "les détecter signalerait « le parcours client » ou « la "
+                "meilleure version de ton offre » comme artificiels. L'écart "
+                "restant est figé par des tests, des deux côtés."),
             output_format=(
                 "Bloc de texte fixe à injecter dans le prompt, entre la "
                 "discipline de tonalité et le brief de rédaction."),

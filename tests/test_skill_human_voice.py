@@ -58,13 +58,30 @@ class TestDivergenceMesureeEntreLaConsigneEtSonValidateur:
     qualité, ce qui mérite sa propre décision.
     """
 
-    ANGLES_MORTS = [
-        "il faut se transformer profondément pour avancer dans ce projet précis",
-        "devenir la meilleure version de soi demande du travail quotidien réel",
+    # Trois angles morts ont été fermés — des formules d'ouverture sans usage
+    # légitime en contenu marketing, mesurées à zéro faux positif.
+    FERMES = [
         "bonjour à tous et bienvenue dans cette nouvelle vidéo de la chaîne",
         "bienvenue sur ma chaîne, ravi de vous retrouver pour ce sujet précis",
         "nous vivons dans une époque troublée où tout change très vite ici",
+    ]
+
+    # Trois restent ouverts, et pour une raison mesurée : ces tournures sont du
+    # vocabulaire marketing français courant. Les détecter signalerait comme
+    # artificiel un texte parfaitement légitime.
+    ANGLES_MORTS = [
+        "il faut se transformer profondément pour avancer dans ce projet précis",
+        "devenir la meilleure version de soi demande du travail quotidien réel",
         "le chemin sera long mais le parcours en vaut vraiment la peine ici",
+    ]
+
+    # Copies légitimes qui contiennent ces mêmes tournures : elles ne doivent
+    # jamais être signalées. C'est cette contrainte qui interdit de fermer les
+    # trois angles morts restants.
+    LEGITIMES = [
+        "Le parcours client de mes prospects s'arrête toujours au moment du prix",
+        "La meilleure version de ton offre est celle que tes clients réclament",
+        "J'ai réduit le chemin entre la découverte et l'achat à trois étapes",
     ]
     DETECTEES = [
         "il est temps de passer à l'action maintenant sans plus attendre du tout",
@@ -81,12 +98,25 @@ class TestDivergenceMesureeEntreLaConsigneEtSonValidateur:
     def test_les_formules_couvertes_sont_bien_rejetees(self, phrase):
         assert self._ai_free(phrase) is False
 
+    @pytest.mark.parametrize('phrase', FERMES)
+    def test_les_angles_morts_fermes_sont_desormais_detectes(self, phrase):
+        """Trois interdictions de la consigne que le validateur ignorait sont
+        maintenant vérifiées. Ce n'était sans risque que parce qu'elles n'ont
+        aucun usage légitime en contenu marketing."""
+        assert self._ai_free(phrase) is False
+
     @pytest.mark.parametrize('phrase', ANGLES_MORTS)
-    def test_les_angles_morts_connus_passent_encore(self, phrase):
-        """Écart documenté, pas corrigé. Si ce test échoue un jour, c'est que
-        quelqu'un a élargi la regex — ce qui est souhaitable, mais doit être
-        un choix conscient : mettre à jour ce test et vérifier l'effet sur le
-        taux de rejet réel."""
+    def test_les_angles_morts_restants_passent_encore(self, phrase):
+        """Écart assumé, pas oublié : fermer ceux-ci signalerait du texte
+        légitime — voir le test suivant, qui en est la raison."""
+        assert self._ai_free(phrase) is True
+
+    @pytest.mark.parametrize('phrase', LEGITIMES)
+    def test_une_copie_legitime_nest_jamais_signalee(self, phrase):
+        """La contrainte qui interdit d'aller plus loin. « Le parcours
+        client », « la meilleure version de ton offre » sont du vocabulaire
+        marketing français courant : un détecteur qui les rejette nuit plus
+        que le défaut qu'il cherche."""
         assert self._ai_free(phrase) is True
 
     def test_toutes_les_formules_interdites_figurent_bien_dans_la_consigne(self):

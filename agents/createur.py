@@ -987,12 +987,28 @@ class Createur(BaseAgent):
         strat_key = (strategy or {}).get('angle_positionnel', '')
         based_str = bool(strat_key and strat_key[:15].lower() in text.lower())
 
-        # Contenu non générique et non IA-sounding
+        # Contenu non générique et non IA-sounding.
+        #
+        # Ce détecteur vérifie la discipline « voix humaine » injectée au
+        # modèle (_HUMAN_VOICE). Les deux avaient divergé : six interdictions
+        # de la consigne n'étaient vérifiées par aucun motif.
+        #
+        # Trois sont fermées ici — des formules d'ouverture sans usage
+        # légitime dans un contenu marketing, mesurées à zéro faux positif sur
+        # un corpus de copies réelles.
+        #
+        # Trois restent volontairement ouvertes : « se transformer »,
+        # « meilleure version » et les métaphores de voyage (« chemin »,
+        # « parcours ») sont du vocabulaire marketing français courant. Les
+        # ajouter signalerait comme artificiel un texte légitime — « le
+        # parcours client », « la meilleure version de ton offre » — ce qui
+        # nuirait plus que le défaut qu'on cherche à détecter.
         ai_patterns = re.compile(
             r"il est temps de|dans notre monde (actuel|moderne)|lib[eé]rer (ton|votre) potentiel"
             r"|je t['']accompagne|passons à l['']action ensemble|tu m[eé]rites mieux"
             r"|aujourd['']hui je vais vous parler|n['']h[eé]sitez pas à|comme vous le savez"
-            r"|votre audience|vos clients|en g[eé]n[eé]ral",
+            r"|votre audience|vos clients|en g[eé]n[eé]ral"
+            r"|bonjour à tous|bienvenue sur|nous vivons dans une [ée]poque",
             re.I
         )
         not_generic = len(text) > 300 and not bool(ai_patterns.search(text))
