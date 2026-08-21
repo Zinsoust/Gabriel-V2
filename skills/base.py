@@ -184,3 +184,60 @@ class CatalogSkill(Skill):
             return SkillFragment(self.spec.id, self.default_key, requested or '',
                                  self.catalog[self.default_key], 'default')
         return SkillFragment(self.spec.id, key, requested or '', '', 'none')
+
+
+@dataclass
+class CorpusSkill(Skill):
+    """Skill adossé à un corpus documentaire récupéré par pertinence.
+
+    Troisième forme de Skill, née d'un besoin que ``CatalogSkill`` ne sait pas
+    exprimer : le corpus stratégique de Gabriel contient 39 méthodes nommées
+    (formules de pricing, design d'offre, schémas de marché), mais on n'en
+    choisit jamais une *par son nom* — on décrit une situation et le corpus
+    rend les méthodes pertinentes. Forcer ce corpus dans un catalogue à clés
+    mentirait sur la façon dont il est réellement consulté.
+
+    Ce que cette forme apporte, et que la recherche documentaire seule ne
+    donne pas : **l'énumérabilité**. Aujourd'hui, personne ne peut demander
+    « quelles méthodes de pricing Gabriel connaît-il ? » — le corpus n'est
+    atteignable qu'à travers une requête sémantique, donc invisible tant
+    qu'on n'a pas deviné les bons mots. ``keys()`` répond à cette question.
+
+    ``retrieve`` reçoit la requête et rend le texte à injecter ; il n'est pas
+    implémenté ici, parce que la récupération est le travail d'un Tool
+    (``knowledge.search``), pas d'un Skill — un Skill enseigne, il n'exécute
+    pas.
+    """
+
+    spec: SkillSpec
+    entries: Mapping[str, str]              # id → libellé lisible de la méthode
+    retrieve: Callable[[str], str]          # requête → texte à injecter
+
+    def keys(self) -> tuple:
+        return tuple(sorted(self.entries))
+
+    def normalize(self, requested: str) -> str:
+        """Un identifiant de méthode, si la demande en cite un ; sinon vide.
+
+        Contrairement à un catalogue, une requête libre n'a pas vocation à
+        « tomber » sur une clé : c'est le mode normal d'usage, pas un échec.
+        """
+        raw = (requested or '').strip().lower()
+        return raw if raw in self.entries else ''
+
+    def render(self, requested: str) -> SkillFragment:
+        query = (requested or '').strip()
+        if not query:
+            return SkillFragment(self.spec.id, '', '', '', 'none')
+        content = self.retrieve(query)
+        if not content:
+            # Corpus indisponible ou aucune méthode pertinente : le dire plutôt
+            # que de rendre un fragment vide indiscernable d'un skill muet.
+            return SkillFragment(self.spec.id, '', requested, '', 'none')
+        return SkillFragment(self.spec.id, self.normalize(requested), requested,
+                             content, 'corpus')
+
+    def describe(self) -> dict:
+        d = super().describe()
+        d['entries'] = dict(self.entries)
+        return d

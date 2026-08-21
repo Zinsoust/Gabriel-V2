@@ -71,7 +71,7 @@ _DECLARATIONS = (
             optional_consumes=('psychologue',),
             produces='stratege',
             tools=('adaptation.psycho_to_strategy_context',),
-            skills=('strategy.decision_reasoning',),
+            skills=('strategy.decision_reasoning', 'strategy.business_corpus'),
             route='/stratege',
         ),
         'agents.stratege', 'Stratege', STATUS_AVAILABLE,
