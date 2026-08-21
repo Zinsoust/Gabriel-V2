@@ -61,8 +61,54 @@ SEARCH_KNOWLEDGE = ToolSpec(
 )
 
 
+
+
+def _retrieve_concept_cards(rag_name, dashboard_signals=None, max_cards=4,
+                            max_chars=2000):
+    from core import rag
+
+    cards = rag.load_concept_cards(rag_name)
+    selected = rag.filter_concept_cards_by_triggers(
+        cards, dashboard_signals or [], max_cards=max_cards)
+    return {
+        'cards': selected,
+        'context': rag.format_concept_cards_context(selected, max_chars=max_chars),
+        'available': len(cards),
+    }
+
+
+RETRIEVE_CONCEPT_CARDS = ToolSpec(
+    id='knowledge.concept_cards',
+    name='Cartes de concept',
+    description=(
+        "Sélectionne les cartes de concept d'un corpus spécialisé selon les "
+        "signaux réellement mesurés dans l'analyse, et rend le contexte "
+        "formaté pour injection dans un prompt."),
+    category='knowledge',
+    inputs=(
+        ToolInput('rag_name', "Corpus de cartes : 'psychologie' ou 'socioculturel'"),
+        ToolInput('dashboard_signals',
+                  "Signaux mesurés (émotion dominante, thèmes, postures) qui "
+                  "guident la sélection ; sans eux, les premières cartes sont "
+                  "rendues telles quelles", required=False),
+        ToolInput('max_cards', "Nombre maximum de cartes retenues (défaut 4)",
+                  required=False),
+        ToolInput('max_chars', "Longueur maximale du contexte formaté (défaut 2000)",
+                  required=False),
+    ),
+    output="{cards: [...], context: str, available: int}",
+    # Sélection par correspondance de mots-clés, pas par modèle : mêmes cartes
+    # et mêmes signaux donnent toujours le même choix.
+    deterministic=True,
+    parallel_safe=True,
+    cacheable=True,
+    timeout_s=None,   # lecture de fichiers locaux
+)
+
+
 def register_all() -> None:
     registry.register(FunctionTool(SEARCH_KNOWLEDGE, _search_knowledge))
+    registry.register(FunctionTool(RETRIEVE_CONCEPT_CARDS, _retrieve_concept_cards))
 
 
 register_all()

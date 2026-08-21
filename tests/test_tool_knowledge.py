@@ -94,3 +94,76 @@ class TestContrat:
         assert spec.deterministic is True
         assert spec.cacheable is True
         assert spec.parallel_safe is True
+
+
+class TestCartesDeConcept:
+    """Chaîne à trois fonctions (charger → filtrer par signaux → formater),
+    appelée deux fois à l'identique dans le pipeline du Psychologue — pour la
+    psychologie puis pour le socioculturel. L'outil déclare la chaîne réelle.
+    """
+
+    # Signaux réalistes : le pipeline envoie émotion dominante, posture, titre,
+    # puis d'éventuels marqueurs. Les déclencheurs des cartes sont des phrases
+    # entières, donc un signal ne pèse que s'il y apparaît réellement — des
+    # mots choisis au hasard ne discriminent rien, et c'est correct.
+    SIGNAUX = ['Espoir', 'favorable', 'frustration élevée']
+
+    def test_loutil_rend_ce_que_la_chaine_reelle_rend(self):
+        cards = rag.load_concept_cards('psychologie')
+        attendu_cards = rag.filter_concept_cards_by_triggers(
+            cards, self.SIGNAUX, max_cards=4)
+        attendu_ctx = rag.format_concept_cards_context(attendu_cards, max_chars=1500)
+
+        obtenu = tools_pkg.registry.get('knowledge.concept_cards').run(
+            rag_name='psychologie', dashboard_signals=self.SIGNAUX,
+            max_cards=4, max_chars=1500)
+
+        assert obtenu['cards'] == attendu_cards
+        assert obtenu['context'] == attendu_ctx
+
+    def test_le_corpus_reel_est_bien_charge(self):
+        obtenu = tools_pkg.registry.get('knowledge.concept_cards').run(
+            rag_name='psychologie')
+        assert obtenu['available'] == 12
+        assert len(obtenu['cards']) == 4          # plafond par défaut
+        assert all('id' in c for c in obtenu['cards'])
+
+    def test_les_signaux_changent_reellement_la_selection(self):
+        """Sans cet effet, l'outil rendrait toujours les mêmes cartes et le
+        filtrage par signaux ne servirait à rien. Les signaux employés ici
+        figurent réellement dans les déclencheurs des cartes — vérifié."""
+        outil = tools_pkg.registry.get('knowledge.concept_cards')
+        tension = outil.run(rag_name='psychologie',
+                           dashboard_signals=['tension_interne'])
+        croyances = outil.run(rag_name='psychologie',
+                             dashboard_signals=['croyances_limitantes'])
+        assert [c['id'] for c in tension['cards']][0] == 'PSY-001'
+        assert [c['id'] for c in croyances['cards']][0] == 'PSY-007'
+
+    def test_un_signal_absent_des_declencheurs_laisse_l_ordre_inchange(self):
+        """Comportement d'origine, à ne pas confondre avec une panne : un mot
+        qui ne figure dans aucun déclencheur ne réordonne rien. Le tri est
+        stable, donc l'ordre du corpus est conservé."""
+        outil = tools_pkg.registry.get('knowledge.concept_cards')
+        sans_signal = outil.run(rag_name='psychologie', dashboard_signals=[])
+        mot_absent = outil.run(rag_name='psychologie',
+                              dashboard_signals=['xyzzy_inexistant'])
+        assert [c['id'] for c in sans_signal['cards']] == \
+            [c['id'] for c in mot_absent['cards']]
+
+    def test_sans_signaux_les_premieres_cartes_sont_rendues(self):
+        """Comportement d'origine : pas de signaux, pas de tri — on ne fabrique
+        pas une pertinence qu'on n'a pas."""
+        obtenu = tools_pkg.registry.get('knowledge.concept_cards').run(
+            rag_name='psychologie', dashboard_signals=[], max_cards=2)
+        attendu = rag.load_concept_cards('psychologie')[:2]
+        assert obtenu['cards'] == attendu
+
+    def test_un_corpus_inexistant_ne_leve_pas(self):
+        obtenu = tools_pkg.registry.get('knowledge.concept_cards').run(
+            rag_name='corpus_qui_nexiste_pas')
+        assert obtenu == {'cards': [], 'context': '', 'available': 0}
+
+    def test_le_contrat_se_declare_pur(self):
+        spec = tools_pkg.registry.get('knowledge.concept_cards').spec
+        assert spec.deterministic is True and spec.cacheable is True
