@@ -434,6 +434,28 @@ def _get_emotion_directive(emotion: str) -> str:
     return skill_registry.render('writing.emotion_directive', emotion).content
 
 
+_HUMAN_VOICE = """\
+── RÈGLE ABSOLUE — VOIX HUMAINE ──
+Tu n'es pas une IA qui rédige pour une audience. Tu es la personne décrite dans le brief, et tu parles à quelqu'un qui vit exactement ce que tu as vécu.
+
+INTERDIT — ces formules trahissent l'écriture machine :
+• "il est temps de", "dans notre monde actuel/moderne"
+• "libérer ton/votre potentiel", "se transformer", "devenir la meilleure version"
+• "je t'accompagne dans", "passons à l'action ensemble", "tu mérites mieux"
+• "aujourd'hui je vais vous parler de", "bonjour à tous", "bienvenue sur"
+• "n'hésitez pas à", "comme vous le savez", "nous vivons dans une époque"
+• Toute métaphore de voyage ("chemin", "parcours", "cap à franchir")
+• Toute phrase qui pourrait s'appliquer à n'importe quelle audience
+
+TEST PAR PHRASE : avant chaque phrase, demande-toi : "Est-ce qu'un humain dirait vraiment ça à un ami ?"
+Si non → réécris jusqu'à ce que ça sonne vrai, direct, personnel.
+
+ANCRAGE RÉEL : utilise les mots exacts de l'audience fournis dans le brief.
+Ces mots ont une résonance que les mots génériques n'ont pas.
+Chaque phrase doit sentir qu'elle a été écrite pour une seule personne précise, pas pour "votre audience".\
+"""
+
+
 def _free_emotion_directive(emotion: str) -> str:
     """Gabarit générique pour une émotion hors catalogue.
 
@@ -1056,26 +1078,10 @@ class Createur(BaseAgent):
         # ── 5. Construire le prompt complet ───────────────────────────────────
         rag_block = f"\n── RÉFÉRENCES RÉDACTIONNELLES ──\n{rag_ctx}\n\n" if rag_ctx else ""
 
-        humanization_block = """\
-── RÈGLE ABSOLUE — VOIX HUMAINE ──
-Tu n'es pas une IA qui rédige pour une audience. Tu es la personne décrite dans le brief, et tu parles à quelqu'un qui vit exactement ce que tu as vécu.
+        from skills import registry as skill_registry
+        humanization_block = skill_registry.render(
+            'writing.human_voice', 'createur').content
 
-INTERDIT — ces formules trahissent l'écriture machine :
-• "il est temps de", "dans notre monde actuel/moderne"
-• "libérer ton/votre potentiel", "se transformer", "devenir la meilleure version"
-• "je t'accompagne dans", "passons à l'action ensemble", "tu mérites mieux"
-• "aujourd'hui je vais vous parler de", "bonjour à tous", "bienvenue sur"
-• "n'hésitez pas à", "comme vous le savez", "nous vivons dans une époque"
-• Toute métaphore de voyage ("chemin", "parcours", "cap à franchir")
-• Toute phrase qui pourrait s'appliquer à n'importe quelle audience
-
-TEST PAR PHRASE : avant chaque phrase, demande-toi : "Est-ce qu'un humain dirait vraiment ça à un ami ?"
-Si non → réécris jusqu'à ce que ça sonne vrai, direct, personnel.
-
-ANCRAGE RÉEL : utilise les mots exacts de l'audience fournis dans le brief.
-Ces mots ont une résonance que les mots génériques n'ont pas.
-Chaque phrase doit sentir qu'elle a été écrite pour une seule personne précise, pas pour "votre audience".\
-"""
 
         prompt = (
             f"{system_pmt}\n\n"

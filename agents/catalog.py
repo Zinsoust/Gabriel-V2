@@ -91,7 +91,7 @@ _DECLARATIONS = (
             optional_consumes=('psychologue', 'stratege'),
             produces='createur',
             skills=('writing.tone_discipline', 'writing.emotion_directive',
-                   'writing.content_structure'),
+                   'writing.content_structure', 'writing.human_voice'),
             route='/createur',
         ),
         'agents.createur', 'Createur', STATUS_AVAILABLE,
