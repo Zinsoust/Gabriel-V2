@@ -269,3 +269,92 @@ class TestParallelisme:
         ctx_s, _ = Executor(registre).execute(plan, _contexte())
         ctx_p, _ = Executor(registre).execute(plan, _contexte(), parallel=True)
         assert ctx_s.to_response() == ctx_p.to_response()
+
+
+class TestGainReelDuParallelisme:
+    """Mesure demandée par le brief : temps séquentiel, temps parallèle, gain
+    réel — pas seulement « l'ordre est correct ».
+
+    Nuance importante : aucune mission actuelle de Gabriel n'a de branches
+    indépendantes (Psychologue → Stratège → Créateur est une chaîne). Ce gain
+    est donc *disponible mais inutilisé*. Le mesurer répond à la vraie
+    question : le jour où une mission aura deux branches, la parallélisation
+    apportera-t-elle quelque chose ?
+    """
+
+    LATENCE = 0.2   # simule une étape qui attend un appel réseau ou LLM
+
+    def _registre_en_y(self, n_branches):
+        import time as _time
+        from agents.registry import AgentRegistry, AgentSpec
+
+        latence = self.LATENCE
+
+        def _agent(agent_id):
+            class _A:
+                AGENT_ID = agent_id
+
+                def run(self, ctx):
+                    _time.sleep(latence)
+                    ctx.add(agent_id, {f'{agent_id}_out': True})
+                    return ctx
+            return _A
+
+        r = AgentRegistry()
+        branches = [f'branche{i}' for i in range(n_branches)]
+        for b in branches:
+            r.register(AgentSpec(id=b, name=b, description='…',
+                                 consumes=('comments',), produces=f'{b}_out'),
+                       loader=(lambda x: lambda: _agent(x))(b))
+        r.register(AgentSpec(id='synthese', name='Synthèse', description='…',
+                             consumes=tuple(f'{b}_out' for b in branches),
+                             produces='synthese'),
+                   loader=lambda: _agent('synthese'))
+        return r
+
+    def _mesurer(self, n_branches):
+        import time as _time
+        from core.planner import Planner
+
+        registre = self._registre_en_y(n_branches)
+        plan = Planner(registre).plan('synthese')
+
+        def _ctx():
+            return AnalysisContext(comments=['a'], brain_context='',
+                                   video_context='', title='')
+
+        debut = _time.perf_counter()
+        Executor(registre).execute(plan, _ctx())
+        sequentiel = _time.perf_counter() - debut
+
+        debut = _time.perf_counter()
+        Executor(registre).execute(plan, _ctx(), parallel=True)
+        parallele = _time.perf_counter() - debut
+
+        return sequentiel, parallele
+
+    def test_le_parallelisme_apporte_un_gain_mesurable(self):
+        """Trois branches indépendantes + une synthèse : en séquentiel, quatre
+        latences ; en parallèle, deux. Le seuil est volontairement lâche —
+        c'est le gain qu'on vérifie, pas une performance au centième."""
+        sequentiel, parallele = self._mesurer(3)
+        assert parallele < sequentiel * 0.75, (
+            f"aucun gain mesurable : {sequentiel:.2f}s séquentiel contre "
+            f"{parallele:.2f}s parallèle")
+
+    def test_le_gain_grandit_avec_le_nombre_de_branches(self):
+        """Propriété qui distingue un vrai parallélisme d'un gain accidentel :
+        cinq branches doivent en profiter plus que deux."""
+        seq2, par2 = self._mesurer(2)
+        seq5, par5 = self._mesurer(5)
+        assert (seq5 / par5) > (seq2 / par2)
+
+    def test_le_temps_parallele_ne_depend_pas_du_nombre_de_branches(self):
+        """La signature d'une vraie exécution simultanée : ajouter des
+        branches n'allonge pas la vague. Si ce test échoue, la
+        parallélisation s'est mise à sérialiser sans le dire."""
+        _, par2 = self._mesurer(2)
+        _, par5 = self._mesurer(5)
+        assert par5 < par2 * 1.6, (
+            f"passer de 2 à 5 branches a allongé la vague : "
+            f"{par2:.2f}s → {par5:.2f}s")
