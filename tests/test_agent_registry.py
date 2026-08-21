@@ -106,9 +106,32 @@ class TestDependancesEntreAgents:
         produirait une stratégie sans matière, sans erreur visible."""
         assert 'psychologue' in registry.spec('stratege').consumes
 
-    def test_chaque_agent_utilisable_declare_ce_qu_il_depose(self):
-        for agent in registry.available():
+    def test_chaque_agent_du_pipeline_declare_ce_qu_il_depose(self):
+        """Un agent qui suit le protocole run(ctx) participe à la chaîne de
+        production : il doit dire ce qu'il dépose, sinon rien ne peut consommer
+        son résultat.
+
+        Les agents de restitution en sont exclus à raison — voir le test
+        suivant. Ce test ne comptait auparavant aucune exception, ce qui
+        revenait à supposer que tout agent produit quelque chose.
+        """
+        pipeline = [a for a in registry.available() if a.spec.entrypoint == 'run']
+        assert pipeline, "aucun agent de pipeline — le filtre est trop strict"
+        for agent in pipeline:
             assert agent.spec.produces, agent.spec.id
+
+    def test_un_agent_de_restitution_peut_legitimement_ne_rien_deposer(self):
+        """Cas réel : le Design Agent met en forme ce que d'autres ont produit.
+        Il ne dépose rien dans le contexte d'analyse, et lui exiger un
+        `produces` reviendrait à lui inventer une sortie qu'il n'a pas.
+
+        L'exclusion doit rester une règle explicite — entrypoint hors
+        protocole — et non un oubli du test précédent.
+        """
+        design = registry.spec('design')
+        assert design.produces == ''
+        assert design.entrypoint != 'run'
+        assert design.direct_access is False   # jamais visible dans l'UI
 
 
 class TestRegistre:
@@ -133,8 +156,20 @@ class TestRegistre:
             _spec(status='peut-etre')
 
     def test_le_registre_distingue_declares_et_utilisables(self):
-        assert len(registry) == 4
-        assert len(registry.available()) == 3
+        """Règle, pas comptage : tout agent non utilisable doit porter un
+        statut qui l'explique. Figer un chiffre faisait échouer ce test à
+        chaque agent ajouté, sans rien protéger de réel.
+        """
+        declares = set(a.spec.id for a in registry.all())
+        utilisables = set(a.spec.id for a in registry.available())
+        assert utilisables < declares          # au moins un non utilisable
+        for agent_id in declares - utilisables:
+            assert registry.spec(agent_id).status != STATUS_AVAILABLE
+
+    def test_les_trois_agents_de_production_restent_utilisables(self):
+        """La garantie qui compte vraiment derrière l'ancien comptage."""
+        utilisables = {a.spec.id for a in registry.available()}
+        assert {'psychologue', 'stratege', 'createur'} <= utilisables
 
     def test_resoudre_un_agent_utilisable_rend_sa_classe(self):
         classe = registry.resolve('psychologue')
