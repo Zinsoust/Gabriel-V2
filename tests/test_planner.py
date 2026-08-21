@@ -172,3 +172,67 @@ class TestAgentsIndisponibles:
         plan = Planner(r).plan('stratege')
         assert plan.agent_ids == ('stratege',)
         assert plan.required_inputs == ('psychologue',)
+
+
+class TestUnPlanDitAussiAvecQuoi:
+    """Exigence du brief : « Gabriel a compris pourquoi il fallait appeler cet
+    agent, utiliser ce Skill et exécuter ces Tools dans cet ordre. »
+
+    Un plan qui ne nomme que des agents ne répond qu'au premier tiers. Les
+    outils et savoir-faire sont déclarés sur chaque agent depuis le début —
+    ils étaient simplement invisibles dans le plan produit.
+    """
+
+    def test_chaque_etape_nomme_les_outils_de_son_agent(self, planner):
+        etape = [s for s in planner.plan('psychologue')][0]
+        assert etape.tools == ('audience.score_comments', 'audience.compute_kpis',
+                              'audience.compute_dashboard')
+
+    def test_chaque_etape_nomme_les_savoir_faire_de_son_agent(self, planner):
+        etape = [s for s in planner.plan('psychologue')][0]
+        assert etape.skills == ('psychology.human_understanding_grid',)
+
+    def test_le_plan_agrege_les_capacites_de_toutes_ses_etapes(self, planner):
+        plan = planner.plan('createur')
+        # Le Créateur ne déclare aucun outil, le Psychologue et le Stratège si.
+        assert 'audience.score_comments' in plan.tools
+        assert 'adaptation.psycho_to_strategy_context' in plan.tools
+        assert 'writing.human_voice' in plan.skills
+        assert 'psychology.human_understanding_grid' in plan.skills
+
+    def test_les_capacites_agregees_sont_sans_doublon(self):
+        """Deux agents peuvent déclarer le même outil ; le plan ne doit pas le
+        compter deux fois."""
+        from agents.registry import AgentRegistry, AgentSpec
+        from tools import registry as tool_registry
+
+        r = AgentRegistry(tool_registry=tool_registry)
+        r.register(AgentSpec(id='a', name='A', description='…',
+                             consumes=('comments',), produces='a_out',
+                             tools=('audience.score_comments',)),
+                   loader=lambda: None)
+        r.register(AgentSpec(id='b', name='B', description='…',
+                             consumes=('a_out',), produces='b_out',
+                             tools=('audience.score_comments',)),
+                   loader=lambda: None)
+        plan = Planner(r).plan('b')
+        assert plan.tools == ('audience.score_comments',)
+
+    def test_un_agent_sans_capacite_declaree_ne_casse_rien(self, planner):
+        """Le Créateur ne déclare aucun outil : son étape doit rendre un tuple
+        vide, pas manquer le champ."""
+        createur = [s for s in planner.plan('createur') if s.agent_id == 'createur'][0]
+        assert createur.tools == ()
+        assert createur.skills != ()
+
+    def test_lexplication_en_clair_nomme_les_capacites(self, planner):
+        texte = planner.explain('stratege')
+        assert 'outils :' in texte and 'méthodes :' in texte
+        assert 'audience.score_comments' in texte
+        assert 'strategy.decision_reasoning' in texte
+
+    def test_le_plan_serialise_porte_les_capacites(self, planner):
+        d = planner.plan('stratege').describe()
+        assert 'tools' in d and 'skills' in d
+        assert 'psychology.human_understanding_grid' in d['skills']
+        assert 'tools' in d['steps'][0] and 'skills' in d['steps'][0]

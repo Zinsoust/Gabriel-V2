@@ -48,6 +48,13 @@ class PlanStep:
     # évite deux erreurs symétriques : bloquer un parcours qui fonctionne, et
     # annoncer un résultat complet alors qu'il a tourné à vide.
     degraded_without: Tuple[str, ...] = ()
+
+    # Ce que l'étape mobilisera réellement, lu sur la fiche de l'agent. Sans
+    # ces deux champs, un plan répond « quel agent » mais jamais « avec quels
+    # instruments et quelle méthode » — or c'est cela qui distingue une
+    # composition assumée d'un enchaînement deviné.
+    tools: Tuple[str, ...] = ()
+    skills: Tuple[str, ...] = ()
     wave: int = 0                         # étapes de même vague : parallélisables
 
     def describe(self) -> dict:
@@ -59,6 +66,8 @@ class PlanStep:
             'depends_on': list(self.depends_on),
             'external_inputs': list(self.external_inputs),
             'degraded_without': list(self.degraded_without),
+            'tools': list(self.tools),
+            'skills': list(self.skills),
             'wave': self.wave,
         }
 
@@ -95,6 +104,26 @@ class ExecutionPlan:
     def parallelizable(self) -> bool:
         return any(len(v) > 1 for v in self.waves())
 
+    @property
+    def tools(self) -> Tuple[str, ...]:
+        """Tous les outils que ce plan mobilisera, sans doublon."""
+        vus = []
+        for step in self.steps:
+            for tool_id in step.tools:
+                if tool_id not in vus:
+                    vus.append(tool_id)
+        return tuple(vus)
+
+    @property
+    def skills(self) -> Tuple[str, ...]:
+        """Tous les savoir-faire que ce plan mobilisera, sans doublon."""
+        vus = []
+        for step in self.steps:
+            for skill_id in step.skills:
+                if skill_id not in vus:
+                    vus.append(skill_id)
+        return tuple(vus)
+
     def describe(self) -> dict:
         return {
             'goal': self.goal,
@@ -104,6 +133,8 @@ class ExecutionPlan:
             'already_available': list(self.already_available),
             'waves': [[s.agent_id for s in v] for v in self.waves()],
             'parallelizable': self.parallelizable,
+            'tools': list(self.tools),
+            'skills': list(self.skills),
         }
 
     def __len__(self) -> int:
@@ -204,6 +235,8 @@ class Planner:
                 depends_on=deps_par_agent[aid],
                 external_inputs=externes_par_agent[aid],
                 degraded_without=souples_par_agent[aid],
+                tools=self._agents.spec(aid).tools,
+                skills=self._agents.spec(aid).skills,
                 wave=profondeurs[aid],
             )
             for aid in ordre
@@ -228,6 +261,14 @@ class Planner:
             noms = ', '.join(s.agent_name for s in vague)
             marque = ' (en parallèle)' if len(vague) > 1 else ''
             lignes.append(f"  {index}. {noms}{marque}")
+            # Dire ce que chaque étape mobilise : c'est la différence entre
+            # « appelle cet agent » et « appelle cet agent, avec ces
+            # instruments et cette méthode ».
+            for step in vague:
+                if step.tools:
+                    lignes.append(f"     outils : {', '.join(step.tools)}")
+                if step.skills:
+                    lignes.append(f"     méthodes : {', '.join(step.skills)}")
         return '\n'.join(lignes)
 
 
