@@ -108,6 +108,38 @@ _DECLARATIONS = (
         ),
         'agents.architecte', 'Architecte', STATUS_PLANNED,
     ),
+    (
+        AgentSpec(
+            id='design',
+            name='Design Agent',
+            description=(
+                "Moteur interne de restitution : reçoit un résultat métier "
+                "déjà produit (Psychologue, Stratège, Créateur, Cross-"
+                "Analyse…) et choisit comment le composer à partir des "
+                "composants Gabriel déjà approuvés. Jamais sélectionnable "
+                "par l'utilisateur, jamais d'écriture sur le dépôt."),
+            # Pas de `route` : ce n'est pas un 4e agent visible dans l'UI, mais
+            # un moteur appelé en interne après un résultat métier.
+            direct_access=False,
+            # `run` existe mais ne suit PAS le protocole run(ctx) du pipeline :
+            # il attend un dict {'envelope': ...}, pas un AnalysisContext. Le
+            # déclarer 'run' faisait accepter cet agent dans un plan, puis
+            # planter à l'exécution sur un message trompeur. `compose` est son
+            # vrai point d'entrée — l'Executor le refuse alors explicitement,
+            # comme il le fait déjà pour `Createur.generate_script_or_text`.
+            entrypoint='compose',
+            # Ce qu'il lui faut réellement : un résultat métier déjà produit.
+            # Aucun agent ne le « produit » au sens du contexte d'analyse, donc
+            # le plan le déclare comme une entrée à fournir par l'appelant.
+            consumes=('envelope',),
+            # `produces` reste vide, et c'est exact : le Design Agent ne dépose
+            # rien dans le contexte d'analyse. Il met en forme ce que d'autres
+            # ont produit — une étape de restitution, pas de production.
+            tools=('design.describe_content_shape',),
+            skills=('design.presentation_composition',),
+        ),
+        'agents.design_agent', 'DesignAgent', STATUS_AVAILABLE,
+    ),
 )
 
 
