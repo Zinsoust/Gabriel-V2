@@ -384,7 +384,6 @@
   .price-item { text-align:center; padding:12px 8px; background:color-mix(in srgb, var(--text-primary) 2%, transparent); border-radius:3px; }
   .price-val { font-size:12px; font-weight:500; color:var(--text-secondary); margin-bottom:4px; }
   .price-lbl { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.07em; }
-  .price-position-badge { display:inline-flex; padding:4px 11px; border-radius:9px; font-size:11px; font-weight:500; background:color-mix(in srgb, var(--champagne) 8%, transparent); border:1px solid color-mix(in srgb, var(--champagne) 20%, transparent); color:color-mix(in srgb, var(--champagne) 80%, transparent); }
   .price-header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
   .price-fourchette-label { font-size:9px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:600; margin-bottom:3px; }
   .price-fourchette-val { font-size:15px; font-weight:600; color:var(--text-primary); }
@@ -612,7 +611,7 @@
   .plan-section-title { font-size:10px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); font-weight:600; margin:12px 0 6px; }
   .plan-items { display:flex; flex-direction:column; gap:5px; }
   .plan-item { display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-secondary); line-height:1.65; padding:4px 0; }
-  .plan-item::before { content:'—'; color:color-mix(in srgb, var(--champagne) 40%, transparent); font-size:11px; flex-shrink:0; margin-top:2px; }
+  .plan-item::before { content:'·'; color:color-mix(in srgb, var(--champagne) 40%, transparent); font-size:15px; flex-shrink:0; margin-top:-2px; }
   .plan-kpi { display:inline-flex; padding:3px 9px; background:rgba(120,200,140,0.06); border:1px solid rgba(120,200,140,0.14); border-radius:9px; font-size:10px; color:rgba(120,200,140,0.75); margin:2px; }
   .plan-decision { display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-secondary); padding:7px 11px; background:color-mix(in srgb, var(--champagne) 3%, transparent); border-radius:3px; border-left:2px solid color-mix(in srgb, var(--champagne) 30%, transparent); margin:3px 0; line-height:1.6; }
   .plan-decision::before { content:'→'; color:color-mix(in srgb, var(--champagne) 55%, transparent); flex-shrink:0; }
@@ -2642,6 +2641,7 @@
   /* La progression est désormais toujours visible dans le panneau latéral —
      plus besoin d'un bouton pour l'ouvrir en tiroir. */
   .interview-progress-btn, .interview-progress-count { display:none; }
+  .interview-progress-close, .interview-progress-backdrop { display:none; }
   .interview-live-region { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
 
   /* ── Grille deux zones ──────────────────────────────────────────────
@@ -2704,34 +2704,30 @@
   .interview-session-bar { grid-column:1 / -1; grid-row:1; }
   #strat-psycho-banner, #strat-idle, .ctx-header, .chat-window, .interview-gate { grid-column:1; grid-row:2; }
   .chat-input-row { grid-column:1; grid-row:3; }
-  /* Le suivi est une carte FLOTTANTE (voir .interview-side plus bas) : elle
-     survole la page et ne doit voler aucun espace à la conversation. On ne
-     réserve donc plus 318 px à droite — cette réserve étranglait la zone de
-     conversation. À la place, la conversation est centrée avec une largeur
-     de lecture généreuse (modèle ChatGPT) : sur écran large, la marge
-     naturelle à droite accueille la carte sans jamais la croiser.
-     position:relative — sert de repère à la barre de saisie, qui s'ancre
-     ainsi sur la colonne de conversation plutôt que sur la fenêtre. */
-  .ctx-panel { grid-template-columns:minmax(0,1fr); position:relative; }
+  /* Une seule géométrie, inspirée de ChatGPT : le fil et le composeur
+     partagent le même rail principal ; la progression possède un rail droit
+     indépendant. Aucun de ces trois éléments ne flotte au-dessus d'un autre. */
+  .ctx-panel {
+    grid-template-columns:minmax(0,1fr) var(--ux-st-sidewidth, 215px);
+    column-gap:clamp(24px, 3vw, 44px); position:relative;
+  }
 
   /* Largeur de lecture de la conversation — le seul garde-fou. Tout ce qui
      appartient au fil (messages, écrans d'étape) partage cette largeur,
      pour que la colonne reste la même d'un écran à l'autre.
-     Centrer (margin-inline:auto) créait, sur écran large, une marge vide
-     ÉGALE des deux côtés — mais celle de droite est en partie récupérée
-     par la carte flottante, alors que celle de gauche restait un vide pur,
-     signalé comme "zone vide" à agrandir. Ancrée à gauche à la place : la
-     conversation démarre juste après la barre latérale, sans mur vide. */
+     Le centrage est désormais calculé dans le rail principal uniquement :
+     le panneau de progression ne décale donc jamais l'axe de lecture. */
   .page-stratege .chat-window,
   .page-stratege .interview-gate:not(#gate-welcome) {
-    max-width:780px; margin-left:0; margin-right:auto;
+    width:min(var(--ux-st-chatwidth, 780px), 100%);
+    max-width:none; margin-inline:auto;
   }
 
   /* En dessous de cette largeur, la marge naturelle ne suffit plus à loger
      la carte flottante : on redonne une réserve pour que le texte ne passe
      jamais dessous. */
   @media (max-width:1360px) {
-    .ctx-panel:not(.step-welcome) { padding-right:255px; }
+    .ctx-panel:not(.step-welcome) { padding-right:0; }
   }
 
   /* ── Zone A — colonne principale ─────────────────────────────────────
@@ -2752,10 +2748,7 @@
     background:none; border:none; box-shadow:none; border-radius:0;
     display:flex; flex-direction:column;
     height:100%; min-height:0; overflow:hidden; align-self:stretch; width:100%;
-    /* La barre de saisie étant en position fixe, elle ne réserve plus sa
-       place dans la mise en page : on la réserve ici, sans quoi les
-       derniers messages passeraient dessous. */
-    padding-bottom:96px;
+    padding-bottom:18px;
   }
   /* C'est ICI que la conversation défile — pas la page. min-height:0 est
      indispensable : sans lui, un élément flexible refuse de rétrécir sous
@@ -2959,31 +2952,36 @@
   /* Encore réduite après retour direct ("trop grand, encore en plus
      petit") — deuxième passe de réduction. */
   .interview-side {
-    position:fixed; top:100px; right:24px; width:215px; z-index:60;
+    position:relative; top:auto; right:auto; grid-column:2; grid-row:2 / 4;
+    width:var(--ux-st-sidewidth, 215px); z-index:60; align-self:stretch;
     display:flex; flex-direction:column;
     max-height:calc(100vh - 140px); min-height:0; overflow-y:auto; scrollbar-width:thin;
-    padding:10px; border:1px solid var(--border-soft); border-radius:10px;
+    padding:8px; border:1px solid var(--border-soft); border-radius:10px;
     background:color-mix(in srgb, var(--bg-card) 94%, transparent);
     backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     box-shadow:0 12px 28px rgba(0,0,0,0.2);
     animation:step-in 0.45s cubic-bezier(0.22,1,.36,1) both;
   }
-  .interview-side .ctx-badge { margin-bottom:8px; font-size:8.5px; padding:3px 8px; line-height:1.4; }
-  .interview-side .ctx-progress { margin:0 0 9px; }
-  .interview-side .ctx-progress-label { font-size:8.5px; }
+  .interview-side .ctx-badge { margin-bottom:6px; font-size:7.5px; padding:2px 6px; line-height:1.3; }
+  .interview-side .ctx-progress { margin:0 0 7px; }
+  .interview-side .ctx-progress-label { font-size:7.5px; }
 
-  .interview-tabs { display:flex; gap:10px; border-bottom:1px solid var(--border-soft); margin-bottom:9px; }
+  .interview-tabs { display:flex; gap:8px; border-bottom:1px solid var(--border-soft); margin-bottom:7px; }
   .interview-tab {
-    font-size:9.5px; font-weight:500; color:var(--text-muted); padding:0 0 6px; margin-bottom:-1px;
+    font-size:8.5px; font-weight:500; color:var(--text-muted); padding:0 0 5px; margin-bottom:-1px;
     border:none; border-bottom:2px solid transparent; background:none; cursor:pointer; font-family:inherit;
   }
   .interview-tab.active { color:var(--text-primary); border-bottom-color:var(--champagne); }
   .interview-tab-panel { flex:1; }
   .interview-tab-panel.hidden { display:none; }
 
-  .progress-human-group { margin-bottom:10px; }
-  .progress-human-group-title { font-size:8px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-disabled); font-weight:600; margin-bottom:5px; }
+  .progress-human-group { margin-bottom:7px; }
+  .progress-human-group-title { font-size:7px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-disabled); font-weight:600; margin-bottom:3px; }
   .progress-human-list { display:flex; flex-direction:column; gap:1px; }
+  .interview-side .ctx-field { gap:5px; padding:3px 4px; }
+  .interview-side .ctx-field-icon { width:11px; height:11px; font-size:6.5px; }
+  .interview-side .ctx-field-label { font-size:7.5px; line-height:1.2; }
+  .interview-side .ctx-field-val { font-size:8px; line-height:1.3; }
   .ctx-field:hover { background:var(--bg-card); }
 
   /* Historique — ancien .strat-memory, devient le contenu de l'onglet
@@ -2994,11 +2992,46 @@
   .interview-side .strat-memory-item { background:none; }
   .interview-side .strat-memory-item:hover { background:var(--bg-card); transform:none; }
 
-  .strat-cta { margin-top:auto; padding-top:10px; }
+  .strat-cta { margin-top:auto; padding-top:7px; }
+  .interview-side .strat-cta-btn { padding:7px; font-size:8.5px; gap:4px; }
+  .interview-side .strat-cta-hint { font-size:7.5px; }
 
   @media (max-width:900px) {
-    .ctx-panel { grid-template-columns:1fr; }
-    .interview-side { grid-column:1; border-left:none; border-top:1px solid var(--border-soft); padding-left:0; padding-top:22px; margin-top:8px; min-height:0; }
+    .ctx-panel { grid-template-columns:minmax(0,1fr); }
+    .ctx-panel:not(.step-welcome) { padding-right:0; }
+    .interview-progress-btn { display:inline-flex; }
+    .interview-progress-count { display:inline; }
+    .interview-side {
+      position:fixed; top:72px; right:12px; grid-column:auto; grid-row:auto;
+      width:min(var(--ux-st-sidewidth, 215px), calc(100vw - 24px));
+      height:calc(100vh - 84px); max-height:none;
+      border-left:1px solid var(--border-soft); border-top:1px solid var(--border-soft);
+      padding:38px 8px 8px; margin:0; z-index:421;
+      transform:translateX(calc(100% + 24px)); opacity:0; pointer-events:none;
+      transition:transform .28s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+    }
+    .ctx-panel.progress-open .interview-side {
+      transform:translateX(0); opacity:1; pointer-events:auto;
+    }
+    .interview-progress-close {
+      display:flex; position:absolute; top:10px; right:10px; width:28px; height:28px;
+      align-items:center; justify-content:center; border:1px solid var(--border-soft);
+      border-radius:50%; background:transparent; color:var(--text-secondary);
+      font:inherit; font-size:18px; cursor:pointer;
+    }
+    .interview-progress-backdrop {
+      position:fixed; inset:0; z-index:420; border:0; padding:0;
+      background:rgba(0,0,0,.52); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
+    }
+    .ctx-panel.progress-open .interview-progress-backdrop { display:block; }
+  }
+
+  @media (max-width:520px) {
+    .interview-progress-count { display:none; }
+    .interview-side {
+      top:0; right:0; width:min(var(--ux-st-sidewidth, 180px), 240px, calc(100vw - 20px)); height:100vh;
+      border-radius:16px 0 0 16px;
+    }
   }
 
   /* ── Parcours d'entrée en 2 temps (avant la conversation) ────────────
@@ -3097,27 +3130,29 @@
        et reste alignée quoi qu'il arrive. Elle partage exactement la largeur
        de lecture de la conversation (780 px) : la barre se trouve donc
        toujours sous la colonne de texte, jamais décalée par rapport à elle. */
-    position:absolute; z-index:40;
-    left:0; right:0; bottom:26px;
-    margin:0 auto; width:auto; max-width:780px;
-    padding:6px 6px 6px 16px;
-    border-radius:999px; align-items:center; gap:4px;
+    position:relative; z-index:40; justify-self:center; align-self:end;
+    left:auto; right:auto; bottom:auto;
+    margin:0 auto var(--ux-st-inputbottom, 26px);
+    width:min(var(--ux-st-inputwidth, 780px), 100%); max-width:none;
+    transform:translateX(var(--ux-st-inputoffsetx, 0px));
+    padding:var(--ux-st-inputpaddingy, 6px) var(--ux-st-inputpaddingx, 16px);
+    border-radius:var(--ux-st-inputradius, 999px); align-items:center; gap:var(--ux-st-inputgap, 4px);
   }
   .chat-input { font-size:13.5px; padding:2px; line-height:1.5; }
   .mic-btn, .chat-send {
-    width:28px; height:28px; border-radius:50%; align-self:center; background:transparent;
+    width:var(--ux-st-iconbtnsize, 28px); height:var(--ux-st-iconbtnsize, 28px); border-radius:50%; align-self:center; background:transparent;
     transition:background 0.15s, color 0.15s;
   }
   .mic-btn:hover, .chat-send:hover { background:color-mix(in srgb, var(--champagne) 14%, transparent); }
-  .mic-btn svg, .chat-send svg { width:14px; height:14px; stroke:var(--champagne-soft); }
+  .mic-btn svg, .chat-send svg { width:var(--ux-st-iconsize, 14px); height:var(--ux-st-iconsize, 14px); stroke:var(--ux-st-inputiconcolor, var(--champagne-soft)); }
   /* «+» — même gabarit rond que le micro/l'envoi, posé à gauche du champ. */
   .compose-add {
-    flex-shrink:0; width:28px; height:28px; border-radius:50%; align-self:center;
+    flex-shrink:0; width:var(--ux-st-iconbtnsize, 28px); height:var(--ux-st-iconbtnsize, 28px); border-radius:50%; align-self:center;
     display:flex; align-items:center; justify-content:center; margin-right:2px;
     color:var(--text-muted); text-decoration:none; transition:background 0.15s, color 0.15s;
   }
   .compose-add:hover { background:color-mix(in srgb, var(--champagne) 14%, transparent); color:var(--champagne); }
-  .compose-add svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .compose-add svg { width:var(--ux-st-iconsize, 14px); height:var(--ux-st-iconsize, 14px); stroke:var(--ux-st-inputiconcolor, currentColor); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 
   @media (prefers-reduced-motion:reduce) {
     .interview-gate { animation:none; }
@@ -3164,9 +3199,9 @@
      Avec 640 px de large maximum, elle reste largement à l'écart de la
      navigation quelle que soit la largeur du dock. */
   .strat-layout.has-strategy .chat-input-row {
-    position:fixed; bottom:26px; z-index:340;
-    left:50%; right:auto; transform:translateX(-50%);
-    margin:0; width:min(640px, calc(100vw - 420px)); max-width:640px;
+    position:fixed; bottom:var(--ux-st-inputbottom, 26px); z-index:340;
+    left:50%; right:auto; transform:translateX(calc(-50% + var(--ux-st-inputoffsetx, 0px)));
+    margin:0; width:min(var(--ux-st-inputwidth, 780px), calc(100vw - 420px)); max-width:none;
   }
   .strat-layout.has-strategy .ctx-panel.is-open .interview-side {
     display:flex; grid-column:1; border-left:none; padding-left:0; min-height:0;
@@ -3174,8 +3209,11 @@
   }
 
 /* ── UX Studio : éléments rendus ajustables (ciblés sur cette page) ──────── */
+:root { {{ strategy_ux_css | default('') | safe }} }
 body.page-stratege .ctx-header-title   { font-size: var(--ux-st-ctxtitle, 13px); }
 body.page-stratege .ctx-field-label    { font-size: var(--ux-st-ctxfield, 8.5px); }
+body.page-stratege .msg-bubble         { font-size: var(--ux-st-msgsize, 13.5px); }
+body.page-stratege .chat-input         { font-size:var(--ux-st-inputsize, 13px); color:var(--ux-st-inputtextcolor, var(--text-primary)); }
 body.page-stratege .decision-text      { font-size: var(--ux-st-decision, 18px); }
 body.page-stratege .decision-label     { font-size: var(--ux-st-decisionlabel, 10px); }
 body.page-stratege .dash-sec-title     { font-size: var(--ux-st-secttl, 13px); }
@@ -3185,10 +3223,202 @@ body.page-stratege .psycho-banner-title{ font-size: var(--ux-st-banner, 14px); }
 body.page-stratege .strat-memory-item-title { font-size: var(--ux-st-memitem, 12px); }
 body.page-stratege .strat-generate-btn { font-size: var(--ux-st-genbtn, 13px); }
 body.page-stratege .strat-cta-btn      { font-size: var(--ux-st-ctabtn, 11px); }
+body.page-stratege .chat-window        { max-width:var(--ux-st-chatwidth, 780px); }
+body.page-stratege .chat-input-row     {
+  min-height:var(--ux-st-inputheight, 74px);
+  border-width:var(--ux-st-inputborder, 1px);
+  border-color:color-mix(in srgb, var(--ux-st-inputbordercolor, #2b2a27) var(--ux-st-inputborderopacity, 100%), transparent);
+  background:color-mix(in srgb, var(--ux-st-inputbg, #111110) var(--ux-st-inputbgopacity, 100%), transparent);
+  box-shadow:0 10px var(--ux-st-inputshadow, 28px) rgba(0,0,0,.24), inset 0 1px 0 color-mix(in srgb, var(--text-primary) 3%, transparent);
+}
+body.strategy-studio-preview .chat-input-row::before {
+  content:'↔ Déplacer'; position:absolute; left:50%; top:-22px; transform:translateX(-50%);
+  padding:3px 9px; border-radius:10px; background:#d8b982; color:#17130d;
+  font-size:9px; font-weight:700; letter-spacing:.04em; cursor:grab; white-space:nowrap;
+}
+body.page-stratege .chat-messages      { gap:var(--ux-st-messagegap, 26px); }
+body.page-stratege .interview-side     { width:var(--ux-st-sidewidth, 215px); border-radius:var(--ux-st-panelradius, 14px); }
+body.page-stratege .strat-analyze-section,
+body.page-stratege .strat-memory-item  { border-radius:var(--ux-st-cardradius, 16px); }
+body.strategy-studio-preview .app-sidebar,
+body.strategy-studio-preview .app-header,
+body.strategy-studio-preview .orch-dock,
+body.strategy-studio-preview .app-footer { display:none !important; }
+body.strategy-studio-preview .app-main { margin-left:0 !important; }
+body.strategy-studio-preview .app-content { padding-top:18px !important; }
+
+/* ── Composer de conversation, rendu produit ───────────────────────────
+   Les variables du Studio UX restent utiles dans sa prévisualisation, mais
+   elles ne doivent jamais modifier la géométrie du composeur utilisé par un
+   client. Une largeur ou une ombre enregistrée dans le Studio pouvait ainsi
+   transformer le champ en bande flottante et le faire déborder du cadre V2.
+   On reprend volontairement le langage du Créateur : carte blanche nette,
+   bord fin, rayon doux et action noire. */
+body.page-stratege:not(.strategy-studio-preview) .chat-input-row {
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:min(820px, calc(100% - 56px));
+  max-width:820px;
+  min-height:58px;
+  margin:0 auto 18px;
+  padding:10px 12px;
+  border:1px solid #ded9d1;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:none;
+  transform:none;
+  transition:border-color .18s ease, background-color .18s ease;
+}
+body.page-stratege:not(.strategy-studio-preview) .chat-input-row:focus-within {
+  border-color:#c9b48f;
+  box-shadow:none;
+}
+body.page-stratege:not(.strategy-studio-preview) .chat-input {
+  min-width:0;
+  min-height:30px;
+  padding:4px 2px;
+  color:#38332d;
+  font-size:13px;
+  line-height:1.55;
+}
+body.page-stratege:not(.strategy-studio-preview) .chat-input::placeholder { color:#aaa197; }
+body.page-stratege:not(.strategy-studio-preview) .compose-add,
+body.page-stratege:not(.strategy-studio-preview) .mic-btn,
+body.page-stratege:not(.strategy-studio-preview) .chat-send {
+  width:32px;
+  height:32px;
+  flex:0 0 32px;
+  align-self:center;
+}
+body.page-stratege:not(.strategy-studio-preview) .compose-add,
+body.page-stratege:not(.strategy-studio-preview) .mic-btn {
+  color:#887967;
+}
+body.page-stratege:not(.strategy-studio-preview) .compose-add:hover,
+body.page-stratege:not(.strategy-studio-preview) .mic-btn:hover {
+  background:#f5f1eb;
+  color:#5e4931;
+}
+body.page-stratege:not(.strategy-studio-preview) .mic-btn svg { stroke:currentColor; }
+body.page-stratege:not(.strategy-studio-preview) .chat-send {
+  background:#171513;
+  color:#f4eadb;
+}
+body.page-stratege:not(.strategy-studio-preview) .chat-send:hover { background:#292524; }
+body.page-stratege:not(.strategy-studio-preview) .chat-send svg {
+  width:15px;
+  height:15px;
+  stroke:currentColor;
+}
+body.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .chat-input-row {
+  position:fixed;
+  z-index:340;
+  left:50%;
+  right:auto;
+  bottom:max(16px, env(safe-area-inset-bottom));
+  width:min(820px, calc(100vw - 56px));
+  max-width:820px;
+  margin:0;
+  transform:translateX(-50%);
+}
+@media (max-width:700px) {
+  body.page-stratege:not(.strategy-studio-preview) .chat-input-row,
+  body.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .chat-input-row {
+    width:calc(100% - 24px);
+    max-width:none;
+    padding:9px 10px;
+  }
+}
+
+/* ─── Direction premium (session du 17/08) ──────────────────────────────
+   Le Gabriel Design Language assigne un accent par bureau (Stratège =
+   graphite) et réserve le champagne aux décisions/priorités et au Hall.
+   Les icônes de section utilisaient le champagne par défaut sur les 6
+   sections : ça le rendait omniprésent plutôt que rare. --stratege-accent
+   est une dérivée lisible du graphite #8A9099, recalculée par thème pour
+   rester au-dessus du seuil de contraste. */
+:root { --stratege-accent: #9AA0A8; }
+:root[data-theme="light"] { --stratege-accent: #5A5F66; }
+.page-stratege .dash-sec-ico svg { stroke:color-mix(in srgb, var(--stratege-accent) 72%, transparent) !important; }
+.page-stratege .dash-sec-ico { background:color-mix(in srgb, var(--stratege-accent) 8%, transparent); border-color:color-mix(in srgb, var(--stratege-accent) 16%, transparent); }
+/* strat-card--monetization garde son fond ambré (voir plus haut) : c'est
+   un vrai moment de décision (plan de monétisation immédiate), la
+   nuance champagne y reste justifiée. Seul le trait de l'icône (utilisé
+   partout, y compris pour des sections purement structurelles) repasse
+   au graphite du bureau. */
+
+/* Le plan 90 jours passe d'onglets (qui cachaient 2 phases sur 3) à une
+   liste éditoriale : les 3 phases restent visibles à la suite, avec leur
+   contenu complet (objectifs/tâches/livrables/kpis/décisions). Rien dans
+   les données ne dit "quelle phase est en cours" (pas de champ de statut
+   dans plan_90_jours), donc les 3 sont présentées à égalité. */
+.plan-phase-list { display:flex; flex-direction:column; }
+.plan-phase { display:grid; grid-template-columns:56px minmax(0,1fr); gap:18px; padding:22px 0; border-top:1px solid var(--border-soft); }
+.plan-phase:first-child { border-top:none; padding-top:4px; }
+.plan-phase-num { font-weight:700; font-size:17px; color:color-mix(in srgb, var(--text-primary) 28%, transparent); font-variant-numeric:tabular-nums; padding-top:1px; }
+.plan-phase-header { display:flex; align-items:baseline; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+
+/* Deux lectures de la même décision : le score de confiance du Stratège
+   et celui de sa propre relecture critique indépendante, côte à côte —
+   c'est l'écart entre les deux qui est intéressant, pas juste le premier
+   chiffre. Champs réels : executive_decision.confidence_score et
+   critique_strategique.confidence_score_independant. */
+.conf-gauge-pair { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border-soft); border:1px solid var(--border-soft); border-radius:8px; overflow:hidden; margin-bottom:16px; }
+.conf-gauge-card { background:var(--bg-card); padding:22px 20px; text-align:center; }
+.conf-gauge-card-label { font-size:11px; color:var(--text-secondary); font-weight:600; margin-bottom:14px; }
+.conf-gauge-wrap { position:relative; width:100%; max-width:180px; height:96px; margin:0 auto 6px; }
+.conf-gauge-track { stroke:var(--border-soft); }
+.conf-gauge-fill { stroke-dasharray:226.2; transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1); }
+.conf-gauge-fill--ok { stroke:var(--champagne); }
+.conf-gauge-fill--risk { stroke:rgba(220,100,100,.82); }
+.conf-gauge-num { position:absolute; bottom:0; left:0; right:0; font-weight:700; font-size:24px; color:var(--text-primary); font-variant-numeric:tabular-nums; }
+.conf-gauge-num small { font-size:11px; color:var(--text-muted); font-weight:600; }
+@media (max-width:600px) { .conf-gauge-pair { grid-template-columns:1fr; } }
+
+/* Liste « Priorités » : alignement en colonnes et poids typographique,
+   pas de numérotation ni de cadre interne (le cadre de la carte suffit). */
+.case-list { display:flex; flex-direction:column; }
+.case-item { display:grid; grid-template-columns:minmax(0,1fr) 1fr 110px 90px; align-items:baseline; gap:14px; padding:12px 0; border-top:1px solid var(--border-soft); }
+.case-item:first-child { border-top:none; padding-top:2px; }
+.case-title { font-size:13px; font-weight:650; color:var(--text-primary); }
+.case-meta { font-size:11px; color:var(--text-muted); }
+.case-when { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; text-align:right; white-space:nowrap; }
+@media (max-width:640px) {
+  .case-item { grid-template-columns:1fr; gap:3px; }
+  .case-when { text-align:left; }
+}
+
+/* Le plan 90 jours étant maintenant nettement plus haut (3 phases visibles
+   au lieu d'une derrière un onglet), il passe en pleine largeur pour ne
+   plus partager sa ligne avec une carte courte. */
+.page-stratege #strat-dashboard.strat-cockpit-active .strat-card--plan {
+  grid-column: 1 / -1 !important;
+}
+
+/* Échelle de positionnement prix — évite de répéter le prix dans deux
+   cartes voisines (l'offre et la logique de prix disaient la même chose
+   deux fois) : le prix recommandé et son positionnement (entrée/milieu/
+   premium/ultra-premium, un champ réel du Stratège) vivent maintenant
+   dans la carte de l'offre ; la carte "Logique de prix" ne garde que
+   l'analyse qui lui est propre (valeur perçue, douleur marché, budget). */
+.price-scale { margin-top:16px; padding-top:16px; border-top:1px solid var(--border-soft); }
+.price-scale-label { display:flex; justify-content:space-between; align-items:baseline; font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; }
+.price-scale-label b { font-size:14px; color:var(--text-primary); text-transform:none; letter-spacing:0; font-variant-numeric:tabular-nums; }
+.price-track { position:relative; height:4px; border-radius:2px; background:color-mix(in srgb, var(--text-primary) 8%, transparent); }
+.price-track-fill { position:absolute; inset:0; border-radius:2px; background:linear-gradient(90deg, color-mix(in srgb, var(--champagne) 35%, transparent), var(--champagne)); }
+.price-stops { display:grid; grid-template-columns:repeat(4,1fr); margin-top:8px; }
+.price-stop { font-size:9px; color:var(--text-disabled); text-transform:uppercase; letter-spacing:.04em; }
+.price-stop:nth-child(2) { text-align:center; } .price-stop:nth-child(3) { text-align:center; } .price-stop:last-child { text-align:right; }
+.price-stop.active { color:var(--champagne); font-weight:700; }
 </style>
 {% endblock %}
 
 {% block header_actions %}
+{% if strategy_ux_is_admin %}
+<a class="btn btn-ghost btn-sm" href="/studio/stratege">Studio UX</a>
+{% endif %}
 <button type="button" class="btn btn-ghost btn-sm" onclick="resetContext()">Réinitialiser</button>
 {% endblock %}
 
@@ -3231,7 +3461,7 @@ body.page-stratege .strat-cta-btn      { font-size: var(--ux-st-ctabtn, 11px); }
         </div>
       </div>
       <div class="interview-session-actions">
-        <button type="button" class="interview-quiet-btn interview-progress-btn" id="interview-progress-btn" onclick="toggleInterviewProgress()" aria-expanded="false" aria-controls="ctx-fields-panel" aria-label="Voir ce que Gabriel comprend">
+        <button type="button" class="interview-quiet-btn interview-progress-btn" id="interview-progress-btn" onclick="toggleInterviewProgress()" aria-expanded="false" aria-controls="interview-side" aria-label="Voir ce que Gabriel comprend">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4Z"/><path d="m4 11 8 4 8-4"/><path d="m4 15 8 4 8-4"/></svg>
           <span class="interview-progress-count" id="interview-progress-count">Contexte à découvrir</span>
         </button>
@@ -3406,7 +3636,9 @@ body.page-stratege .strat-cta-btn      { font-size: var(--ux-st-ctabtn, 11px); }
     </div>
 
     <!-- ── Right zone: statut, progression, historique, action ────────── -->
-    <div class="interview-side">
+    <button type="button" class="interview-progress-backdrop" onclick="toggleInterviewProgress(false)" aria-label="Fermer la progression"></button>
+    <div class="interview-side" id="interview-side">
+      <button type="button" class="interview-progress-close" onclick="toggleInterviewProgress(false)" aria-label="Fermer la progression">×</button>
       <div class="ctx-badge empty" id="ctx-badge">
         <div class="ctx-dot"></div>
         <span id="ctx-badge-text">Contextualisation requise</span>
@@ -3497,39 +3729,6 @@ body.page-stratege .strat-cta-btn      { font-size: var(--ux-st-ctabtn, 11px); }
 {% endblock %}
 
 {% block scripts %}
-<link rel="stylesheet" href="{{ static_v('css/ux-studio.css') }}">
-<script src="{{ static_v('js/ux-studio.js') }}" defer></script>
-<script defer>
-document.addEventListener('DOMContentLoaded', function () {
-  if (!window.UxStudio) return;
-  UxStudio.mount({
-    pageKey: 'stratege',
-    groups: [
-      { label: 'Entretien', items: [
-        { key: 'st-ctxtitle', label: 'Titre d’entretien',  def: 13, min: 8,  max: 24, step: 0.5 },
-        { key: 'st-ctxfield', label: 'Libellés de champ',  def: 8.5,min: 6,  max: 16, step: 0.5 },
-        { key: 'st-idletitle',label: 'Titre (écran vide)', def: 15, min: 9,  max: 28, step: 0.5 },
-        { key: 'st-idledesc', label: 'Texte (écran vide)', def: 12, min: 8,  max: 20, step: 0.5 },
-        { key: 'st-banner',   label: 'Bandeau Psychologue',def: 14, min: 8,  max: 22, step: 0.5 },
-        { key: 'st-memitem',  label: 'Titre cas mémoire',  def: 12, min: 8,  max: 20, step: 0.5 },
-      ]},
-      { label: 'Stratégie (résultat)', items: [
-        { key: 'st-decision',     label: 'Décision (grand titre)', def: 18, min: 10, max: 36, step: 0.5 },
-        { key: 'st-decisionlabel',label: 'Libellé décision',       def: 10, min: 7,  max: 18, step: 0.5 },
-        { key: 'st-secttl',       label: 'Titres de section',      def: 13, min: 8,  max: 24, step: 0.5 },
-      ]},
-      { label: 'Boutons', items: [
-        { key: 'st-genbtn', label: 'Générer la stratégie', def: 13, min: 8,  max: 20, step: 0.5 },
-        { key: 'st-ctabtn', label: 'Bouton d’action',      def: 11, min: 8,  max: 18, step: 0.5 },
-      ]},
-      { label: 'Couleurs (global)', colors: [
-        { key: 'ux-champagne',   label: 'Accent champagne', def: '#d8b982', cssVar: '--champagne' },
-        { key: 'ux-textprimary', label: 'Texte principal',  def: '#f4f1ea', cssVar: '--text-primary' },
-      ]},
-    ],
-  });
-});
-</script>
 <!-- Conteneur du parcours (machine à états). Chargé avant le script de la
      page : les écrans s'enregistrent auprès de lui dès leur définition. -->
 <script src="{{ static_v('js/strategy-workspace.js') }}"></script>
@@ -3543,6 +3742,60 @@ document.addEventListener('DOMContentLoaded', function () {
 <script src="{{ static_v('js/vendor/SplitText.min.js') }}"></script>
 <script>
 document.body.classList.add('page-stratege');
+const STRATEGY_STUDIO_PREVIEW = {{ (strategy_studio_preview | default(false)) | tojson }};
+if (STRATEGY_STUDIO_PREVIEW) document.body.classList.add('strategy-studio-preview');
+
+window.addEventListener('message', function (event) {
+  if (!STRATEGY_STUDIO_PREVIEW || event.origin !== window.location.origin) return;
+  if (!event.data || event.data.type !== 'gabriel-strategy-ux') return;
+  const settings = event.data.settings || {};
+  const percentKeys = new Set(['st-inputbgopacity', 'st-inputborderopacity']);
+  Object.entries(settings).forEach(([key, value]) => {
+    if (!/^[a-z0-9-]+$/.test(key)) return;
+    const cssKey = key.startsWith('ux-') ? null : '--ux-' + key;
+    if (cssKey) document.documentElement.style.setProperty(
+      cssKey, typeof value === 'number' ? value + (percentKeys.has(key) ? '%' : 'px') : value
+    );
+  });
+  if (settings['ux-champagne']) document.documentElement.style.setProperty('--champagne', settings['ux-champagne']);
+  if (settings['ux-textprimary']) document.documentElement.style.setProperty('--text-primary', settings['ux-textprimary']);
+  if (settings['ux-bgmain']) document.documentElement.style.setProperty('--bg-main', settings['ux-bgmain']);
+});
+
+if (STRATEGY_STUDIO_PREVIEW) {
+  document.addEventListener('pointerdown', function (event) {
+    const box = event.target.closest?.('.chat-input-row');
+    if (!box || event.target !== box) return;
+    const rect = box.getBoundingClientRect();
+    if (event.clientY > rect.top + 8) return;
+    event.preventDefault();
+    const styles = getComputedStyle(document.documentElement);
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startOffset = parseFloat(styles.getPropertyValue('--ux-st-inputoffsetx')) || 0;
+    const startBottom = parseFloat(styles.getPropertyValue('--ux-st-inputbottom')) || 26;
+    box.setPointerCapture(event.pointerId);
+    box.style.cursor = 'grabbing';
+    const move = moveEvent => {
+      const offsetX = Math.max(-500, Math.min(500, Math.round(startOffset + moveEvent.clientX - startX)));
+      const bottom = Math.max(0, Math.min(240, Math.round(startBottom - moveEvent.clientY + startY)));
+      document.documentElement.style.setProperty('--ux-st-inputoffsetx', offsetX + 'px');
+      document.documentElement.style.setProperty('--ux-st-inputbottom', bottom + 'px');
+      window.parent.postMessage({
+        type:'gabriel-strategy-ux-drag', settings:{'st-inputoffsetx':offsetX, 'st-inputbottom':bottom}
+      }, window.location.origin);
+    };
+    const stop = () => {
+      box.style.cursor = '';
+      box.removeEventListener('pointermove', move);
+      box.removeEventListener('pointerup', stop);
+      box.removeEventListener('pointercancel', stop);
+    };
+    box.addEventListener('pointermove', move);
+    box.addEventListener('pointerup', stop);
+    box.addEventListener('pointercancel', stop);
+  });
+}
 
 /* Le schéma des 7 dimensions (agents/context_builder/schema.py) vit côté
    serveur — le Context Orchestrator renvoie déjà "progression" (une entrée
@@ -3709,6 +3962,7 @@ function toggleInterviewProgress(force) {
   const open = typeof force === 'boolean' ? force : !panel?.classList.contains('progress-open');
   panel?.classList.toggle('progress-open', open);
   document.getElementById('interview-progress-btn')?.setAttribute('aria-expanded', String(open));
+  document.getElementById('interview-side')?.setAttribute('aria-hidden', String(!open && window.innerWidth <= 900));
   document.getElementById('ctx-fields-panel')?.setAttribute('aria-hidden', String(!open));
   if (open) document.querySelector('.interview-progress-close')?.focus({preventScroll:true});
 }
@@ -3928,6 +4182,26 @@ async function tryRestoreStratege() {
 
 /* ── Init ───────────────────────────────────────────── */
 async function init() {
+  if (STRATEGY_STUDIO_PREVIEW) {
+    _dismissInterviewHero();
+    _forceHide(document.getElementById('strat-idle'));
+    addMsg('agent', "Je comprends votre objectif. Commençons par préciser la décision stratégique que vous souhaitez prendre.");
+    addMsg('user', "Je souhaite clarifier mon positionnement et construire une offre plus lisible.");
+    addMsg('agent', "Voici ce que je comprends déjà. Votre priorité est la clarté de l'offre ; précisons maintenant votre avantage décisif.");
+    updateUI({
+      is_ready:false, completion_score:0.43,
+      progression:[
+        {key:'identity',label:"Identité de l’entreprise",status:'done'},
+        {key:'vision',label:'Vision',status:'done'},
+        {key:'business_model',label:'Modèle économique',status:'in_progress'},
+        {key:'resources',label:'Ressources',status:'not_started'},
+        {key:'constraints',label:'Contraintes',status:'not_started'},
+        {key:'history',label:'Historique',status:'not_started'},
+        {key:'objective',label:'Objectif actuel',status:'not_started'},
+      ],
+    });
+    return;
+  }
   if (resumePendingStratege()) return;  // une génération tourne encore → reprendre le suivi
 
   // Ouverture directe d'une stratégie sauvegardée (depuis Mes Stratégies)
@@ -4088,9 +4362,10 @@ function acceptPsychoAnalysis() {
   hide('strat-psycho-banner');
   _forceShow(document.querySelector('.chat-window'));
   _showPsychoLinked(stored.psycho_brief || '', stored.analysis_id);
-  showAnalyzeSection();
 
-  addMsg('agent', "Analyse du Psychologue importée ✓\n\nLes insights d'audience sont transmis au Stratège. Cliquez sur « Générer la stratégie » pour lancer l'analyse.");
+  addMsg('agent', isReady
+    ? "Analyse du Psychologue importée ✓\n\nLes insights d'audience sont transmis au Stratège. Votre contexte est suffisamment clair : vous pouvez générer la stratégie depuis le panneau de progression."
+    : "Analyse du Psychologue importée ✓\n\nLes insights d'audience sont transmis au Stratège. Continuons à préciser votre entreprise avant de générer la stratégie.");
 }
 
 function skipPsychoImport() {
@@ -5051,7 +5326,9 @@ function showAnalyzeSection() {
 }
 
 function launchStratege() {
-  if (!isReady && !_linkedAnalysisId) return;
+  // Une analyse Psychologue enrichit la stratégie, mais ne remplace jamais le
+  // contexte business requis. is_ready reste l'unique source de vérité.
+  if (!isReady) return;
   // Sans analyse Psychologue liée, il n'y a rien à relire dans la section
   // "Résultats du Psychologue (optionnel)" — faire défiler jusqu'à un
   // deuxième bouton identique ("Générer la stratégie") juste pour cliquer
@@ -5066,6 +5343,9 @@ function launchStratege() {
 const STRAT_PENDING_JOB_KEY = 'gabriel_pending_stratege_job';
 
 async function submitStrategie() {
+  // Garde-fou système : même si une ancienne vue rendait ce bouton visible,
+  // aucune génération ne part avant validation du contexte par le serveur.
+  if (!isReady) return;
   const psychoSum = (document.getElementById('psycho-summary')?.value||'').trim();
   hide('strat-analyze-section'); hide('strat-dashboard'); hide('strat-memory');
   show('strat-loading');
@@ -5262,6 +5542,8 @@ function renderStrat(d) {
   setContextPanelOpen(false);
   const dash = document.getElementById('strat-dashboard');
   dash.classList.add('strat-cockpit-active');
+  const isV2Embed = document.body.classList.contains('is-embedded-agent');
+  dash.classList.toggle('strat-dashboard--v2-bento', isV2Embed);
   dash.innerHTML = '';
 
   /* ── Restitution en 5 volets, façon présentation de consultant ────────
@@ -5332,6 +5614,7 @@ function renderStrat(d) {
   const bar = document.createElement('div');
   bar.className = 'strat-action-bar';
   bar.innerHTML = `
+    <div class="strat-result-label"><span></span>Stratégie proposée</div>
     <button class="regen-btn" onclick="regenStrategie()">
       <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.45"/></svg>
       Régénérer
@@ -5343,7 +5626,7 @@ function renderStrat(d) {
   // sombre). Réglé en JS plutôt qu'en CSS : la règle stylesheet équivalente,
   // pourtant valide et vérifiée dans les DevTools, n'était jamais appliquée
   // au rendu — écrasée par un mécanisme de cascade non identifié.
-  if (window.matchMedia('(min-width:1101px)').matches) {
+  if (!isV2Embed && window.matchMedia('(min-width:1101px)').matches) {
     bar.style.setProperty('margin-top', '150px', 'important');
   }
   add(bar);
@@ -5357,34 +5640,43 @@ function renderStrat(d) {
     ed.one_sentence_decision || d.decision_centrale || d.message_central ||
     "Gabriel organise les signaux du marché en décision prioritaire.";
   const hero = document.createElement('section');
-  hero.className = 'strat-hero';
-  hero.style.setProperty('--strat-photo', `url("{{ url_for('static', filename='images/personas/p2.jpeg') }}")`);
+  hero.className = 'strat-hero strat-hero--bento';
   let heroBody = `
-    <div class="strat-hero-photo" aria-hidden="true"></div>
     <div class="strat-hero-body">
-      <div class="strat-hero-badge">⚡ Décision prioritaire</div>
-      <div class="strat-hero-kicker">Qu'est-ce que je dois faire maintenant ?</div>
+      <div class="strat-hero-badge"><span></span>Décision prioritaire</div>
+      <div class="strat-hero-kicker">La direction à suivre maintenant</div>
       <div class="strat-hero-decision">${_esc(heroDecision)}</div>`;
   if (ed.what_to_do_this_week) {
     heroBody += `<div class="strat-hero-week"><div class="strat-hero-week-label">Cette semaine</div><div class="strat-hero-week-text">${_esc(ed.what_to_do_this_week)}</div></div>`;
   }
-  heroBody += `</div>`;
+  heroBody += `</div>
+    <div class="strat-hero-visual">
+      <img class="strat-hero-portrait" src="{{ static_v('images/personas/p2.jpeg') }}" alt="Le Stratège">
+      <div class="strat-hero-visual-content" aria-hidden="true">
+        <div class="strat-hero-visual-label">Le Stratège</div>
+        <div class="strat-hero-visual-caption">De l'analyse<br>à l'action.</div>
+      </div>
+    </div>`;
   hero.innerHTML = heroBody;
   add(hero);
 
   // ── Rangée KPI (gros chiffres) ─────────────────────────
   const kpis = [];
-  const conf = typeof ed.confidence_score === 'number' ? Math.round(ed.confidence_score * 100) : null;
+  const rawConfidence = Number(ed.confidence_score);
+  const conf = Number.isFinite(rawConfidence)
+    ? Math.round(rawConfidence <= 1 ? rawConfidence * 100 : rawConfidence)
+    : null;
   if (conf !== null) {
-    kpis.push(`<div class="kpi-card kpi-accent"><div class="kpi-label">Alignement audience</div><div class="kpi-value kpi-gold">${conf}<span class="kpi-unit">%</span></div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${conf}%"></div></div><div class="kpi-sub">Cohérence entre la stratégie proposée et les signaux psychologiques détectés.</div></div>`);
+    const safeConfidence = Math.max(0, Math.min(100, conf));
+    kpis.push(`<article class="kpi-card kpi-card--alignment kpi-accent"><div class="kpi-label">Alignement audience</div><div class="kpi-value kpi-gold">${safeConfidence}<span class="kpi-unit">%</span></div><div class="kpi-bar"><div class="kpi-bar-fill" style="width:${safeConfidence}%"></div></div><div class="kpi-sub">Cohérence entre la décision et les signaux psychologiques détectés.</div></article>`);
   }
   const offreK = d.offre_recommandee;
   if (offreK && typeof offreK === 'object' && offreK.prix_recommande) {
     const posSub = (d.pricing_logic && d.pricing_logic.positionnement) || offreK.cible_precise || '';
-    kpis.push(`<div class="kpi-card"><div class="kpi-label">Prix recommandé</div><div class="kpi-value kpi-gold">${_esc(offreK.prix_recommande)}</div>${posSub ? `<div class="kpi-sub">${_esc(posSub)}</div>` : ''}</div>`);
+    kpis.push(`<article class="kpi-card kpi-card--price"><div class="kpi-label">Prix recommandé</div><div class="kpi-value kpi-gold">${_esc(offreK.prix_recommande)}</div>${posSub ? `<div class="kpi-sub">${_esc(posSub)}</div>` : ''}</article>`);
   }
   if (ed.expected_business_impact) {
-    kpis.push(`<div class="kpi-card"><div class="kpi-label">Impact attendu</div><div class="kpi-value kpi-value--text">${_esc(ed.expected_business_impact)}</div></div>`);
+    kpis.push(`<article class="kpi-card kpi-card--impact"><div class="kpi-label">Impact attendu</div><div class="kpi-value kpi-value--text">${_esc(ed.expected_business_impact)}</div></article>`);
   }
   if (kpis.length) {
     const krow = document.createElement('div');
@@ -5394,15 +5686,42 @@ function renderStrat(d) {
   }
 
   section('decision');
-  // ── Relecture critique — 2e avis indépendant ────────────
+  // ── Deux lectures de la même décision ───────────────────
+  // Le score de confiance du Stratège et celui de sa propre relecture
+  // critique, côte à côte : c'est l'écart entre les deux qui compte, pas
+  // seulement le premier chiffre. N'apparaît que si les deux existent
+  // vraiment (la relecture critique est un appel non-bloquant côté
+  // backend, elle peut être absente).
   const crit = d.critique_strategique;
+  const stratConf = typeof ed.confidence_score === 'number' ? Math.round(ed.confidence_score * 100) : null;
+  const critConfPct = crit && typeof crit.confidence_score_independant === 'number' ? Math.round(crit.confidence_score_independant * 100) : null;
+  if (stratConf !== null && critConfPct !== null) {
+    const gaugeArc = (pct, tone) => {
+      const off = Math.round(226.2 * (1 - pct / 100));
+      return `<svg viewBox="0 0 190 112" width="100%" height="96">
+        <path class="conf-gauge-track" d="M 10 102 A 85 85 0 0 1 180 102" fill="none" stroke-width="8" stroke-linecap="round"/>
+        <path class="conf-gauge-fill conf-gauge-fill--${tone}" d="M 10 102 A 85 85 0 0 1 180 102" fill="none" stroke-width="8" stroke-linecap="round" stroke-dashoffset="${off}"/>
+      </svg>`;
+    };
+    add(div('conf-gauge-pair', `
+      <div class="conf-gauge-card">
+        <div class="conf-gauge-card-label">Score du Stratège</div>
+        <div class="conf-gauge-wrap">${gaugeArc(stratConf, 'ok')}<div class="conf-gauge-num">${stratConf}<small>%</small></div></div>
+      </div>
+      <div class="conf-gauge-card">
+        <div class="conf-gauge-card-label">Relecture critique indépendante</div>
+        <div class="conf-gauge-wrap">${gaugeArc(critConfPct, 'risk')}<div class="conf-gauge-num">${critConfPct}<small>%</small></div></div>
+      </div>`));
+  }
+
+  // ── Relecture critique — 2e avis indépendant ────────────
   if (crit && typeof crit === 'object' && (crit.point_faible_principal || crit.angle_contrarien)) {
     const verdict = (crit.verdict || '').toLowerCase();
     const verdictClass = verdict.includes('fragile') ? 'fragile' : verdict.includes('ajust') ? 'ajuster' : 'solide';
     const verdictLabel = verdict.includes('fragile') ? 'Fragile' : verdict.includes('ajust') ? 'À ajuster' : 'Solide';
     const critConf = typeof crit.confidence_score_independant === 'number' ? Math.round(crit.confidence_score_independant * 100) : null;
     let html = `<div class="crit-head">
-      <div class="crit-head-left">${secHead('help', 'Regard critique — 2ᵉ avis indépendant')}</div>
+      <div class="crit-head-left">${secHead('help', 'Regard critique · 2ᵉ avis indépendant')}</div>
       <span class="crit-verdict crit-verdict--${verdictClass}">${verdictLabel}</span>
     </div>`;
     if (crit.point_faible_principal) html += `<div class="crit-row"><div class="crit-row-label">Point faible principal</div><div class="crit-row-text">${_esc(crit.point_faible_principal)}</div></div>`;
@@ -5444,7 +5763,7 @@ function renderStrat(d) {
       ['Valeurs recherchées', ap.values_sought],
     ].filter(([, v]) => v);
     if (fields.length) {
-      let html = secHead('lightbulb', 'Psychologie audience — signaux actifs');
+      let html = secHead('lightbulb', 'Psychologie audience · signaux actifs');
       html += `<div class="psycho-used-grid">`;
       fields.forEach(([lbl, val]) => {
         html += `<div class="psycho-used-item"><div class="psycho-used-label">${lbl}</div><div class="psycho-used-val">${_esc(val)}</div></div>`;
@@ -5497,6 +5816,16 @@ function renderStrat(d) {
 
   // ── Transformation business : offre + prix ─────────────
   const offre = d.offre_recommandee;
+  const pricing = d.pricing_logic && typeof d.pricing_logic === 'object' ? d.pricing_logic : null;
+  // 4 étapes visuelles ; plusieurs clés normalisées peuvent pointer vers la
+  // même étape sans jamais désaligner l'index utilisé pour la largeur de
+  // la barre et celui du libellé actif.
+  const priceStopLabels = ['Entrée', 'Milieu', 'Premium', 'Ultra-premium'];
+  const priceKeyToIdx = {'entrée':0, 'entree':0, 'milieu':1, 'premium':2, 'ultra-premium':3, 'ultra premium':3};
+  const priceActiveIdx = pricing && pricing.positionnement
+    ? (priceKeyToIdx[pricing.positionnement.toLowerCase().trim()] ?? -1)
+    : -1;
+  const priceActiveLabel = priceActiveIdx >= 0 ? priceStopLabels[priceActiveIdx] : null;
   if (offre && typeof offre === 'object') {
     const livrables = Array.isArray(offre.livrables) ? offre.livrables : [];
     const canaux    = Array.isArray(offre.canaux_acquisition) ? offre.canaux_acquisition : [];
@@ -5541,6 +5870,13 @@ function renderStrat(d) {
         <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.09em;color:color-mix(in srgb, var(--champagne) 40%, transparent);font-weight:600;margin-bottom:3px;">Prix recommandé</div><div class="offer-price">${_esc(offre.prix_recommande)}</div></div>
         ${offre.justification_prix?`<div class="offer-price-just">${_esc(offre.justification_prix)}</div>`:''}
       </div>`;
+      if (priceActiveLabel) {
+        html += `<div class="price-scale">
+          <div class="price-scale-label"><span>Positionnement prix</span><b>${_esc(offre.prix_recommande)}</b></div>
+          <div class="price-track"><div class="price-track-fill" style="width:${Math.round((priceActiveIdx + 0.5) / 4 * 100)}%"></div></div>
+          <div class="price-stops">${priceStopLabels.map(l => `<span class="price-stop${l === priceActiveLabel ? ' active' : ''}">${l}</span>`).join('')}</div>
+        </div>`;
+      }
     }
     if (canaux.length || objecs.length) {
       html += `<div class="offer-tags">`;
@@ -5552,18 +5888,19 @@ function renderStrat(d) {
     add(card(html, 'strat-card--offer strat-card--priority'));
   }
 
-  const pricing = d.pricing_logic;
-  if (pricing && typeof pricing === 'object') {
+  if (pricing) {
+    // Le positionnement (entrée/milieu/premium/ultra-premium) vit désormais
+    // dans l'échelle de la carte "Offre recommandée" — cette carte-ci ne
+    // garde que l'analyse qui n'est affichée nulle part ailleurs.
     const hasPricing =
-      pricing.fourchette || pricing.positionnement || pricing.valeur_percue ||
+      pricing.fourchette || pricing.valeur_percue ||
       pricing.niveau_douleur || pricing.capacite_paiement || pricing.justification;
     if (hasPricing) {
       let html = secHead('dollar', 'Logique de prix');
       html += `<div class="price-card">`;
-      if (pricing.fourchette || pricing.positionnement) {
+      if (pricing.fourchette) {
         html += `<div class="price-header-row">
-          <div>${pricing.fourchette?`<div class="price-fourchette-label">Fourchette</div><div class="price-fourchette-val">${_esc(pricing.fourchette)}</div>`:''}</div>
-          ${pricing.positionnement?`<span class="price-position-badge">${_esc(pricing.positionnement)}</span>`:''}
+          <div><div class="price-fourchette-label">Fourchette</div><div class="price-fourchette-val">${_esc(pricing.fourchette)}</div></div>
         </div>`;
       }
       const hasPriceGrid = pricing.valeur_percue || pricing.niveau_douleur || pricing.capacite_paiement;
@@ -5657,23 +5994,23 @@ function renderStrat(d) {
   }
 
   section('plan');
-  // ── 5. Recommandations ─────────────────────────────────
+  // ── 5. Priorités — liste éditoriale (titre, signal, impact, délai
+  // alignés en colonnes), pas des cartes numérotées : le numéro n'ajoutait
+  // rien que la position dans la liste ne dise déjà.
   if (Array.isArray(d.recommandations_prioritaires) && d.recommandations_prioritaires.length) {
-    let html = secHead('arrow', 'Recommandations prioritaires');
-    html += '<div class="reco-list">';
-    d.recommandations_prioritaires.forEach((r, i) => {
+    let html = secHead('arrow', 'Priorités, classées par impact');
+    html += '<div class="case-list">';
+    d.recommandations_prioritaires.forEach((r) => {
       const action = typeof r === 'string' ? r : (r.action || '');
       const signal = typeof r === 'object' ? (r.signal_source || '') : '';
       const impact = typeof r === 'object' ? (r.impact || '') : '';
       const delai  = typeof r === 'object' ? (r.delai || '') : '';
       html += `
-        <div class="reco-item">
-          <div class="reco-num">${i+1}</div>
-          <div class="reco-body">
-            <div class="reco-action">${_esc(action)}</div>
-            ${signal ? `<div class="reco-signal">Signal : ${_esc(signal)}</div>` : ''}
-            ${(impact||delai) ? `<div class="reco-tags">${impact?`<span class="reco-tag impact">${_esc(impact)}</span>`:''}${delai?`<span class="reco-tag delai">${_esc(delai)}</span>`:''}</div>` : ''}
-          </div>
+        <div class="case-item">
+          <div class="case-title">${_esc(action)}</div>
+          <div class="case-meta">${signal ? `Signal : ${_esc(signal)}` : ''}</div>
+          <div class="case-meta">${_esc(impact)}</div>
+          <div class="case-when">${_esc(delai)}</div>
         </div>`;
     });
     html += '</div>';
@@ -5697,37 +6034,40 @@ function renderStrat(d) {
   }
 
   section('plan');
-  // ── 9. Plan 90 jours ───────────────────────────────────
+  // ── 9. Plan 90 jours — liste éditoriale (numéro, titre, contenu),
+  // toutes les phases visibles à la suite plutôt que cachées derrière des
+  // onglets qui masquaient 2 phases sur 3 par défaut.
   const plan = d.plan_90_jours;
   if (plan && typeof plan === 'object') {
     const phases = [
-      {key:'phase_1',label:'Phase 1',sub:'Clarifier'},
-      {key:'phase_2',label:'Phase 2',sub:'Tester'},
-      {key:'phase_3',label:'Phase 3',sub:'Scaler'},
+      {key:'phase_1', num:'01', label:'Phase 1'},
+      {key:'phase_2', num:'02', label:'Phase 2'},
+      {key:'phase_3', num:'03', label:'Phase 3'},
     ];
     let html = secHead('calendar', "Plan d'action 90 jours");
-    html += `<div class="plan-tabs">`;
-    phases.forEach((p, i) => html += `<button class="plan-tab ${i===0?'active':''}" onclick="switchPhase(${i})">${p.label} — ${p.sub}</button>`);
-    html += `</div>`;
-    phases.forEach((p, i) => {
+    html += `<div class="plan-phase-list">`;
+    phases.forEach((p) => {
       const ph = plan[p.key] || {};
       const objList = Array.isArray(ph.objectifs)      ? ph.objectifs      : [];
       const taches  = Array.isArray(ph.taches)         ? ph.taches         : [];
       const livr    = Array.isArray(ph.livrables)      ? ph.livrables      : [];
       const kpis    = Array.isArray(ph.kpis)           ? ph.kpis           : [];
       const decs    = Array.isArray(ph.decisions_cles) ? ph.decisions_cles : [];
-      html += `<div class="plan-phase ${i===0?'active':''}" id="plan-phase-${i}">
-        <div class="plan-phase-header">
-          <div class="plan-phase-period">${_esc(ph.periode || '')}</div>
-          <div class="plan-phase-title">${_esc(ph.titre || p.label)}</div>
-        </div>`;
+      html += `<div class="plan-phase">
+        <div class="plan-phase-num">${p.num}</div>
+        <div>
+          <div class="plan-phase-header">
+            <div class="plan-phase-title">${_esc(ph.titre || p.label)}</div>
+            ${ph.periode ? `<div class="plan-phase-period">${_esc(ph.periode)}</div>` : ''}
+          </div>`;
       if (objList.length) html += `<div class="plan-section-title">Objectifs</div><div class="plan-items">${objList.map(o=>`<div class="plan-item">${_esc(o)}</div>`).join('')}</div>`;
       if (taches.length)  html += `<div class="plan-section-title">Tâches</div><div class="plan-items">${taches.map(t=>`<div class="plan-item">${_esc(t)}</div>`).join('')}</div>`;
       if (livr.length)    html += `<div class="plan-section-title">Livrables</div><div class="plan-items">${livr.map(l=>`<div class="plan-item">${_esc(l)}</div>`).join('')}</div>`;
       if (kpis.length)    html += `<div class="plan-section-title">KPIs</div><div class="plan-kpi-row">${kpis.map(k=>`<span class="plan-kpi">${_esc(k)}</span>`).join('')}</div>`;
       if (decs.length)    html += `<div class="plan-section-title">Décisions clés</div>${decs.map(dec=>`<div class="plan-decision">${_esc(dec)}</div>`).join('')}`;
-      html += `</div>`;
+      html += `</div></div>`;
     });
+    html += `</div>`;
     add(card(html, 'strat-card--plan'));
   }
 
@@ -5949,13 +6289,6 @@ window.addEventListener('resize', () => {
   window.__gabrielStratRebalanceTimer = window.setTimeout(rebalanceStrategyDashboard, 120);
 });
 window.addEventListener('load', rebalanceStrategyDashboard);
-
-/* ── Plan tabs ──────────────────────────────────────── */
-function switchPhase(idx) {
-  document.querySelectorAll('.plan-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-  document.querySelectorAll('.plan-phase').forEach((p, i) => p.classList.toggle('active', i === idx));
-  rebalanceStrategyDashboard();
-}
 
 /* ── Export PDF ─────────────────────────────────────── */
 /* ── Consultant Stratégique chatbot ─────────────────── */

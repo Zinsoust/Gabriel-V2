@@ -61,26 +61,28 @@
   --radius-xl: 8px;
 }
 
-/* ─── Thème clair — blanc, encre, champagne et bleu mat ───────────────────── */
+/* ─── Thème clair — blanc, encre et champagne en accent ───────────────────── */
 :root[data-theme="light"] {
-  --bg-main:        #FDFDFD;
-  --bg-sidebar:     #F7F7F5;
-  --bg-panel:       #FAFAF9;
+  --bg-main:        #FCFBF9;
+  --bg-sidebar:     #F8F7F4;
+  --bg-panel:       #FDFCFB;
   --bg-card:        #FFFFFF;
-  --bg-card-hover:  #F5F7F9;
-  --bg-surface-soft:#EEF1F4;
-  --bg-header:      rgba(253,253,253,0.94);
+  --bg-card-hover:  #FAF9F7;
+  --bg-surface-soft:#F4F2EE;
+  --bg-header:      rgba(252,251,249,0.94);
 
-  --champagne:      #A47D43;
-  --champagne-light:#B58D52;
-  --champagne-soft: #89652F;
-  --champagne-dark: #65491F;
-  --gold-gradient:  linear-gradient(180deg, #C8A66B 0%, #A47D43 48%, #765625 100%);
+  --champagne:      #B08B58;
+  --champagne-light:#C5A273;
+  --champagne-soft: #876943;
+  --champagne-dark: #654B2C;
+  --gold-gradient:  linear-gradient(180deg, #D0B488 0%, #B08B58 48%, #765633 100%);
 
-  --accent-blue:       #1466B8;
-  --accent-blue-soft:  rgba(20,102,184,0.08);
-  --accent-blue-border:rgba(20,102,184,0.24);
-  --color-tech-blue:   #1466B8;
+  /* Le token historique est conservé pour compatibilité : dans le thème
+     blanc il devient de l'encre, jamais une seconde couleur de marque. */
+  --accent-blue:       #111111;
+  --accent-blue-soft:  rgba(17,17,17,0.045);
+  --accent-blue-border:rgba(17,17,17,0.17);
+  --color-tech-blue:   #4E6672;
 
   --text-primary:   #111318;
   --text-secondary: #434951;

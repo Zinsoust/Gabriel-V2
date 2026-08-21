@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../icons.jsx';
 import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
 
@@ -11,8 +11,8 @@ import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
 
    Périmètre couvert : saisie YouTube/manuel, lancement + suivi de
    l'analyse simple, tableau de résultat (synthèse, stats, émotions,
-   positions, personas), et la Cross Analyse complète (panneau flottant
-   2-5 vidéos + écran de résultat : conclusion générale, vidéos comparées,
+   positions, personas), et la Cross Analyse complète (espace de saisie
+   intégré pour 2-5 vidéos + écran de résultat : conclusion générale, vidéos comparées,
    convergences/divergences/oppositions, personas croisés, détails
    techniques). Restent hors périmètre : quelques sections secondaires du
    dashboard classique (démographie, résonance argumentative,
@@ -31,6 +31,38 @@ const LINK_SOURCES = {
 };
 const CROSS_MIN_SOURCES = 2;
 const CROSS_MAX_SOURCES = 5;
+
+function youtubeIdFromUrl(raw) {
+  const value = String(raw || '').trim();
+  return value.match(/[?&]v=([\w-]{6,})/)?.[1]
+    || value.match(/youtu\.be\/([\w-]{6,})/)?.[1]
+    || value.match(/\/shorts\/([\w-]{6,})/)?.[1]
+    || null;
+}
+
+function makeSourcePreview(raw, platform) {
+  const url = String(raw || '').trim();
+  if (!url) return null;
+  const config = LINK_SOURCES[platform];
+  if (!config) return null;
+
+  if (platform === 'youtube') {
+    const id = youtubeIdFromUrl(url);
+    if (!id) return null;
+    return {
+      url, source: config.label, title: `Vidéo YouTube · ${id}`,
+      subtitle: 'Commentaires et discussions publiques',
+      thumbnail: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+    };
+  }
+
+  const looksLikeUrl = /^(https?:\/\/)?[\w-]+(\.[\w-]+)+\S*$/i.test(url);
+  if (!looksLikeUrl) return null;
+  return {
+    url, source: config.label, title: config.label === 'Instagram' ? 'Publication Instagram' : 'Vidéo TikTok',
+    subtitle: 'Commentaires et discussions publiques', thumbnail: null,
+  };
+}
 
 function pause(ms) {
   return new Promise(resolve => window.setTimeout(resolve, ms));
@@ -96,7 +128,9 @@ function PsychoInput({
   url, onUrlChange, manualText, onManualTextChange,
   checking, onCheck, statusMsg, statusTone, previewCount,
   file, onFilePick, onColumnChange, uploading,
-  onLaunch, onOpenCross,
+  onLaunch,
+  crossMode, crossSources, onToggleCross, onAddCrossSource,
+  onRemoveCrossSource, onMoveCrossSource, onClearCrossSources, onLaunchCross,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const linkReady = Boolean(LINK_SOURCES[platform]) && previewCount > 0;
@@ -105,14 +139,22 @@ function PsychoInput({
     : tab === 'manual' ? manualCount >= 3
     : Boolean(file && file.count >= 3);
   const config = LINK_SOURCES[platform];
+  const sourcePreview = useMemo(() => tab === 'link' ? makeSourcePreview(url, platform) : null, [tab, url, platform]);
+  const duplicateCrossSource = Boolean(sourcePreview && crossSources.some(source => source.url === sourcePreview.url));
+  const canAddCrossSource = Boolean(crossMode && sourcePreview && !duplicateCrossSource && crossSources.length < CROSS_MAX_SOURCES);
+  const canLaunchCross = crossMode && crossSources.length >= CROSS_MIN_SOURCES;
   const currentLabel = tab === 'manual' ? 'Commentaires'
     : tab === 'file' ? 'Fichier'
     : (config?.label || 'Google');
   const currentMark = tab === 'manual' ? '≡'
     : tab === 'file' ? '↥'
     : (config?.mark || 'G');
-  const canSubmit = tab === 'link' ? Boolean(config && url.trim()) : canLaunch;
-  const submitLabel = tab === 'link' && !linkReady ? 'Vérifier le lien' : "Lancer l'analyse";
+  const canSubmit = crossMode
+    ? canAddCrossSource || (canLaunchCross && !url.trim())
+    : tab === 'link' ? Boolean(config && url.trim()) : canLaunch;
+  const submitLabel = crossMode
+    ? (canAddCrossSource ? 'Ajouter cette audience' : `Comparer ${crossSources.length} audiences`)
+    : tab === 'link' && !linkReady ? 'Vérifier le lien' : "Lancer l'analyse";
 
   function selectSource(next) {
     setMenuOpen(false);
@@ -124,6 +166,11 @@ function PsychoInput({
 
   function handleSubmit(event) {
     event.preventDefault();
+    if (crossMode) {
+      if (canAddCrossSource) onAddCrossSource(sourcePreview);
+      else if (canLaunchCross && !url.trim()) onLaunchCross();
+      return;
+    }
     if (tab === 'link') {
       if (linkReady) onLaunch();
       else if (config && url.trim()) onCheck();
@@ -135,49 +182,75 @@ function PsychoInput({
   return <section className="gv2-psy-input gv2-psy-landing">
     <div className="gv2-psy-landing-copy">
       <span className="gv2-psy-eyebrow">Le Psychologue</span>
-      <h1>Comprenez ce que votre audience ne vous dit pas.</h1>
-      <p>Analysez les conversations de votre audience pour révéler ce qu'elle ressent, ce qu'elle recherche et ce qui influence réellement ses décisions.</p>
+      <h1>Découvrez la psychologie de votre marché.</h1>
+      <p>Comprenez ce qui pousse vos clients à acheter, hésiter ou partir. Décidez avec une longueur d’avance.</p>
     </div>
 
-    <form className={`gv2-psy-composer${menuOpen ? ' is-menu-open' : ''}`} onSubmit={handleSubmit}>
-      <div className="gv2-psy-source-picker">
-        <button type="button" className="gv2-psy-source-trigger" onClick={() => setMenuOpen(open => !open)} aria-haspopup="listbox" aria-expanded={menuOpen} aria-label={`Source d'analyse : ${currentLabel}. Changer de source`}>
-          <span className="gv2-psy-source-mark" aria-hidden="true">{currentMark}</span>
-          <span>{currentLabel}</span>
-          <Icon name="chevronDown" size={15} className={menuOpen ? 'is-open' : ''} />
+    <div className={`gv2-psy-workspace${crossMode ? ' is-cross' : ''}${sourcePreview ? ' has-preview' : ''}${crossSources.length ? ' has-sources' : ''}`}>
+      {crossMode && crossSources.length > 0 && <div className="gv2-psy-queue" aria-label="Audiences à comparer">
+        <div className="gv2-psy-queue-items">
+          {crossSources.map((source, index) => <div className="gv2-psy-queue-chip" key={source.url}>
+            <strong>Audience {index + 1}</strong>
+            <span>{source.source || 'YouTube'}</span>
+            <span className="gv2-psy-queue-title" title={source.title || source.label || source.url}>{source.title || source.label || source.url}</span>
+            <button type="button" onClick={() => onMoveCrossSource(index, -1)} disabled={index === 0} aria-label={`Déplacer l’audience ${index + 1} vers la gauche`} title="Déplacer vers la gauche">‹</button>
+            <button type="button" onClick={() => onMoveCrossSource(index, 1)} disabled={index === crossSources.length - 1} aria-label={`Déplacer l’audience ${index + 1} vers la droite`} title="Déplacer vers la droite">›</button>
+            <button type="button" onClick={() => onRemoveCrossSource(index)} aria-label={`Retirer l’audience ${index + 1}`} title="Retirer cette audience"><Icon name="close" size={13} /></button>
+          </div>)}
+        </div>
+        <button type="button" className="gv2-psy-queue-clear" onClick={onClearCrossSources}>Tout effacer</button>
+      </div>}
+
+      <form className={`gv2-psy-composer${menuOpen ? ' is-menu-open' : ''}`} onSubmit={handleSubmit}>
+        <div className="gv2-psy-source-picker">
+          <button type="button" className="gv2-psy-source-trigger" onClick={() => setMenuOpen(open => !open)} aria-haspopup="listbox" aria-expanded={menuOpen} aria-label={`Source d'analyse : ${currentLabel}. Changer de source`}>
+            <span className="gv2-psy-source-mark" aria-hidden="true">{currentMark}</span>
+            <span>{currentLabel}</span>
+            <Icon name="chevronDown" size={15} className={menuOpen ? 'is-open' : ''} />
+          </button>
+          {menuOpen && <div className="gv2-psy-source-menu" role="listbox" aria-label="Choisir une source">
+            {Object.entries(LINK_SOURCES).map(([key, meta]) => <button key={key} type="button" role="option" aria-selected={tab === 'link' && platform === key} onClick={() => selectSource(key)}>
+              <span className="gv2-psy-source-mark" aria-hidden="true">{meta.mark}</span>{meta.label}
+              {tab === 'link' && platform === key && <Icon name="check" size={14} />}
+            </button>)}
+            <button type="button" role="option" aria-selected={tab === 'link' && platform === 'google'} onClick={() => selectSource('google')}><span className="gv2-psy-source-mark" aria-hidden="true">G</span>Google</button>
+            <div className="gv2-psy-source-menu-separator" />
+            <button type="button" role="option" aria-selected={tab === 'manual'} onClick={() => selectSource('manual')}><span className="gv2-psy-source-mark" aria-hidden="true">≡</span>Commentaires</button>
+            <button type="button" role="option" aria-selected={tab === 'file'} onClick={() => selectSource('file')}><span className="gv2-psy-source-mark" aria-hidden="true">↥</span>Fichier</button>
+          </div>}
+        </div>
+
+        <button type="button" className={`gv2-psy-cross-trigger${crossMode ? ' is-active' : ''}`} onClick={onToggleCross} aria-pressed={crossMode} aria-label="Cross Analyse — comparer plusieurs audiences">
+          <Icon name="activity" size={15} />
+          <span>Cross{crossSources.length ? ` ${crossSources.length}` : ''}</span>
         </button>
-        {menuOpen && <div className="gv2-psy-source-menu" role="listbox" aria-label="Choisir une source">
-          {Object.entries(LINK_SOURCES).map(([key, meta]) => <button key={key} type="button" role="option" aria-selected={tab === 'link' && platform === key} onClick={() => selectSource(key)}>
-            <span className="gv2-psy-source-mark" aria-hidden="true">{meta.mark}</span>{meta.label}
-            {tab === 'link' && platform === key && <Icon name="check" size={14} />}
-          </button>)}
-          <button type="button" role="option" aria-selected={tab === 'link' && platform === 'google'} onClick={() => selectSource('google')}><span className="gv2-psy-source-mark" aria-hidden="true">G</span>Google</button>
-          <div className="gv2-psy-source-menu-separator" />
-          <button type="button" role="option" aria-selected={tab === 'manual'} onClick={() => selectSource('manual')}><span className="gv2-psy-source-mark" aria-hidden="true">≡</span>Commentaires</button>
-          <button type="button" role="option" aria-selected={tab === 'file'} onClick={() => selectSource('file')}><span className="gv2-psy-source-mark" aria-hidden="true">↥</span>Fichier</button>
-        </div>}
-      </div>
+        <span className="gv2-psy-composer-separator" aria-hidden="true" />
 
-      <button type="button" className="gv2-psy-cross-trigger" onClick={onOpenCross} aria-label="Cross Analyse — comparer plusieurs audiences">
-        <Icon name="activity" size={15} />
-        <span>Cross</span>
-      </button>
-      <span className="gv2-psy-composer-separator" aria-hidden="true" />
+        {tab === 'link' && <input className="gv2-psy-composer-field" type="url" value={url} disabled={!config}
+          onChange={event => onUrlChange(event.target.value)}
+          placeholder={crossMode ? 'Ajoutez une audience à comparer…' : (config ? config.placeholder : 'La collecte Google arrive prochainement…')} />}
+        {tab === 'manual' && <textarea className="gv2-psy-composer-field gv2-psy-composer-textarea" value={manualText} onChange={event => onManualTextChange(event.target.value)} placeholder="Collez vos commentaires ici, un par ligne…" rows={1} />}
+        {tab === 'file' && <label className="gv2-psy-composer-file">
+          <input type="file" accept=".csv,.xlsx,.xls,.json,.txt" hidden onChange={event => onFilePick(event.target.files && event.target.files[0])} />
+          <Icon name="paperclip" size={17} />
+          <span>{uploading ? 'Lecture du fichier…' : file ? file.name : 'Ajoutez un fichier de commentaires'}</span>
+        </label>}
+        {tab === 'link' && crossMode && sourcePreview && <span className={`gv2-psy-inline-recognized${duplicateCrossSource ? ' is-duplicate' : ''}`}><Icon name={duplicateCrossSource ? 'close' : 'check'} size={16} />{duplicateCrossSource ? 'Déjà ajoutée' : 'Lien reconnu'}</span>}
 
-      {tab === 'link' && <input className="gv2-psy-composer-field" type="url" value={url} disabled={!config}
-        onChange={event => onUrlChange(event.target.value)}
-        placeholder={config ? config.placeholder : 'La collecte Google arrive prochainement…'} />}
-      {tab === 'manual' && <textarea className="gv2-psy-composer-field gv2-psy-composer-textarea" value={manualText} onChange={event => onManualTextChange(event.target.value)} placeholder="Collez vos commentaires ici, un par ligne…" rows={1} />}
-      {tab === 'file' && <label className="gv2-psy-composer-file">
-        <input type="file" accept=".csv,.xlsx,.xls,.json,.txt" hidden onChange={event => onFilePick(event.target.files && event.target.files[0])} />
-        <Icon name="paperclip" size={17} />
-        <span>{uploading ? 'Lecture du fichier…' : file ? file.name : 'Ajoutez un fichier de commentaires'}</span>
-      </label>}
+        <button type="submit" className={`gv2-psy-composer-submit${crossMode && canSubmit ? ' is-cross-add' : ''}`} disabled={checking || uploading || !canSubmit} aria-label={submitLabel} title={submitLabel}>
+          <Icon name={checking || uploading ? 'refresh' : crossMode && canAddCrossSource ? 'plus' : 'send'} size={20} className={checking || uploading ? 'gv2-spin' : ''} />
+        </button>
+      </form>
 
-      <button type="submit" className="gv2-psy-composer-submit" disabled={checking || uploading || !canSubmit} aria-label={submitLabel} title={submitLabel}>
-        <Icon name={checking || uploading ? 'refresh' : 'send'} size={20} className={checking || uploading ? 'gv2-spin' : ''} />
-      </button>
-    </form>
+      {sourcePreview && <div className="gv2-psy-preview" aria-live="polite">
+        {sourcePreview.thumbnail ? <img src={sourcePreview.thumbnail} alt={`Vignette de ${sourcePreview.title}`} /> : <span className="gv2-psy-preview-fallback">{sourcePreview.source}</span>}
+        <div><strong>{sourcePreview.title}</strong><span>{sourcePreview.source} — {sourcePreview.subtitle}</span></div>
+      </div>}
+      {crossMode && crossSources.length > 0 && <div className="gv2-psy-cross-ready" role="status">
+        <span>{crossSources.length < CROSS_MIN_SOURCES ? `Ajoutez encore ${CROSS_MIN_SOURCES - crossSources.length} audience pour lancer la Cross Analyse.` : `Cross Analyse prête — ${crossSources.length} audiences à croiser.`}</span>
+        {canLaunchCross && <button type="button" onClick={onLaunchCross}><Icon name="activity" size={16} />Comparer {crossSources.length} audiences <span aria-hidden="true">→</span></button>}
+      </div>}
+    </div>
 
     {tab === 'manual' && <div className="gv2-psy-composer-meta"><span>Un commentaire par ligne · Minimum 3</span><span>{manualCount}</span></div>}
     {tab === 'file' && <>
@@ -190,72 +263,38 @@ function PsychoInput({
 
     <div className="gv2-psy-composer-status" role="status">
       <span className={statusTone ? `is-${statusTone}` : ''}>{tab === 'link' ? statusMsg : (statusMsg || 'Prêt à analyser votre audience.')}</span>
-      <button type="button" onClick={onOpenCross}><Icon name="activity" size={16} />Comparer plusieurs audiences <span aria-hidden="true">→</span></button>
+      {!crossMode && <button type="button" onClick={onToggleCross}><Icon name="activity" size={16} />Comparer plusieurs audiences <span aria-hidden="true">→</span></button>}
     </div>
   </section>;
 }
 
-
-/* ── Panneau flottant Cross Analyse ──────────────────────────────────── */
-
-function PsychoCrossModal({
-  sources, url, onUrlChange, checking, onCheck, statusMsg, statusTone, previewCount,
-  onAddSource, onRemoveSource, onLaunch, onClose,
-}) {
-  const pendingReady = previewCount > 0 && url.trim();
-  const total = sources.length + (pendingReady ? 1 : 0);
-  const canAdd = pendingReady && sources.length < CROSS_MAX_SOURCES;
-  const canLaunch = total >= CROSS_MIN_SOURCES && total <= CROSS_MAX_SOURCES;
-
-  return <div className="gv2-psy-cross-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-    <div className="gv2-psy-cross-panel" role="dialog" aria-modal="true" aria-labelledby="gv2-cross-title">
-      <div className="gv2-psy-cross-head">
-        <div>
-          <div className="gv2-psy-cross-title" id="gv2-cross-title">Cross Analyse</div>
-          <div className="gv2-psy-cross-sub">Comparez 2 à 5 audiences YouTube en une seule lecture</div>
-        </div>
-        <button type="button" className="gv2-psy-cross-close" onClick={onClose} aria-label="Fermer"><Icon name="close" size={13} /></button>
-      </div>
-      <div className="gv2-psy-cross-body">
-        <div className="gv2-psy-link-row">
-          <Icon name="link" size={16} />
-          <input type="url" value={url} onChange={event => onUrlChange(event.target.value)} placeholder="Collez le lien de la vidéo YouTube ici…" onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); onCheck(); } }} />
-          <button type="button" className="gv2-psy-check-btn" disabled={checking} onClick={onCheck} aria-label="Vérifier le lien" title="Vérifier le lien">
-            <Icon name={checking ? 'refresh' : 'send'} size={16} className={checking ? 'gv2-spin' : ''} />
-          </button>
-        </div>
-        <p className="gv2-psy-example">Exemple : youtube.com/watch?v=…</p>
-        {statusMsg && <p className={`gv2-psy-status${statusTone ? ` is-${statusTone}` : ''}`} role="status">{statusMsg}</p>}
-
-        {sources.length > 0 && <div className="gv2-psy-cross-list">
-          {sources.map((source, index) => <div className="gv2-psy-cross-row" key={source.url}>
-            <span className="gv2-psy-cross-row-index">{index + 1}</span>
-            <span className="gv2-psy-cross-row-label">{source.label || source.url}</span>
-            <button type="button" onClick={() => onRemoveSource(index)} aria-label="Retirer cette vidéo"><Icon name="close" size={11} /></button>
-          </div>)}
-        </div>}
-
-        {canAdd && <button type="button" className="gv2-psy-cross-add" onClick={onAddSource}><Icon name="plus" size={13} />Ajouter une autre vidéo</button>}
-      </div>
-      <div className="gv2-psy-cross-foot">
-        <span className="gv2-psy-hint">{total < CROSS_MIN_SOURCES ? `Ajoutez au moins ${CROSS_MIN_SOURCES} vidéos pour comparer` : `${total} vidéo${total > 1 ? 's' : ''} prête${total > 1 ? 's' : ''} à être comparée${total > 1 ? 's' : ''}`}</span>
-        <button type="button" className="gv2-psy-launch-btn" disabled={!canLaunch} onClick={onLaunch}>
-          <Icon name="sparkle" size={14} />
-          Comparer {total || ''} audience{total > 1 ? 's' : ''}
-        </button>
-      </div>
-    </div>
-  </div>;
-}
-
 /* ── Chargement / Erreur ─────────────────────────────────────────────── */
 
-function PsychoLoading({ progress, step }) {
-  return <section className="gv2-psy-loading">
-    <div className="gv2-psy-loading-ring" />
-    <div className="gv2-psy-loading-pct">{progress}%</div>
-    <p className="gv2-psy-loading-title">Gabriel analyse votre audience…</p>
-    <p className="gv2-psy-loading-step">{step || 'Lecture des réactions du marché…'}</p>
+function PsychoLoading({ progress, step, isCross, crossSources }) {
+  const phase = progress < 35 ? 0 : progress < 70 ? 1 : 2;
+  const loadingSources = isCross ? crossSources : [];
+  return <section className="gv2-psy-input gv2-psy-landing gv2-psy-loading-workspace">
+    <div className="gv2-psy-workspace is-cross is-loading">
+      {loadingSources.length > 0 && <div className="gv2-psy-queue" aria-label="Audiences en cours d’analyse">
+        <div className="gv2-psy-queue-items">{loadingSources.map((source, index) => <div className="gv2-psy-queue-chip is-static" key={source.url}>
+          <strong>Audience {index + 1}</strong><span>{source.source || 'YouTube'}</span><span className="gv2-psy-queue-title">{source.title || source.label || source.url}</span>
+        </div>)}</div>
+      </div>}
+      <div className="gv2-psy-composer gv2-psy-composer-loading" aria-busy="true">
+        <div className="gv2-psy-source-trigger"><span className="gv2-psy-source-mark">▶</span><span>YouTube</span><Icon name="chevronDown" size={15} /></div>
+        {isCross && <div className="gv2-psy-cross-trigger is-active"><Icon name="activity" size={15} /><span>Cross {crossSources.length}</span></div>}
+        <span className="gv2-psy-composer-separator" aria-hidden="true" />
+        <span className="gv2-psy-composer-field">{isCross ? 'Les audiences sont en cours de comparaison…' : 'Votre audience est en cours de lecture…'}</span>
+        <span className="gv2-psy-composer-submit gv2-psy-loading-submit"><span className="gv2-psy-loading-spinner" /></span>
+      </div>
+      <div className="gv2-psy-analysis-stages" aria-label="Étapes de l’analyse">
+        {['Collecte', 'Analyse', 'Interprétation'].map((label, index) => <span key={label} className={index === phase ? 'is-active' : index < phase ? 'is-complete' : ''}>{label}</span>)}
+      </div>
+    </div>
+    <div className="gv2-psy-loading-status" role="status">
+      <div><strong>{isCross ? `Cross Analyse en cours — ${crossSources.length} audiences comparées.` : 'Analyse en cours — lecture des commentaires.'}</strong><span>{step || 'Gabriel analyse votre audience…'}</span></div>
+      <span className="gv2-psy-loading-pct">{progress}%</span>
+    </div>
   </section>;
 }
 
@@ -560,13 +599,8 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
     return () => { aliveRef.current = false; };
   }, []);
 
-  const [crossModalOpen, setCrossModalOpen] = useState(false);
+  const [crossMode, setCrossMode] = useState(false);
   const [crossSources, setCrossSources] = useState([]);
-  const [crossUrl, setCrossUrl] = useState('');
-  const [crossPreviewCount, setCrossPreviewCount] = useState(0);
-  const [crossChecking, setCrossChecking] = useState(false);
-  const [crossStatusMsg, setCrossStatusMsg] = useState('Collez le lien d’une vidéo YouTube.');
-  const [crossStatusTone, setCrossStatusTone] = useState('');
 
   useEffect(() => {
     let stored = null;
@@ -694,6 +728,7 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
 
   function changeTab(next) {
     setTab(next);
+    if (next !== 'link') setCrossMode(false);
     if (next === 'link') {
       const config = LINK_SOURCES[platform];
       setStatusMsg(config ? `Collez le lien ${config.label}, puis vérifiez les commentaires disponibles.` : '');
@@ -707,6 +742,7 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
 
   function changePlatform(next) {
     setPlatform(next);
+    if (next !== 'youtube') setCrossMode(false);
     setUrl('');
     setPreviewCount(0);
     const config = LINK_SOURCES[next];
@@ -719,6 +755,31 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
       setStatusMsg('Google sera connecté dès que cette source sera disponible dans votre workspace.');
       setStatusTone('busy');
     }
+  }
+
+  function changeUrl(next) {
+    setUrl(next);
+    setPreviewCount(0);
+    setStatusTone('');
+    if (crossMode) {
+      setStatusMsg('Le lien est reconnu dès que son identifiant vidéo est complet.');
+      return;
+    }
+    const config = LINK_SOURCES[platform];
+    if (config) setStatusMsg(`Collez le lien ${config.label}, puis vérifiez les commentaires disponibles.`);
+  }
+
+  function toggleCrossMode() {
+    const next = !crossMode;
+    setCrossMode(next);
+    setTab('link');
+    setPlatform('youtube');
+    setUrl('');
+    setPreviewCount(0);
+    setStatusTone('');
+    setStatusMsg(next
+      ? 'Ajoutez 2 à 5 audiences YouTube pour comparer leurs conversations.'
+      : 'Collez le lien d’une vidéo YouTube.');
   }
 
   async function uploadFile(picked, forcedColumn = null) {
@@ -782,51 +843,35 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
 
   /* ── Cross Analyse ──────────────────────────────────────────────────── */
 
-  async function checkCrossLink() {
-    const trimmed = crossUrl.trim();
-    if (!trimmed) { setCrossStatusMsg('Collez d’abord le lien YouTube.'); setCrossStatusTone('error'); return; }
-    if (crossSources.some(source => source.url === trimmed)) { setCrossStatusMsg('Cette vidéo est déjà dans la liste.'); setCrossStatusTone('error'); return; }
-    setCrossChecking(true);
-    setCrossStatusMsg('Vérification du lien et détection des commentaires…');
-    setCrossStatusTone('busy');
-    try {
-      const response = await fetchV2('/analyze', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'youtube', content: trimmed, preview_only: true }),
-      });
-      if (isLoginResponse(response)) { window.location.assign('/login'); return; }
-      const data = await readApiPayload(response, 'La vérification du lien');
-      if (data.comments_preview) {
-        const count = Number(data.comments_count || data.comments_preview.length || 0);
-        setCrossPreviewCount(count);
-        setCrossStatusMsg(`${count} commentaire${count === 1 ? '' : 's'} détecté${count === 1 ? '' : 's'}. Le lien est prêt à analyser.`);
-        setCrossStatusTone('success');
-      } else if (data.error) {
-        setCrossStatusMsg(data.error); setCrossStatusTone('error'); setCrossPreviewCount(0);
-      } else {
-        setCrossStatusMsg('Lien enregistré.'); setCrossStatusTone('success');
-      }
-    } catch (_) {
-      setCrossStatusMsg('Impossible de vérifier le lien. Vérifiez votre connexion.'); setCrossStatusTone('error');
-    } finally {
-      setCrossChecking(false);
-    }
-  }
-
-  function addCrossSource() {
-    const trimmed = crossUrl.trim();
-    if (!trimmed || crossPreviewCount <= 0 || crossSources.length >= CROSS_MAX_SOURCES) return;
-    setCrossSources(current => [...current, { url: trimmed, label: trimmed.replace(/^https?:\/\/(www\.)?/, '') }]);
-    setCrossUrl(''); setCrossPreviewCount(0);
-    setCrossStatusMsg('Collez le lien de la vidéo suivante.'); setCrossStatusTone('');
+  function addCrossSource(preview) {
+    if (!preview || crossSources.length >= CROSS_MAX_SOURCES || crossSources.some(source => source.url === preview.url)) return;
+    setCrossSources(current => [...current, { ...preview, label: preview.title }]);
+    setUrl('');
+    setPreviewCount(0);
+    setStatusTone('');
+    setStatusMsg('Audience ajoutée. Collez une autre vidéo ou lancez la comparaison.');
   }
 
   function removeCrossSource(index) {
     setCrossSources(current => current.filter((_, i) => i !== index));
   }
 
-  function closeCrossModal() {
-    setCrossModalOpen(false);
+  function moveCrossSource(index, direction) {
+    setCrossSources(current => {
+      const destination = index + direction;
+      if (destination < 0 || destination >= current.length) return current;
+      const next = current.slice();
+      [next[index], next[destination]] = [next[destination], next[index]];
+      return next;
+    });
+  }
+
+  function clearCrossSources() {
+    setCrossSources([]);
+    setUrl('');
+    setPreviewCount(0);
+    setStatusTone('');
+    setStatusMsg('Ajoutez 2 à 5 audiences YouTube pour comparer leurs conversations.');
   }
 
   async function pollCrossAnalysis(crossId) {
@@ -867,13 +912,8 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
 
   async function launchCrossAnalysis() {
     const sources = crossSources.slice();
-    const pendingUrl = crossUrl.trim();
-    if (pendingUrl && crossPreviewCount > 0 && !sources.some(source => source.url === pendingUrl)) {
-      sources.push({ url: pendingUrl });
-    }
     if (sources.length < CROSS_MIN_SOURCES || sources.length > CROSS_MAX_SOURCES) return;
 
-    setCrossModalOpen(false);
     setStage('loading'); setResultKind('cross'); setProgress(0); setStep('Lecture des réactions du marché…'); setErrorMsg('');
 
     try {
@@ -896,20 +936,13 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
     setUrl(''); setManualText(''); setPreviewCount(0);
     setTab('link'); setPlatform('youtube'); setFile(null); setUploading(false);
     setStatusMsg('Collez le lien d’une vidéo YouTube.'); setStatusTone('');
-    setCrossSources([]); setCrossUrl(''); setCrossPreviewCount(0);
-    setCrossStatusMsg('Collez le lien d’une vidéo YouTube.'); setCrossStatusTone('');
+    setCrossMode(false); setCrossSources([]);
   }
 
-  if (stage === 'loading') return <PsychoLoading progress={progress} step={step} />;
-  if (stage === 'error') return <PsychoError message={errorMsg} onRetry={reset} />;
-  if (stage === 'result' && resultKind === 'cross' && crossResult) return <PsychoCrossResult data={crossResult} onReset={reset} />;
-  if (stage === 'result' && result) return <PsychoResult data={result} onReset={reset} onGoToStratege={goToStratege} />;
-
-  return <>
-    <PsychoInput
+  let content = <PsychoInput
       tab={tab} onTabChange={changeTab}
       platform={platform} onPlatformChange={changePlatform}
-      url={url} onUrlChange={setUrl}
+      url={url} onUrlChange={changeUrl}
       manualText={manualText} onManualTextChange={setManualText}
       checking={checking} onCheck={checkLink}
       statusMsg={statusMsg} statusTone={statusTone}
@@ -918,16 +951,19 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
       onFilePick={picked => uploadFile(picked)}
       onColumnChange={column => uploadFile(file?.raw, column)}
       onLaunch={launch}
-      onOpenCross={() => setCrossModalOpen(true)}
-    />
-    {crossModalOpen && <PsychoCrossModal
-      sources={crossSources}
-      url={crossUrl} onUrlChange={setCrossUrl}
-      checking={crossChecking} onCheck={checkCrossLink}
-      statusMsg={crossStatusMsg} statusTone={crossStatusTone}
-      previewCount={crossPreviewCount}
-      onAddSource={addCrossSource} onRemoveSource={removeCrossSource}
-      onLaunch={launchCrossAnalysis} onClose={closeCrossModal}
-    />}
-  </>;
+      crossMode={crossMode} crossSources={crossSources}
+      onToggleCross={toggleCrossMode}
+      onAddCrossSource={addCrossSource}
+      onRemoveCrossSource={removeCrossSource}
+      onMoveCrossSource={moveCrossSource}
+      onClearCrossSources={clearCrossSources}
+      onLaunchCross={launchCrossAnalysis}
+    />;
+
+  if (stage === 'loading') content = <PsychoLoading progress={progress} step={step} isCross={resultKind === 'cross'} crossSources={crossSources} />;
+  if (stage === 'error') content = <PsychoError message={errorMsg} onRetry={reset} />;
+  if (stage === 'result' && resultKind === 'cross' && crossResult) content = <PsychoCrossResult data={crossResult} onReset={reset} />;
+  if (stage === 'result' && result) content = <PsychoResult data={result} onReset={reset} onGoToStratege={goToStratege} />;
+
+  return <div className="gv2-psy-view">{content}</div>;
 }

@@ -2,7 +2,9 @@
 let _orchHistory  = [];
 let _orchWaiting  = false;
 let _orchExpanded = false;
+let _orchConversationId = null;
 let _orchFadeTimer = null;
+let _orchOpacityReady = false;
 
 /* ── Gestion opacité : actif (100%) au survol ou en conversation, sinon 75% après 8.2s ── */
 function _orchSetActive(force) {
@@ -22,23 +24,16 @@ function _orchSetActive(force) {
 }
 
 function _orchInitOpacity() {
+  if (_orchOpacityReady) return;
   const panel = document.getElementById('orch-panel');
   if (!panel) return;
+  _orchOpacityReady = true;
   panel.addEventListener('mouseenter', () => _orchSetActive(true));
   panel.addEventListener('mouseleave', () => _orchSetActive(false));
   document.getElementById('orch-input')?.addEventListener('input', () => _orchSetActive(true));
 }
 
-function _orchVar(name) {
-  try { return eval('typeof ' + name + " !== 'undefined' ? " + name + ' : null'); }
-  catch (e) { return null; }
-}
-
 function _orchGetContext() {
-  const psycho    = _orchVar('_lastAnalysisData') || _orchVar('_linkedPsychoData') || _orchVar('_psycho') || null;
-  const strategie = _orchVar('_lastStratData')    || _orchVar('_strategy') || null;
-  const createur  = _orchVar('_lastResult')        || null;
-
   // Tente de récupérer le folder_id depuis l'URL ou un attribut data
   let folderId = null;
   const urlMatch = window.location.search.match(/[?&]folder_id=([^&]+)/);
@@ -49,9 +44,6 @@ function _orchGetContext() {
   }
 
   return {
-    psycho_data:   (psycho    && Object.keys(psycho).length)    ? psycho    : {},
-    strategy_data: (strategie && Object.keys(strategie).length) ? strategie : {},
-    createur_data: (createur  && Object.keys(createur).length)  ? createur  : {},
     folder_id:     folderId || null,
   };
 }
@@ -183,6 +175,22 @@ function _orchAddMsg(role, text) {
   requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
 }
 
+function _orchAddRecommendation(reco, handoff) {
+  if (!reco || !reco.agent || !reco.href) return;
+  const msgs = document.getElementById('orch-messages');
+  if (!msgs) return;
+  const el = document.createElement('a');
+  el.className = 'orch-msg agent';
+  el.href = reco.href;
+  el.style.textDecoration = 'none';
+  el.innerHTML = `<div class="orch-bubble-text"><p><strong>${_orchEsc(reco.label || 'Direction recommandée')}</strong><br>${_orchEsc(reco.reason || '')}</p></div>`;
+  el.addEventListener('click', () => {
+    try { if (handoff) sessionStorage.setItem('gabriel_handoff', JSON.stringify(handoff)); } catch (e) {}
+  });
+  msgs.appendChild(el);
+  requestAnimationFrame(() => { msgs.scrollTop = msgs.scrollHeight; });
+}
+
 function _orchShowTyping() {
   const msgs = document.getElementById('orch-messages');
   if (!msgs) return;
@@ -213,6 +221,7 @@ async function orchSend() {
 
   _orchSetActive(true);   // reste à 100% pendant l'attente
   _orchShowTyping();
+  const priorHistory = _orchHistory.slice(-10);
   _orchHistory.push({ role: 'user', content: msg });
 
   try {
@@ -222,18 +231,18 @@ async function orchSend() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message:       msg,
-        history:       _orchHistory.slice(-12),
-        psycho_data:   ctx.psycho_data,
-        strategy_data: ctx.strategy_data,
-        createur_data: ctx.createur_data,
+        history:       priorHistory,
         folder_id:     ctx.folder_id,
+        conversation_id: _orchConversationId,
       }),
     });
     const d = await r.json();
     _orchHideTyping();
     const reply = d.reply || d.error || 'Erreur de réponse.';
+    _orchConversationId = d.conversation_id || _orchConversationId;
     _orchAddMsg('agent', reply);
     _orchHistory.push({ role: 'assistant', content: reply });
+    _orchAddRecommendation(d.recommendation, d.handoff);
   } catch (e) {
     _orchHideTyping();
     _orchAddMsg('agent', 'Une erreur de connexion est survenue. Veuillez réessayer.');

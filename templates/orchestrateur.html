@@ -50,6 +50,10 @@ body.page-orchestrateur .sidebar-item svg { width: 12px; height: 12px; }
   margin: 22px auto 0; text-align: center; white-space: nowrap;
   font-size: var(--sub); font-weight: 300; line-height: 1.55; color: var(--text-muted);
 }
+.orl-context {
+  margin-top: 12px; font-size: 10.5px; color: var(--champagne);
+  border: 1px solid var(--border-champagne); border-radius: 100px; padding: 7px 12px;
+}
 .orl-chatbox {
   position: relative; margin-top: var(--chatmt); width: min(var(--chatw), 100%);
   border: 1px solid var(--border-soft); border-radius: var(--chatradius); overflow: hidden;
@@ -190,6 +194,9 @@ body.page-orchestrateur .sidebar-item svg { width: 12px; height: 12px; }
   <div class="orl" id="orl">
     <h1 class="orl-hero">Prenez de <span>meilleures décisions</span></h1>
     <p class="orl-sub">Gabriel analyse votre demande, mobilise les experts et construit une stratégie sur-mesure.</p>
+    {% if selected_folder %}
+    <div class="orl-context">Dossier sélectionné : {{ selected_folder.title }}</div>
+    {% endif %}
 
     <div class="orl-chatbox">
       <textarea id="orl-input" rows="1" placeholder="Décrivez votre objectif, votre audience ou votre problématique…"
@@ -199,7 +206,7 @@ body.page-orchestrateur .sidebar-item svg { width: 12px; height: 12px; }
         <button class="or-mic" type="button" onclick="orVoice('orl-input', this)" aria-label="Saisie vocale" title="Saisie vocale">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
         </button>
-        <button class="or-send" type="button" onclick="orlStart()" aria-label="Envoyer">
+        <button class="or-send" id="orl-send" type="button" onclick="orlStart()" aria-label="Envoyer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
         </button>
       </div>
@@ -216,7 +223,7 @@ body.page-orchestrateur .sidebar-item svg { width: 12px; height: 12px; }
       <p class="orl-projects-label">Vos projets récents</p>
       <div class="orl-proj-grid">
         {% for f in recent_folders %}
-        <a class="orl-proj" href="/dossiers">
+        <a class="orl-proj" href="/orchestrateur?folder_id={{ f.folder_id | urlencode }}">
           <div class="orl-proj-head">
             <span class="orl-proj-title">{{ f.title or 'Dossier' }}</span>
             <span class="orl-proj-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
@@ -253,7 +260,7 @@ body.page-orchestrateur .sidebar-item svg { width: 12px; height: 12px; }
         <button class="or-mic" type="button" onclick="orVoice('orc-input', this)" aria-label="Saisie vocale" title="Saisie vocale">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
         </button>
-        <button class="or-send" type="button" onclick="orcSend()" aria-label="Envoyer">
+        <button class="or-send" id="orc-send" type="button" onclick="orcSend()" aria-label="Envoyer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
         </button>
       </div>
@@ -267,6 +274,8 @@ body.page-orchestrateur .sidebar-item svg { width: 12px; height: 12px; }
 <script>
 let _orHistory = [];
 let _orWaiting = false;
+let _orConversationId = null;
+const _orFolderId = {{ ((selected_folder or {}).get('folder_id', '')) | tojson }};
 
 function orlGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 300) + 'px'; }
 function orcGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 140) + 'px'; }
@@ -328,6 +337,7 @@ function orcBack() {
   document.getElementById('orl').style.display = 'flex';
   document.getElementById('orc-thread').innerHTML = '';
   _orHistory = [];
+  _orConversationId = null;
   setTimeout(() => document.getElementById('orl-input')?.focus(), 60);
 }
 
@@ -374,19 +384,28 @@ function _orHideTyping() { document.getElementById('orc-typing')?.remove(); }
 async function _orSend(msg) {
   if (_orWaiting) return;
   _orAddUser(msg);
+  const priorHistory = _orHistory.slice(-10);
   _orHistory.push({ role: 'user', content: msg });
   _orWaiting = true;
+  document.getElementById('orl-send')?.setAttribute('disabled', 'disabled');
+  document.getElementById('orc-send')?.setAttribute('disabled', 'disabled');
   _orShowTyping();
   try {
     const r = await fetch('/orchestrator_chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, history: _orHistory.slice(-12) }),
+      body: JSON.stringify({
+        message: msg,
+        history: priorHistory,
+        folder_id: _orFolderId || null,
+        conversation_id: _orConversationId,
+      }),
     });
     if (r.status === 401) { window.location.href = '/login'; return; }
     const d = await r.json();
     _orHideTyping();
     if (d.error) { _orAddAgent(d.error); return; }
     const reply = d.reply || 'Erreur de réponse.';
+    _orConversationId = d.conversation_id || _orConversationId;
     _orAddAgent(reply);
     _orHistory.push({ role: 'assistant', content: reply });
     if (d.recommendation) _orAddReco(d.recommendation, d.handoff);
@@ -395,6 +414,8 @@ async function _orSend(msg) {
     _orAddAgent('Une erreur de connexion est survenue. Veuillez réessayer.');
   } finally {
     _orWaiting = false;
+    document.getElementById('orl-send')?.removeAttribute('disabled');
+    document.getElementById('orc-send')?.removeAttribute('disabled');
   }
 }
 

@@ -12,6 +12,12 @@
 (function () {
   'use strict';
 
+  // Dans Gabriel V2, le résultat est affiché dans un workbench à trois
+  // zones. Une enquête flottante créée par une page legacy masquerait ce
+  // résultat et n'aurait pas de place cohérente. Les enquêtes restent
+  // disponibles sur les pages historiques ouvertes directement.
+  if (document.body?.classList.contains('is-embedded-agent')) return;
+
   // ── Clés localStorage ─────────────────────────────────────────────────────
   const LS = {
     lastShown:    'gabriel_survey_lastShownAt',

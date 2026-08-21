@@ -52,7 +52,12 @@ describe('Mode Cross Analyse', () => {
     await activerCross(user);
     expect(screen.getByRole('button', { name: /Cross Analyse/ }))
       .toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByPlaceholderText(/Ajoutez une audience/)).toBeInTheDocument();
+    const champ = screen.getByPlaceholderText(/Ajoutez une audience/);
+    expect(champ).toBeInTheDocument();
+    // L'activation seule garde la capsule de la Hero intacte. La surface
+    // étendue n'apparaît qu'après la reconnaissance d'une vraie audience.
+    expect(champ.closest('.gv2-psy-workspace')).toHaveClass('is-cross');
+    expect(champ.closest('.gv2-psy-workspace')).not.toHaveClass('has-preview', 'has-sources');
   });
 
   it('refuse de comparer une seule audience', async () => {

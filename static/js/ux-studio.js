@@ -27,7 +27,11 @@
     var out = [];
     groups.forEach(function (g) {
       (g.items || []).forEach(function (it) { out.push(it); });
-      (g.colors || []).forEach(function (c) { out.push(c); });
+      // _kind:'color' distingue les teintes pilotées par le thème (champagne,
+      // texte principal…) des réglages purement typographiques/spatiaux —
+      // voir apply() : seules les couleurs explicitement personnalisées sont
+      // figées, pour ne jamais écraser le thème clair/sombre par défaut.
+      (g.colors || []).forEach(function (c) { out.push(Object.assign({}, c, {_kind: 'color'})); });
     });
     return out;
   }
@@ -61,7 +65,15 @@
     function apply() {
       var root = document.documentElement.style;
       items.forEach(function (it) {
-        root.setProperty(cssVarFor(it), state[it.key] + unitFor(it));
+        // Une couleur jamais personnalisée (valeur === défaut) ne doit pas
+        // être figée en dur : ça écraserait --champagne/--text-primary du
+        // thème actif (clair ou sombre) avec la valeur sombre codée en dur
+        // ici, quel que soit le thème réellement choisi par l'utilisateur.
+        if (it._kind === 'color' && state[it.key] === it.def) {
+          root.removeProperty(cssVarFor(it));
+        } else {
+          root.setProperty(cssVarFor(it), state[it.key] + unitFor(it));
+        }
       });
       try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {}
     }

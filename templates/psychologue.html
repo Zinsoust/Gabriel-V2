@@ -8,7 +8,42 @@
 .input-zone{max-width:640px;margin:0 auto;padding-top:40px;}
 .page-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-muted);font-weight:500;margin-bottom:6px;}
 .page-heading{font-size:20px;font-weight:500;letter-spacing:-.02em;color:var(--text-primary);margin-bottom:28px;}
+.input-header-row{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:28px;}
+.input-header-row .page-heading{margin-bottom:0;}
+.cross-modal-trigger svg{stroke:currentColor;}
 .input-card{background:color-mix(in srgb, var(--text-primary) 2.5%, transparent);border:1px solid color-mix(in srgb, var(--text-primary) 7%, transparent);border-radius:6px;overflow:hidden;}
+
+/* ─── Cross Analyse : panneau flottant (inspiré de la command bar Artlist,
+   dans l'habillage blanc/champagne Gabriel) ──────────────────────────────
+   Le panneau ne duplique aucune logique : il déplace la .input-card
+   existante (déjà testée) dans une présentation flottante, puis la remet
+   à sa place à la fermeture. */
+/* pointer-events reste actif dès l'affichage (pas seulement une fois
+   .open ajouté par le prochain requestAnimationFrame) : sinon une
+   interaction qui arrive pendant les ~16ms avant ce rAF — ou pendant la
+   transition d'ouverture elle-même — traverse le panneau sans effet. Seule
+   l'opacité anime ; l'interactivité, elle, ne doit jamais être différée. */
+.cross-modal-backdrop{position:fixed;inset:0;background:rgba(10,9,7,.55);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:8vh 20px 20px;z-index:200;opacity:0;transition:opacity .22s ease;}
+.cross-modal-backdrop.open{opacity:1;}
+.cross-modal-backdrop.hidden{display:none;pointer-events:none;}
+/* Toujours blanc, quel que soit le thème de l'app — même identité que la
+   .input-card qu'il accueille (body.page-psychologue .input-card, plus
+   bas dans ce fichier, est elle aussi blanche sans condition de thème). */
+.cross-modal-panel{background:#fff;border:1px solid #DCD3C7;border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.35);width:100%;max-width:600px;max-height:82vh;overflow-y:auto;transform:translateY(-8px);transition:transform .22s cubic-bezier(.22,1,.36,1);}
+.cross-modal-backdrop.open .cross-modal-panel{transform:translateY(0);}
+.cross-modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #EFEAE1;}
+.cross-modal-title{font-family:var(--font-serif);font-size:16px;font-weight:500;color:#8A6D3C;}
+.cross-modal-sub{font-size:10px;color:#908980;margin-top:2px;}
+.cross-modal-close{width:26px;height:26px;flex-shrink:0;border-radius:50%;border:none;background:#F4F1EC;color:#908980;font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;}
+.cross-modal-close:hover{background:#EAE4D9;color:#4A443C;}
+.cross-modal-body{padding:16px 20px 20px;}
+.cross-modal-body .input-card{background:transparent;border:none;border-radius:0;}
+.input-card.cross-modal-mode .src-tabs,
+.input-card.cross-modal-mode .source-platforms{display:none;}
+@media(max-width:640px){
+  .cross-modal-backdrop{padding:0;align-items:flex-end;}
+  .cross-modal-panel{max-width:none;max-height:88vh;border-radius:16px 16px 0 0;}
+}
 .src-tabs{display:flex;border-bottom:1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);padding:0 4px;}
 .src-tab{flex:1;padding:10px 8px;background:none;border:none;cursor:pointer;font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:color-mix(in srgb, var(--text-primary) 28%, transparent);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;}
 .src-tab.active{color:var(--champagne);border-bottom-color:var(--champagne);}
@@ -34,7 +69,7 @@
 .status-msg{font-size:10px;color:color-mix(in srgb, var(--text-primary) 20%, transparent);letter-spacing:.03em;}
 .analyse-btn{display:flex;align-items:center;gap:7px;padding:8px 20px;border-radius:3px;background:color-mix(in srgb, var(--champagne) 10%, transparent);border:1px solid color-mix(in srgb, var(--champagne) 22%, transparent);color:var(--champagne);font-size:11px;font-weight:500;letter-spacing:.05em;cursor:pointer;transition:all 0.2s cubic-bezier(0.22,1,.36,1);position:relative;overflow:hidden;}
 .analyse-btn::after{content:'';position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(90deg,transparent,color-mix(in srgb, var(--champagne) 18%, transparent),transparent);transform:skewX(-20deg);pointer-events:none;}
-.analyse-btn:hover{background:color-mix(in srgb, var(--champagne-accent) 16%, transparent);border-color:color-mix(in srgb, var(--champagne-accent) 40%, transparent);color:var(--champagne-accent);box-shadow:0 2px 14px color-mix(in srgb, var(--champagne-accent) 18%, transparent);transform:translateY(-1px);}
+.analyse-btn:hover{background:color-mix(in srgb, var(--champagne-accent) 16%, transparent);border-color:color-mix(in srgb, var(--champagne-accent) 40%, transparent);color:var(--champagne-accent);box-shadow:none;transform:none;}
 .analyse-btn:hover::after{animation:gb-shimmer .5s ease;}
 .analyse-btn:active{transform:scale(.97) translateY(0);}
 .analyse-btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
@@ -45,8 +80,98 @@
   .analyse-btn{width:100%;justify-content:center;}
 }
 
+/* ─── Cross Analyse : liste de sources (2 à 5 vidéos) ───────────────────
+   Une seule action champagne par écran (loi du champagne) : le bouton
+   "+ Ajouter" reste discret (contour fin, pas de fond), toute l'emphase
+   visuelle va au CTA de lancement, pas à la construction de la liste. */
+.cross-source-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.cross-source-list.hidden{display:none;}
+.cross-source-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:4px;background:color-mix(in srgb, var(--text-primary) 2%, transparent);border:1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);animation:gb-fade-up .32s cubic-bezier(.34,1.12,.4,1) both;}
+.cross-source-row-index{display:grid;place-items:center;width:18px;height:18px;flex-shrink:0;border-radius:50%;background:color-mix(in srgb, var(--champagne) 12%, transparent);color:var(--champagne-soft);font-size:9px;font-weight:600;font-variant-numeric:tabular-nums;}
+.cross-source-row-label{flex:1;min-width:0;font-size:11px;color:color-mix(in srgb, var(--text-primary) 62%, transparent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cross-source-row-remove{display:grid;place-items:center;width:20px;height:20px;flex-shrink:0;border:none;border-radius:50%;background:none;color:color-mix(in srgb, var(--text-primary) 26%, transparent);cursor:pointer;transition:color .15s,background .15s;}
+.cross-source-row-remove:hover{color:rgba(220,100,100,.82);background:color-mix(in srgb, var(--text-primary) 4%, transparent);}
+.cross-source-row-remove svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;}
+.add-cross-source-btn{display:flex;align-items:center;gap:6px;margin-top:10px;padding:7px 4px;border:none;background:none;color:color-mix(in srgb, var(--text-primary) 40%, transparent);font-size:11px;font-weight:500;cursor:pointer;transition:color .15s;}
+.add-cross-source-btn.hidden{display:none;}
+.add-cross-source-btn:hover{color:var(--champagne-soft);}
+.add-cross-source-btn svg{stroke:currentColor;stroke-width:1.8;}
+.cross-source-limit-hint{font-size:10px;color:color-mix(in srgb, var(--text-primary) 20%, transparent);margin-top:8px;}
+
+/* ─── Cross Analyse : écran de résultat ──────────────────────────────────
+   Une seule emphase champagne par écran (loi du champagne) : le score de
+   confiance dans le hero. Le reste reste calme — cartes neutres, tags
+   discrets — pour que l'attention aille au signal, pas au décor. */
+.cross-warn-banner{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;margin-bottom:18px;border-radius:4px;background:rgba(220,100,100,.07);border:1px solid rgba(220,100,100,.22);font-size:12px;color:color-mix(in srgb, var(--text-primary) 70%, transparent);line-height:1.6;}
+.cross-warn-banner b{color:rgba(220,100,100,.92);font-weight:600;}
+
+.cross-hero{background:color-mix(in srgb, var(--champagne) 5%, transparent);border:1px solid color-mix(in srgb, var(--champagne) 16%, transparent);border-radius:8px;padding:26px 28px;margin-bottom:22px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start;}
+.cross-hero-score-block{display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-right:26px;border-right:1px solid color-mix(in srgb, var(--champagne) 16%, transparent);min-width:104px;}
+.cross-hero-score{font-family:var(--font-serif);font-size:52px;font-weight:500;line-height:1;letter-spacing:-.02em;color:var(--champagne);}
+.cross-hero-score-max{font-size:11px;color:color-mix(in srgb, var(--text-primary) 30%, transparent);margin-top:2px;}
+.cross-hero-level{font-size:10px;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:color-mix(in srgb, var(--champagne) 70%, transparent);margin-top:10px;text-align:center;}
+.cross-hero-body{min-width:0;}
+.cross-hero-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:color-mix(in srgb, var(--champagne) 60%, transparent);font-weight:600;margin-bottom:9px;}
+.cross-hero-text{font-size:14px;color:var(--text-primary);line-height:1.75;}
+.cross-hero-caveats{margin-top:14px;padding-top:12px;border-top:1px solid color-mix(in srgb, var(--champagne) 12%, transparent);}
+.cross-hero-caveats-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);font-weight:600;margin-bottom:6px;}
+.cross-hero-caveat{font-size:11px;color:color-mix(in srgb, var(--text-primary) 55%, transparent);line-height:1.6;padding-left:12px;position:relative;margin-bottom:3px;}
+.cross-hero-caveat::before{content:'—';position:absolute;left:0;color:color-mix(in srgb, var(--text-primary) 25%, transparent);}
+@media(max-width:640px){
+  .cross-hero{grid-template-columns:1fr;}
+  .cross-hero-score-block{flex-direction:row;justify-content:flex-start;gap:10px;padding-right:0;padding-bottom:16px;border-right:none;border-bottom:1px solid color-mix(in srgb, var(--champagne) 16%, transparent);}
+}
+
+.cross-meta-row{display:flex;flex-wrap:wrap;gap:16px;margin:-6px 0 26px;padding:0 2px;}
+.cross-meta-item{font-size:10px;color:color-mix(in srgb, var(--text-primary) 38%, transparent);}
+.cross-meta-item b{color:color-mix(in srgb, var(--text-primary) 60%, transparent);font-weight:500;}
+
+.cross-video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
+.cross-video-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:15px 16px;}
+.cross-video-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:9px;}
+.cross-video-mark{width:26px;height:26px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:color-mix(in srgb, var(--champagne) 12%, transparent);color:var(--champagne-soft);}
+.cross-video-title{font-size:12px;font-weight:500;color:var(--text-primary);line-height:1.4;margin-bottom:2px;}
+.cross-video-channel{font-size:10px;color:var(--text-muted);}
+.cross-video-stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:11px;border-top:1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);}
+.cross-video-stat{font-size:10px;color:color-mix(in srgb, var(--text-primary) 40%, transparent);}
+.cross-video-stat b{color:color-mix(in srgb, var(--text-primary) 62%, transparent);font-weight:500;}
+.cross-video-link{font-size:10px;color:var(--champagne-soft);text-decoration:none;}
+.cross-video-link:hover{color:var(--champagne);}
+.cross-video-warning{font-size:10px;color:color-mix(in srgb, var(--text-primary) 34%, transparent);font-style:italic;margin-top:8px;line-height:1.5;}
+.dq-badge{font-size:10px;padding:2px 7px;border-radius:999px;font-weight:500;flex-shrink:0;}
+.dq-strong{background:rgba(102,130,110,.14);color:#7FA08A;}
+.dq-moderate{background:rgba(220,180,80,.14);color:rgba(220,180,80,.85);}
+.dq-exploratory{background:color-mix(in srgb, var(--text-primary) 6%, transparent);color:var(--text-muted);}
+.dq-insufficient{background:rgba(158,86,82,.14);color:#C17E7A;}
+
+.cross-category-block{margin-bottom:16px;}
+.cross-category-block:last-child{margin-bottom:0;}
+.cross-category-title{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:600;margin-bottom:8px;}
+.cross-signal-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid color-mix(in srgb, var(--text-primary) 4%, transparent);flex-wrap:wrap;}
+.cross-signal-row:last-child{border-bottom:none;}
+.cross-signal-label{font-size:12px;color:var(--text-secondary);flex:1;min-width:140px;}
+.cross-signal-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.cross-tag{font-size:9px;padding:2px 7px;border-radius:999px;background:color-mix(in srgb, var(--text-primary) 4%, transparent);border:1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);color:color-mix(in srgb, var(--text-primary) 45%, transparent);white-space:nowrap;}
+.cross-empty{font-size:11px;color:var(--text-muted);font-style:italic;padding:6px 0;}
+.cross-more-hint{font-size:10px;color:color-mix(in srgb, var(--text-primary) 30%, transparent);margin-top:8px;}
+
+.cross-persona-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+.cross-persona-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:16px 18px;}
+.cross-persona-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.cross-persona-name{font-family:var(--font-serif);font-size:16px;font-weight:500;color:var(--text-primary);}
+.cross-persona-conf{font-size:10px;color:var(--champagne-soft);text-transform:capitalize;flex-shrink:0;}
+.cross-persona-desc{font-size:12px;color:var(--text-secondary);line-height:1.65;margin-bottom:10px;}
+
+.cross-tech{margin-top:8px;}
+.cross-tech summary{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);cursor:pointer;list-style:none;padding:4px 0;}
+.cross-tech summary::-webkit-details-marker{display:none;}
+.cross-tech summary::before{content:'▸ ';color:color-mix(in srgb, var(--text-primary) 25%, transparent);}
+.cross-tech[open] summary::before{content:'▾ ';}
+.cross-tech-body{margin-top:10px;padding:12px 14px;background:color-mix(in srgb, var(--text-primary) 2%, transparent);border-radius:4px;font-family:monospace;font-size:10px;color:color-mix(in srgb, var(--text-primary) 45%, transparent);line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+
 /* ─── Result header ──────────────────────────────────────────────────── */
 .dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.dash-results-title{font-weight:500;color:var(--text-primary);}
 .dash-id{font-size:10px;color:var(--text-disabled);font-family:monospace;margin-top:3px;}
 .dash-actions{display:flex;gap:8px;}
 .complete-msg{font-size:12px;color:color-mix(in srgb, var(--text-primary) 32%, transparent);margin-bottom:16px;padding:9px 14px;border-left:2px solid color-mix(in srgb, var(--champagne) 18%, transparent);background:color-mix(in srgb, var(--champagne) 2.5%, transparent);border-radius:0 8px 8px 0;}
@@ -65,7 +190,7 @@
 .tab-loading-overlay{
   position:absolute;inset:0;z-index:5;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-  background:var(--bg-base,#0d0d10);text-align:center;padding:60px 20px;
+  background:var(--bg-card,#fff);text-align:center;padding:60px 20px;
 }
 .tab-loading-overlay.hidden{display:none;}
 .tab-loading-pct{font-size:30px;font-weight:600;color:var(--champagne);letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
@@ -83,7 +208,7 @@
 .snap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .snap-card{background:color-mix(in srgb, var(--text-primary) 2.5%, transparent);border:1px solid color-mix(in srgb, var(--text-primary) 6%, transparent);border-radius:4px;padding:14px 16px;}
 .snap-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:color-mix(in srgb, var(--text-primary) 30%, transparent);font-weight:500;margin-bottom:7px;}
-.snap-value{font-size:18px;font-weight:500;color:var(--champagne-light);letter-spacing:-.03em;text-transform:capitalize;line-height:1.2;}
+.snap-value{font-size:18px;font-weight:500;color:var(--text-primary);letter-spacing:-.03em;text-transform:capitalize;line-height:1.2;}
 .snap-sub{font-size:10px;color:color-mix(in srgb, var(--text-primary) 22%, transparent);margin-top:4px;}
 .snap-bar{height:2px;background:color-mix(in srgb, var(--text-primary) 5%, transparent);border-radius:2px;margin-top:10px;}
 .snap-fill{height:100%;background:color-mix(in srgb, var(--champagne) 45%, transparent);border-radius:2px;}
@@ -100,7 +225,7 @@
 .wc-label{font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
 .wc-val{font-size:20px;font-weight:500;letter-spacing:-.02em;line-height:1;}
 .wc-sub{font-size:10px;color:var(--text-muted);margin-top:5px;}
-.wc-pos{color:#86D296;}.wc-neg{color:#DC6464;}.wc-neu{color:color-mix(in srgb, var(--champagne) 75%, transparent);}
+.wc-pos{color:#66826E;}.wc-neg{color:#9E5652;}.wc-neu{color:var(--champagne-dark);}
 
 /* ─── Résonance par camp ─────────────────────────────────────────────── */
 .resonance-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;padding:7px 0;border-bottom:1px solid color-mix(in srgb, var(--text-primary) 4%, transparent);}
@@ -146,7 +271,7 @@
 .groupes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .groupe-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:14px 16px;}
 .groupe-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
-.groupe-pct{font-size:22px;font-weight:500;color:var(--champagne-light);letter-spacing:-.03em;flex-shrink:0;}
+.groupe-pct{font-size:22px;font-weight:500;color:var(--text-primary);letter-spacing:-.03em;flex-shrink:0;}
 .groupe-size{font-size:10px;color:var(--text-muted);flex:1;}
 .groupe-mots{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
 
@@ -203,7 +328,7 @@
 /* ─── NLP ────────────────────────────────────────────────────────────── */
 .nlp-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}
 .nlp-num-card{background:var(--bg-card);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:10px 12px;text-align:center;}
-.nlp-val{font-size:20px;font-weight:500;letter-spacing:-.04em;color:var(--champagne-light);}
+.nlp-val{font-size:20px;font-weight:500;letter-spacing:-.04em;color:var(--text-primary);}
 .nlp-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-top:2px;}
 .word-tags{display:flex;flex-wrap:wrap;gap:5px;}
 .word-tag{font-size:10px;padding:3px 8px;border-radius:4px;background:color-mix(in srgb, var(--text-primary) 3%, transparent);border:1px solid var(--border-soft);color:var(--text-muted);}
@@ -279,7 +404,7 @@
     radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--champagne) 7%, transparent), transparent 36%),
     linear-gradient(180deg, color-mix(in srgb, var(--text-primary) 2.6%, transparent), color-mix(in srgb, var(--text-primary) 1%, transparent)),
     color-mix(in srgb, var(--bg-card) 78%, transparent);
-  box-shadow:0 24px 80px rgba(0,0,0,0.3), inset 0 1px 0 color-mix(in srgb, var(--text-primary) 3.5%, transparent);
+  box-shadow:none;
   overflow:hidden;
   animation:gb-slide-up .35s cubic-bezier(.22,1,.36,1) both;
 }
@@ -324,7 +449,7 @@
   margin-bottom:18px;
   flex-shrink:0;
   background:linear-gradient(135deg,color-mix(in srgb, var(--champagne) 16%, transparent),color-mix(in srgb, var(--text-primary) 2.5%, transparent));
-  box-shadow:0 18px 50px rgba(0,0,0,0.24), inset 0 1px 0 color-mix(in srgb, var(--text-primary) 8%, transparent);
+  box-shadow:none;
 }
 .pc3-avatar{
   display:flex;
@@ -602,14 +727,14 @@
   .sujet-row{flex-direction:column;gap:6px;}
 }
 
-/* ─── Carte contexte vidéo (champagne) ──────────────────────────────────── */
-.video-ctx-card{background:linear-gradient(135deg,var(--champagne) 0%,var(--champagne-soft) 100%);border-radius:6px;padding:20px 22px;margin-bottom:0;}
+/* ─── Carte contexte vidéo — contraste encre / champagne ──────────────── */
+.video-ctx-card{background:linear-gradient(135deg,#121110 0%,#292018 100%);border:1px solid rgba(212,178,122,.35);border-radius:6px;padding:20px 22px;margin-bottom:0;box-shadow:none;}
 .vcx-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.vcx-source{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:color-mix(in srgb, #0D0D10 50%, transparent);font-weight:600;padding:2px 8px;border-radius:3px;background:color-mix(in srgb, #0D0D10 8%, transparent);}
-.vcx-title{font-size:16px;font-weight:600;color:#0D0D10;line-height:1.35;margin-bottom:8px;letter-spacing:-.02em;}
-.vcx-desc{font-size:11px;color:color-mix(in srgb, #0D0D10 68%, transparent);line-height:1.65;}
+.vcx-source{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#e5c58f;font-weight:650;padding:3px 8px;border:1px solid rgba(226,192,135,.2);border-radius:3px;background:rgba(226,192,135,.09);}
+.vcx-title{font-size:16px;font-weight:600;color:#f0d4a1;line-height:1.35;margin-bottom:8px;letter-spacing:-.02em;}
+.vcx-desc{font-size:11px;color:#d7bd92;line-height:1.65;}
 .vcx-meta{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;}
-.vcx-tag{font-size:9px;padding:2px 8px;border-radius:3px;background:color-mix(in srgb, #0D0D10 10%, transparent);color:color-mix(in srgb, #0D0D10 60%, transparent);font-weight:500;}
+.vcx-tag{font-size:9px;padding:3px 8px;border:1px solid rgba(226,192,135,.14);border-radius:3px;background:rgba(226,192,135,.08);color:#d9bd8e;font-weight:550;}
 
 /* ─── Stat chips (audience overview) ────────────────────────────────────── */
 .stat-chips-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
@@ -619,8 +744,8 @@
 .stat-chip-val{font-size:20px;font-weight:500;letter-spacing:-.03em;line-height:1.1;}
 .stat-chip-count{font-size:10px;color:color-mix(in srgb, var(--text-primary) 30%, transparent);margin-top:1px;}
 .stat-chip-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-top:5px;font-weight:500;}
-.chip-pos{color:#86D296;}.chip-neg{color:#DC6464;}.chip-neu{color:rgba(167,167,170,.75);}
-.chip-bruit{color:color-mix(in srgb, var(--text-primary) 28%, transparent);}.chip-total{color:var(--champagne-light);}.chip-nuance{color:color-mix(in srgb, var(--champagne) 70%, transparent);}
+.chip-pos{color:#66826E;}.chip-neg{color:#9E5652;}.chip-neu{color:#8E8A83;}
+.chip-bruit{color:color-mix(in srgb, var(--text-primary) 28%, transparent);}.chip-total{color:var(--text-primary);}.chip-nuance{color:var(--champagne-dark);}
 
 /* ─── Top commentaires ───────────────────────────────────────────────────── */
 .top-comment-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:4px;background:color-mix(in srgb, var(--text-primary) 1.8%, transparent);border:1px solid color-mix(in srgb, var(--text-primary) 5%, transparent);margin-bottom:6px;}
@@ -643,20 +768,20 @@
 .demog-age-pct{font-size:10px;font-weight:500;color:var(--text-muted);width:30px;text-align:right;}
 .demog-gender-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
 .demog-gender-bar{flex:1;height:8px;border-radius:2px;background:color-mix(in srgb, var(--text-primary) 4%, transparent);position:relative;overflow:hidden;}
-.demog-gender-h{position:absolute;left:0;top:0;height:100%;background:rgba(100,170,235,.55);border-radius:2px;}
-.demog-gender-f{position:absolute;right:0;top:0;height:100%;background:rgba(235,130,165,.55);border-radius:2px;}
+.demog-gender-h{position:absolute;left:0;top:0;height:100%;background:#87979E;border-radius:2px;}
+.demog-gender-f{position:absolute;right:0;top:0;height:100%;background:#C09A64;border-radius:2px;}
 .demog-gender-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);}
-.demog-avg-age{font-size:28px;font-weight:500;color:var(--champagne-light);letter-spacing:-.04em;line-height:1;}
+.demog-avg-age{font-size:28px;font-weight:500;color:var(--text-primary);letter-spacing:-.04em;line-height:1;}
 .demog-avg-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-top:4px;}
 /* Localisation — nouvelle carte */
 .demog-loc-globe{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
-.demog-loc-globe-icon{width:28px;height:28px;border-radius:50%;background:rgba(90,160,220,.08);border:1px solid rgba(90,160,220,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.demog-loc-globe-icon{width:28px;height:28px;border-radius:50%;background:rgba(176,139,88,.08);border:1px solid rgba(176,139,88,.20);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .demog-loc-globe-lbl{font-size:11px;color:color-mix(in srgb, var(--text-primary) 35%, transparent);line-height:1.4;}
 .demog-loc-globe-lbl strong{display:block;font-size:13px;font-weight:500;color:color-mix(in srgb, var(--text-primary) 60%, transparent);letter-spacing:-.01em;}
 .demog-loc-section-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:color-mix(in srgb, var(--text-primary) 18%, transparent);font-weight:600;margin-bottom:6px;}
 .demog-loc-pays{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
-.demog-loc-pays-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:9px;background:rgba(90,160,220,.07);border:1px solid rgba(90,160,220,.14);font-size:10px;color:rgba(90,160,220,.75);font-weight:500;}
-.demog-loc-pays-dot{width:5px;height:5px;border-radius:50%;background:rgba(90,160,220,.6);flex-shrink:0;}
+.demog-loc-pays-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:9px;background:rgba(176,139,88,.08);border:1px solid rgba(176,139,88,.20);font-size:10px;color:var(--champagne-dark);font-weight:500;}
+.demog-loc-pays-dot{width:5px;height:5px;border-radius:50%;background:var(--champagne);flex-shrink:0;}
 .demog-loc-villes{display:flex;flex-direction:column;gap:4px;}
 .demog-loc-ville{display:flex;align-items:center;gap:7px;font-size:11px;color:color-mix(in srgb, var(--text-primary) 38%, transparent);padding:3px 0;}
 .demog-loc-ville::before{content:'';width:3px;height:3px;border-radius:50%;background:color-mix(in srgb, var(--text-primary) 18%, transparent);flex-shrink:0;}
@@ -704,11 +829,15 @@
    Valeurs par défaut = ce que vous avez validé ; le studio live peut encore
    les surcharger via les variables --ux-*. */
 body.page-psychologue .page-label        { font-size: var(--ux-psy-eyebrow, 10px); margin-bottom: var(--ux-psy-eyebrowgap, 7px); }
-body.page-psychologue .page-heading      { font-size: var(--ux-psy-title, 27.5px); margin-bottom: var(--ux-psy-titlegap, 38px); }
-body.page-psychologue .input-zone        { max-width: var(--ux-psy-width, 810px); margin-left: auto; margin-right: auto; }
+body.page-psychologue .page-heading      { font-size: var(--ux-psy-title, 27.5px); margin-bottom: var(--ux-psy-titlegap, 24px); }
+/* Le studio pouvait conserver une ancienne largeur très généreuse. Le bloc
+   d'import reste volontairement éditorial et compact, même dans une grande
+   zone de travail ; le contenu long se développe dans la saisie, pas dans le
+   chrome de la carte. */
+body.page-psychologue .input-zone        { width:calc(100% - 32px); max-width:min(var(--ux-psy-width, 760px), 860px); margin-left:auto; margin-right:auto; }
 body.page-psychologue .input-card        { border-radius: var(--ux-psy-cardradius, 16px); }
 body.page-psychologue .src-tab           { font-size: var(--ux-psy-tab, 9px); padding-top: var(--ux-psy-tabpad, 10px); padding-bottom: var(--ux-psy-tabpad, 10px); }
-body.page-psychologue .input-card textarea { font-size: var(--ux-psy-textarea, 12.5px); min-height: var(--ux-psy-textareah, 120px); }
+body.page-psychologue .input-card textarea { font-size: var(--ux-psy-textarea, 12.5px); min-height:128px; }
 body.page-psychologue .comment-meta      { padding-bottom: var(--ux-psy-footpad, 7px); }
 body.page-psychologue .comment-meta-left { font-size: var(--ux-psy-foot, 10.5px); }
 body.page-psychologue .comment-count     { font-size: var(--ux-psy-count, 10px); }
@@ -728,6 +857,262 @@ body.page-psychologue .gb-help-btn,
 body.page-psychologue .header-user { font-size: 9.5px; }
 body.page-psychologue .sidebar-agent-item .sidebar-agent-img { width: 22px; height: 22px; min-width: 22px; min-height: 22px; }
 body.page-psychologue .sidebar-item svg { width: 13px; height: 13px; }
+
+/* ── Sources d'analyse · surface blanche, nette et progressive ─────────── */
+body.page-psychologue .input-card{
+  overflow:hidden;
+  background:#fff;
+  border:1px solid #DCD3C7;
+  border-radius:20px;
+}
+body.page-psychologue .src-tabs{
+  min-height:54px;
+  padding:0 10px;
+  border-bottom:1px solid #E9E4DD;
+}
+body.page-psychologue .src-tab{
+  position:relative;
+  padding:0 18px;
+  color:#B0AAA1;
+  font-size:10px;
+  font-weight:650;
+  letter-spacing:.12em;
+  transition:color .18s ease, background .18s ease;
+}
+body.page-psychologue .src-tab::after{
+  position:absolute;
+  right:10px;
+  bottom:-1px;
+  left:10px;
+  height:2px;
+  background:#111;
+  content:'';
+  opacity:0;
+  transform:scaleX(.6);
+  transition:opacity .18s ease,transform .18s ease;
+}
+body.page-psychologue .src-tab.active{ color:#171513; border-bottom:0; }
+body.page-psychologue .src-tab.active::after{ opacity:1; transform:scaleX(1); }
+body.page-psychologue .src-tab:hover:not(.active){ color:#5C554D; background:#FCFBF9; }
+body.page-psychologue .card-body{ padding:16px; }
+body.page-psychologue #manualComments{
+  height:128px;
+  min-height:128px !important;
+  max-height:260px;
+  padding:13px 15px;
+  background:#fff;
+  border-color:#D8D0C5;
+  border-radius:8px;
+  color:#201D1A;
+  line-height:1.65;
+}
+body.page-psychologue #manualComments:focus{ border-color:#171513; box-shadow:0 0 0 3px rgba(176,139,88,.12); }
+body.page-psychologue .comment-meta{ margin-top:7px; }
+body.page-psychologue .comment-count{ color:#766B5D; background:#FBF9F6; border-color:#E6DED3; }
+body.page-psychologue .card-footer{
+  min-height:64px;
+  gap:14px;
+  padding:10px 16px;
+  border-top-color:#E9E4DD;
+}
+body.page-psychologue .status-msg{ color:#665E55; }
+body.page-psychologue .analyse-btn{
+  min-height:48px;
+  padding:0 22px;
+  margin-left:auto;
+  background:#111;
+  border-color:#111;
+  color:#fff;
+  font-weight:650;
+  letter-spacing:.04em;
+}
+body.page-psychologue .analyse-btn:hover{ background:#292624; border-color:#292624; color:#fff; }
+
+body.page-psychologue .source-platforms{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:0 0 18px;
+}
+body.page-psychologue .source-platform{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:38px;
+  padding:0 13px;
+  border:1px solid #E6E0D8;
+  border-radius:999px;
+  background:#fff;
+  color:#5D564E;
+  font:600 11px/1 var(--font-main);
+  cursor:pointer;
+  transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease;
+}
+body.page-psychologue .source-platform:hover{ border-color:#CBB798; color:#201D1A; transform:translateY(-1px); }
+body.page-psychologue .source-platform.is-active{ background:#111; border-color:#111; color:#fff; }
+body.page-psychologue .source-platform-mark{ display:grid; width:18px; height:18px; place-items:center; border-radius:50%; font-size:12px; font-weight:800; line-height:1; }
+body.page-psychologue .source-platform:not(.is-active) .source-platform-mark{ color:#171513; background:#F4F1EC; }
+body.page-psychologue .source-platform.is-active .source-platform-mark{ color:#111; background:#fff; }
+body.page-psychologue .source-platform[aria-disabled="true"]{ cursor:not-allowed; opacity:.48; }
+body.page-psychologue .source-link-row{
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr) 42px;
+  align-items:center;
+  gap:11px;
+  min-height:60px;
+  padding:0 10px 0 16px;
+  border:1px solid #DED7CE;
+  border-radius:999px;
+  background:#fff;
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+body.page-psychologue .source-link-row:focus-within{ border-color:#171513; box-shadow:0 0 0 3px rgba(176,139,88,.11); }
+body.page-psychologue .source-link-row > svg{ color:#1E1B18; }
+body.page-psychologue .source-link-row .input{ min-width:0; min-height:0; padding:0; border:0; background:transparent; color:#201D1A; box-shadow:none; }
+body.page-psychologue .source-link-row .input:focus{ border:0; box-shadow:none; }
+body.page-psychologue .url-check-btn.source-submit{
+  display:grid;
+  width:38px;
+  min-height:38px;
+  padding:0;
+  place-items:center;
+  border:0;
+  border-radius:50%;
+  background:#111;
+  color:#fff;
+}
+body.page-psychologue .url-check-btn.source-submit:hover{ background:#292624; border:0; transform:none; }
+body.page-psychologue .url-check-btn.source-submit svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; }
+body.page-psychologue .url-check-btn.source-submit.is-loading svg{ animation:psy-source-spin .8s linear infinite; }
+body.page-psychologue .source-example{ margin:10px 0 0 12px; color:#908980; font-size:10px; }
+
+/* Cross Analyse : la carte Sources du Psychologue surcharge ses couleurs en
+   dur pour le thème clair (pas de redéfinition de --text-primary dans cette
+   portée) — mes classes doivent suivre la même convention, sinon elles
+   héritent de la valeur sombre du thème racine et deviennent illisibles. */
+body.page-psychologue .cross-source-row{ background:#FAF9F6; border-color:#EAE4D9; }
+body.page-psychologue .cross-source-row-index{ background:#F4F1EC; color:#8A6D3C; }
+body.page-psychologue .cross-source-row-label{ color:#4A443C; }
+body.page-psychologue .cross-source-row-remove{ color:#B5AC9E; }
+body.page-psychologue .cross-source-row-remove:hover{ color:#B23B3B; background:#F4EDEC; }
+body.page-psychologue .add-cross-source-btn{ color:#908980; }
+body.page-psychologue .add-cross-source-btn:hover{ color:#8A6D3C; }
+body.page-psychologue .cross-source-limit-hint{ color:#908980; }
+
+/* Écran de résultat Cross Analyse — même convention que ci-dessus : hex en
+   dur, car --text-primary n'est pas redéfini dans cette portée. */
+body.page-psychologue .cross-warn-banner{ background:#FBF1F0; border-color:#E7C6C2; color:#6B4A47; }
+body.page-psychologue .cross-warn-banner b{ color:#B23B3B; }
+body.page-psychologue .cross-hero{ background:#FBF7EF; border-color:#E6D9BC; }
+body.page-psychologue .cross-hero-score-block{ border-color:#E6D9BC; }
+body.page-psychologue .cross-hero-score{ color:#8A6D3C; }
+body.page-psychologue .cross-hero-score-max{ color:#B5AC9E; }
+body.page-psychologue .cross-hero-level{ color:#8A6D3C; }
+body.page-psychologue .cross-hero-label{ color:#8A6D3C; }
+body.page-psychologue .cross-hero-text{ color:#4A443C; }
+body.page-psychologue .cross-hero-caveats{ border-color:#E6D9BC; }
+body.page-psychologue .cross-hero-caveats-lbl{ color:#908980; }
+body.page-psychologue .cross-hero-caveat{ color:#6B6259; }
+body.page-psychologue .cross-hero-caveat::before{ color:#B5AC9E; }
+body.page-psychologue .cross-meta-item{ color:#908980; }
+body.page-psychologue .cross-meta-item b{ color:#4A443C; }
+body.page-psychologue .cross-video-card{ background:#FAF9F6; border-color:#EAE4D9; }
+body.page-psychologue .cross-video-mark{ background:#F4F1EC; color:#8A6D3C; }
+body.page-psychologue .cross-video-title{ color:#201D1A; }
+body.page-psychologue .cross-video-channel{ color:#908980; }
+body.page-psychologue .cross-video-stats{ border-color:#EAE4D9; }
+body.page-psychologue .cross-video-stat{ color:#908980; }
+body.page-psychologue .cross-video-stat b{ color:#4A443C; }
+body.page-psychologue .cross-video-link{ color:#8A6D3C; }
+body.page-psychologue .cross-video-link:hover{ color:#654B2C; }
+body.page-psychologue .cross-video-warning{ color:#908980; }
+body.page-psychologue .dq-strong{ background:#EEF3EF; color:#4F7360; }
+body.page-psychologue .dq-moderate{ background:#FBF3E2; color:#9C7A2E; }
+body.page-psychologue .dq-exploratory{ background:#F4F1EC; color:#908980; }
+body.page-psychologue .dq-insufficient{ background:#FBEEED; color:#A5504B; }
+body.page-psychologue .dash-results-title{ color:#201D1A; }
+body.page-psychologue .snap-label{ color:#908980; }
+body.page-psychologue .snap-sub{ color:#B5AC9E; }
+body.page-psychologue .pol-statement{ color:#4A443C; }
+body.page-psychologue .cross-category-title{ color:#908980; }
+body.page-psychologue .cross-signal-row{ border-color:#EFEAE1; }
+body.page-psychologue .cross-signal-label{ color:#4A443C; }
+body.page-psychologue .cross-tag{ background:#F4F1EC; border-color:#E6DED3; color:#766B5D; }
+body.page-psychologue .cross-empty{ color:#908980; }
+body.page-psychologue .cross-more-hint{ color:#B5AC9E; }
+body.page-psychologue .cross-persona-card{ background:#FAF9F6; border-color:#EAE4D9; }
+body.page-psychologue .cross-persona-name{ color:#201D1A; }
+body.page-psychologue .cross-persona-conf{ color:#8A6D3C; }
+body.page-psychologue .cross-persona-desc{ color:#5D564E; }
+body.page-psychologue .cross-tech summary{ color:#908980; }
+body.page-psychologue .cross-tech-body{ background:#F4F1EC; color:#6B6259; }
+
+body.page-psychologue .file-dropzone{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  min-height:104px;
+  padding:16px;
+  border:1px dashed #D6CCBF;
+  border-radius:14px;
+  background:#FFFEFC;
+  cursor:pointer;
+  transition:border-color .2s ease,background .2s ease,transform .2s ease;
+}
+body.page-psychologue .file-dropzone:hover,
+body.page-psychologue .file-dropzone.drag{ border-color:#A88657; background:#FCF9F4; }
+body.page-psychologue .file-dropzone.is-uploading{ border-color:#B79A70; background:#FCF9F4; }
+body.page-psychologue .file-dropzone.has-file{ display:none; }
+body.page-psychologue .file-drop-icon,
+body.page-psychologue .file-state-mark{
+  display:grid;
+  width:42px;
+  height:42px;
+  place-items:center;
+  border:1px solid #E8E2D9;
+  border-radius:12px;
+  background:#fff;
+  color:#2C2824;
+}
+body.page-psychologue .file-drop-copy{ display:grid; gap:4px; min-width:0; }
+body.page-psychologue .file-drop-copy strong{ color:#25211D; font-size:12px; font-weight:650; }
+body.page-psychologue .file-drop-copy span{ color:#958C81; font-size:10px; line-height:1.45; }
+body.page-psychologue .file-browse{ padding:8px 12px; border:1px solid #ECE7E0; border-radius:999px; color:#4E473F; background:#fff; font-size:10px; font-weight:650; }
+body.page-psychologue .file-import-status{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  min-height:82px;
+  margin-top:10px;
+  padding:13px 15px;
+  border:1px solid #E6DED4;
+  border-radius:14px;
+  background:#fff;
+  animation:psy-file-enter .34s cubic-bezier(.22,1,.36,1) both;
+}
+body.page-psychologue .file-import-status.is-ready{ border-color:#D8D0C5; background:#FCFBF9; }
+body.page-psychologue .file-import-status.is-ready .file-state-mark{ border-color:#D2DEC8; background:#F3F8F0; color:#557B5C; animation:psy-file-ready .36s cubic-bezier(.22,1,.36,1) both; }
+body.page-psychologue .file-import-status.is-error{ border-color:#E6C3BF; background:#FFFAF9; }
+body.page-psychologue .file-import-status.is-error .file-state-mark{ border-color:#E6C3BF; background:#FFF1EF; color:#A85D59; }
+body.page-psychologue .file-state-copy{ display:grid; min-width:0; gap:3px; }
+body.page-psychologue .file-state-copy strong{ overflow:hidden; color:#25211D; font-size:12px; font-weight:650; text-overflow:ellipsis; white-space:nowrap; }
+body.page-psychologue .file-state-copy span{ color:#91887D; font-size:10px; line-height:1.4; }
+body.page-psychologue .file-state-copy .url-hint{ margin:0; }
+body.page-psychologue .file-reset-btn{ display:grid; width:30px; height:30px; place-items:center; border:1px solid #E8E1D8; border-radius:50%; background:#fff; color:#70675D; cursor:pointer; }
+body.page-psychologue .file-reset-btn:hover{ color:#201D1A; border-color:#CFC4B5; }
+body.page-psychologue #file-preview{ border-radius:10px; background:#FBFAF8; }
+@keyframes psy-source-spin{ to{ transform:rotate(360deg); } }
+@keyframes psy-file-enter{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:translateY(0); } }
+@keyframes psy-file-ready{ 0%{ transform:scale(.72); opacity:.25; } 70%{ transform:scale(1.08); } 100%{ transform:scale(1); opacity:1; } }
+@media(max-width:560px){
+  body.page-psychologue .src-tab{ padding:0 7px; font-size:9px; }
+  body.page-psychologue .card-body{ padding:14px; }
+  body.page-psychologue .file-dropzone{ grid-template-columns:38px minmax(0,1fr); }
+  body.page-psychologue .file-browse{ display:none; }
+  body.page-psychologue .card-footer{ align-items:stretch; }
+}
 </style>
 {% endblock %}
 
@@ -740,46 +1125,73 @@ body.page-psychologue .sidebar-item svg { width: 13px; height: 13px; }
 <!-- ── Input ──────────────────────────────────────────────────────────── -->
 <div id="input-section" class="input-zone" data-tour="source-section">
   <div class="page-label">Le Psychologue</div>
-  <div class="page-heading">Analyse factuelle des commentaires</div>
+  <div class="input-header-row">
+    <div class="page-heading">Analyse factuelle des commentaires</div>
+    <button type="button" class="btn btn-ghost btn-sm cross-modal-trigger" id="cross-modal-trigger" onclick="openCrossModal()">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 7h10M7 7l3-3M7 7l3 3M17 17H7M17 17l-3-3M17 17l-3 3"/></svg>
+      Cross Analyse
+    </button>
+  </div>
 
   <div class="input-card">
     <div class="src-tabs">
-      <button class="src-tab active" data-tab="manual"    onclick="switchTab('manual')">Commentaires</button>
-      <button class="src-tab" data-tab="youtube"   onclick="switchTab('youtube')">YouTube</button>
+      <button class="src-tab active" data-tab="youtube"   onclick="switchTab('youtube')">Sources</button>
+      <button class="src-tab" data-tab="manual"    onclick="switchTab('manual')">Commentaires</button>
       <button class="src-tab" data-tab="file"      onclick="switchTab('file')">Fichier</button>
     </div>
     <div class="card-body">
-      <div id="tab-manual">
+      <div id="tab-manual" class="hidden">
         <textarea id="manualComments" placeholder="Collez vos commentaires ici, un par ligne…" rows="7" oninput="updateCount()"></textarea>
         <div class="comment-meta">
           <span class="comment-meta-left">Un commentaire par ligne · Min. 3</span>
           <span class="comment-count" id="commentCount">0</span>
         </div>
       </div>
-      <div id="tab-youtube" class="hidden">
-        <div class="url-input-row">
-          <input type="url" id="youtubeUrl" class="input" placeholder="https://youtube.com/watch?v=…" inputmode="url" autocomplete="url">
-          <button class="url-check-btn" id="youtube-check-btn" type="button" onclick="scrapeYoutube()">Vérifier le lien</button>
+      <div id="tab-youtube">
+        <div class="source-platforms" role="tablist" aria-label="Plateforme à analyser">
+          <button class="source-platform is-active" type="button" data-platform="youtube" role="tab" aria-selected="true" onclick="switchPlatform('youtube')"><span class="source-platform-mark">▶</span>YouTube</button>
+          <button class="source-platform" type="button" data-platform="instagram" role="tab" aria-selected="false" onclick="switchPlatform('instagram')"><span class="source-platform-mark">◎</span>Instagram</button>
+          <button class="source-platform" type="button" data-platform="tiktok" role="tab" aria-selected="false" onclick="switchPlatform('tiktok')"><span class="source-platform-mark">♪</span>TikTok</button>
+          <button class="source-platform" type="button" data-platform="google" role="tab" aria-selected="false" onclick="switchPlatform('google')"><span class="source-platform-mark">G</span>Google</button>
+          <button class="source-platform" type="button" data-platform="manual" role="tab" aria-selected="false" onclick="switchPlatform('manual')"><span class="source-platform-mark">+</span>Autre source</button>
         </div>
+        <div class="source-link-row">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10.5 13.5a4.5 4.5 0 0 0 6.36.14l3-3a4.5 4.5 0 0 0-6.36-6.36l-1.72 1.7"/><path d="M13.5 10.5a4.5 4.5 0 0 0-6.36-.14l-3 3a4.5 4.5 0 1 0 6.36 6.36l1.7-1.7"/></svg>
+          <input type="url" id="youtubeUrl" class="input" placeholder="Collez le lien de la vidéo YouTube ici…" inputmode="url" autocomplete="url">
+          <button class="url-check-btn source-submit" id="source-check-btn" type="button" onclick="scrapeActiveSource()" aria-label="Vérifier le lien" title="Vérifier le lien">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+          </button>
+        </div>
+        <div class="source-example" id="source-example">Exemple : youtube.com/watch?v=…</div>
+        <div class="url-hint" id="cross-upfront-hint">Vous pouvez comparer jusqu’à 5 vidéos pour croiser leurs audiences.</div>
         <div id="yt-status" class="url-hint" role="status" aria-live="polite">Collez le lien d’une vidéo YouTube.</div>
+
+        <!-- Cross Analyse : liste des vidéos déjà ajoutées (2 à 5), visible
+             uniquement en contexte YouTube — seule plateforme prise en
+             charge par la Cross Analyse V1. -->
+        <div id="cross-source-list" class="cross-source-list hidden" aria-live="polite"></div>
+        <button id="add-cross-source-btn" type="button" class="add-cross-source-btn hidden" onclick="addCrossSource()">
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>
+          Ajouter une autre vidéo
+        </button>
       </div>
       <div id="tab-file" class="hidden">
         <div id="file-dropzone"
+             class="file-dropzone"
              onclick="document.getElementById('fileInput').click()"
              ondragover="event.preventDefault(); this.classList.add('drag');"
              ondragleave="this.classList.remove('drag')"
-             ondrop="event.preventDefault(); this.classList.remove('drag'); handleFileDrop(event);"
-             style="border:1.5px dashed color-mix(in srgb, var(--champagne) 25%, transparent);border-radius:4px;padding:26px 16px;text-align:center;cursor:pointer;transition:border-color .2s, background .2s;">
-          <div style="font-size:12px;color:color-mix(in srgb, var(--text-primary) 55%, transparent);margin-bottom:4px;">
-            Importez un fichier CSV, Excel ou JSON contenant des commentaires, avis ou retours clients.
-          </div>
-          <div style="font-size:10px;color:color-mix(in srgb, var(--text-primary) 28%, transparent);">
-            Glissez-déposez ou cliquez · .csv .xlsx .xls .json · 5 MB max
-          </div>
-          <div id="file-name" style="font-size:11px;color:var(--champagne);margin-top:8px;"></div>
+             ondrop="event.preventDefault(); this.classList.remove('drag'); handleFileDrop(event);">
+          <div class="file-drop-icon" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg></div>
+          <div class="file-drop-copy"><strong>Glissez-déposez un fichier ici</strong><span>CSV, Excel, TXT ou JSON — jusqu’à 5 Mo</span></div>
+          <span class="file-browse">Parcourir</span>
         </div>
-        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json" style="display:none;" onchange="handleFileSelect(this.files)">
-        <div id="file-status" class="url-hint" style="margin-top:8px;"></div>
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json,.txt" style="display:none;" onchange="handleFileSelect(this.files)">
+        <div id="file-import-status" class="file-import-status hidden" aria-live="polite">
+          <div class="file-state-mark" id="file-state-mark"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></div>
+          <div class="file-state-copy"><strong id="file-name">Fichier en cours d’import</strong><span id="file-meta">Préparation de l’import…</span><div id="file-status" class="url-hint"></div></div>
+          <button class="file-reset-btn" type="button" onclick="resetFileImport()" aria-label="Retirer le fichier" title="Retirer le fichier"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+        </div>
         <div id="file-column-select" class="hidden" style="margin-top:8px;">
           <div style="font-size:10px;color:color-mix(in srgb, var(--text-primary) 40%, transparent);margin-bottom:4px;">Sélectionnez la colonne à analyser :</div>
           <select id="fileColumn" class="input" style="width:100%;box-sizing:border-box;font-size:12px;" onchange="reparseWithColumn()"></select>
@@ -795,6 +1207,22 @@ body.page-psychologue .sidebar-item svg { width: 13px; height: 13px; }
         Lancer l'analyse
       </button>
     </div>
+  </div>
+</div>
+
+<!-- ── Cross Analyse : panneau flottant ─────────────────────────────────── -->
+<div id="cross-modal-backdrop" class="cross-modal-backdrop hidden" onclick="if(event.target===this) closeCrossModal()">
+  <div class="cross-modal-panel" role="dialog" aria-modal="true" aria-labelledby="cross-modal-title">
+    <div class="cross-modal-head">
+      <div>
+        <div class="cross-modal-title" id="cross-modal-title">Cross Analyse</div>
+        <div class="cross-modal-sub">Comparez 2 à 5 audiences YouTube en une seule lecture</div>
+      </div>
+      <button type="button" class="cross-modal-close" onclick="closeCrossModal()" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="cross-modal-body" id="cross-modal-body"></div>
   </div>
 </div>
 
@@ -854,7 +1282,7 @@ body.page-psychologue .sidebar-item svg { width: 13px; height: 13px; }
 
   <div class="dash-header">
     <div>
-      <div class="dash-results-title" style="font-weight:500;color:var(--text-primary);">Résultats</div>
+      <div class="dash-results-title">Résultats</div>
       <div class="dash-id" id="dash-id"></div>
     </div>
     <div class="dash-actions">
@@ -1114,6 +1542,62 @@ function switchTab(tab) {
   ['manual','youtube','file'].forEach(t =>
     document.getElementById('tab-'+t).classList.toggle('hidden', t !== tab)
   );
+  document.querySelector('.input-card')?.setAttribute('data-source-tab', tab);
+  // Quitter l'onglet Sources ne doit jamais laisser croire que "Lancer
+  // l'analyse" comparera des vidéos en attente pendant qu'on est en train
+  // de saisir des commentaires ou un fichier.
+  if (typeof updateCrossCTA === 'function') updateCrossCTA();
+}
+
+const LINK_SOURCES = {
+  youtube:   {label:'YouTube',   placeholder:'Collez le lien de la vidéo YouTube ici…', example:'Exemple : youtube.com/watch?v=…'},
+  instagram: {label:'Instagram', placeholder:'Collez le lien de la publication Instagram ici…', example:'Exemple : instagram.com/reel/…'},
+  tiktok:    {label:'TikTok',    placeholder:'Collez le lien de la vidéo TikTok ici…', example:'Exemple : tiktok.com/@compte/video/…'},
+};
+let _activeLinkSource = 'youtube';
+
+function switchPlatform(platform) {
+  if (platform === 'manual') {
+    switchTab('manual');
+    document.getElementById('manualComments')?.focus();
+    document.getElementById('analyzeHint').textContent = 'Collez les commentaires depuis votre source';
+    updateCrossAffordance();
+    return;
+  }
+
+  document.querySelectorAll('.source-platform').forEach(button => {
+    const active = button.dataset.platform === platform;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
+
+  const input = document.getElementById('youtubeUrl');
+  const submit = document.getElementById('source-check-btn');
+  const status = document.getElementById('yt-status');
+  const example = document.getElementById('source-example');
+
+  if (platform === 'google') {
+    _activeLinkSource = '';
+    input.value = '';
+    input.disabled = true;
+    submit.disabled = true;
+    input.placeholder = 'La collecte Google arrive prochainement…';
+    example.textContent = 'Pour l’instant, collez les avis dans « Commentaires ». ';
+    setStatus('yt-status', 'Google sera connecté dès que cette source sera disponible dans votre workspace.', 'busy');
+    document.getElementById('analyzeHint').textContent = 'Source Google bientôt disponible';
+    updateCrossAffordance();
+    return;
+  }
+
+  _activeLinkSource = platform;
+  const config = LINK_SOURCES[platform];
+  input.disabled = false;
+  submit.disabled = false;
+  input.placeholder = config.placeholder;
+  example.textContent = config.example;
+  setStatus('yt-status', `Collez le lien ${config.label}, puis vérifiez les commentaires disponibles.`);
+  document.getElementById('analyzeHint').textContent = `Lien ${config.label} à vérifier`;
+  updateCrossAffordance();
 }
 
 /* ── Import fichier (CSV / Excel / JSON) ─────────────────────────────── */
@@ -1137,15 +1621,26 @@ async function uploadCommentsFile(f, column) {
   const statusEl  = document.getElementById('file-status');
   const previewEl = document.getElementById('file-preview');
   const colWrap   = document.getElementById('file-column-select');
+  const fileState = document.getElementById('file-import-status');
+  const dropzone  = document.getElementById('file-dropzone');
+  const stateMark = document.getElementById('file-state-mark');
+  const metaEl    = document.getElementById('file-meta');
   _fileComments = [];
   nameEl.textContent = f.name;
+  metaEl.textContent = 'Extraction des commentaires et des signaux…';
+  statusEl.textContent = '';
+  fileState.classList.remove('hidden', 'is-ready', 'is-error');
+  dropzone.classList.add('is-uploading');
+  stateMark.innerHTML = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>';
   previewEl.classList.add('hidden');
   if (!column) colWrap.classList.add('hidden');
   if (f.size > 5 * 1024 * 1024) {
-    statusEl.innerHTML = '<span style="font-size:10px;color:rgba(220,100,100,.7);">Le fichier est trop lourd (maximum 5 MB).</span>';
+    fileState.classList.add('is-error');
+    dropzone.classList.remove('is-uploading');
+    metaEl.textContent = 'Le fichier est trop lourd (maximum 5 Mo).';
+    stateMark.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 8v4m0 4h.01"/><circle cx="12" cy="12" r="9"/></svg>';
     return;
   }
-  statusEl.innerHTML = '<span style="font-size:10px;color:var(--text-muted);">Extraction en cours…</span>';
 
   const fd = new FormData();
   fd.append('file', f);
@@ -1156,18 +1651,30 @@ async function uploadCommentsFile(f, column) {
     const r = await fetch('/upload-comments-file', {method: 'POST', body: fd});
     d = await r.json();
   } catch(_) {
-    statusEl.innerHTML = '<span style="font-size:10px;color:rgba(220,100,100,.7);">Erreur réseau — réessayez.</span>';
+    fileState.classList.add('is-error');
+    dropzone.classList.remove('is-uploading');
+    metaEl.textContent = 'Erreur réseau — réessayez.';
+    stateMark.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 8v4m0 4h.01"/><circle cx="12" cy="12" r="9"/></svg>';
     return;
   }
   if (!d.success) {
-    statusEl.innerHTML = `<span style="font-size:10px;color:rgba(220,100,100,.7);">${d.error || 'Import impossible.'}</span>`;
+    fileState.classList.add('is-error');
+    dropzone.classList.remove('is-uploading');
+    metaEl.textContent = d.error || 'Import impossible.';
+    stateMark.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 8v4m0 4h.01"/><circle cx="12" cy="12" r="9"/></svg>';
     return;
   }
 
   _fileComments = d.normalized_comments || [];
   const colInfo = d.selected_column ? ` · colonne « ${d.selected_column} »` : '';
-  const warn    = d.warning ? `<br><span style="color:color-mix(in srgb, var(--champagne) 70%, transparent);">${d.warning}</span>` : '';
-  statusEl.innerHTML = `<span style="font-size:10px;color:var(--champagne-soft);">Fichier importé avec succès. ${d.comments_count} commentaires détectés${colInfo}.</span>${warn}`;
+  const fileSize = f.size < 1024 * 1024 ? `${Math.max(1, Math.round(f.size / 1024))} Ko` : `${(f.size / (1024 * 1024)).toFixed(1)} Mo`;
+  dropzone.classList.remove('is-uploading');
+  dropzone.classList.add('has-file');
+  fileState.classList.remove('is-error');
+  fileState.classList.add('is-ready');
+  stateMark.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>';
+  metaEl.textContent = `${d.comments_count} commentaires${colInfo} · ${fileSize}`;
+  statusEl.textContent = d.warning || 'Source reconnue et prête à analyser.';
 
   // Sélecteur de colonne si plusieurs candidates
   if ((d.detected_columns || []).length > 1) {
@@ -1185,6 +1692,20 @@ async function uploadCommentsFile(f, column) {
   }
   document.getElementById('analyzeHint').textContent =
     `${d.comments_count} commentaires prêts — confirmez avec « Lancer l'analyse »`;
+}
+
+function resetFileImport() {
+  _fileComments = [];
+  _lastFile = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('file-dropzone').classList.remove('is-uploading', 'has-file');
+  document.getElementById('file-import-status').classList.add('hidden');
+  document.getElementById('file-column-select').classList.add('hidden');
+  document.getElementById('file-preview').classList.add('hidden');
+  document.getElementById('file-name').textContent = 'Fichier en cours d’import';
+  document.getElementById('file-meta').textContent = 'Préparation de l’import…';
+  document.getElementById('file-status').textContent = '';
+  document.getElementById('analyzeHint').textContent = 'Importez un fichier de commentaires';
 }
 
 function reparseWithColumn() {
@@ -1220,15 +1741,17 @@ function setStatus(id, message, tone='') {
 }
 
 async function doScrapePreview(url, source, statusId) {
+  const sourceLabel = LINK_SOURCES[source]?.label || 'cette source';
   if (!url) {
-    setStatus(statusId, 'Collez d’abord le lien d’une vidéo YouTube.', 'error');
+    setStatus(statusId, `Collez d’abord le lien ${sourceLabel}.`, 'error');
     document.getElementById('youtubeUrl')?.focus();
     return;
   }
-  const checkBtn = document.getElementById(`${source}-check-btn`);
+  const checkBtn = document.getElementById('source-check-btn');
   if (checkBtn) {
     checkBtn.disabled = true;
-    checkBtn.textContent = 'Vérification…';
+    checkBtn.classList.add('is-loading');
+    checkBtn.setAttribute('aria-busy', 'true');
   }
   setStatus(statusId, 'Vérification du lien et détection des commentaires…', 'busy');
   try {
@@ -1246,6 +1769,7 @@ async function doScrapePreview(url, source, statusId) {
         'success'
       );
       document.getElementById('analyzeHint').textContent = 'Lien YouTube prêt à analyser';
+      updateCrossAffordance();
     } else if (d.error) {
       setStatus(statusId, d.error, 'error');
     } else {
@@ -1256,23 +1780,573 @@ async function doScrapePreview(url, source, statusId) {
   } finally {
     if (checkBtn) {
       checkBtn.disabled = false;
-      checkBtn.textContent = 'Vérifier le lien';
+      checkBtn.classList.remove('is-loading');
+      checkBtn.removeAttribute('aria-busy');
     }
   }
 }
-const _sourcePreviewCounts = {youtube: 0};
-const scrapeYoutube   = () => doScrapePreview(document.getElementById('youtubeUrl').value.trim(),   'youtube',   'yt-status');
+const _sourcePreviewCounts = {youtube: 0, instagram: 0, tiktok: 0};
+const scrapeActiveSource = () => {
+  if (!_activeLinkSource) return;
+  return doScrapePreview(document.getElementById('youtubeUrl').value.trim(), _activeLinkSource, 'yt-status');
+};
 document.getElementById('youtubeUrl')?.addEventListener('input', () => {
-  _sourcePreviewCounts.youtube = 0;
-  setStatus('yt-status', 'Vérifiez le lien pour connaître le nombre de commentaires disponibles.');
-  document.getElementById('analyzeHint').textContent = 'Lien à vérifier';
+  if (!_activeLinkSource) return;
+  _sourcePreviewCounts[_activeLinkSource] = 0;
+  setStatus('yt-status', `Vérifiez le lien ${LINK_SOURCES[_activeLinkSource].label} pour connaître les commentaires disponibles.`);
+  document.getElementById('analyzeHint').textContent = `Lien ${LINK_SOURCES[_activeLinkSource].label} à vérifier`;
+  updateCrossAffordance();
 });
 document.getElementById('youtubeUrl')?.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
     event.preventDefault();
-    scrapeYoutube();
+    scrapeActiveSource();
   }
 });
+
+/* ── Cross Analyse : 2 à 5 sources YouTube ───────────────────────────────
+   L'analyse simple (ci-dessus) reste inchangée dans son fonctionnement :
+   ce bloc n'ajoute qu'une couche par-dessus, jamais une réécriture. Le champ
+   URL existant sert toujours à saisir "la prochaine vidéo" ; "+ Ajouter"
+   la range dans la liste, "Lancer la Cross Analyse" inclut aussi celle en
+   cours de saisie si elle est déjà vérifiée. */
+const CROSS_MIN_SOURCES = 2;
+const CROSS_MAX_SOURCES = 5;
+let _crossSources = [];
+
+/* ── Panneau flottant Cross Analyse ───────────────────────────────────────
+   Ne duplique aucune logique : déplace la .input-card existante (déjà
+   testée) dans le panneau, puis la remet à sa place d'origine à la
+   fermeture — un marqueur invisible retient cette place. */
+let _crossModalAnchor = null;
+function openCrossModal() {
+  const backdrop = document.getElementById('cross-modal-backdrop');
+  const body = document.getElementById('cross-modal-body');
+  const card = document.querySelector('#input-section .input-card');
+  if (!backdrop || !body || !card) return;
+  if (!_crossModalAnchor) {
+    _crossModalAnchor = document.createElement('div');
+    _crossModalAnchor.style.display = 'none';
+    card.parentNode.insertBefore(_crossModalAnchor, card);
+  }
+  body.appendChild(card);
+  card.classList.add('cross-modal-mode');
+  switchTab('youtube');
+  switchPlatform('youtube');
+  backdrop.classList.remove('hidden');
+  requestAnimationFrame(() => backdrop.classList.add('open'));
+  updateCrossAffordance();
+  document.getElementById('youtubeUrl')?.focus();
+  document.addEventListener('keydown', _onCrossModalKeydown);
+}
+function _restoreCrossModalCard() {
+  const backdrop = document.getElementById('cross-modal-backdrop');
+  const card = document.querySelector('#cross-modal-body .input-card');
+  if (backdrop) backdrop.classList.add('hidden');
+  if (card && _crossModalAnchor) {
+    card.classList.remove('cross-modal-mode');
+    _crossModalAnchor.parentNode.insertBefore(card, _crossModalAnchor);
+  }
+}
+function closeCrossModal(immediate) {
+  const backdrop = document.getElementById('cross-modal-backdrop');
+  if (!backdrop) return;
+  backdrop.classList.remove('open');
+  document.removeEventListener('keydown', _onCrossModalKeydown);
+  if (immediate) { _restoreCrossModalCard(); return; }
+  setTimeout(_restoreCrossModalCard, 220);
+}
+function _onCrossModalKeydown(event) {
+  if (event.key === 'Escape') closeCrossModal();
+}
+
+function updateCrossAffordance() {
+  const btn = document.getElementById('add-cross-source-btn');
+  if (!btn) return;
+  const canAdd = _activeLinkSource === 'youtube'
+    && (_sourcePreviewCounts.youtube || 0) > 0
+    && _crossSources.length < CROSS_MAX_SOURCES;
+  btn.classList.toggle('hidden', !canAdd);
+  // Le rappel statique ("vous pouvez comparer...") n'a de sens qu'avant que
+  // le vrai bouton actionnable n'apparaisse — une fois là, le garder serait
+  // redondant et diluerait l'attention portée au bouton lui-même.
+  const upfrontHint = document.getElementById('cross-upfront-hint');
+  if (upfrontHint) upfrontHint.classList.toggle('hidden', canAdd || _crossSources.length > 0);
+  updateCrossCTA();
+}
+
+function renderCrossSourceList() {
+  const list = document.getElementById('cross-source-list');
+  if (!list) return;
+  list.classList.toggle('hidden', _crossSources.length === 0);
+  list.innerHTML = _crossSources.map((s, i) => `
+    <div class="cross-source-row">
+      <span class="cross-source-row-index">${i + 1}</span>
+      <span class="cross-source-row-label">${(s.label || s.url).replace(/</g, '&lt;')}</span>
+      <button type="button" class="cross-source-row-remove" onclick="removeCrossSource(${i})" aria-label="Retirer cette vidéo">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+function addCrossSource() {
+  const input = document.getElementById('youtubeUrl');
+  const url = input?.value.trim();
+  if (!url || _activeLinkSource !== 'youtube' || !(_sourcePreviewCounts.youtube > 0)) return;
+  if (_crossSources.length >= CROSS_MAX_SOURCES) return;
+  if (_crossSources.some(s => s.url === url)) {
+    setStatus('yt-status', 'Cette vidéo est déjà dans la liste.', 'error');
+    return;
+  }
+  _crossSources.push({url, label: url.replace(/^https?:\/\/(www\.)?/, '')});
+  input.value = '';
+  _sourcePreviewCounts.youtube = 0;
+  setStatus('yt-status', 'Collez le lien de la vidéo suivante.');
+  renderCrossSourceList();
+  updateCrossAffordance();
+  input.focus();
+}
+
+function removeCrossSource(index) {
+  _crossSources.splice(index, 1);
+  renderCrossSourceList();
+  updateCrossAffordance();
+}
+
+/* Le mode Cross ne s'active que depuis l'onglet Sources : des vidéos en
+   attente ne doivent jamais faire croire que "Lancer l'analyse" comparera
+   des audiences pendant qu'on saisit des commentaires ou un fichier. */
+function isCrossModeActive() {
+  const activeTab = document.querySelector('.src-tab.active')?.dataset.tab;
+  return activeTab === 'youtube' && _crossSources.length >= 1;
+}
+
+function updateCrossCTA() {
+  // Jamais scopé à #input-section : quand le panneau flottant est ouvert,
+  // .input-card (et donc .analyse-btn) vit temporairement dans
+  // #cross-modal-body, pas dans #input-section — un sélecteur ancré sur
+  // #input-section ne trouverait plus rien et le libellé resterait figé.
+  const btnLabel = document.querySelector('.input-card .analyse-btn');
+  const hint = document.getElementById('analyzeHint');
+  if (!btnLabel) return;
+  // Le bouton contient plusieurs nœuds texte (espaces de mise en forme
+  // autour du <svg>) : on cible celui qui porte réellement le libellé, pas
+  // le premier nœud texte trouvé (souvent un espace vide avant l'icône).
+  const textNode = Array.from(btnLabel.childNodes).find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
+  if (!isCrossModeActive()) {
+    if (textNode) textNode.textContent = 'Lancer l\'analyse';
+    return;
+  }
+  const pendingReady = _activeLinkSource === 'youtube' && (_sourcePreviewCounts.youtube || 0) > 0;
+  const total = _crossSources.length + (pendingReady ? 1 : 0);
+  if (textNode) textNode.textContent = `Comparer ${total} audience${total > 1 ? 's' : ''}`;
+  if (hint) {
+    hint.textContent = total < CROSS_MIN_SOURCES
+      ? `Ajoutez au moins ${CROSS_MIN_SOURCES} vidéos pour comparer`
+      : `${total} vidéos prêtes à être comparées`;
+  }
+}
+
+async function startCrossAnalysis() {
+  const sources = _crossSources.slice();
+  const input = document.getElementById('youtubeUrl');
+  const pendingUrl = input?.value.trim();
+  if (_activeLinkSource === 'youtube' && pendingUrl && (_sourcePreviewCounts.youtube || 0) > 0
+      && !sources.some(s => s.url === pendingUrl)) {
+    sources.push({url: pendingUrl});
+  }
+  if (sources.length < CROSS_MIN_SOURCES) {
+    alert(`Ajoutez au moins ${CROSS_MIN_SOURCES} vidéos pour lancer une Cross Analyse.`);
+    return;
+  }
+  if (sources.length > CROSS_MAX_SOURCES) {
+    alert(`${CROSS_MAX_SOURCES} vidéos maximum pour une Cross Analyse.`);
+    return;
+  }
+
+  // Fermeture immédiate (pas d'animation) : le panneau flottant a peut-être
+  // "emprunté" .input-card à #input-section — sans ça, hide('input-section')
+  // ci-dessous ne cache rien de visible et le panneau resterait affiché
+  // par-dessus l'écran de chargement.
+  closeCrossModal(true);
+  show('loading-section'); hide('input-section'); hide('error-section'); hide('dashboard-section');
+  const t0 = Date.now();
+  const timer = animateSteps();
+  const pctTimer = startPercent(t0);
+
+  let crossId, jobId;
+  try {
+    const r = await fetch('/api/v2/agents/psychologue/cross-analyses', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(Object.assign(
+        {sources: sources.map(s => ({url: s.url}))},
+        _currentFolderId ? {folder_id: _currentFolderId} : {}
+      )),
+    });
+    let d;
+    try { d = await r.json(); } catch(_) {
+      clearInterval(timer); clearInterval(pctTimer); showError(`Erreur serveur (${r.status})`); return;
+    }
+    if (r.status === 401 || d.redirect) { window.location.href = d.redirect || '/login'; return; }
+    if (r.status === 403 && d.error === 'limit_reached') {
+      clearInterval(timer); clearInterval(pctTimer); hide('loading-section'); show('input-section');
+      showUpgradeModal(d.analyses_used, d.analyses_limit); return;
+    }
+    if (r.status === 402 && d.error === 'credits_insufficient') {
+      clearInterval(timer); clearInterval(pctTimer); hide('loading-section'); show('input-section');
+      window.gbShowUpgrade && window.gbShowUpgrade(
+        `Il vous faut ${d.estimated_cost} crédits pour cette Cross Analyse — il vous en reste ${d.credits}. ` +
+        `Passez sur une offre payante pour continuer.`);
+      return;
+    }
+    if (d.error) { clearInterval(timer); clearInterval(pctTimer); showError(d.error); return; }
+    crossId = d.cross_analysis_id; jobId = d.job_id;
+  } catch (e) {
+    clearInterval(timer); clearInterval(pctTimer); showError('Impossible de joindre le serveur.'); return;
+  }
+
+  try { localStorage.setItem(PENDING_JOB_KEY, JSON.stringify({id: jobId, crossId, t0})); } catch(_) {}
+  await pollCrossAnalysis(crossId, timer, pctTimer, t0);
+}
+
+async function pollCrossAnalysis(crossId, timer, pctTimer, t0) {
+  const stop = () => {
+    clearInterval(timer); clearInterval(pctTimer);
+    try { localStorage.removeItem(PENDING_JOB_KEY); } catch(_) {}
+  };
+  const MAX_POLLS = 160; // 160 × 3s = 8 min
+  let notFoundStreak = 0;
+  for (let i = 0; i < MAX_POLLS; i++) {
+    await new Promise(res => setTimeout(res, 3000));
+    let poll;
+    try {
+      const pr = await fetch(`/api/v2/agents/psychologue/cross-analyses/${crossId}/status`);
+      if (pr.status === 401) {
+        stop(); showError('Votre session a expiré. Veuillez vous reconnecter.');
+        setTimeout(() => { window.location.href = '/login'; }, 2000); return;
+      }
+      if (pr.status === 404) {
+        notFoundStreak++;
+        if (notFoundStreak >= 4) { stop(); showError('Le suivi de la Cross Analyse a été perdu. Relancez-la.'); return; }
+        continue;
+      }
+      poll = await pr.json();
+    } catch(_) { continue; }
+    notFoundStreak = 0;
+
+    if (poll.status === 'interrupted') {
+      stop(); showError(poll.error || 'La Cross Analyse a été interrompue par un redémarrage du serveur. Relancez-la.');
+      return;
+    }
+    if (poll.status === 'error' || poll.status === 'failed') {
+      stop(); showError(poll.error || 'Erreur lors de la Cross Analyse.'); return;
+    }
+    if (poll.status === 'completed' || poll.status === 'partial_success') {
+      const pctEl = document.getElementById('loading-percent'); if (pctEl) pctEl.textContent = '100%';
+      stop();
+      try {
+        const fr = await fetch(`/api/v2/agents/psychologue/cross-analyses/${crossId}`);
+        const fd = await fr.json();
+        if (fr.status === 401 || fd.redirect) { window.location.href = fd.redirect || '/login'; return; }
+        if (fr.ok && fd.success && fd.result) {
+          renderCrossAnalysisResult(crossId, fd.result, poll.status);
+        } else {
+          showError(fd.error || 'Impossible de charger le résultat complet de la Cross Analyse.');
+        }
+      } catch (e) {
+        showError('Impossible de charger le résultat complet de la Cross Analyse.');
+      }
+      return;
+    }
+    // running / prepared / autre état transitoire : le loader existant continue.
+  }
+  stop();
+  showError('La Cross Analyse prend plus de temps que prévu. Vérifiez son statut plus tard.');
+}
+
+/* ── Cross Analyse : écran de résultat ────────────────────────────────────
+   Le payload de /status reste léger pour le polling ; executive_summary,
+   convergences, divergences, oppositions, source_specific_signals,
+   cross_personas, confidence et data_quality ne sont disponibles que via
+   GET /cross-analyses/<id> (voir pollCrossAnalysis). */
+const CROSS_CATEGORY_LABELS = {
+  emotions: 'Émotions', themes: 'Thèmes', behavioral_signals: 'Signaux comportementaux',
+  fears: 'Peurs', aspirations: 'Aspirations', frustrations: 'Frustrations',
+  beliefs: 'Croyances', motivations: 'Motivations', objections: 'Objections',
+};
+function crossCategoryLabel(cat) {
+  return CROSS_CATEGORY_LABELS[cat] || (cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : 'Signal');
+}
+
+const CROSS_QUALITY_META = {
+  strong:       {cls: 'dq-strong',      label: 'Solide'},
+  moderate:     {cls: 'dq-moderate',    label: 'Modérée'},
+  exploratory:  {cls: 'dq-exploratory', label: 'Exploratoire'},
+  insufficient: {cls: 'dq-insufficient',label: 'Insuffisante'},
+};
+function crossQualityMeta(level) {
+  return CROSS_QUALITY_META[level] || {cls: 'dq-exploratory', label: level || '—'};
+}
+const CROSS_CONFIDENCE_LABELS = {high: 'Élevée', medium: 'Moyenne', low: 'Faible'};
+
+// null/undefined (ex: like_count masqué par le créateur) reste distinct de
+// 0 réel — ne jamais confondre l'absence de donnée avec une valeur nulle.
+function crossFmtCount(n) {
+  if (n === null || n === undefined) return null;
+  n = Number(n);
+  if (!Number.isFinite(n)) return null;
+  if (n >= 1000000) return (n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'k';
+  return String(n);
+}
+function crossFmtDuration(iso) {
+  if (!iso || typeof iso !== 'string') return null;
+  const m = iso.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
+  if (!m || (!m[1] && !m[2] && !m[3])) return null;
+  const h = parseInt(m[1] || '0', 10), mi = parseInt(m[2] || '0', 10), s = parseInt(m[3] || '0', 10);
+  const pad = v => String(v).padStart(2, '0');
+  return h > 0 ? `${h}:${pad(mi)}:${pad(s)}` : `${mi}:${pad(s)}`;
+}
+
+// Le texte long généré par le LLM (executive_summary, noyau psychologique,
+// descriptions de persona) utilise du markdown gras/italique — on l'échappe
+// d'abord (aucune balise du LLM n'est jamais interprétée), puis on ne
+// convertit que **/*  en <strong>/<em> construits par nous.
+function crossFmtText(s) {
+  let out = esc(s);
+  out = out.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/\*([^*]+?)\*/g, '<em>$1</em>');
+  return out;
+}
+
+function crossGroupByCategory(items) {
+  const map = {};
+  items.forEach(it => { const cat = it.category || 'autre'; (map[cat] = map[cat] || []).push(it); });
+  return map;
+}
+function crossRenderSignalList(items, emptyText) {
+  if (!items.length) return `<div class="cross-empty">${esc(emptyText)}</div>`;
+  const grouped = crossGroupByCategory(items);
+  return Object.keys(grouped).sort().map(cat => {
+    const rows = grouped[cat].map(it => {
+      const tags = (it.sources || []).map(s => `<span class="cross-tag">${esc(s.label || s.source_id || '')}</span>`).join('');
+      return `<div class="cross-signal-row">
+        <span class="cross-signal-label">${esc(it.label || '')}</span>
+        <div class="cross-signal-tags">${tags}</div>
+      </div>`;
+    }).join('');
+    return `<div class="cross-category-block">
+      <div class="cross-category-title">${esc(crossCategoryLabel(cat))}</div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+function renderCrossAnalysisResult(crossId, result, status) {
+  hide('loading-section'); show('dashboard-section');
+  const section = document.getElementById('dashboard-section');
+  if (!section) return;
+
+  const sources = Array.isArray(result.sources) ? result.sources : [];
+  const failedSources = Array.isArray(result.failed_sources) ? result.failed_sources : [];
+  const confidence = result.confidence || {};
+  const dataQuality = result.data_quality || {};
+  const execSummary = result.executive_summary || {};
+  const psychoCore = result.common_psychological_core || {};
+  const coreText = psychoCore.interpretation && typeof psychoCore.interpretation === 'object'
+    ? psychoCore.interpretation.interpretation
+    : (typeof psychoCore.interpretation === 'string' ? psychoCore.interpretation : null);
+  const personas = Array.isArray(result.cross_personas) ? result.cross_personas : [];
+  const scoreVal = Math.round(Number(confidence.score) || 0);
+
+  const sourceLabel = (sourceId) => {
+    const s = sources.find(x => x.source_id === sourceId);
+    return (s && s.metadata && (s.metadata.title || s.metadata.channel)) || sourceId || '—';
+  };
+
+  const warnBanner = (status === 'partial_success' || failedSources.length) ? `
+    <div class="cross-warn-banner">
+      <span>⚠</span>
+      <span><b>Analyse partielle.</b> ${failedSources.length} source${failedSources.length === 1 ? '' : 's'} n'${failedSources.length === 1 ? 'a' : 'ont'} pas pu être analysée${failedSources.length === 1 ? '' : 's'}${failedSources.length ? ' : ' + failedSources.map(f => esc(typeof f === 'string' ? f : (f.label || f.source_id || f.reason || ''))).filter(Boolean).join(', ') : ''}. Les résultats ci-dessous portent sur ${sources.length} source${sources.length === 1 ? '' : 's'} exploitable${sources.length === 1 ? '' : 's'}.</span>
+    </div>` : '';
+
+  const heroCaveats = Array.isArray(execSummary.caveats) && execSummary.caveats.length ? `
+    <div class="cross-hero-caveats">
+      <div class="cross-hero-caveats-lbl">Points de prudence</div>
+      ${execSummary.caveats.map(c => `<div class="cross-hero-caveat">${crossFmtText(c)}</div>`).join('')}
+    </div>` : '';
+
+  const heroBlock = `
+    <div class="cross-hero">
+      <div class="cross-hero-score-block">
+        <div class="cross-hero-score">${scoreVal}<span class="cross-hero-score-max" style="font-size:22px;">/100</span></div>
+        <div class="cross-hero-level">${esc(CROSS_CONFIDENCE_LABELS[confidence.level] || confidence.level || '')}</div>
+      </div>
+      <div class="cross-hero-body">
+        <div class="cross-hero-label">Conclusion générale</div>
+        <div class="cross-hero-text">${crossFmtText(execSummary.text || 'Analyse terminée.')}</div>
+        ${heroCaveats}
+      </div>
+    </div>`;
+
+  const metaRow = `
+    <div class="cross-meta-row">
+      <span class="cross-meta-item"><b>${sources.length}</b> audience${sources.length === 1 ? '' : 's'} comparée${sources.length === 1 ? '' : 's'}</span>
+      ${confidence.total_comments ? `<span class="cross-meta-item"><b>${confidence.total_comments}</b> commentaires analysés</span>` : ''}
+      ${dataQuality.level ? `<span class="cross-meta-item">Qualité des données : <b>${esc(crossQualityMeta(dataQuality.level).label)}</b></span>` : ''}
+    </div>`;
+
+  const coreBlock = coreText ? `
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">◈</div><div class="db-title">Noyau psychologique commun</div></div>
+      <p class="pol-statement">${crossFmtText(coreText)}</p>
+    </div>` : '';
+
+  const videoCards = sources.map((s, i) => {
+    const meta = s.metadata || {};
+    const initial = (meta.channel || meta.title || '?').trim().charAt(0).toUpperCase() || '?';
+    const stats = [];
+    const views = crossFmtCount(meta.view_count);
+    const likes = crossFmtCount(meta.like_count);
+    const comments = crossFmtCount(meta.comment_count);
+    const dur = crossFmtDuration(meta.duration);
+    if (views !== null) stats.push(`<span class="cross-video-stat"><b>${views}</b> vues</span>`);
+    if (likes !== null) stats.push(`<span class="cross-video-stat"><b>${likes}</b> likes</span>`);
+    if (comments !== null) stats.push(`<span class="cross-video-stat"><b>${comments}</b> commentaires</span>`);
+    if (dur) stats.push(`<span class="cross-video-stat">${dur}</span>`);
+    const quality = s.data_quality && s.data_quality.level ? crossQualityMeta(s.data_quality.level) : null;
+    const warnings = (s.data_quality && s.data_quality.warnings) || [];
+    return `<div class="cross-video-card">
+      <div class="cross-video-head">
+        <div style="display:flex;gap:10px;min-width:0;">
+          <div class="cross-video-mark">${esc(initial)}</div>
+          <div style="min-width:0;">
+            <div class="cross-video-title">${esc(meta.title || 'Vidéo ' + (i + 1))}</div>
+            <div class="cross-video-channel">${esc(meta.channel || '')}</div>
+          </div>
+        </div>
+        ${quality ? `<span class="dq-badge ${quality.cls}">${esc(quality.label)}</span>` : ''}
+      </div>
+      ${stats.length ? `<div class="cross-video-stats">${stats.join('')}</div>` : ''}
+      ${warnings.length ? `<div class="cross-video-warning">${esc(warnings[0])}</div>` : ''}
+      ${meta.canonical_url ? `<div style="margin-top:9px;"><a class="cross-video-link" href="${esc(meta.canonical_url)}" target="_blank" rel="noopener noreferrer">Voir la vidéo ↗</a></div>` : ''}
+    </div>`;
+  }).join('');
+
+  const videoSection = `
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">▤</div><div class="db-title">Vidéos comparées</div></div>
+      <div class="cross-video-grid">${videoCards || '<div class="cross-empty">Aucune source disponible.</div>'}</div>
+    </div>`;
+
+  const convergences = Array.isArray(result.convergences) ? result.convergences : [];
+  const divergences = Array.isArray(result.divergences) ? result.divergences : [];
+  const oppositions = Array.isArray(result.oppositions) ? result.oppositions : [];
+  const specific = Array.isArray(result.source_specific_signals) ? result.source_specific_signals : [];
+
+  const snapGrid = `
+    <div class="snap-grid" style="margin-bottom:18px;">
+      <div class="snap-card"><div class="snap-label">Convergences</div><div class="snap-value">${convergences.length}</div><div class="snap-sub">signaux partagés</div></div>
+      <div class="snap-card"><div class="snap-label">Divergences</div><div class="snap-value">${divergences.length}</div><div class="snap-sub">signaux qui varient</div></div>
+      <div class="snap-card"><div class="snap-label">Oppositions</div><div class="snap-value">${oppositions.length}</div><div class="snap-sub">positions contraires</div></div>
+    </div>`;
+
+  const SPECIFIC_CAP = 12;
+  const specificSorted = specific.slice().sort((a, b) => {
+    const wa = (a.sources && a.sources[0] && a.sources[0].weight) || 0;
+    const wb = (b.sources && b.sources[0] && b.sources[0].weight) || 0;
+    return wb - wa;
+  });
+  const specificShown = specificSorted.slice(0, SPECIFIC_CAP);
+  const specificMore = specificSorted.length - specificShown.length;
+
+  const analysisSection = `
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">⇄</div><div class="db-title">Analyse croisée</div></div>
+      ${snapGrid}
+      <div class="card" style="margin-bottom:12px;">
+        <div class="cross-category-title" style="margin-bottom:10px;">Convergences — signaux partagés par plusieurs audiences</div>
+        ${crossRenderSignalList(convergences, 'Aucune convergence détectée entre ces audiences.')}
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="cross-category-title" style="margin-bottom:10px;">Divergences — signaux qui varient d'une audience à l'autre</div>
+        ${crossRenderSignalList(divergences, 'Aucune divergence détectée : les audiences se recoupent fortement.')}
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="cross-category-title" style="margin-bottom:10px;">Oppositions — positions contraires entre audiences</div>
+        ${crossRenderSignalList(oppositions, 'Aucune opposition détectée.')}
+      </div>
+      <div class="card">
+        <div class="cross-category-title" style="margin-bottom:10px;">Signaux propres à une seule audience</div>
+        ${crossRenderSignalList(specificShown, 'Aucun signal isolé détecté.')}
+        ${specificMore > 0 ? `<div class="cross-more-hint">+ ${specificMore} autre${specificMore === 1 ? '' : 's'} signal${specificMore === 1 ? '' : 'aux'} spécifique${specificMore === 1 ? '' : 's'} non affiché${specificMore === 1 ? '' : 's'}.</div>` : ''}
+      </div>
+    </div>`;
+
+  const personaCards = personas.map(p => {
+    const signals = Array.isArray(p.signals) ? p.signals : [];
+    const sourceIds = Array.isArray(p.source_ids) ? p.source_ids : [];
+    return `<div class="cross-persona-card">
+      <div class="cross-persona-head">
+        <div class="cross-persona-name">${esc(p.name || 'Persona')}</div>
+        ${p.confidence_level ? `<div class="cross-persona-conf">${esc(p.confidence_level)}</div>` : ''}
+      </div>
+      ${p.description ? `<div class="cross-persona-desc">${crossFmtText(p.description)}</div>` : ''}
+      <div class="cross-signal-tags">
+        ${signals.map(s => `<span class="cross-tag">${esc(typeof s === 'string' ? s : (s.label || ''))}</span>`).join('')}
+        ${sourceIds.map(id => `<span class="cross-tag" style="opacity:.7;">${esc(sourceLabel(id))}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  const personaSection = personas.length ? `
+    <div class="db-section">
+      <div class="db-header"><div class="db-ico">◈</div><div class="db-title">Personas croisés</div></div>
+      <div class="cross-persona-grid">${personaCards}</div>
+    </div>` : '';
+
+  const techFields = {
+    cross_analysis_id: crossId, job_id: result.job_id, schema_version: result.schema_version,
+    pipeline_version: result.pipeline_version, model_version: result.model_version,
+    embedding_version: result.embedding_version, analysis_mode: result.analysis_mode,
+    methode_confiance: confidence.method, methode_qualite: dataQuality.method,
+  };
+  const techLines = Object.entries(techFields)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .map(([k, v]) => `${k} : ${v}`).join('\n');
+
+  const techSection = `
+    <details class="cross-tech">
+      <summary>Détails techniques</summary>
+      <div class="cross-tech-body">${esc(techLines || 'Aucun détail technique disponible.')}</div>
+    </details>`;
+
+  section.innerHTML = `
+    <div class="dash-header">
+      <div>
+        <div class="dash-results-title">Résultats — Cross Analyse</div>
+        <div class="dash-id">ID ${esc(crossId)}</div>
+      </div>
+      <div class="dash-actions">
+        <button class="btn btn-ghost btn-sm" onclick="resetToInput()">← Nouvelle analyse</button>
+      </div>
+    </div>
+    <div class="page-label">Le Psychologue</div>
+    <div class="page-heading">Cross Analyse — ${sources.length} audience${sources.length === 1 ? '' : 's'} comparée${sources.length === 1 ? '' : 's'}</div>
+    ${warnBanner}
+    ${heroBlock}
+    ${metaRow}
+    ${coreBlock}
+    ${videoSection}
+    ${analysisSection}
+    ${personaSection}
+    ${techSection}
+  `;
+
+  animateCardsIn('#dashboard-section');
+  _smartScrollToResults('dashboard-section');
+}
 
 function hydrateFromLanding() {
   const source = sessionStorage.getItem('gabriel_source');
@@ -1287,8 +2361,9 @@ function hydrateFromLanding() {
   }
   if (source !== 'youtube') return;
   switchTab('youtube');
+  switchPlatform('youtube');
   document.getElementById('youtubeUrl').value = content;
-  scrapeYoutube();
+  scrapeActiveSource();
 }
 
 function getActiveSource() {
@@ -1297,7 +2372,13 @@ function getActiveSource() {
     const text = document.getElementById('manualComments').value.trim();
     return {source:'text', content:text, count:text.split('\n').filter(l=>l.trim()).length};
   }
-  if (tab === 'youtube')   return {source:'youtube', content:document.getElementById('youtubeUrl').value.trim(), count:_sourcePreviewCounts.youtube};
+  if (tab === 'youtube') {
+    return {
+      source: _activeLinkSource || 'youtube',
+      content: document.getElementById('youtubeUrl').value.trim(),
+      count: _sourcePreviewCounts[_activeLinkSource] || 0,
+    };
+  }
   if (tab === 'file') {
     const name = (_lastFile && _lastFile.name) || 'fichier importé';
     return {source:'file', content:_fileComments.length ? name : '', count:_fileComments.length, comments:_fileComments};
@@ -1330,9 +2411,15 @@ function startPercent(t0) {
 const PENDING_JOB_KEY = 'gabriel_pending_job';
 
 async function startAnalysis() {
+  if (isCrossModeActive()) { return startCrossAnalysis(); }
   const {source, content, count, comments} = getActiveSource();
   if (!content) { alert(source === 'file' ? 'Importez d\'abord un fichier de commentaires.' : 'Ajoutez du contenu à analyser.'); return; }
   if ((source==='text' || source==='file') && count<3) { alert('Ajoutez au moins 3 commentaires.'); return; }
+  // Le lancement peut venir du bouton à l'intérieur du panneau flottant :
+  // sans ce close, #input-section (vide, le panneau a "emprunté" sa carte)
+  // se cache pour rien pendant que le panneau reste visible par-dessus
+  // l'écran de chargement.
+  closeCrossModal(true);
   show('loading-section'); hide('input-section'); hide('error-section'); hide('dashboard-section');
   const t0 = Date.now();
   const timer = animateSteps();
@@ -1761,7 +2848,7 @@ function buildDonut(slices, size=160, innerRatio=0.54) {
     }
     angle=ea;
   });
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><circle cx="${cx}" cy="${cy}" r="${ri-1}" fill="rgb(13,13,16)" stroke="color-mix(in srgb, var(--text-primary) 5%, transparent)" stroke-width="1"/>${paths.join('')}${lbls.join('')}</svg>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><circle cx="${cx}" cy="${cy}" r="${ri-1}" fill="#FCFBF9" stroke="#E8E1D7" stroke-width="1"/>${paths.join('')}${lbls.join('')}</svg>`;
 }
 function buildPieLegend(slices) {
   const total=slices.reduce((a,b)=>a+b.value,0)||1;
@@ -1944,15 +3031,15 @@ function renderTabDashboard(d) {
         cards += `<div class="demog-card">
           <div class="demog-card-title">Genre estimé</div>
           <div class="demog-gender-row">
-            <span style="font-size:10px;color:rgba(100,170,235,.8);">H</span>
+            <span style="font-size:10px;color:#6E7D83;">H</span>
             <div class="demog-gender-bar">
               <div class="demog-gender-h" style="width:${hPct}%"></div>
             </div>
-            <span style="font-size:10px;color:rgba(235,130,165,.8);">F</span>
+            <span style="font-size:10px;color:#9A7341;">F</span>
           </div>
           <div class="demog-gender-labels">
-            <span style="color:rgba(100,170,235,.7);">${hPct}% hommes</span>
-            <span style="color:rgba(235,130,165,.7);">${fPct}% femmes</span>
+            <span style="color:#6E7D83;">${hPct}% hommes</span>
+            <span style="color:#9A7341;">${fPct}% femmes</span>
           </div>
           ${demog.metiers_probables && demog.metiers_probables.length ? `
           <div style="margin-top:12px;">
@@ -2002,7 +3089,7 @@ function renderTabDashboard(d) {
           <div class="demog-card-title">Localisation estimée</div>
           <div class="demog-loc-globe">
             <div class="demog-loc-globe-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(90,160,220,.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B6A42" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
               </svg>
@@ -2030,22 +3117,25 @@ function renderTabDashboard(d) {
   const sujet = rt.sujet || d.video_context || '';
 
   /* 2. Émotions — donut camembert */
+  // Palette éditoriale : des teintes assourdies, jamais un arc-en-ciel de
+  // dashboard. Une couleur reste expressive seulement quand elle indique une
+  // émotion ou une position à interpréter.
   const EMO_COLORS = {
-    'joie':        'rgba(255,210,75,.9)',
-    'espoir':      'rgba(90,200,125,.9)',
-    'admiration':  'rgba(100,170,235,.9)',
-    'frustration': 'rgba(235,130,65,.9)',
-    'colere':      'rgba(225,70,70,.9)',
-    'tristesse':   'rgba(150,120,205,.9)',
-    'confusion':   'rgba(165,165,170,.7)',
-    'méfiance':    'rgba(230,165,50,.9)',
-    'mefiance':    'rgba(230,165,50,.9)',
-    'surprise':    'rgba(240,185,110,.9)',
-    'degout':      'rgba(135,185,75,.85)',
-    'enthousiasme':'rgba(255,185,55,.9)',
+    'joie':        '#C8A15F', // champagne chaleureux
+    'espoir':      '#7F9D86', // sauge
+    'admiration':  '#8196A0', // ardoise bleutée, très désaturée
+    'frustration': '#B9795C', // terre cuite
+    'colere':      '#A85D59', // brique — réserve négative
+    'tristesse':   '#8E819B', // mauve fumé
+    'confusion':   '#B8B5AF', // pierre
+    'méfiance':    '#A77A43', // ocre brun
+    'mefiance':    '#A77A43',
+    'surprise':    '#C6A278', // sable
+    'degout':      '#7F8B68', // olive sourd
+    'enthousiasme':'#B98C4E',
   };
   const emod = db.emotion_distribution || {};
-  const emoSlices = Object.entries(emod).map(([k,v])=>({label:k, value:v, color:EMO_COLORS[k]||'rgba(180,180,200,.6)'}));
+  const emoSlices = Object.entries(emod).map(([k,v])=>({label:k, value:v, color:EMO_COLORS[k]||'#B8B5AF'}));
   const emoEl = document.getElementById('emotions-chart');
   if (emoEl) {
     if (emoSlices.some(s=>s.value>0)) {
@@ -2058,12 +3148,12 @@ function renderTabDashboard(d) {
   /* 3. Répartition des positions (ancrées au sujet) */
   const sujetShort = sujet ? ` "${sujet.length > 40 ? sujet.slice(0,40)+'…' : sujet}"` : '';
   const POS_DEF = [
-    {key:'favorable',  label:`Favorable${sujetShort}`,  color:'rgba(134,210,150,.6)'},
-    {key:'oppose',     label:`Opposé${sujetShort}`,     color:'rgba(220,100,100,.6)'},
-    {key:'neutre',     label:'Neutre / réservé',         color:'rgba(167,167,170,.35)'},
-    {key:'nuance',     label:'Nuancé',                   color:'color-mix(in srgb, var(--champagne) 50%, transparent)'},
-    {key:'ironique',   label:'Ironique',                 color:'rgba(130,160,220,.5)'},
-    {key:'hors_sujet', label:'Hors sujet',               color:'color-mix(in srgb, var(--text-primary) 12%, transparent)'},
+    {key:'favorable',  label:`Favorable${sujetShort}`,  color:'#94BDA0'},
+    {key:'oppose',     label:`Opposé${sujetShort}`,     color:'#C27A76'},
+    {key:'neutre',     label:'Neutre / réservé',         color:'#C8C4BD'},
+    {key:'nuance',     label:'Nuancé',                   color:'#B08B58'},
+    {key:'ironique',   label:'Ironique',                 color:'#8999A1'},
+    {key:'hors_sujet', label:'Hors sujet',               color:'#DED9D1'},
   ];
   const maxPct = Math.max(...POS_DEF.map(p=>(pos[p.key]||{}).pct||0), 1);
   document.getElementById('positions-bars').innerHTML = POS_DEF.map(p=>{
@@ -2109,9 +3199,9 @@ function renderTabDashboard(d) {
   /* NEW-B. Résonance par camp + densité argumentative */
   {
     const stanceColors = {
-      favorable:'rgba(134,210,150,.6)', oppose:'rgba(220,100,100,.6)',
-      neutre:'rgba(167,167,170,.4)',    nuance:'color-mix(in srgb, var(--champagne) 55%, transparent)',
-      ironique:'rgba(130,160,220,.5)',
+      favorable:'#94BDA0', oppose:'#C27A76',
+      neutre:'#C8C4BD',    nuance:'#B08B58',
+      ironique:'#8999A1',
     };
     const stanceOrder = ['favorable','oppose','neutre','nuance','ironique'];
     const maxLk = Math.max(...stanceOrder.map(s=>(res[s]||{}).likes||0), 1);
@@ -2217,9 +3307,9 @@ function renderTabDashboard(d) {
     </div>`;
   }
   document.getElementById('fao-grid').innerHTML =
-    sigGroup(sf.frustrations, 'Frustrations',   'rgba(220,100,100,.75)') +
-    sigGroup(sf.attentes,     'Attentes & désirs','rgba(134,210,150,.75)') +
-    sigGroup(sf.objections,   'Objections',      'color-mix(in srgb, var(--champagne) 75%, transparent)');
+    sigGroup(sf.frustrations, 'Frustrations',   '#9E5652') +
+    sigGroup(sf.attentes,     'Attentes & désirs','#66826E') +
+    sigGroup(sf.objections,   'Objections',      '#765936');
 
   /* 6. Mots et expressions */
   const topMots    = (lex.top_mots    || []).slice(0, 14);
@@ -2249,11 +3339,11 @@ function renderTabDashboard(d) {
     </div>` : '<div style="color:var(--text-muted);font-size:11px;">Données insuffisantes.</div>';
 
   /* Donuts sentiments & stances dans polarisation */
-  const SENT_COL = {'positive':'rgba(90,200,125,.88)','neutral':'rgba(160,160,165,.6)','negative':'rgba(225,75,75,.88)'};
+  const SENT_COL = {'positive':'#7F9D86','neutral':'#B8B5AF','negative':'#A85D59'};
   const SENT_LBL = {'positive':'Positif','neutral':'Neutre','negative':'Négatif'};
-  const STCOL = {'favorable':'rgba(90,200,125,.8)','oppose':'rgba(225,75,75,.8)','neutre':'rgba(160,160,165,.55)','nuance':'color-mix(in srgb, var(--champagne) 80%, transparent)','ironique':'rgba(110,155,225,.8)','hors_sujet':'color-mix(in srgb, var(--text-primary) 18%, transparent)'};
-  const sentSlices  = Object.entries(db.sentiment_distribution||{}).map(([k,v])=>({label:SENT_LBL[k]||k,value:v,color:SENT_COL[k]||'rgba(180,180,200,.5)'}));
-  const stanceSlices= Object.entries(db.stance_distribution||{}).filter(([k])=>k!=='hors_sujet').map(([k,v])=>({label:k,value:v,color:STCOL[k]||'rgba(180,180,200,.5)'}));
+  const STCOL = {'favorable':'#7F9D86','oppose':'#A85D59','neutre':'#B8B5AF','nuance':'#B08B58','ironique':'#8196A0','hors_sujet':'#DED9D1'};
+  const sentSlices  = Object.entries(db.sentiment_distribution||{}).map(([k,v])=>({label:SENT_LBL[k]||k,value:v,color:SENT_COL[k]||'#B8B5AF'}));
+  const stanceSlices= Object.entries(db.stance_distribution||{}).filter(([k])=>k!=='hors_sujet').map(([k,v])=>({label:k,value:v,color:STCOL[k]||'#B8B5AF'}));
   const sdEl = document.getElementById('sentiments-donuts');
   if (sdEl) {
     const mkCard=(title,sl)=>sl.some(s=>s.value>0)

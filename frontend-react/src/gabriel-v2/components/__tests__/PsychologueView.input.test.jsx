@@ -171,3 +171,17 @@ describe('Conditions de lancement', () => {
     expect(lancements).toHaveLength(0);
   });
 });
+
+describe('Aperçu de la source', () => {
+  it('affiche immédiatement la vignette YouTube avant la vérification réseau', async () => {
+    const user = userEvent.setup();
+    global.fetch = vi.fn();
+    render(<PsychologueView workspace={null} />);
+
+    await user.type(screen.getByPlaceholderText(/vidéo YouTube/), 'https://www.youtube.com/watch?v=ud9o4GHHX6k');
+
+    expect(screen.getByText('Vidéo YouTube · ud9o4GHHX6k')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /Vignette de Vidéo YouTube/ })).toHaveAttribute('src', 'https://i.ytimg.com/vi/ud9o4GHHX6k/hqdefault.jpg');
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});

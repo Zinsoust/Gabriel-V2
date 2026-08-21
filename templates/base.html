@@ -6,7 +6,7 @@
   <script>
     (function() {
       try {
-        if (localStorage.getItem('gabriel_theme') === 'light') {
+        if ({{ 'true' if embedded else 'false' }} || localStorage.getItem('gabriel_theme') === 'light') {
           document.documentElement.setAttribute('data-theme', 'light');
         }
       } catch (e) {}
@@ -21,8 +21,455 @@
   <link rel="stylesheet" href="{{ static_v('css/gabriel-light.css') }}">
   <link rel="stylesheet" href="{{ static_v('css/gabriel-ux.css') }}">
   <link rel="stylesheet" href="{{ static_v('css/gabriel-cabinet.css') }}">
+  {% if embedded %}
+  <style>
+    /* L'agent est rendu dans la zone centrale de Gabriel V2 : sa page et ses
+       flux restent les mêmes, seule la navigation historique disparaît. */
+    html, body.is-embedded-agent { min-width: 0; min-height: 100%; background: var(--bg-main); }
+    body.is-embedded-agent { overflow: auto; }
+    .is-embedded-agent .app-sidebar,
+    .is-embedded-agent .mobile-nav-backdrop,
+    .is-embedded-agent .orch-dock,
+    .is-embedded-agent .app-header,
+    .is-embedded-agent .app-footer,
+    .is-embedded-agent .gb-welcome-scrim,
+    .is-embedded-agent .gb-credits-modal { display: none !important; }
+    .is-embedded-agent .app-layout { display: block; min-height: 100vh; }
+    .is-embedded-agent .app-main { min-height: 100vh; height: auto; margin: 0; overflow: visible; }
+    .is-embedded-agent .app-content { width: 100%; max-width: none; min-height: 100vh; margin: 0; padding: 26px 30px 54px; overflow: visible; }
+    .is-embedded-agent .cabinet-ambient { display: none; }
+
+    /* Contrat de contraste de Gabriel V2. Les pages historiques des agents
+       sont aussi utilisées seules en thème sombre : quelques composants y
+       avaient donc des valeurs sombres/ivoire figées. Dans la surface blanche
+       intégrée, le texte, les liens et les champs doivent rester franchement
+       lisibles, sans modifier leur rendu lorsqu'ils sont ouverts hors V2. */
+    body.is-embedded-agent {
+      --bg-main: #ffffff;
+      --bg-panel: #fbfaf8;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f7f4ef;
+      --text-primary: #111111;
+      --text-secondary: #39342e;
+      --text-muted: #6c6256;
+      --text-disabled: #91887d;
+      --champagne: #a47d43;
+      --champagne-light: #8a6337;
+      --champagne-soft: #76512f;
+      --border-soft: rgba(32, 27, 21, .10);
+      --border-medium: rgba(32, 27, 21, .17);
+      --ux-st-inputbg: #ffffff;
+      --ux-st-inputtextcolor: #111111;
+      --ux-st-inputbordercolor: #d8d0c5;
+      --ux-st-inputshadow: 0;
+      color: #111111;
+      color-scheme: light;
+    }
+    .is-embedded-agent :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select) {
+      color: #111111 !important;
+      caret-color: #111111;
+      background-color: #ffffff !important;
+      border-color: #d8d0c5 !important;
+    }
+    .is-embedded-agent :is(input, textarea)::placeholder { color: #81776b !important; opacity: 1; }
+    .is-embedded-agent select option { color: #111111; background: #ffffff; }
+    .is-embedded-agent .url-hint,
+    .is-embedded-agent .url-hint.is-busy,
+    .is-embedded-agent .url-hint.is-success,
+    .is-embedded-agent .status-msg,
+    .is-embedded-agent .comment-meta,
+    .is-embedded-agent .input-zone a { color: #5d5143 !important; }
+    .is-embedded-agent .input-card,
+    .is-embedded-agent .url-input-row,
+    .is-embedded-agent .file-drop-zone,
+    .is-embedded-agent .chat-input-row,
+    .is-embedded-agent .sc-input-row { background: #ffffff !important; border-color: #d8d0c5 !important; }
+
+    /* Dans le workbench, la saisie du Psychologue est une étape de départ,
+       pas un éditeur plein écran. Une hauteur courte laisse de la place à la
+       conversation et l'utilisateur peut toujours l'agrandir à la main. */
+    body.is-embedded-agent.page-psychologue {
+      --ux-psy-width: 720px;
+      --ux-psy-textareah: 112px;
+      --ux-psy-titlegap: 22px;
+    }
+    body.is-embedded-agent.page-psychologue .input-zone { padding-top: 12px; }
+    body.is-embedded-agent.page-psychologue .input-card .card-body { padding: 11px; }
+    body.is-embedded-agent.page-psychologue #manualComments {
+      min-height: 112px !important;
+      max-height: 210px;
+      resize: vertical;
+    }
+    body.is-embedded-agent.page-psychologue .card-footer { padding: 9px 11px; }
+
+    /* Le tableau stratégique hérité avait des titres ivoire pensés pour des
+       cartes très sombres. Dans le workbench blanc, les mêmes cartes sont
+       volontairement calmes et leurs informations deviennent encre. */
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-cockpit-active :is(.mono-visual, .strat-command-card, .offer-card) {
+      background: #ffffff !important;
+      border-color: #ded6ca !important;
+      box-shadow: 0 10px 28px rgba(53, 42, 28, .06) !important;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-cockpit-active .strat-command-photo { opacity: .13 !important; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-cockpit-active .strat-command-card::after { background: rgba(255,255,255,.72) !important; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-cockpit-active .strat-action-bar::before,
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-cockpit-active :is(.dash-sec-title, .mono-visual-title, .mono-visual-title em, .mono-visual-kicker, .mono-visual-topic, .strat-command-title, .strat-command-text, .offer-poster-mark, .offer-poster .offer-name, .offer-cible, .offer-block-label, .offer-block-val) {
+      color: #111111 !important;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-cockpit-active :is(.offer-mini-card, .offer-block, .strat-command-pill) {
+      background: #faf8f4 !important;
+      border-color: #e1d9cd !important;
+      color: #302a23 !important;
+    }
+
+    /* Gabriel V2 possède déjà la zone 3 : c'est elle qui présente le
+       contexte business, la progression et l'historique. Le Stratège
+       historique est chargé dans l'iframe uniquement pour son entretien et
+       ses actions métier. Son ancien panneau latéral ne doit donc jamais
+       réapparaître au milieu de la surface centrale. */
+    body.is-embedded-agent.page-stratege .ctx-panel {
+      grid-template-columns: minmax(0, 1fr) !important;
+      padding-right: 0 !important;
+    }
+    body.is-embedded-agent.page-stratege .interview-side,
+    body.is-embedded-agent.page-stratege .interview-progress-btn,
+    body.is-embedded-agent.page-stratege .interview-progress-backdrop,
+    body.is-embedded-agent.page-stratege .interview-progress-close,
+    body.is-embedded-agent.page-stratege .pipeline-bar {
+      display: none !important;
+    }
+
+    /* Une stratégie générée est un livrable de lecture dans le rail central.
+       L'ancienne page réinstalle alors un second composeur, fixé sur la
+       fenêtre, et une colonne devenue vide. Dans V2, la conversation reste
+       disponible dans son propre panneau : on laisse donc le résultat occuper
+       toute la largeur sans superposition ni espace fantôme. */
+    body.is-embedded-agent.page-stratege .strat-layout.has-strategy {
+      grid-template-columns: minmax(0, 1fr) !important;
+      min-height: 0 !important;
+    }
+    body.is-embedded-agent.page-stratege .strat-layout.has-strategy .ctx-panel,
+    body.is-embedded-agent.page-stratege .strat-layout.has-strategy .chat-input-row {
+      display: none !important;
+    }
+    body.is-embedded-agent.page-stratege .strat-layout.has-strategy #strat-right {
+      grid-column: 1 !important;
+      min-width: 0;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-cockpit-active {
+      padding-bottom: 34px !important;
+    }
+
+    /* Restitution du Stratège dans Gabriel V2 : le résultat n'est plus un
+       tableau de bord dense mais une page de décision. La structure bento
+       donne une place proportionnée aux informations déjà calculées par le
+       backend, sans inventer de métriques ni transformer le livrable en
+       vitrine décorative. */
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento {
+      display: grid !important;
+      grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+      width: min(100%, 1180px);
+      margin: 0 auto;
+      padding: 24px clamp(18px, 3vw, 42px) 42px !important;
+      gap: 15px !important;
+      background: transparent;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-action-bar {
+      display: flex;
+      grid-column: 1 / -1;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 34px;
+      margin: 0 !important;
+      padding: 0 1px 4px;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-action-bar::before {
+      content: none !important;
+    }
+    body.is-embedded-agent.page-stratege .strat-result-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #837567;
+      font-size: 10px;
+      font-weight: 720;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    body.is-embedded-agent.page-stratege .strat-result-label > span,
+    body.is-embedded-agent.page-stratege .strat-hero-badge > span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--champagne);
+      box-shadow: 0 0 0 4px rgba(164, 125, 67, .11);
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .regen-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border: 1px solid #e3dbd0;
+      border-radius: 999px;
+      background: #fff;
+      color: #786b5d;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 650;
+      box-shadow: 0 2px 8px rgba(70, 52, 31, .04);
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .regen-btn:hover {
+      border-color: #cdbba5;
+      color: #3a3026;
+      background: #fdfbf8;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .dash-tabs {
+      display: flex;
+      grid-column: 1 / -1;
+      align-items: center;
+      justify-content: flex-start;
+      gap: clamp(17px, 3vw, 36px);
+      margin: 2px 0 8px;
+      padding: 0 2px;
+      overflow-x: auto;
+      border: 0;
+      border-bottom: 1px solid #ebe5dc;
+      border-radius: 0;
+      background: transparent;
+      scrollbar-width: none;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .dash-tabs::-webkit-scrollbar { display: none; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .dash-tab {
+      flex: 0 0 auto;
+      margin: 0 0 -1px;
+      padding: 4px 0 11px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      color: #958a7e;
+      font-size: 10px;
+      font-weight: 620;
+      letter-spacing: .02em;
+      text-transform: none;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .dash-tab.active {
+      border-bottom-color: #a77b43;
+      background: transparent;
+      box-shadow: none;
+      color: #2b2723;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .dash-panel {
+      grid-column: 1 / -1;
+      min-width: 0;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese:not(.hidden) {
+      display: grid !important;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      align-items: start;
+      gap: 15px;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero--bento {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: minmax(0, 1.55fr) minmax(220px, .75fr);
+      min-height: 295px;
+      overflow: hidden;
+      border: 1px solid #e5d9c9;
+      border-radius: 16px;
+      background: linear-gradient(110deg, #fff 0%, #fffdf9 58%, #f8f1e7 100%);
+      box-shadow: 0 12px 32px rgba(81, 61, 36, .055);
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero-photo { display: none !important; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero-body {
+      display: flex;
+      justify-content: center;
+      padding: clamp(24px, 3.5vw, 44px);
+      background: transparent;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      align-self: flex-start;
+      margin: 0 0 17px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #9a7650;
+      font-size: 9px;
+      font-weight: 750;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero-kicker {
+      margin: 0 0 9px;
+      color: #968a7d;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero-decision {
+      max-width: 660px;
+      color: #24211d;
+      font-family: "Creato Display", Iowan Old Style, Palatino, Georgia, serif;
+      font-size: clamp(27px, 3vw, 43px);
+      font-weight: 400;
+      letter-spacing: -.052em;
+      line-height: 1.02;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero-week {
+      max-width: 630px;
+      margin: 22px 0 0;
+      padding: 11px 13px;
+      border: 1px solid #ebe2d7;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, .72);
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero-week-label {
+      margin-bottom: 4px;
+      color: #a07f58;
+      font-size: 8px;
+      font-weight: 760;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero-week-text {
+      color: #645c53;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+    body.is-embedded-agent.page-stratege .strat-hero-visual {
+      position: relative;
+      min-height: 100%;
+      overflow: hidden;
+      color: #7d5d36;
+      background: #e9ddcf;
+    }
+    body.is-embedded-agent.page-stratege .strat-hero-portrait {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 53% 28%;
+      filter: saturate(.82) sepia(.07);
+    }
+    body.is-embedded-agent.page-stratege .strat-hero-visual::selection { background: transparent; }
+    body.is-embedded-agent.page-stratege .strat-hero-visual-content {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100%;
+      padding: 22px;
+      background: linear-gradient(180deg, rgba(41, 31, 20, .12), rgba(41, 31, 20, .44));
+    }
+    body.is-embedded-agent.page-stratege .strat-hero-visual::before,
+    body.is-embedded-agent.page-stratege .strat-hero-visual::after {
+      position: absolute;
+      z-index: 2;
+      border: 1px solid rgba(146, 104, 53, .20);
+      border-radius: 50%;
+      pointer-events: none;
+      content: '';
+    }
+    body.is-embedded-agent.page-stratege .strat-hero-visual::before { width: 300px; height: 300px; top: -84px; right: -88px; }
+    body.is-embedded-agent.page-stratege .strat-hero-visual::after { width: 190px; height: 190px; right: 36px; bottom: -78px; }
+    body.is-embedded-agent.page-stratege .strat-hero-visual-label,
+    body.is-embedded-agent.page-stratege .strat-hero-visual-caption { position: relative; z-index: 1; }
+    body.is-embedded-agent.page-stratege .strat-hero-visual-label { color: rgba(255, 250, 242, .93); font-size: 9px; font-weight: 760; letter-spacing: .12em; text-shadow: 0 1px 6px rgba(30, 21, 13, .34); text-transform: uppercase; }
+    body.is-embedded-agent.page-stratege .strat-hero-orbit {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      width: 112px;
+      height: 112px;
+      place-items: center;
+      border: 1px solid rgba(146, 104, 53, .22);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .25);
+      box-shadow: 0 15px 28px rgba(21, 15, 9, .2), inset 0 1px 0 rgba(255, 255, 255, .72);
+    }
+    body.is-embedded-agent.page-stratege .strat-hero-orbit::before,
+    body.is-embedded-agent.page-stratege .strat-hero-orbit::after { position: absolute; border: 1px solid rgba(146, 104, 53, .16); border-radius: inherit; content: ''; }
+    body.is-embedded-agent.page-stratege .strat-hero-orbit::before { inset: 14px; }
+    body.is-embedded-agent.page-stratege .strat-hero-orbit::after { inset: 32px; }
+    body.is-embedded-agent.page-stratege .strat-hero-orbit > i { position: absolute; width: 10px; height: 10px; top: 17px; right: 23px; border-radius: 50%; background: #bc8a48; box-shadow: 0 0 0 6px rgba(188, 138, 72, .13); }
+    body.is-embedded-agent.page-stratege .strat-hero-orbit > b { position: relative; z-index: 1; font-size: 34px; font-weight: 400; line-height: 1; }
+    body.is-embedded-agent.page-stratege .strat-hero-visual-caption { color: #fffaf2; font-family: "Creato Display", Iowan Old Style, Palatino, Georgia, serif; font-size: 22px; line-height: .95; letter-spacing: -.04em; text-shadow: 0 1px 8px rgba(30, 21, 13, .38); }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-row {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 15px;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 185px;
+      padding: 20px;
+      border: 1px solid #e9e1d7;
+      border-radius: 13px;
+      background: #fff;
+      box-shadow: 0 7px 19px rgba(75, 58, 37, .035);
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-card:hover {
+      border-color: #d9c6ac;
+      box-shadow: 0 12px 25px rgba(75, 58, 37, .07);
+      transform: translateY(-1px);
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-card--alignment { background: linear-gradient(150deg, #fffdf8, #faf4e9); }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-card--impact { background: linear-gradient(145deg, #fff, #fbfaf7); }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-label { margin: 0 0 16px; color: #827568; font-size: 9px; font-weight: 760; letter-spacing: .11em; text-transform: uppercase; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-value { color: #2c2823; font-family: "Creato Display", Iowan Old Style, Palatino, Georgia, serif; font-size: clamp(30px, 3.3vw, 45px); font-weight: 400; letter-spacing: -.06em; line-height: .98; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-value.kpi-gold { color: #9c713d; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-value--text { max-width: 32ch; color: #403b35; font-family: inherit; font-size: 15px; font-weight: 580; letter-spacing: -.02em; line-height: 1.32; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-unit { color: #94877a; font-family: inherit; font-size: 17px; letter-spacing: 0; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-bar { height: 4px; margin: 16px 0 0; border-radius: 999px; background: #eee9e2; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-bar-fill { border-radius: inherit; background: linear-gradient(90deg, #d9c19b, #a97b41); }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .kpi-sub { margin-top: auto; padding-top: 15px; color: #776d62; font-size: 10px; line-height: 1.48; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese > .decision-card,
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese > .obj-card,
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese > .strat-card--psychology {
+      min-height: 0;
+      padding: 22px;
+      border: 1px solid #e9e1d7;
+      border-radius: 13px;
+      background: #fff;
+      box-shadow: 0 7px 19px rgba(75, 58, 37, .035);
+    }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese > .decision-card { grid-column: span 7; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese > .obj-card { grid-column: span 5; background: #fbfaf8; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese > .strat-card--psychology { grid-column: 1 / -1; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese .decision-label,
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese .obj-label { color: #9a7b56; font-size: 9px; font-weight: 760; letter-spacing: .11em; text-transform: uppercase; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese .decision-text { margin-top: 11px; color: #29251f; font-family: "Creato Display", Iowan Old Style, Palatino, Georgia, serif; font-size: 25px; font-weight: 400; letter-spacing: -.045em; line-height: 1.08; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese .obj-text { margin-top: 10px; color: #5b5147; font-size: 12px; line-height: 1.58; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese .strat-card--psychology .dash-sec-head { margin-bottom: 15px; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese .psycho-used-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 9px; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese .psycho-used-item { padding: 12px; border: 1px solid #eee8df; border-radius: 9px; background: #fcfbf9; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese .psycho-used-label { color: #9b9084; font-size: 8px; font-weight: 700; letter-spacing: .1em; }
+    body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese .psycho-used-val { color: #504940; font-size: 11px; line-height: 1.5; }
+    @media (max-width: 760px) {
+      body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento { padding: 16px 14px 30px !important; }
+      body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento .strat-hero--bento { grid-template-columns: 1fr; }
+      body.is-embedded-agent.page-stratege .strat-hero-visual { min-height: 188px; }
+      body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese > .decision-card,
+      body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese > .obj-card,
+      body.is-embedded-agent.page-stratege #strat-dashboard.strat-dashboard--v2-bento #dash-panel-synthese > .strat-card--psychology { grid-column: 1 / -1; }
+    }
+
+    /* Une enquête modale est utile dans la page historique autonome, mais
+       elle ne doit jamais recouvrir un livrable ouvert dans Gabriel V2. */
+    body.is-embedded-agent #gabriel-survey-widget { display: none !important; }
+    @media (max-width: 680px) { .is-embedded-agent .app-content { padding: 20px 16px 36px; } }
+  </style>
+  {% endif %}
 </head>
-<body class="page-{{ active_page }}" data-office="{{ active_page }}">
+<body class="page-{{ active_page }}{% if embedded %} is-embedded-agent{% endif %}" data-office="{{ active_page }}">
 
 <div class="app-layout">
 
@@ -46,7 +493,7 @@
            conditionnés par has_active_folder. -->
       <div class="sidebar-section-label">Menu</div>
       <a href="/orchestrateur" class="sidebar-item {% if active_page == 'orchestrateur' %}active{% endif %}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10.4 10.8 4a1.8 1.8 0 0 1 2.4 0l7.3 6.4V20a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 20Z"/><path d="M8 17.5h8"/></svg>
         <span class="sidebar-label">Orchestrateur</span>
       </a>
       <div class="sidebar-section-label sidebar-team-label">Ma team</div>
