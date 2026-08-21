@@ -22,6 +22,7 @@ from tools import statistics  # noqa: F401  (enregistre l'outil des livrables st
 from tools import content_quality  # noqa: F401  (enregistre l'outil de contrôle qualité)
 from tools import grounding  # noqa: F401  (enregistre l'outil anti-hallucination)
 from tools import adaptation  # noqa: F401  (enregistre l'outil d'adaptation psycho→stratège)
+from tools import intent      # noqa: F401  (enregistre l'outil de classification d'intention)
 
 __all__ = [
     "Tool", "ToolSpec", "ToolInput", "FunctionTool",
