@@ -23,6 +23,7 @@ from tools import content_quality  # noqa: F401  (enregistre l'outil de contrôl
 from tools import grounding  # noqa: F401  (enregistre l'outil anti-hallucination)
 from tools import adaptation  # noqa: F401  (enregistre l'outil d'adaptation psycho→stratège)
 from tools import intent      # noqa: F401  (enregistre l'outil de classification d'intention)
+from tools import reporting   # noqa: F401  (enregistre les outils de rapport PDF)
 from tools import design      # noqa: F401  (enregistre l'outil de description de forme — Design Agent)
 
 __all__ = [
