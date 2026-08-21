@@ -80,10 +80,19 @@ class ExecutionTrace:
 
     goal: str
     steps: list = field(default_factory=list)
+    # Ce que la réunion des contributions a coûté. Renseigné en fin
+    # d'exécution : un agent dont le résultat a été écrasé par un autre doit
+    # apparaître dans la trace, pas disparaître en silence.
+    synthesis: object = None
 
     @property
     def ok(self) -> bool:
         return all(s.ok for s in self.steps)
+
+    @property
+    def lossless(self) -> bool:
+        """Aucune contribution d'agent n'a été perdue à la réunion."""
+        return self.synthesis is None or self.synthesis.lossless
 
     @property
     def degraded(self) -> bool:
@@ -99,7 +108,9 @@ class ExecutionTrace:
             'ok': self.ok,
             'degraded': self.degraded,
             'duration_ms': self.duration_ms,
+            'lossless': self.lossless,
             'steps': [s.describe() for s in self.steps],
+            'synthesis': self.synthesis.describe() if self.synthesis else None,
         }
 
 
@@ -170,6 +181,11 @@ class Executor:
                 resultats = [self._run_step(step, ctx) for step in vague]
             trace.steps.extend(resultats)
 
+        # Réunion des contributions : la réponse ne change pas, mais ce
+        # qu'elle écrase devient visible dans la trace.
+        from core.synthesis import synthesize
+        trace.synthesis = synthesize(ctx)
+
         return ctx, trace
 
     def explain(self, trace: ExecutionTrace) -> str:
@@ -177,6 +193,12 @@ class Executor:
         lignes = [f"Objectif : {trace.goal} — "
                   f"{'terminé' if trace.ok else 'échoué'}"
                   f"{' (dégradé)' if trace.degraded else ''}"]
+        if trace.synthesis is not None and not trace.lossless:
+            for collision in trace.synthesis.collisions:
+                perdus = ', '.join(collision.overwritten_from)
+                lignes.append(
+                    f"  ⚠ « {collision.key} » : contribution de {perdus} "
+                    f"écrasée par {collision.kept_from}")
         for step in trace.steps:
             detail = f"{step.duration_ms} ms"
             if step.degraded_without:
