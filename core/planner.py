@@ -201,11 +201,16 @@ class Planner:
                 if besoin in deja:
                     continue                      # déjà en main : on ne rejoue pas
                 facultatif = besoin in spec.optional_consumes
-                if facultatif:
-                    souples.append(besoin)
                 fournisseur = producteurs.get(besoin)
                 if fournisseur is None:
                     manquants.append(besoin)      # entrée externe : à fournir
+                    # Dégradé seulement si la dépendance manque réellement.
+                    # La marquer dès qu'elle est déclarée souple ferait dire au
+                    # plan qu'il tourne à vide alors qu'une étape la produit —
+                    # l'erreur inverse de celle que ce champ doit empêcher, et
+                    # tout aussi trompeuse.
+                    if facultatif:
+                        souples.append(besoin)
                     cible_liste = externes_souples if facultatif else externes
                     if besoin not in cible_liste:
                         cible_liste.append(besoin)

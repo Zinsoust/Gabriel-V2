@@ -146,11 +146,44 @@ class TestDependancesSouples:
         assert plan.required_inputs == ()             # rien ne bloque
         assert plan.optional_inputs == ('psychologue',)  # mais on le signale
 
-    def test_l_etape_dit_ce_dont_elle_se_passe(self, planner):
+    def test_une_dependance_souple_mais_satisfaite_nest_pas_dite_degradee(self, planner):
+        """Défaut trouvé en simulant une mission réelle : le plan se déclarait
+        dégradé alors que le Psychologue y figurait et tournait.
+
+        `degraded_without` était rempli dès qu'une dépendance était *déclarée*
+        souple, sans vérifier si une étape du plan la fournit. C'est l'erreur
+        inverse de celle que ce champ doit empêcher — annoncer un résultat
+        creux quand il est complet — et tout aussi trompeuse.
+        """
+        plan = planner.plan('stratege')
+        assert plan.agent_ids == ('psychologue', 'stratege')
+        for etape in plan:
+            assert etape.degraded_without == (), (
+                f"l'étape « {etape.agent_id} » se dit dégradée alors que le "
+                f"plan fournit tout ce dont elle a besoin")
+
+    def test_l_etape_dit_ce_dont_elle_se_passe_reellement(self):
         """Un exécutant doit pouvoir annoncer un résultat dégradé plutôt que de
-        le présenter comme complet."""
-        etape = [s for s in planner.plan('createur') if s.agent_id == 'createur'][0]
-        assert set(etape.degraded_without) == {'psychologue', 'stratege'}
+        le présenter comme complet — mais seulement quand il l'est vraiment.
+
+        Ce test figeait auparavant le contraire : il attendait que le Créateur
+        se dise dégradé alors que le plan complet lui fournit Psychologue et
+        Stratège. Il verrouillait le défaut au lieu de le détecter.
+        """
+        from agents.registry import STATUS_PLANNED, AgentRegistry, AgentSpec
+
+        r = AgentRegistry()
+        # Le fournisseur existe dans le catalogue mais n'est pas utilisable :
+        # la dépendance souple manque donc réellement.
+        r.register(AgentSpec(id='psychologue', name='P', description='…',
+                             produces='psychologue', status=STATUS_PLANNED))
+        r.register(AgentSpec(id='stratege', name='S', description='…',
+                             consumes=('psychologue',),
+                             optional_consumes=('psychologue',),
+                             produces='stratege'), loader=lambda: None)
+
+        etape = [s for s in Planner(r).plan('stratege')][0]
+        assert etape.degraded_without == ('psychologue',)
 
     def test_une_entree_indispensable_reste_bloquante(self, planner):
         """Sans commentaires, il n'y a rien à analyser : cette dépendance-là
