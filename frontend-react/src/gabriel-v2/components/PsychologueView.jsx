@@ -344,11 +344,21 @@ function Section({ title, hint, children }) {
 }
 
 /** Liste de traits courts — frustrations, peurs, désirs… */
+/* Le backend renvoie tantôt une chaîne, tantôt un objet ({label}, {token}…).
+   Sans ce passage, l'écran affiche « [object Object] ». Repris tel quel de
+   l'ancienne page. */
+function itemText(v) {
+  if (v === null || v === undefined) return '';
+  if (typeof v === 'string' || typeof v === 'number') return String(v);
+  if (Array.isArray(v)) return v.map(itemText).filter(Boolean).join(' · ');
+  return v.token || v.bigram || v.emotion || v.label || v.nom || v.name || v.signal || '';
+}
+
 function TraitList({ items, tone }) {
   const clean = (Array.isArray(items) ? items : []).filter(Boolean);
   if (!clean.length) return null;
   return <ul className={`gv2-psy-traits${tone ? ` is-${tone}` : ''}`}>
-    {clean.map((item, i) => <li key={i}>{esc(String(item))}</li>)}
+    {clean.map((item, i) => <li key={i}>{esc(itemText(item))}</li>)}
   </ul>;
 }
 
@@ -461,16 +471,127 @@ function ton(label) {
 
 /* Un persona sans visage reste une fiche. La teinte vient du nom (toujours
    la même pour le même persona), l'anneau vient de son émotion dominante. */
-function PersonaAvatar({ nom, emotion }) {
+function PersonaAvatar({ nom, emotion, large }) {
   const texte = String(nom || '').trim();
   const initiales = texte.split(/\s+/).slice(0, 2).map((m) => m[0] || '')
     .join('').toUpperCase() || '?';
   let empreinte = 0;
   for (let i = 0; i < texte.length; i += 1) empreinte = (empreinte * 31 + texte.charCodeAt(i)) % 360;
-  return <div className={`gv2-psy-avatar is-${ton(emotion)}`} aria-hidden="true"
+  return <div className={`gv2-psy-avatar is-${ton(emotion)}${large ? ' is-large' : ''}`} aria-hidden="true"
               style={{ '--avatar-teinte': empreinte }}>
     <span>{initiales}</span>
   </div>;
+}
+
+/* Le portrait vient de randomuser.me, comme sur l'ancienne page : même
+   graine (nom + rang), donc le même persona garde le même visage d'une
+   analyse à l'autre. Si la requête échoue — hors ligne, blocage réseau —
+   le visage généré prend le relais : la fiche n'a jamais de trou. */
+function personaPhotoUrl(nom, index, genre) {
+  let h = 5381;
+  const graine = `${nom || ''}${index}`;
+  for (let i = 0; i < graine.length; i += 1) h = ((h << 5) + h) ^ graine.charCodeAt(i);
+  const rang = Math.abs(h) % 70;
+  const femme = /femme|woman|^f$/i.test(String(genre || '').trim());
+  return `https://randomuser.me/api/portraits/${femme ? 'women' : 'men'}/${rang}.jpg`;
+}
+
+function PersonaPortrait({ nom, index, genre, emotion }) {
+  const [echec, setEchec] = useState(false);
+  if (echec) return <PersonaAvatar nom={nom} emotion={emotion} large />;
+  return <img className={`gv2-psy-portrait is-${ton(emotion)}`} alt=""
+              src={personaPhotoUrl(nom, index, genre)}
+              onError={() => setEchec(true)} />;
+}
+
+/* Une donnée du volet droit. Absente, elle ne laisse pas de case vide. */
+function Stat({ label, value }) {
+  if (!value) return null;
+  return <div className="gv2-psy-stat">
+    <div className="gv2-psy-stat-lbl">{label}</div>
+    <div className="gv2-psy-stat-val">{esc(String(value))}</div>
+  </div>;
+}
+
+function PersonaListe({ titre, items }) {
+  const liste = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (liste.length === 0) return null;
+  return <div className="gv2-psy-pc-block">
+    <div className="gv2-psy-pc-ttl">{titre}</div>
+    {liste.map((item, i) => <div className="gv2-psy-pc-li" key={i}>{esc(itemText(item))}</div>)}
+  </div>;
+}
+
+/* La fiche persona : portrait et identité à gauche, ce qu'il vit au
+   centre, ce que l'analyse en déduit à droite. Dix-sept champs que le
+   backend produisait et que l'écran n'avait jamais montrés. */
+function PersonaCard({ persona: p, index }) {
+  const nom = p.nom || `Persona ${index + 1}`;
+  const signaux = (Array.isArray(p.signaux_mesures) ? p.signaux_mesures : []).slice(0, 5);
+  const conf = typeof p.confiance === 'number' ? Math.round(p.confiance * 100) : null;
+  const achat = p.ce_qui_le_ferait_acheter || p.ce_qui_la_ferait_acheter;
+  const fuite = p.ce_qui_le_ferait_fuir || p.ce_qui_la_ferait_fuir;
+  const meta = [p.age ? `${p.age} ans` : '', p.genre, p.metier].filter(Boolean).join(' · ');
+  return <article className="gv2-psy-pc">
+    <div className="gv2-psy-pc-left">
+      <PersonaPortrait nom={nom} index={index} genre={p.genre}
+                       emotion={p.emotion_dominante_mesuree} />
+      <div className="gv2-psy-pc-name">{esc(nom)}</div>
+      {meta && <div className="gv2-psy-pc-meta">{meta}</div>}
+      {signaux.length > 0 && <div className="gv2-psy-pc-sigs">
+        {signaux.map((sig, i) => <span key={i}>{esc(itemText(sig))}</span>)}
+      </div>}
+      {p.histoire_interieure && <blockquote className="gv2-psy-pc-quote">
+        {esc(String(p.histoire_interieure))}
+      </blockquote>}
+    </div>
+
+    <div className="gv2-psy-pc-center">
+      {p.archetype_jungien && (
+        <div className="gv2-psy-pc-arch">{esc(String(p.archetype_jungien))}</div>
+      )}
+      <div className="gv2-psy-pc-chips">
+        {p.emotion_dominante_mesuree && <span className={`is-${ton(p.emotion_dominante_mesuree)}`}>{esc(p.emotion_dominante_mesuree)}</span>}
+        {p.poids && <span>{esc(String(p.poids))}</span>}
+      </div>
+      {p.vision_monde && <p className="gv2-psy-pc-vision">« {esc(String(p.vision_monde))} »</p>}
+      {p.etat_esprit && <Statement label="État d'esprit" text={p.etat_esprit} />}
+      <div className="gv2-psy-pc-2col">
+        <PersonaListe titre="Frustrations" items={p.frustrations} />
+        <PersonaListe titre="Aspirations" items={p.aspirations} />
+        <PersonaListe titre="Pain points" items={p.peurs} />
+        <PersonaListe titre="Désirs cachés" items={p.desirs} />
+        <PersonaListe titre="Déclencheurs émotionnels" items={p.declencheurs_emotionnels} />
+        <PersonaListe titre="Habitudes digitales" items={p.habitudes_digitales} />
+      </div>
+      {p.rapport_autorite && <Statement label="Rapport à l'autorité" text={p.rapport_autorite} />}
+      {p.message_a_lui_dire && <div className="gv2-psy-pc-msg">
+        <div className="gv2-psy-pc-msg-lbl">Message à lui adresser</div>
+        <p>« {esc(String(p.message_a_lui_dire))} »</p>
+      </div>}
+    </div>
+
+    <div className="gv2-psy-pc-right">
+      {conf !== null && <div className="gv2-psy-stat is-wide">
+        <div className="gv2-psy-stat-lbl">Fiabilité du persona</div>
+        <div className="gv2-psy-pc-conf">{conf}%</div>
+        <div className="gv2-psy-conf-track"><div className="gv2-psy-conf-fill" style={{ width: `${conf}%` }} /></div>
+      </div>}
+      <Stat label="Cluster source" value={p.cluster_source} />
+      <Stat label="Tension existentielle" value={p.tension_existentielle} />
+      <Stat label="Quête · Frankl" value={p.quete_de_sens} />
+      <Stat label="Biais · Kahneman" value={p.biais_cognitifs} />
+      <Stat label="Ombre · Jung" value={p.ombre_jungienne} />
+      <Stat label="Objection principale" value={p.objection_principale} />
+      <Stat label="Déclencheur d'achat" value={achat} />
+      <Stat label="Mission cachée · Munroe" value={p.mission_cachee} />
+      <Stat label="Potentiel bloqué · Munroe" value={p.potentiel_non_exprime} />
+      <Stat label="Tribu aspirée" value={p.besoin_d_appartenance} />
+      <Stat label="Désir de legacy" value={p.desir_de_legacy} />
+      <Stat label="Rapport à l'argent" value={p.rapport_argent} />
+      <Stat label="Repoussoir principal" value={fuite} />
+    </div>
+  </article>;
 }
 
 function AudienceGroup({ groupe }) {
@@ -961,31 +1082,8 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
       </Section>}
     </>}
 
-    {actif === 'personas' && <div className="gv2-psy-persona-grid is-full">
-      {personas.map((persona, index) => <div className="gv2-psy-persona-card" key={index}>
-        <div className="gv2-psy-persona-head">
-          <PersonaAvatar nom={persona.nom || `Persona ${index + 1}`}
-                         emotion={persona.emotion_dominante_mesuree} />
-          <div className="gv2-psy-persona-ident">
-            <div className="gv2-psy-persona-name">{persona.nom || `Persona ${index + 1}`}</div>
-            {(persona.age || persona.genre || persona.metier) && <div className="gv2-psy-persona-meta">{[persona.age ? `${persona.age} ans` : '', persona.genre, persona.metier].filter(Boolean).join(' · ')}</div>}
-            {persona.emotion_dominante_mesuree && <div className={`gv2-psy-persona-emo is-${ton(persona.emotion_dominante_mesuree)}`}>{esc(persona.emotion_dominante_mesuree)}</div>}
-          </div>
-          {persona.poids && <span className="gv2-psy-persona-weight">{esc(String(persona.poids))}</span>}
-        </div>
-        {persona.histoire_interieure && <p className="gv2-psy-persona-quote">"{esc(persona.histoire_interieure)}"</p>}
-        <Statement label="État d'esprit" text={persona.etat_esprit} />
-        <Statement label="Vision du monde" text={persona.vision_monde} />
-        <div className="gv2-psy-trait-cols">
-          <TraitGroup label="Frustrations" items={persona.frustrations} tone="neg" />
-          <TraitGroup label="Peurs" items={persona.peurs} tone="neg" />
-          <TraitGroup label="Désirs" items={persona.desirs} tone="pos" />
-          <TraitGroup label="Aspirations" items={persona.aspirations} tone="pos" />
-        </div>
-        <Statement label="Objection principale" text={persona.objection_principale} />
-        <Statement label="Ce qui le ferait acheter" text={persona.ce_qui_le_ferait_acheter} />
-        <Statement label="Message à lui adresser" text={persona.message_a_lui_dire} />
-      </div>)}
+    {actif === 'personas' && <div className="gv2-psy-pc-grid">
+      {personas.map((persona, index) => <PersonaCard persona={persona} index={index} key={index} />)}
     </div>}
   </section>;
 }

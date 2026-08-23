@@ -11,7 +11,7 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, waitFor, within } from '@testing-library/react';
+import { render, screen, cleanup, waitFor, within, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PsychologueView } from '../PsychologueView.jsx';
 
@@ -156,6 +156,21 @@ const RESULTAT = {
     {
       nom: "Le Pragmatique", poids: "40%", age: 38, genre: "F", metier: "Consultante",
       emotion_dominante_mesuree: "Espoir prudent",
+      archetype_jungien: "Le Sage", confiance: 0.82, cluster_source: "Cluster 0",
+      signaux_mesures: ["question", "gratitude"],
+      tension_existentielle: "Vouloir être reconnue sans se vendre",
+      quete_de_sens: "Laisser un travail dont elle soit fière",
+      biais_cognitifs: "Aversion à la perte",
+      ombre_jungienne: "La peur d'être ordinaire",
+      mission_cachee: "Rendre le savoir accessible",
+      potentiel_non_exprime: "Une pédagogue qui s'ignore",
+      besoin_d_appartenance: "Les artisans du numérique",
+      desir_de_legacy: "Former celles qui suivront",
+      rapport_argent: "Prudente, investit peu mais bien",
+      rapport_autorite: "Respecte la compétence, pas le titre",
+      declencheurs_emotionnels: ["une preuve chiffrée"],
+      habitudes_digitales: ["YouTube le soir"],
+      ce_qui_la_ferait_fuir: "Une promesse sans preuve",
       histoire_interieure: "Elle sait qu'elle est bonne, mais doute d'être vue",
       etat_esprit: "Prête à investir si le risque est cadré",
       vision_monde: "Le travail bien fait finit par payer",
@@ -443,17 +458,29 @@ describe('Lecture visuelle : couleur porteuse de sens et visage des personas', (
        pas d'un tirage. Sinon la fiche change d'identité à chaque analyse. */
     const user = await analyser();
     await user.click(screen.getByRole('tab', { name: /Personas/ }));
-    const avatar = document.querySelector('.gv2-psy-avatar');
-    expect(avatar).not.toBeNull();
-    expect(avatar.textContent).toBe('LP');           // Le Pragmatique
-    const teinte = avatar.style.getPropertyValue('--avatar-teinte');
-    expect(teinte).not.toBe('');
-    // Deuxième rendu : même nom, même teinte.
+    const photo = document.querySelector('.gv2-psy-portrait');
+    expect(photo).not.toBeNull();
+    expect(photo.getAttribute('src')).toMatch(/portraits\/women\/\d+\.jpg$/);
+    const src = photo.getAttribute('src');
+    // Deuxième rendu : même persona, même portrait.
     cleanup();
     const user2 = await analyser();
     await user2.click(screen.getByRole('tab', { name: /Personas/ }));
-    expect(document.querySelector('.gv2-psy-avatar').style
-      .getPropertyValue('--avatar-teinte')).toBe(teinte);
+    expect(document.querySelector('.gv2-psy-portrait').getAttribute('src')).toBe(src);
+  });
+
+  it('retombe sur un visage dessiné si la photo ne charge pas', async () => {
+    /* Hors ligne ou réseau bloqué, la fiche ne doit pas avoir de trou :
+       les initiales prennent le relais, teinte dérivée du nom. */
+    const user = await analyser();
+    await user.click(screen.getByRole('tab', { name: /Personas/ }));
+    await act(async () => {
+      fireEvent.error(document.querySelector('.gv2-psy-portrait'));
+    });
+    const avatar = document.querySelector('.gv2-psy-avatar');
+    expect(avatar).not.toBeNull();
+    expect(avatar.textContent).toBe('LP');           // Le Pragmatique
+    expect(avatar.style.getPropertyValue('--avatar-teinte')).not.toBe('');
   });
 
   it('colore les positions selon le camp, pas de façon décorative', async () => {
@@ -484,5 +511,65 @@ describe('Lecture visuelle : couleur porteuse de sens et visage des personas', (
     const row = [...document.querySelectorAll('.gv2-psy-bar-row')].find(
       (r) => r.textContent.includes('xyzzy'));
     expect(row.className).toMatch(/is-neu/);
+  });
+});
+
+
+describe('Fiche persona complète', () => {
+  async function ouvrirPersonas() {
+    const user = await analyser();
+    await user.click(screen.getByRole('tab', { name: /Personas/ }));
+    return user;
+  }
+
+  it('montre la profondeur psychologique, pas seulement l’état civil', async () => {
+    /* Ces champs étaient produits par le backend et jetés à l'affichage.
+       C'est la matière qui distingue une fiche persona d'une carte de visite. */
+    await ouvrirPersonas();
+    expect(screen.getByText('Le Sage')).toBeInTheDocument();
+    expect(screen.getByText(/reconnue sans se vendre/)).toBeInTheDocument();
+    expect(screen.getByText(/travail dont elle soit fière/)).toBeInTheDocument();
+    expect(screen.getByText('Aversion à la perte')).toBeInTheDocument();
+    expect(screen.getByText(/peur d'être ordinaire/)).toBeInTheDocument();
+    expect(screen.getByText(/savoir accessible/)).toBeInTheDocument();
+    expect(screen.getByText(/pédagogue qui s'ignore/)).toBeInTheDocument();
+    expect(screen.getByText(/artisans du numérique/)).toBeInTheDocument();
+    expect(screen.getByText(/Former celles qui suivront/)).toBeInTheDocument();
+    expect(screen.getByText(/investit peu mais bien/)).toBeInTheDocument();
+    expect(screen.getByText(/promesse sans preuve/)).toBeInTheDocument();
+  });
+
+  it('nomme chaque lecture par son cadre théorique', async () => {
+    /* « Ombre · Jung » et « Biais · Kahneman » disent d'où vient la lecture.
+       Sans ces libellés, ce sont des affirmations sans provenance. */
+    await ouvrirPersonas();
+    expect(screen.getByText('Ombre · Jung')).toBeInTheDocument();
+    expect(screen.getByText('Biais · Kahneman')).toBeInTheDocument();
+    expect(screen.getByText('Quête · Frankl')).toBeInTheDocument();
+    expect(screen.getByText('Mission cachée · Munroe')).toBeInTheDocument();
+  });
+
+  it('montre la fiabilité du persona en pourcentage', async () => {
+    await ouvrirPersonas();
+    expect(screen.getByText('82%')).toBeInTheDocument();
+  });
+
+  it('ne montre pas deux fois la même émotion', async () => {
+    /* L'archétype ne remplace plus l'émotion quand il manque : sinon le même
+       mot apparaissait en titre et en pastille. */
+    await analyser({ ...RESULTAT, personas: [{ nom: 'Le Test',
+      emotion_dominante_mesuree: 'Curiosité' }] });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole('tab', { name: /Personas/ }));
+    expect(screen.getAllByText('Curiosité')).toHaveLength(1);
+  });
+
+  it('n’affiche pas les champs absents du persona', async () => {
+    await analyser({ ...RESULTAT, personas: [{ nom: 'Le Minimal' }] });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    await user.click(screen.getByRole('tab', { name: /Personas/ }));
+    expect(screen.getByText('Le Minimal')).toBeInTheDocument();
+    expect(screen.queryByText('Ombre · Jung')).toBeNull();
+    expect(screen.queryByText(/Fiabilité du persona/)).toBeNull();
   });
 });
