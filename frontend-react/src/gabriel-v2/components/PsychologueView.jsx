@@ -315,8 +315,8 @@ function StatChip({ value, count, label, tone }) {
   </div>;
 }
 
-function Bar({ label, pct, count }) {
-  return <div className="gv2-psy-bar-row">
+function Bar({ label, pct, count, tone }) {
+  return <div className={`gv2-psy-bar-row is-${tone || 'neu'}`}>
     <span className="gv2-psy-bar-label">{esc(label)}</span>
     <div className="gv2-psy-bar-track"><div className="gv2-psy-bar-fill" style={{ width: `${Math.min(100, Math.max(0, pct))}%` }} /></div>
     <span className="gv2-psy-bar-pct">{pct}%</span>
@@ -442,16 +442,47 @@ function SignalColumn({ title, items, tone }) {
 }
 
 /** Un groupe détecté dans l'audience (cluster). */
+/* Le camp ou l'émotion décide de la couleur. Une barre champagne partout
+   ne dit rien ; du vert sur « favorable » et de l'ambre sur « opposé » se
+   lisent avant même le pourcentage. Un mot inconnu reste neutre — mieux
+   vaut ne pas colorer que colorer faux. */
+const TONS_POS = ['favorable', 'positif', 'admiration', 'enthousiasme', 'joie',
+                  'gratitude', 'confiance', 'espoir', 'soulagement', 'fierte'];
+const TONS_NEG = ['oppose', 'opposé', 'negatif', 'négatif', 'colere', 'colère',
+                  'frustration', 'peur', 'deception', 'déception', 'mepris',
+                  'mépris', 'tristesse', 'anxiete', 'anxiété', 'doute'];
+
+function ton(label) {
+  const mot = String(label || '').toLowerCase().trim();
+  if (TONS_POS.some((t) => mot.includes(t))) return 'pos';
+  if (TONS_NEG.some((t) => mot.includes(t))) return 'neg';
+  return 'neu';
+}
+
+/* Un persona sans visage reste une fiche. La teinte vient du nom (toujours
+   la même pour le même persona), l'anneau vient de son émotion dominante. */
+function PersonaAvatar({ nom, emotion }) {
+  const texte = String(nom || '').trim();
+  const initiales = texte.split(/\s+/).slice(0, 2).map((m) => m[0] || '')
+    .join('').toUpperCase() || '?';
+  let empreinte = 0;
+  for (let i = 0; i < texte.length; i += 1) empreinte = (empreinte * 31 + texte.charCodeAt(i)) % 360;
+  return <div className={`gv2-psy-avatar is-${ton(emotion)}`} aria-hidden="true"
+              style={{ '--avatar-teinte': empreinte }}>
+    <span>{initiales}</span>
+  </div>;
+}
+
 function AudienceGroup({ groupe }) {
   const tokens = Array.isArray(groupe.top_tokens) ? groupe.top_tokens : [];
   const samples = Array.isArray(groupe.samples) ? groupe.samples : [];
-  return <div className="gv2-psy-group">
+  return <div className={`gv2-psy-group is-${ton(groupe.stance)}`}>
     <div className="gv2-psy-group-head">
       <span className="gv2-psy-group-pct">{groupe.pct != null ? `${groupe.pct}%` : ''}</span>
       <span className="gv2-psy-group-count">{groupe.size != null ? `${groupe.size} commentaires` : ''}</span>
       <div className="gv2-psy-group-tags">
         {groupe.likes_pct != null && <span>♥ {groupe.likes_pct}%</span>}
-        {groupe.stance && <span>{esc(String(groupe.stance))}</span>}
+        {groupe.stance && <span className="is-stance">{esc(String(groupe.stance))}</span>}
         {groupe.emotion && <span>{esc(String(groupe.emotion))}</span>}
       </div>
     </div>
@@ -652,13 +683,13 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
 
       {emotions.length > 0 && <Section title="Émotions détectées">
         <div className="gv2-psy-card gv2-psy-card--plain">
-          {emotions.slice(0, 8).map((item, index) => <Bar key={index} label={item.emotion} pct={Math.round(item.pourcentage || item.pct || 0)} />)}
+          {emotions.slice(0, 8).map((item, index) => <Bar key={index} label={item.emotion} tone={ton(item.emotion)} pct={Math.round(item.pourcentage || item.pct || 0)} />)}
         </div>
       </Section>}
 
       {Object.keys(pos).length > 0 && <Section title="Répartition des positions">
         <div className="gv2-psy-card gv2-psy-card--plain">
-          {Object.entries(pos).map(([key, value]) => <Bar key={key} label={key} pct={Math.round(value.pct || 0)} count={value.count} />)}
+          {Object.entries(pos).map(([key, value]) => <Bar key={key} label={key} tone={ton(key)} pct={Math.round(value.pct || 0)} count={value.count} />)}
         </div>
       </Section>}
 
@@ -933,11 +964,15 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
     {actif === 'personas' && <div className="gv2-psy-persona-grid is-full">
       {personas.map((persona, index) => <div className="gv2-psy-persona-card" key={index}>
         <div className="gv2-psy-persona-head">
-          <div className="gv2-psy-persona-name">{persona.nom || `Persona ${index + 1}`}</div>
+          <PersonaAvatar nom={persona.nom || `Persona ${index + 1}`}
+                         emotion={persona.emotion_dominante_mesuree} />
+          <div className="gv2-psy-persona-ident">
+            <div className="gv2-psy-persona-name">{persona.nom || `Persona ${index + 1}`}</div>
+            {(persona.age || persona.genre || persona.metier) && <div className="gv2-psy-persona-meta">{[persona.age ? `${persona.age} ans` : '', persona.genre, persona.metier].filter(Boolean).join(' · ')}</div>}
+            {persona.emotion_dominante_mesuree && <div className={`gv2-psy-persona-emo is-${ton(persona.emotion_dominante_mesuree)}`}>{esc(persona.emotion_dominante_mesuree)}</div>}
+          </div>
           {persona.poids && <span className="gv2-psy-persona-weight">{esc(String(persona.poids))}</span>}
         </div>
-        {(persona.age || persona.genre || persona.metier) && <div className="gv2-psy-persona-meta">{[persona.age ? `${persona.age} ans` : '', persona.genre, persona.metier].filter(Boolean).join(' · ')}</div>}
-        {persona.emotion_dominante_mesuree && <div className="gv2-psy-persona-emo">{esc(persona.emotion_dominante_mesuree)}</div>}
         {persona.histoire_interieure && <p className="gv2-psy-persona-quote">"{esc(persona.histoire_interieure)}"</p>}
         <Statement label="État d'esprit" text={persona.etat_esprit} />
         <Statement label="Vision du monde" text={persona.vision_monde} />
@@ -1102,6 +1137,7 @@ function PsychoCrossResult({ data, onReset }) {
       <div className="gv2-psy-persona-grid">
         {personas.map((persona, index) => <div className="gv2-psy-persona-card" key={index}>
           <div className="gv2-psy-cross-persona-head">
+            <PersonaAvatar nom={persona.name || 'Persona'} />
             <div className="gv2-psy-persona-name">{persona.name || 'Persona'}</div>
             {persona.confidence_level && <span className="gv2-psy-cross-persona-conf">{persona.confidence_level}</span>}
           </div>

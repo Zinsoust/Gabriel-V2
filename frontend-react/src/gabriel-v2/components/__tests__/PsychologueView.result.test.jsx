@@ -435,3 +435,54 @@ describe('Insights fondés sur données', () => {
     expect(screen.queryByText("Ce qu'ils valorisent")).toBeNull();
   });
 });
+
+
+describe('Lecture visuelle : couleur porteuse de sens et visage des personas', () => {
+  it('donne un visage stable à chaque persona', async () => {
+    /* Le même persona doit garder le même visage : la teinte dérive du nom,
+       pas d'un tirage. Sinon la fiche change d'identité à chaque analyse. */
+    const user = await analyser();
+    await user.click(screen.getByRole('tab', { name: /Personas/ }));
+    const avatar = document.querySelector('.gv2-psy-avatar');
+    expect(avatar).not.toBeNull();
+    expect(avatar.textContent).toBe('LP');           // Le Pragmatique
+    const teinte = avatar.style.getPropertyValue('--avatar-teinte');
+    expect(teinte).not.toBe('');
+    // Deuxième rendu : même nom, même teinte.
+    cleanup();
+    const user2 = await analyser();
+    await user2.click(screen.getByRole('tab', { name: /Personas/ }));
+    expect(document.querySelector('.gv2-psy-avatar').style
+      .getPropertyValue('--avatar-teinte')).toBe(teinte);
+  });
+
+  it('colore les positions selon le camp, pas de façon décorative', async () => {
+    /* Une barre champagne partout ne dit rien. Vert sur favorable, ambre
+       sur opposé : la répartition se lit avant le pourcentage. */
+    await analyser();
+    const tons = {};
+    document.querySelectorAll('.gv2-psy-bar-row').forEach((row) => {
+      const label = row.querySelector('.gv2-psy-bar-label');
+      if (label) tons[label.textContent.trim()] = row.className;
+    });
+    expect(tons.favorable).toMatch(/is-pos/);
+    expect(tons.oppose || tons['opposé']).toMatch(/is-neg/);
+    expect(tons.neutre).toMatch(/is-neu/);
+  });
+
+  it('marque le camp du groupe sur la carte elle-même', async () => {
+    await analyser();
+    const groupe = document.querySelector('.gv2-psy-group');
+    expect(groupe.className).toMatch(/is-neu/);      // stance « neutre »
+  });
+
+  it('ne colore pas un mot qu’il ne comprend pas', async () => {
+    /* Mieux vaut rester neutre que colorer faux : une émotion inconnue ne
+       doit pas être présentée comme positive. */
+    await analyser({ ...RESULTAT, dashboard: { ...RESULTAT.dashboard,
+      emotion_distribution: [{ emotion: 'xyzzy', pourcentage: 30 }] } });
+    const row = [...document.querySelectorAll('.gv2-psy-bar-row')].find(
+      (r) => r.textContent.includes('xyzzy'));
+    expect(row.className).toMatch(/is-neu/);
+  });
+});
