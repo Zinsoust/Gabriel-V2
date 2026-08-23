@@ -28,6 +28,39 @@ const RESULTAT = {
     opportunite: { score: 65 },
   },
   dashboard: {
+    // Formes relevées en exécutant réellement audience.compute_dashboard.
+    weighted_sentiment: { score: 0.115, score_raw: 0.098, total_likes: 149,
+                          interpretation: 'positif pondéré' },
+    weighted_polarization: { score: 30.8, label: 'Modérément partagée' },
+    fiabilite: { commentaires_analyses: 105, commentaires_hors_sujet: 8,
+                 pct_hors_sujet: 7.6, label_confiance: 'Élevée' },
+    resonance_by_stance: { favorable: { likes: 11, pct: 7.4, count: 33 },
+                           neutre: { likes: 113, pct: 75.8, count: 54 } },
+    argument_density: { favorable: { avg_words: 23, label: 'argumenté' },
+                        neutre: { avg_words: 15.2, label: 'argumenté' } },
+    groupes: [{ pct: 43.8, size: 46, likes_pct: 48.3, stance: 'neutre',
+                emotion: 'admiration', top_tokens: ['vidéo', 'merci', 'claude'],
+                samples: ["Faudrait mettre cette vidéo devant une éolienne"] }],
+    sujets_recurrents: [{ theme: 'Vidéo', pct: 33.3, count: 35,
+                          exemple: 'Faudrait mettre cette vidéo devant une éolienne' }],
+    signaux_frequents: {
+      frustrations: [{ signal: 'frustration', pct: 3.8, count: 4,
+                       examples: ['Attention au RGPD : sécurité critique'] }],
+      attentes: [{ signal: 'question', pct: 50.5, count: 53,
+                   examples: ['Ou est la database ?'] }],
+      objections: [{ signal: 'objection', pct: 1, count: 1,
+                     examples: ['tu utilises Opus, ce modèle est cher'] }],
+    },
+    mockery_signals: { count: 0, pct: 0, level: 'absent' },
+    irony_signals: { count: 0, pct: 0, level: 'absent' },
+    lexique: { top_mots: [{ mot: 'merci' }, { mot: 'claude' }],
+               top_bigrams: [{ bigram: 'claude code', count: 14 }] },
+    lexical_fields: [{ field: 'Merci', pct: 49.5, count: 52,
+                       tokens: ['merci', 'vidéo'],
+                       exemple: 'Faudrait mettre cette vidéo devant une éolienne' }],
+    polarisation_detail: { phrase: "L'audience penche favorablement : 31.4% favorables, 7.6% opposés.",
+                           label: 'Plutôt favorable', score: 16.9 },
+    top_comments: [{ text: "Faudrait mettre cette vidéo devant une éolienne", likes: 48, author: 'jsevdev' }],
     positions: {
       favorable: { pct: 60, count: 90 },
       oppose: { pct: 15, count: 22 },
@@ -84,6 +117,40 @@ const RESULTAT = {
     declencheurs_emotionnels: ["preuve par les pairs"],
     opportunites_offre: ["offre intermédiaire à 490 €"],
     hooks_performants: ["Le vrai frein n'est pas le prix"],
+  },
+  livrables_statistiques: {
+    lecture_sujet: {
+      conclusion: "L'audience a reçu ce sujet comme une bouffée d'oxygène technique",
+      indicateur_statistique: 'CRS moyen : 0.274 (faible) | 80% de commentaires neutres',
+      signaux: ['merci vidéo', 'base données'],
+      interpretation: "Le faible CRS révèle une dissonance entre l'attente et la réalité",
+      score_confiance: 0.85,
+    },
+    ce_qui_rassemble: {
+      conclusion: "L'audience est unie par un désir de maîtrise technique sans effort",
+      indicateur_statistique: 'Cluster 0 et Cluster 1 partagent 67.6% des commentaires',
+      signaux: ['claude code'],
+      interpretation: "Ces tokens révèlent une tribu en quête d'un Guide",
+      score_confiance: 0.9,
+    },
+  },
+  grille_psychologique: {
+    ce_qu_ils_ressentent: {
+      observation: '34.3% des commentaires montrent des marqueurs de confusion',
+      interpretation: "L'audience est en phase d'exploration active mais manque de repères",
+      implication: "Créer des contenus qui structurent l'information progressivement",
+    },
+    ce_qui_les_bloque: {
+      observation: "3.8% de frustration + 1% d'objection",
+      interpretation: "La peur de s'engager dans un outil qui ne répondra pas",
+      implication: 'Proposer des solutions concrètes pour contourner les limitations',
+    },
+  },
+  recommandations: {
+    verite_de_l_audience: 'Ils veulent devenir des créateurs autonomes et respectés',
+    message_central: 'Devenez le créateur que vous aspirez à être',
+    prochaines_etapes: ["Cette semaine : Lancer le défi '30 Jours'",
+                        'Ce mois : Publier la première série de tutoriels'],
   },
   personas: [
     {
@@ -167,7 +234,7 @@ describe('Tableau de bord', () => {
   it('montre les commentaires réellement amplifiés', async () => {
     await analyser();
     expect(screen.getByText(/Le prix me freine/)).toBeInTheDocument();
-    expect(screen.getByText(/42 j'aime/)).toBeInTheDocument();
+    expect(screen.getByText(/♥ 42/)).toBeInTheDocument();
   });
 });
 
@@ -239,5 +306,132 @@ describe('Rapport incomplet', () => {
     await analyser({ meta: { total_commentaires: 3 }, dashboard: {}, brief: {} });
     expect(screen.getByText('Résultats')).toBeInTheDocument();
     expect(screen.queryByRole('tab')).toBeNull();
+  });
+});
+
+
+describe('Blocs mesurés du tableau de bord', () => {
+  /* Ces quatorze blocs sont calculés par le backend depuis toujours. Aucun
+     n'atteignait l'écran : c'est le cœur de ce que l'analyse produit. */
+
+  it('montre les métriques pondérées par engagement', async () => {
+    /* Un commentaire très liké pèse plus qu'un commentaire isolé — sans
+       cette pondération, une minorité bruyante passe pour la majorité. */
+    await analyser();
+    expect(screen.getByText('0.115')).toBeInTheDocument();
+    expect(screen.getByText('positif pondéré')).toBeInTheDocument();
+    expect(screen.getByText('30.8')).toBeInTheDocument();
+    expect(screen.getByText('149')).toBeInTheDocument();
+  });
+
+  it('montre la fiabilité et ce qui a été écarté', async () => {
+    /* Savoir combien de commentaires ont été jugés hors sujet est ce qui
+       permet de juger la solidité du reste. */
+    await analyser();
+    expect(screen.getByText('Élevée')).toBeInTheDocument();
+    expect(screen.getByText('7.6%')).toBeInTheDocument();
+  });
+
+  it('montre la résonance par camp et la densité argumentative', async () => {
+    await analyser();
+    expect(screen.getByText('75.8%')).toBeInTheDocument();
+    expect(screen.getByText(/15.2 mots/)).toBeInTheDocument();
+  });
+
+  it('montre les groupes détectés avec leurs mots et leurs citations', async () => {
+    await analyser();
+    expect(screen.getByText('43.8%')).toBeInTheDocument();
+    expect(screen.getByText('46 commentaires')).toBeInTheDocument();
+    // Le groupe est le seul bloc qui cite en blockquote.
+    const citations = screen.getAllByText(/devant une éolienne/);
+    expect(citations.some((n) => n.tagName === 'BLOCKQUOTE')).toBe(true);
+  });
+
+  it('montre les sujets récurrents', async () => {
+    await analyser();
+    expect(screen.getByText('Vidéo')).toBeInTheDocument();
+    expect(screen.getByText(/35 occurrences/)).toBeInTheDocument();
+  });
+
+  it('montre frustrations, attentes et objections séparément', async () => {
+    /* Les confondre ferait perdre la distinction la plus utile : ce qui
+       bloque n'est pas ce qui est espéré. */
+    await analyser();
+    expect(screen.getByText('Frustrations')).toBeInTheDocument();
+    expect(screen.getByText('Attentes & désirs')).toBeInTheDocument();
+    expect(screen.getByText('Objections')).toBeInTheDocument();
+    expect(screen.getByText(/Attention au RGPD/)).toBeInTheDocument();
+    expect(screen.getByText(/tu utilises Opus/)).toBeInTheDocument();
+  });
+
+  it('montre les signaux de moquerie et d’ironie', async () => {
+    /* Un enthousiasme ironique n'est pas de l'adhésion : ne pas le mesurer
+       fausserait la lecture du sentiment. */
+    await analyser();
+    expect(screen.getByText('Moquerie')).toBeInTheDocument();
+    expect(screen.getByText('Ironie')).toBeInTheDocument();
+  });
+
+  it('montre les mots et expressions fréquents', async () => {
+    await analyser();
+    expect(screen.getAllByText('merci').length).toBeGreaterThan(0);
+    expect(screen.getByText(/claude code · 14/)).toBeInTheDocument();
+  });
+
+  it('montre les champs lexicaux détectés', async () => {
+    await analyser();
+    expect(screen.getByText('Merci')).toBeInTheDocument();
+    expect(screen.getByText(/49.5% des commentaires/)).toBeInTheDocument();
+  });
+
+  it('montre la lecture de polarisation en clair', async () => {
+    await analyser();
+    expect(screen.getByText(/penche favorablement/)).toBeInTheDocument();
+  });
+});
+
+describe('Insights fondés sur données', () => {
+  async function ouvrirInterpretation() {
+    const user = await analyser();
+    await user.click(screen.getByRole('tab', { name: /Interprétation/ }));
+    return user;
+  }
+
+  it('montre chaque livrable avec sa donnée, ses signaux et son sens', async () => {
+    /* La forme qui distingue une analyse d'une opinion : chaque conclusion
+       est adossée à un chiffre mesuré. */
+    await ouvrirInterpretation();
+    expect(screen.getByText('Lecture du sujet')).toBeInTheDocument();
+    expect(screen.getByText(/bouffée d'oxygène technique/)).toBeInTheDocument();
+    expect(screen.getByText(/CRS moyen : 0.274/)).toBeInTheDocument();
+    expect(screen.getByText(/dissonance entre l'attente/)).toBeInTheDocument();
+  });
+
+  it('montre le niveau de confiance de chaque livrable', async () => {
+    await ouvrirInterpretation();
+    expect(screen.getByText('0.85')).toBeInTheDocument();
+    expect(screen.getByText('0.90')).toBeInTheDocument();
+  });
+
+  it('montre les recommandations stratégiques et les prochaines étapes', async () => {
+    await ouvrirInterpretation();
+    expect(screen.getByText(/créateurs autonomes et respectés/)).toBeInTheDocument();
+    expect(screen.getByText(/Devenez le créateur/)).toBeInTheDocument();
+    expect(screen.getByText(/Lancer le défi/)).toBeInTheDocument();
+  });
+
+  it('montre la grille psychologique de l’observation jusqu’à l’action', async () => {
+    /* Les trois niveaux comptent : une observation sans action reste un
+       constat, une action sans observation reste une opinion. */
+    await ouvrirInterpretation();
+    expect(screen.getByText("Ce qu'ils ressentent")).toBeInTheDocument();
+    expect(screen.getByText(/34.3% des commentaires montrent/)).toBeInTheDocument();
+    expect(screen.getByText(/phase d'exploration active/)).toBeInTheDocument();
+    expect(screen.getByText(/structurent l'information/)).toBeInTheDocument();
+  });
+
+  it('n’affiche pas les entrées de grille absentes du rapport', async () => {
+    await ouvrirInterpretation();
+    expect(screen.queryByText("Ce qu'ils valorisent")).toBeNull();
   });
 });

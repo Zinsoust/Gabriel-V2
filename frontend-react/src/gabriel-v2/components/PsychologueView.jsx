@@ -413,6 +413,128 @@ function Interpretation({ title, data }) {
   </div>;
 }
 
+/* ── Blocs mesurés du tableau de bord ─────────────────────────────────── */
+
+/** Une métrique chiffrée avec sa lecture en clair. */
+function Metric({ label, value, hint, tone }) {
+  if (value == null || value === '') return null;
+  return <div className="gv2-psy-metric">
+    <div className="gv2-psy-metric-lbl">{label}</div>
+    <div className={`gv2-psy-metric-val${tone ? ` is-${tone}` : ''}`}>{value}</div>
+    {hint && <div className="gv2-psy-metric-hint">{esc(hint)}</div>}
+  </div>;
+}
+
+/** Signaux fréquents : frustrations, attentes, objections. */
+function SignalColumn({ title, items, tone }) {
+  const list = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (!list.length) return null;
+  return <div className={`gv2-psy-signal-col is-${tone}`}>
+    <div className="gv2-psy-signal-col-title">{title}</div>
+    {list.map((item, i) => <div className="gv2-psy-signal-item" key={i}>
+      <div className="gv2-psy-signal-head">
+        <span>{esc(item.signal || item.label || '')}</span>
+        <span className="gv2-psy-signal-num">{item.pct != null ? `${item.pct}%` : ''} {item.count != null ? `· ${item.count} cmnt` : ''}</span>
+      </div>
+      {(item.examples || []).slice(0, 1).map((ex, j) => <p key={j}>{esc(ex)}</p>)}
+    </div>)}
+  </div>;
+}
+
+/** Un groupe détecté dans l'audience (cluster). */
+function AudienceGroup({ groupe }) {
+  const tokens = Array.isArray(groupe.top_tokens) ? groupe.top_tokens : [];
+  const samples = Array.isArray(groupe.samples) ? groupe.samples : [];
+  return <div className="gv2-psy-group">
+    <div className="gv2-psy-group-head">
+      <span className="gv2-psy-group-pct">{groupe.pct != null ? `${groupe.pct}%` : ''}</span>
+      <span className="gv2-psy-group-count">{groupe.size != null ? `${groupe.size} commentaires` : ''}</span>
+      <div className="gv2-psy-group-tags">
+        {groupe.likes_pct != null && <span>♥ {groupe.likes_pct}%</span>}
+        {groupe.stance && <span>{esc(String(groupe.stance))}</span>}
+        {groupe.emotion && <span>{esc(String(groupe.emotion))}</span>}
+      </div>
+    </div>
+    {tokens.length > 0 && <div className="gv2-psy-group-tokens">
+      {tokens.map((t, i) => <span key={i}>{esc(String(t))}</span>)}
+    </div>}
+    {samples.slice(0, 2).map((sample, i) => <blockquote key={i}>{esc(String(sample))}</blockquote>)}
+  </div>;
+}
+
+/** Un livrable statistique : conclusion, données, signaux, sens, confiance. */
+function DataInsight({ title, data }) {
+  const d = data || {};
+  const conclusion = String(d.conclusion || '').trim();
+  if (!conclusion) return null;
+  const signaux = Array.isArray(d.signaux) ? d.signaux.filter(Boolean) : [];
+  const conf = typeof d.score_confiance === 'number' ? d.score_confiance : null;
+
+  return <div className="gv2-psy-card gv2-psy-insight">
+    <div className="gv2-psy-insight-title">{title}</div>
+    <p className="gv2-psy-insight-conclusion">{esc(conclusion)}</p>
+    {d.indicateur_statistique && <div className="gv2-psy-insight-row">
+      <span className="gv2-psy-insight-key">Données</span>
+      <span>{esc(String(d.indicateur_statistique))}</span>
+    </div>}
+    {signaux.length > 0 && <div className="gv2-psy-insight-row">
+      <span className="gv2-psy-insight-key">Signaux</span>
+      <span className="gv2-psy-insight-tokens">
+        {signaux.map((t, i) => <span key={i}>{esc(String(t))}</span>)}
+      </span>
+    </div>}
+    {d.interpretation && <div className="gv2-psy-insight-row">
+      <span className="gv2-psy-insight-key">Sens</span>
+      <span>{esc(String(d.interpretation))}</span>
+    </div>}
+    {conf != null && <div className="gv2-psy-conf">
+      <span>Confiance</span>
+      <div className="gv2-psy-conf-track"><div className="gv2-psy-conf-fill" style={{ width: `${Math.round(conf * 100)}%` }} /></div>
+      <span className="gv2-psy-conf-val">{conf.toFixed(2)}</span>
+    </div>}
+  </div>;
+}
+
+/** Une entrée de la grille psychologique : observation → sens → action. */
+function GridEntry({ label, data }) {
+  const d = data || {};
+  if (!d.observation && !d.interpretation && !d.implication) return null;
+  return <div className="gv2-psy-card gv2-psy-grid-entry">
+    <div className="gv2-psy-grid-title">{label}</div>
+    {d.observation && <div className="gv2-psy-grid-row">
+      <span className="gv2-psy-grid-key">Obs.</span><span>{esc(String(d.observation))}</span>
+    </div>}
+    {d.interpretation && <div className="gv2-psy-grid-row">
+      <span className="gv2-psy-grid-key">Sens</span><span>{esc(String(d.interpretation))}</span>
+    </div>}
+    {d.implication && <div className="gv2-psy-grid-row">
+      <span className="gv2-psy-grid-key">Action</span><span>{esc(String(d.implication))}</span>
+    </div>}
+  </div>;
+}
+
+// Ordre et libellés repris du livrable d'origine, sans réinvention.
+const LIVRABLES = [
+  ['lecture_sujet', 'Lecture du sujet'],
+  ['ce_qui_rassemble', 'Ce qui rassemble'],
+  ['ce_qui_divise', 'Ce qui divise'],
+  ['tension_centrale', 'Tension centrale'],
+  ['synthese_psychologique', 'Synthèse psychologique'],
+];
+
+const GRILLE = [
+  ['ce_qu_ils_ressentent', "Ce qu'ils ressentent"],
+  ['ce_qu_ils_veulent', "Ce qu'ils veulent"],
+  ['ce_qu_ils_refusent', "Ce qu'ils refusent"],
+  ['ce_qui_les_bloque', 'Ce qui les bloque'],
+  ['ce_qui_les_rassure', 'Ce qui les rassure'],
+  ['ce_qui_les_divise', 'Ce qui les divise'],
+  ['ce_qui_les_unit', 'Ce qui les unit'],
+  ['ce_qu_ils_valorisent', "Ce qu'ils valorisent"],
+  ['ce_qu_ils_attendent_comme_preuve', 'Preuve attendue'],
+  ['quelle_opportunite_emerge', 'Opportunité émergente'],
+];
+
 /** Onglets de résultat — même découpage que le livrable d'origine. */
 function ResultTabs({ active, onChange, tabs }) {
   return <div className="gv2-psy-result-tabs" role="tablist">
@@ -438,6 +560,29 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
   const mkt = data.marketing || {};
   const interp = data.interpretation || {};
   const kpis = data.kpis || {};
+  const livr = data.livrables_statistiques || {};
+  const grille = data.grille_psychologique || {};
+  const recos = data.recommandations || {};
+
+  // Blocs mesurés du dashboard — tous produits par le backend, aucun inventé.
+  const sf = db.signaux_frequents || {};
+  const groupes = Array.isArray(db.groupes) ? db.groupes : [];
+  const sujets = Array.isArray(db.sujets_recurrents) ? db.sujets_recurrents : [];
+  const lexique = db.lexique || {};
+  const champs = Array.isArray(db.lexical_fields) ? db.lexical_fields : [];
+  const pol = db.polarisation_detail || {};
+  const fib = db.fiabilite || {};
+  const ws = db.weighted_sentiment || {};
+  const wp = db.weighted_polarization || {};
+  const res = db.resonance_by_stance || {};
+  const ard = db.argument_density || {};
+  const mok = db.mockery_signals || {};
+  const iry = db.irony_signals || {};
+  const rt = db.resume_tendances || {};
+
+  // Les commentaires les plus amplifiés : reconstitués depuis les exemples
+  // déjà présents dans les signaux, faute d'un bloc dédié côté backend.
+  const topComments = Array.isArray(db.top_comments) ? db.top_comments : [];
 
   const pos = db.positions || {};
   const emotions = Array.isArray(db.emotion_distribution)
@@ -528,22 +673,201 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
         </Section>
       )}
 
-      {Array.isArray(db.top_comments) && db.top_comments.length > 0 && (
-        <Section title="Commentaires révélateurs"
+      {topComments.length > 0 && (
+        <Section title="Commentaires les plus likés"
                  hint="Les plus amplifiés par l'audience elle-même.">
           <div className="gv2-psy-quotes">
-            {db.top_comments.slice(0, 6).map((c, i) => <blockquote className="gv2-psy-quote" key={i}>
+            {topComments.slice(0, 10).map((c, i) => <blockquote className="gv2-psy-quote" key={i}>
               <p>{esc(typeof c === 'string' ? c : (c.text || ''))}</p>
-              {c && c.likes != null && <cite>{c.likes} j'aime</cite>}
+              {c && c.likes != null && <cite>♥ {c.likes}{c.author ? ` · ${esc(c.author)}` : ''}</cite>}
             </blockquote>)}
+          </div>
+        </Section>
+      )}
+
+      {(Object.keys(ws).length > 0 || Object.keys(wp).length > 0 || Object.keys(fib).length > 0) && (
+        <Section title="Métriques pondérées par engagement"
+                 hint="Un commentaire très liké pèse plus qu'un commentaire isolé.">
+          <div className="gv2-psy-metrics">
+            <Metric label="Sentiment pondéré" value={ws.score} hint={ws.interpretation} tone="pos" />
+            <Metric label="Sentiment brut" value={ws.score_raw} hint="non pondéré (moyenne)" />
+            <Metric label="Polarisation pondérée" value={wp.score} hint={wp.label} />
+            <Metric label="Likes analysés" value={ws.total_likes} hint="engagement total mesuré" />
+            <Metric label="Confiance" value={fib.label_confiance} hint={fib.commentaires_analyses != null ? `${fib.commentaires_analyses} commentaires retenus` : ''} />
+            <Metric label="Hors sujet" value={fib.pct_hors_sujet != null ? `${fib.pct_hors_sujet}%` : null} hint={`${fib.commentaires_hors_sujet || 0} écartés`} />
+          </div>
+        </Section>
+      )}
+
+      {Object.keys(res).length > 0 && (
+        <Section title="Résonance par camp & densité argumentative"
+                 hint="Qui fait réagir, et qui argumente.">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            {Object.entries(res).map(([camp, v]) => <div className="gv2-psy-resonance" key={camp}>
+              <span className="gv2-psy-resonance-camp">{esc(camp)}</span>
+              <div className="gv2-psy-bar-track"><div className="gv2-psy-bar-fill" style={{ width: `${Math.min(100, v.pct || 0)}%` }} /></div>
+              <span className="gv2-psy-resonance-pct">{v.pct}%</span>
+              <span className="gv2-psy-resonance-likes">{v.likes} ♥</span>
+              <span className="gv2-psy-resonance-words">
+                {(ard[camp] || {}).avg_words != null ? `${ard[camp].avg_words} mots · ${ard[camp].label || ''}` : ''}
+              </span>
+            </div>)}
+          </div>
+        </Section>
+      )}
+
+      {groupes.length > 0 && (
+        <Section title="Groupes détectés dans l'audience"
+                 hint="Des sous-ensembles qui parlent de la même chose, avec les mêmes mots.">
+          <div className="gv2-psy-groups">
+            {groupes.map((g, i) => <AudienceGroup groupe={g} key={i} />)}
+          </div>
+        </Section>
+      )}
+
+      {sujets.length > 0 && (
+        <Section title="Sujets récurrents">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            {sujets.map((sujet, i) => <div className="gv2-psy-topic" key={i}>
+              <div className="gv2-psy-topic-id">
+                <strong>{esc(String(sujet.theme || sujet.mot || ''))}</strong>
+                <span>{sujet.pct != null ? `${sujet.pct}%` : ''} {sujet.count != null ? `· ${sujet.count} occurrences` : ''}</span>
+              </div>
+              {sujet.exemple && <p>{esc(String(sujet.exemple))}</p>}
+            </div>)}
+          </div>
+        </Section>
+      )}
+
+      {(sf.frustrations || sf.attentes || sf.objections) && (
+        <Section title="Frustrations · Attentes · Objections"
+                 hint="Ce que l'audience exprime le plus souvent, avec ses mots.">
+          <div className="gv2-psy-signal-cols">
+            <SignalColumn title="Frustrations" items={sf.frustrations} tone="neg" />
+            <SignalColumn title="Attentes & désirs" items={sf.attentes} tone="pos" />
+            <SignalColumn title="Objections" items={sf.objections} tone="neg" />
+          </div>
+        </Section>
+      )}
+
+      {(Object.keys(mok).length > 0 || Object.keys(iry).length > 0) && (
+        <Section title="Signaux de moquerie & ironie"
+                 hint="Un enthousiasme ironique n'est pas de l'adhésion.">
+          <div className="gv2-psy-metrics">
+            <Metric label="Moquerie" value={`${mok.count || 0} (${mok.pct || 0}%)`} hint={mok.level} />
+            <Metric label="Ironie" value={`${iry.count || 0} (${iry.pct || 0}%)`} hint={iry.level} />
+          </div>
+        </Section>
+      )}
+
+      {(Array.isArray(lexique.top_mots) && lexique.top_mots.length > 0) && (
+        <Section title="Mots et expressions fréquents">
+          <div className="gv2-psy-lex-cols">
+            <div className="gv2-psy-card gv2-psy-card--plain">
+              <div className="gv2-psy-trait-label">Mots les plus significatifs</div>
+              <div className="gv2-psy-tokens">
+                {lexique.top_mots.slice(0, 14).map((m, i) => <span key={i}>{esc(String(m.mot || m))}</span>)}
+              </div>
+            </div>
+            {Array.isArray(lexique.top_bigrams) && lexique.top_bigrams.length > 0 && (
+              <div className="gv2-psy-card gv2-psy-card--plain">
+                <div className="gv2-psy-trait-label">Expressions fréquentes</div>
+                <div className="gv2-psy-tokens">
+                  {lexique.top_bigrams.slice(0, 12).map((b, i) => <span key={i}>
+                    {esc(String(b.bigram || b.mot || b))}{b.count != null ? ` · ${b.count}` : ''}
+                  </span>)}
+                </div>
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
+
+      {champs.length > 0 && (
+        <Section title="Champs lexicaux détectés">
+          <div className="gv2-psy-fields">
+            {champs.map((champ, i) => <div className="gv2-psy-card gv2-psy-field" key={i}>
+              <strong>{esc(String(champ.field || champ.nom || ''))}</strong>
+              <div className="gv2-psy-field-meta">
+                {champ.pct != null ? `${champ.pct}% des commentaires` : ''}
+                {champ.count != null ? ` · ${champ.count} occurrences` : ''}
+              </div>
+              {Array.isArray(champ.tokens) && <div className="gv2-psy-tokens">
+                {champ.tokens.slice(0, 5).map((t, j) => <span key={j}>{esc(String(t))}</span>)}
+              </div>}
+              {champ.exemple && <p>{esc(String(champ.exemple))}</p>}
+            </div>)}
+          </div>
+        </Section>
+      )}
+
+      {pol.phrase && (
+        <Section title="Polarisation de l'audience">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <p className="gv2-psy-polar-phrase">{esc(String(pol.phrase))}</p>
+            {pol.label && <div className="gv2-psy-metric-hint">{esc(String(pol.label))}{pol.score != null ? ` · score ${pol.score}` : ''}</div>}
           </div>
         </Section>
       )}
     </>}
 
     {actif === 'interpretation' && <>
+      {(recos.verite_de_l_audience || recos.message_central || recos.prochaines_etapes) && (
+        <Section title="Recommandations stratégiques">
+          <div className="gv2-psy-reco-cols">
+            <div className="gv2-psy-card gv2-psy-card--plain">
+              <Statement label="Vérité de l'audience" text={recos.verite_de_l_audience} />
+              {recos.message_central && <div className="gv2-psy-reco-message">
+                <div className="gv2-psy-statement-label">Message central</div>
+                <blockquote>{esc(String(recos.message_central))}</blockquote>
+              </div>}
+              <Statement label="Insight stratégique" text={recos.insight_strategique_cle} />
+            </div>
+            {Array.isArray(recos.prochaines_etapes) && recos.prochaines_etapes.length > 0 && (
+              <div className="gv2-psy-card gv2-psy-card--plain">
+                <div className="gv2-psy-statement-label">Prochaines étapes</div>
+                <ul className="gv2-psy-steps">
+                  {recos.prochaines_etapes.map((etape, i) => <li key={i}>
+                    {esc(typeof etape === 'string' ? etape
+                        : [etape.horizon, etape.action].filter(Boolean).join(' : '))}
+                  </li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        </Section>
+      )}
+
+      {(brief.qui || brief.insight || brief.action) && (
+        <Section title="Lecture instantanée">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <Statement label="Qui" text={brief.qui || brief.synthese} />
+            <div className="gv2-psy-reco-cols">
+              <Statement label="Insight clé" text={brief.insight || brief.insight_cle} />
+              <Statement label="Action prioritaire" text={brief.action || brief.action_prioritaire} />
+            </div>
+          </div>
+        </Section>
+      )}
+
+      {LIVRABLES.some(([cle]) => (livr[cle] || {}).conclusion) && (
+        <Section title="Insights fondés sur données"
+                 hint="Chaque lecture s'appuie sur un chiffre mesuré, pas sur une impression.">
+          {LIVRABLES.map(([cle, titre]) => <DataInsight key={cle} title={titre} data={livr[cle]} />)}
+        </Section>
+      )}
+
       <Interpretation title="Lecture psychologique" data={interp.psychologique} />
       <Interpretation title="Lecture socio-culturelle" data={interp.socio_culturelle} />
+
+      {GRILLE.some(([cle]) => grille[cle]) && (
+        <Section title="Grille psychologique"
+                 hint="Dix angles, chacun de l'observation mesurée jusqu'à l'action qu'elle appelle.">
+          <div className="gv2-psy-grid">
+            {GRILLE.map(([cle, label]) => <GridEntry key={cle} label={label} data={grille[cle]} />)}
+          </div>
+        </Section>
+      )}
 
       {Object.keys(psy).length > 0 && <Section
         title="La réalité intérieure"
