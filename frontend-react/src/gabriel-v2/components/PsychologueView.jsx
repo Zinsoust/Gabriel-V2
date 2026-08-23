@@ -324,10 +324,121 @@ function Bar({ label, pct, count }) {
   </div>;
 }
 
+/* ── Blocs de restitution ─────────────────────────────────────────────
+ *
+ * Le backend produit bien plus que ce que l'écran montrait : interprétations
+ * psychologique et socio-culturelle, réalité intérieure de l'audience,
+ * aspirations, signaux marketing, personas complets. Tout arrivait déjà dans
+ * la réponse — seul l'affichage manquait.
+ *
+ * Chaque bloc s'efface s'il n'a pas de donnée : un rapport pauvre reste
+ * lisible au lieu d'afficher une section à trous.
+ */
+
+function Section({ title, hint, children }) {
+  return <div className="gv2-psy-section">
+    <div className="gv2-psy-section-title">{title}</div>
+    {hint && <p className="gv2-psy-section-hint">{hint}</p>}
+    {children}
+  </div>;
+}
+
+/** Liste de traits courts — frustrations, peurs, désirs… */
+function TraitList({ items, tone }) {
+  const clean = (Array.isArray(items) ? items : []).filter(Boolean);
+  if (!clean.length) return null;
+  return <ul className={`gv2-psy-traits${tone ? ` is-${tone}` : ''}`}>
+    {clean.map((item, i) => <li key={i}>{esc(String(item))}</li>)}
+  </ul>;
+}
+
+/** Un groupe de traits, masqué si vide. */
+function TraitGroup({ label, items, tone }) {
+  const clean = (Array.isArray(items) ? items : []).filter(Boolean);
+  if (!clean.length) return null;
+  return <div className="gv2-psy-trait-group">
+    <div className="gv2-psy-trait-label">{label}</div>
+    <TraitList items={clean} tone={tone} />
+  </div>;
+}
+
+/** Une phrase attribuée à un champ nommé. */
+function Statement({ label, text }) {
+  const value = String(text || '').trim();
+  if (!value) return null;
+  return <div className="gv2-psy-statement">
+    <div className="gv2-psy-statement-label">{label}</div>
+    <p>{esc(value)}</p>
+  </div>;
+}
+
+/** Bloc d'interprétation — psychologique ou socio-culturelle. */
+function Interpretation({ title, data }) {
+  const d = data || {};
+  const insight = String(d.main_insight || '').trim();
+  const mecanismes = Array.isArray(d.detected_mechanisms) ? d.detected_mechanisms : [];
+  const rien = !insight && !mecanismes.length && !(d.fears || []).length
+    && !(d.desires || []).length && !(d.beliefs || []).length
+    && !(d.decision_drivers || []).length;
+  if (rien) return null;
+
+  return <div className="gv2-psy-card gv2-psy-interp">
+    <div className="gv2-psy-interp-head">
+      <span className="gv2-psy-interp-title">{title}</span>
+      {typeof d.confidence_score === 'number' && (
+        <span className="gv2-psy-interp-conf">
+          confiance {Math.round(d.confidence_score * 100)}%
+        </span>
+      )}
+    </div>
+    {insight && <p className="gv2-psy-interp-insight">{esc(insight)}</p>}
+
+    {mecanismes.length > 0 && <div className="gv2-psy-mechanisms">
+      {mecanismes.filter(m => m && m.mechanism).map((m, i) => <div className="gv2-psy-mechanism" key={i}>
+        <div className="gv2-psy-mechanism-head">
+          <strong>{esc(m.mechanism)}</strong>
+          {typeof m.confidence === 'number' && <span>{Math.round(m.confidence * 100)}%</span>}
+        </div>
+        {m.evidence && <p>{esc(m.evidence)}</p>}
+      </div>)}
+    </div>}
+
+    <div className="gv2-psy-trait-cols">
+      <TraitGroup label="Peurs" items={d.fears} tone="neg" />
+      <TraitGroup label="Désirs" items={d.desires} tone="pos" />
+      <TraitGroup label="Frustrations" items={d.frustrations} tone="neg" />
+      <TraitGroup label="Croyances actives" items={d.beliefs} />
+      <TraitGroup label="Facteurs de décision" items={d.decision_drivers} tone="pos" />
+    </div>
+  </div>;
+}
+
+/** Onglets de résultat — même découpage que le livrable d'origine. */
+function ResultTabs({ active, onChange, tabs }) {
+  return <div className="gv2-psy-result-tabs" role="tablist">
+    {tabs.map(tab => <button
+      key={tab.id}
+      type="button"
+      role="tab"
+      aria-selected={active === tab.id}
+      className={active === tab.id ? 'is-active' : ''}
+      onClick={() => onChange(tab.id)}
+    >{tab.label}</button>)}
+  </div>;
+}
+
 function PsychoResult({ data, onReset, onGoToStratege }) {
+  const [tab, setTab] = useState('dashboard');
+
   const db = data.dashboard || {};
   const meta = data.meta || {};
   const brief = data.brief || {};
+  const psy = data.psychologie || {};
+  const asp = data.aspirations || {};
+  const mkt = data.marketing || {};
+  const interp = data.interpretation || {};
+  const kpis = data.kpis || {};
+
   const pos = db.positions || {};
   const emotions = Array.isArray(db.emotion_distribution)
     ? db.emotion_distribution
@@ -336,6 +447,18 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
   const synthese = brief.qui || brief.synthese || '';
   const insight = brief.insight || brief.insight_cle || '';
   const action = brief.action || brief.action_prioritaire || '';
+
+  // Un onglet vide ne doit pas être proposé : mieux vaut deux onglets pleins
+  // que trois dont un déçoit.
+  const aInterpretation = Boolean(
+    interp.psychologique || interp.socio_culturelle ||
+    Object.keys(psy).length || Object.keys(asp).length || Object.keys(mkt).length);
+  const tabs = [
+    { id: 'dashboard', label: 'Tableau de bord' },
+    ...(aInterpretation ? [{ id: 'interpretation', label: 'Interprétation' }] : []),
+    ...(personas.length ? [{ id: 'personas', label: `Personas (${personas.length})` }] : []),
+  ];
+  const actif = tabs.some(t => t.id === tab) ? tab : 'dashboard';
 
   return <section className="gv2-psy-result">
     <div className="gv2-psy-result-head">
@@ -350,7 +473,7 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
     </div>
 
     {synthese && <div className="gv2-psy-hero">
-      <div className="gv2-psy-hero-label">Interprétation psychologique</div>
+      <div className="gv2-psy-hero-label">Ce que dit cette audience</div>
       <p className="gv2-psy-hero-text">{synthese}</p>
       <div className="gv2-psy-hero-pills">
         {insight && <span><strong>Insight ·</strong> {insight}</span>}
@@ -358,36 +481,152 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
       </div>
     </div>}
 
-    <div className="gv2-psy-stats-grid">
-      <StatChip value={meta.total_commentaires || 0} count={`${meta.commentaires_analyses || 0} qualifiés`} label="Collectés" />
-      <StatChip value={`${(pos.favorable || {}).pct || 0}%`} count={`${(pos.favorable || {}).count || 0} cmnt`} label="Favorables" tone="pos" />
-      <StatChip value={`${(pos.oppose || {}).pct || 0}%`} count={`${(pos.oppose || {}).count || 0} cmnt`} label="Négatifs" tone="neg" />
-      <StatChip value={`${(pos.neutre || {}).pct || 0}%`} count={`${(pos.neutre || {}).count || 0} cmnt`} label="Neutres" />
-    </div>
+    {tabs.length > 1 && <ResultTabs active={actif} onChange={setTab} tabs={tabs} />}
 
-    {emotions.length > 0 && <div className="gv2-psy-section">
-      <div className="gv2-psy-section-title">Émotions détectées</div>
-      <div className="gv2-psy-card gv2-psy-card--plain">
-        {emotions.slice(0, 6).map((item, index) => <Bar key={index} label={item.emotion} pct={Math.round(item.pourcentage || item.pct || 0)} />)}
+    {actif === 'dashboard' && <>
+      <div className="gv2-psy-stats-grid">
+        <StatChip value={meta.total_commentaires || 0} count={`${meta.commentaires_analyses || 0} qualifiés`} label="Collectés" />
+        <StatChip value={`${(pos.favorable || {}).pct || 0}%`} count={`${(pos.favorable || {}).count || 0} cmnt`} label="Favorables" tone="pos" />
+        <StatChip value={`${(pos.oppose || {}).pct || 0}%`} count={`${(pos.oppose || {}).count || 0} cmnt`} label="Négatifs" tone="neg" />
+        <StatChip value={`${(pos.neutre || {}).pct || 0}%`} count={`${(pos.neutre || {}).count || 0} cmnt`} label="Neutres" />
       </div>
-    </div>}
 
-    {Object.keys(pos).length > 0 && <div className="gv2-psy-section">
-      <div className="gv2-psy-section-title">Répartition des positions</div>
-      <div className="gv2-psy-card gv2-psy-card--plain">
-        {Object.entries(pos).map(([key, value]) => <Bar key={key} label={key} pct={Math.round(value.pct || 0)} count={value.count} />)}
-      </div>
-    </div>}
+      {Object.keys(kpis).length > 0 && <Section title="Indicateurs">
+        <div className="gv2-psy-kpis">
+          {Object.entries(kpis).map(([nom, valeur]) => {
+            const score = valeur && typeof valeur === 'object' ? valeur.score : valeur;
+            if (typeof score !== 'number') return null;
+            return <div className="gv2-psy-kpi" key={nom}>
+              <div className="gv2-psy-kpi-score">{Math.round(score)}</div>
+              <div className="gv2-psy-kpi-name">{esc(nom)}</div>
+              {valeur && valeur.lecture && <p>{esc(valeur.lecture)}</p>}
+            </div>;
+          })}
+        </div>
+      </Section>}
 
-    {personas.length > 0 && <div className="gv2-psy-section">
-      <div className="gv2-psy-section-title">Personas</div>
-      <div className="gv2-psy-persona-grid">
-        {personas.map((persona, index) => <div className="gv2-psy-persona-card" key={index}>
+      {emotions.length > 0 && <Section title="Émotions détectées">
+        <div className="gv2-psy-card gv2-psy-card--plain">
+          {emotions.slice(0, 8).map((item, index) => <Bar key={index} label={item.emotion} pct={Math.round(item.pourcentage || item.pct || 0)} />)}
+        </div>
+      </Section>}
+
+      {Object.keys(pos).length > 0 && <Section title="Répartition des positions">
+        <div className="gv2-psy-card gv2-psy-card--plain">
+          {Object.entries(pos).map(([key, value]) => <Bar key={key} label={key} pct={Math.round(value.pct || 0)} count={value.count} />)}
+        </div>
+      </Section>}
+
+      {(db.tension_principale || db.tendance_dominante || db.dominant_desire) && (
+        <Section title="Lecture d'ensemble">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <Statement label="Tension principale" text={db.tension_principale} />
+            <Statement label="Tendance dominante" text={db.tendance_dominante} />
+            <Statement label="Désir dominant" text={db.dominant_desire} />
+            <Statement label="Signal dominant" text={db.signal_dominant} />
+          </div>
+        </Section>
+      )}
+
+      {Array.isArray(db.top_comments) && db.top_comments.length > 0 && (
+        <Section title="Commentaires révélateurs"
+                 hint="Les plus amplifiés par l'audience elle-même.">
+          <div className="gv2-psy-quotes">
+            {db.top_comments.slice(0, 6).map((c, i) => <blockquote className="gv2-psy-quote" key={i}>
+              <p>{esc(typeof c === 'string' ? c : (c.text || ''))}</p>
+              {c && c.likes != null && <cite>{c.likes} j'aime</cite>}
+            </blockquote>)}
+          </div>
+        </Section>
+      )}
+    </>}
+
+    {actif === 'interpretation' && <>
+      <Interpretation title="Lecture psychologique" data={interp.psychologique} />
+      <Interpretation title="Lecture socio-culturelle" data={interp.socio_culturelle} />
+
+      {Object.keys(psy).length > 0 && <Section
+        title="La réalité intérieure"
+        hint="Ce que l'audience porte, au-delà de ce qu'elle dit.">
+        <div className="gv2-psy-card gv2-psy-card--plain">
+          <div className="gv2-psy-trait-cols">
+            <TraitGroup label="Frustrations" items={psy.frustrations} tone="neg" />
+            <TraitGroup label="Peurs implicites" items={psy.peurs_implicites} tone="neg" />
+            <TraitGroup label="Désirs cachés" items={psy.desirs_caches} tone="pos" />
+            <TraitGroup label="Motivations profondes" items={psy.motivations_profondes} tone="pos" />
+            <TraitGroup label="Croyances limitantes" items={psy.croyances_limitantes} tone="neg" />
+            <TraitGroup label="Croyances mobilisatrices" items={psy.croyances_mobilisatrices} tone="pos" />
+            <TraitGroup label="Valeurs dominantes" items={psy.valeurs_dominantes} />
+          </div>
+          <Statement label="Mécanismes psychologiques" text={psy.mecanismes_psychologiques} />
+          <Statement label="Tensions internes" text={psy.tensions_internes} />
+          <Statement label="Besoins identitaires" text={psy.besoins_identitaires} />
+          <Statement label="Rapport à l'argent" text={psy.rapport_argent} />
+          <Statement label="Rapport au succès" text={psy.rapport_succes} />
+          <Statement label="Rapport à l'autorité" text={psy.rapport_autorite} />
+        </div>
+      </Section>}
+
+      {Object.keys(asp).length > 0 && <Section
+        title="Aspirations"
+        hint="Ce vers quoi cette audience tend, même sans le formuler.">
+        <div className="gv2-psy-card gv2-psy-card--plain">
+          <Statement label="Ce qu'ils veulent devenir" text={asp.ce_qu_ils_veulent_devenir} />
+          <Statement label="Ce qu'ils veulent construire" text={asp.ce_qu_ils_veulent_construire} />
+          <Statement label="Ce qu'ils veulent transmettre" text={asp.ce_qu_ils_veulent_transmettre} />
+          <Statement label="Ce qu'ils veulent protéger" text={asp.ce_qu_ils_veulent_proteger} />
+          <Statement label="Ce qu'ils veulent éviter" text={asp.ce_qu_ils_veulent_eviter} />
+          <Statement label="Appel intérieur" text={asp.appel_interieur} />
+          <Statement label="Vision de leur meilleur moi" text={asp.vision_de_leur_meilleur_moi} />
+          <div className="gv2-psy-trait-cols">
+            <TraitGroup label="Ambitions" items={asp.ambitions} tone="pos" />
+            <TraitGroup label="Freins" items={asp.freins_aux_aspirations} tone="neg" />
+          </div>
+        </div>
+      </Section>}
+
+      {Object.keys(mkt).length > 0 && <Section
+        title="Signaux exploitables"
+        hint="Ce que cette lecture ouvre comme prises concrètes.">
+        <div className="gv2-psy-card gv2-psy-card--plain">
+          <Statement label="Positionnement recommandé" text={mkt.positionnement_recommande} />
+          <div className="gv2-psy-trait-cols">
+            <TraitGroup label="Objections visibles" items={mkt.objections_visibles} tone="neg" />
+            <TraitGroup label="Objections invisibles" items={mkt.objections_invisibles} tone="neg" />
+            <TraitGroup label="Déclencheurs émotionnels" items={mkt.declencheurs_emotionnels} tone="pos" />
+            <TraitGroup label="Leviers de conversion" items={mkt.leviers_de_conversion} tone="pos" />
+            <TraitGroup label="Opportunités d'offre" items={mkt.opportunites_offre} tone="pos" />
+            <TraitGroup label="Opportunités de contenu" items={mkt.opportunites_contenu} tone="pos" />
+            <TraitGroup label="Sujets qui attirent" items={mkt.sujets_qui_attirent} />
+            <TraitGroup label="Sujets qui divisent" items={mkt.sujets_qui_divisent} tone="neg" />
+            <TraitGroup label="Risques de communication" items={mkt.risques_communication} tone="neg" />
+          </div>
+          <TraitGroup label="Accroches performantes" items={mkt.hooks_performants} tone="pos" />
+        </div>
+      </Section>}
+    </>}
+
+    {actif === 'personas' && <div className="gv2-psy-persona-grid is-full">
+      {personas.map((persona, index) => <div className="gv2-psy-persona-card" key={index}>
+        <div className="gv2-psy-persona-head">
           <div className="gv2-psy-persona-name">{persona.nom || `Persona ${index + 1}`}</div>
-          {(persona.age || persona.genre || persona.metier) && <div className="gv2-psy-persona-meta">{[persona.age ? `${persona.age} ans` : '', persona.genre, persona.metier].filter(Boolean).join(' · ')}</div>}
-          {persona.histoire_interieure && <p className="gv2-psy-persona-quote">"{persona.histoire_interieure}"</p>}
-        </div>)}
-      </div>
+          {persona.poids && <span className="gv2-psy-persona-weight">{esc(String(persona.poids))}</span>}
+        </div>
+        {(persona.age || persona.genre || persona.metier) && <div className="gv2-psy-persona-meta">{[persona.age ? `${persona.age} ans` : '', persona.genre, persona.metier].filter(Boolean).join(' · ')}</div>}
+        {persona.emotion_dominante_mesuree && <div className="gv2-psy-persona-emo">{esc(persona.emotion_dominante_mesuree)}</div>}
+        {persona.histoire_interieure && <p className="gv2-psy-persona-quote">"{esc(persona.histoire_interieure)}"</p>}
+        <Statement label="État d'esprit" text={persona.etat_esprit} />
+        <Statement label="Vision du monde" text={persona.vision_monde} />
+        <div className="gv2-psy-trait-cols">
+          <TraitGroup label="Frustrations" items={persona.frustrations} tone="neg" />
+          <TraitGroup label="Peurs" items={persona.peurs} tone="neg" />
+          <TraitGroup label="Désirs" items={persona.desirs} tone="pos" />
+          <TraitGroup label="Aspirations" items={persona.aspirations} tone="pos" />
+        </div>
+        <Statement label="Objection principale" text={persona.objection_principale} />
+        <Statement label="Ce qui le ferait acheter" text={persona.ce_qui_le_ferait_acheter} />
+        <Statement label="Message à lui adresser" text={persona.message_a_lui_dire} />
+      </div>)}
     </div>}
   </section>;
 }
