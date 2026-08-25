@@ -20,7 +20,55 @@ function JourneyRow({ label, done, current, unavailable }) {
 
 /** La droite expose l’état réel du workspace ; le travail et les échanges
  * restent volontairement dans la colonne centrale. */
-function BusinessContext({ workspace, activeAgent }) {
+/* L'objectif du dossier se modifie sur place : on clique sur la phrase, on
+   écrit, ça s'enregistre en sortant du champ. Pas de formulaire, pas de
+   bouton « Modifier », pas d'écran intermédiaire — c'est le seul moyen de
+   l'ajouter sans alourdir un parcours qui n'en demandait pas.
+
+   Échap annule, Entrée valide, Maj+Entrée passe à la ligne. */
+function ObjectifDuDossier({ workspace, onUpdateWorkspace }) {
+  const objectif = workspace?.objective || '';
+  const [edition, setEdition] = useState(false);
+  const [texte, setTexte] = useState(objectif);
+
+  if (!workspace) {
+    return <p className="gv2-business-objective">Ajoutez votre contexte dans la conversation : Gabriel l’utilisera pour guider les trois spécialistes.</p>;
+  }
+
+  async function enregistrer() {
+    setEdition(false);
+    const propre = texte.trim().slice(0, 500);
+    if (propre === objectif) return;
+    await onUpdateWorkspace?.(workspace.folder_id, { objective: propre });
+  }
+
+  if (edition) {
+    return <textarea
+      className="gv2-business-objective gv2-business-objective--edit"
+      value={texte}
+      autoFocus
+      rows={3}
+      maxLength={500}
+      aria-label="Objectif de ce dossier"
+      placeholder="Ce que vous cherchez à accomplir dans ce dossier."
+      onChange={event => setTexte(event.target.value)}
+      onBlur={enregistrer}
+      onKeyDown={event => {
+        if (event.key === 'Escape') { setTexte(objectif); setEdition(false); }
+        if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.currentTarget.blur(); }
+      }} />;
+  }
+
+  return <button
+    type="button"
+    className={`gv2-business-objective gv2-business-objective--button${objectif ? '' : ' is-empty'}`}
+    onClick={() => { setTexte(objectif); setEdition(true); }}
+    title="Modifier l’objectif de ce dossier">
+    {objectif || 'Quel est votre objectif ici ? Gabriel s’en sert dès la première réponse.'}
+  </button>;
+}
+
+function BusinessContext({ workspace, activeAgent, onUpdateWorkspace }) {
   const hasAnalysis = Boolean(workspace?.analysis_id);
   const hasStrategy = Boolean(workspace?.strategy_id);
   const hasCreatorOutput = Boolean(workspace?.creator_output_id);
@@ -33,7 +81,7 @@ function BusinessContext({ workspace, activeAgent }) {
       <div><strong>{activeAgent.name}</strong><span>{activeAgent.contextLabel}</span></div>
     </div>}
     <h2>{workspace?.title || 'Workspace à définir'}</h2>
-    <p className="gv2-business-objective">{workspace?.objective || 'Ajoutez votre contexte dans la conversation : Gabriel l’utilisera pour guider les trois spécialistes.'}</p>
+    <ObjectifDuDossier workspace={workspace} onUpdateWorkspace={onUpdateWorkspace} />
     <div className="gv2-context-source"><Icon name="link" size={15} /><span>{workspace?.source_type ? `Source : ${workspace.source_type}` : 'Aucune source connectée'}</span></div>
     <div className="gv2-context-journey" aria-label="Avancement des agents">
       <JourneyRow label="Psychologue" done={hasAnalysis} current={activeId === 'psychologue' && !hasAnalysis} />
@@ -45,7 +93,7 @@ function BusinessContext({ workspace, activeAgent }) {
 
 const creatorFormats = [
   ['script', 'Script court'], ['youtube', 'Script YouTube'], ['tiktok', 'TikTok / Reels'],
-  ['linkedin', 'Post LinkedIn'], ['email', 'Séquence email'], ['sales_page', 'Page de vente'],
+  ['linkedin', 'Post LinkedIn'], ['post', 'Thread'], ['email', 'Séquence email'], ['sales_page', 'Page de vente'],
 ];
 const creatorTones = [
   ['expert', 'Expert'], ['premium', 'Premium'], ['educational', 'Pédagogique'],
@@ -69,10 +117,11 @@ function CreatorSelect({ label, value, options, onChange }) {
 
 /** Les réglages ne coupent jamais la conversation : ils restent une aide
  * secondaire dans la troisième zone, comme le contexte business. */
-function CreatorContextPanel({ workspace, settings, onSettingsChange, hasOutput, onRefinement }) {
+function CreatorContextPanel({ workspace, settings, onSettingsChange, hasOutput, onRefinement, onClose }) {
   const hasAnalysis = Boolean(workspace?.analysis_id);
   const hasStrategy = Boolean(workspace?.strategy_id);
   return <div className="gv2-creator-context-panel">
+    <header className="gv2-creator-atelier-head"><strong>Atelier</strong><button type="button" onClick={onClose} aria-label="Fermer l’Atelier" title="Fermer l’Atelier"><Icon name="close" size={18} /></button></header>
     <section className="gv2-creator-context-intro">
       <p className="gv2-panel-eyebrow"><Icon name="sparkle" size={16} />Atelier de création</p>
       <div className="gv2-context-agent">
@@ -88,10 +137,9 @@ function CreatorContextPanel({ workspace, settings, onSettingsChange, hasOutput,
       <CreatorSelect label="Format" value={settings.contentType} options={creatorFormats} onChange={contentType => onSettingsChange({ contentType })} />
       <CreatorSelect label="Canal" value={settings.channel} options={creatorChannels} onChange={channel => onSettingsChange({ channel })} />
       <CreatorSelect label="Tonalité" value={settings.tone} options={creatorTones} onChange={tone => onSettingsChange({ tone })} />
-      <CreatorSelect label="Émotion visée" value={settings.emotion} options={creatorEmotions} onChange={emotion => onSettingsChange({ emotion })} />
       <CreatorSelect label="Objectif" value={settings.objective} options={creatorObjectives} onChange={objective => onSettingsChange({ objective })} />
       <label className="gv2-creator-setting gv2-creator-range"><span>Liberté créative <b>{settings.creativity || 50}</b></span><input type="range" min="0" max="100" value={settings.creativity || 50} onChange={event => onSettingsChange({ creativity: Number(event.target.value) })} /></label>
-      <label className="gv2-creator-switch"><input type="checkbox" checked={Boolean(settings.generateVariant)} onChange={event => onSettingsChange({ generateVariant: event.target.checked })} /><span /><div><strong>Proposer une variante</strong><small>Une seconde piste si elle apporte une vraie différence.</small></div></label>
+      <details className="gv2-creator-advanced-settings"><summary>Options avancées<Icon name="chevronDown" size={14} /></summary><div><CreatorSelect label="Émotion visée" value={settings.emotion} options={creatorEmotions} onChange={emotion => onSettingsChange({ emotion })} /><label className="gv2-creator-switch"><input type="checkbox" checked={Boolean(settings.generateVariant)} onChange={event => onSettingsChange({ generateVariant: event.target.checked })} /><span /><div><strong>Proposer une variante</strong><small>Une seconde piste si elle apporte une vraie différence.</small></div></label></div></details>
     </section>
 
     <section className="gv2-creator-linked-context">
@@ -217,16 +265,16 @@ function MissionPanel({ mission, onStart, isStarting }) {
 /** Registre de panneaux. Le backend peut indiquer panel.type sans ajouter de logique dans la page. */
 const panelRegistry = { empty: EmptyPanel, mission_summary: MissionPanel, youtube_analyzer: MissionPanel, document_analyzer: MissionPanel, offer_builder: MissionPanel, data_import: MissionPanel };
 
-export function ContextPanel({ mission, workspace, activeAgent, onStartMission, isStartingMission, creatorSettings, onCreatorSettingsChange, creatorHasOutput, onCreatorRefinement }) {
-  if (activeAgent?.id === 'createur') return <aside className="gv2-context-panel" aria-label="Paramètres de création">
-    <CreatorContextPanel workspace={workspace} settings={creatorSettings} onSettingsChange={onCreatorSettingsChange} hasOutput={creatorHasOutput} onRefinement={onCreatorRefinement} />
+export function ContextPanel({ mission, workspace, activeAgent, onUpdateWorkspace, onStartMission, isStartingMission, creatorSettings, onCreatorSettingsChange, creatorHasOutput, onCreatorRefinement, onCreatorClose }) {
+  if (activeAgent?.id === 'createur') return <aside className="gv2-context-panel gv2-context-panel--creator" aria-label="Paramètres de création">
+    <CreatorContextPanel workspace={workspace} settings={creatorSettings} onSettingsChange={onCreatorSettingsChange} hasOutput={creatorHasOutput} onRefinement={onCreatorRefinement} onClose={onCreatorClose} />
   </aside>;
-  if (activeAgent?.id === 'stratege') return <aside className="gv2-context-panel" aria-label="Clarté du contexte stratégique">
+  if (activeAgent?.id === 'stratege') return <aside className="gv2-context-panel gv2-context-panel--strategy" aria-label="Clarté du contexte stratégique">
     <StrategyContextPanel workspace={workspace} mission={mission} onStart={onStartMission} isStarting={isStartingMission} />
   </aside>;
   const Panel = mission ? (panelRegistry[mission.panelType] || panelRegistry.mission_summary) : panelRegistry.empty;
   return <aside className="gv2-context-panel" aria-label="Contexte du workspace">
-    <BusinessContext workspace={workspace} activeAgent={activeAgent} />
+    <BusinessContext workspace={workspace} activeAgent={activeAgent} onUpdateWorkspace={onUpdateWorkspace} />
     <Panel mission={mission} onStart={onStartMission} isStarting={isStartingMission} />
   </aside>;
 }

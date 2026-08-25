@@ -70,3 +70,35 @@ def test_la_page_d_accueil_ne_renvoie_plus_vers_une_page_v1():
     corps = _app.app.test_client().get('/').get_data(as_text=True)
     assert 'href="/dossiers"' not in corps, 'L’accueil renvoie encore vers une page V1'
     assert 'href="/orchestrateur"' in corps
+
+
+def test_la_page_dossiers_v1_ne_s_affiche_plus():
+    """Elle ne savait que lister, créer et supprimer — la V2 fait les trois
+    dans sa navigation, avec les mêmes appels."""
+    r = _client().get('/dossiers')
+    assert r.status_code == 302
+    assert r.headers['Location'] == '/orchestrateur'
+
+
+def test_un_lien_vers_un_dossier_precis_rouvre_ce_dossier(monkeypatch):
+    """Un favori ou un lien partagé doit rouvrir le bon dossier dans la V2,
+    pas celui consulté auparavant.
+
+    Le dossier est simulé plutôt que réellement créé : sans Supabase, le
+    stockage ne le relit pas, et le test mesurerait alors le stockage au lieu
+    de la redirection."""
+    fid = 'dossier-lien-direct'
+    monkeypatch.setattr(_app._db, 'get_folder_by_id',
+                        lambda folder_id, uid=None: {'folder_id': folder_id, 'title': 'Dossier de test'})
+    c = _client()
+    r = c.get(f'/dossiers/{fid}')
+    assert r.status_code == 302
+    assert f'folder_id={fid}' in r.headers['Location'], 'le dossier visé est perdu en chemin'
+    with c.session_transaction() as s:
+        assert s.get('active_folder_id') == fid
+
+
+def test_un_dossier_introuvable_ne_renvoie_pas_vers_la_v1():
+    r = _client().get('/dossiers/inexistant-xyz')
+    assert r.status_code == 302
+    assert '/dossiers' not in r.headers['Location']

@@ -171,32 +171,23 @@ def test_dossiers_page_auth():
     assert 'login' in location
 
 
-def test_dossiers_page_authenticated():
-    """GET /dossiers retourne 200 pour un utilisateur connecté."""
+def test_dossiers_page_renvoie_vers_la_v2():
+    """La création de dossier vit désormais dans la navigation de la V2 (même
+    formulaire accessible, porté nativement) : la page V1 ne s'affiche plus,
+    elle renvoie vers l'interface V2."""
     c = _client()
     r = c.get('/dossiers')
-    assert r.status_code == 200
-    assert b'Dossiers' in r.data
-
-
-def test_dossiers_create_dialog_uses_accessible_form():
-    """La création doit rester utilisable au clic, au clavier et sur mobile."""
-    c = _client()
-    r = c.get('/dossiers')
-    html = r.data.decode('utf-8')
-    assert 'id="ds-create-form"' in html
-    assert 'data-open-modal' in html
-    assert 'type="submit" id="ds-submit-btn"' in html
-    assert 'aria-labelledby="ds-modal-title"' in html
+    assert r.status_code == 302
+    assert r.headers['Location'] == '/orchestrateur'
 
 
 def test_dossier_detail_redirect_unknown():
-    """GET /dossiers/<fid_inconnu> redirige vers /dossiers (dossier introuvable)."""
+    """GET /dossiers/<fid_inconnu> redirige vers la V2 (dossier introuvable),
+    plus vers l'ancienne page de liste."""
     c = _client()
     r = c.get('/dossiers/nonexistent-id')
     assert r.status_code in (302, 301)
-    location = r.headers.get('Location', '')
-    assert 'dossiers' in location
+    assert r.headers.get('Location', '') == '/orchestrateur'
 
 
 # ══════════════════════════════════════════════════════════════════════════════

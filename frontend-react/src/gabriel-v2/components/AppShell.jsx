@@ -209,6 +209,42 @@ export function AppShell({ bootstrap }) {
     }
   }, [activeWorkspaceId]);
 
+  /* L'objectif du dossier n'est pas décoratif : Gabriel le lit au début de
+     chaque conversation (« Objectif déclaré : … »). L'ancienne interface le
+     demandait à la création ; la V2 ne le demandait nulle part, si bien que
+     tous les dossiers créés ici partaient avec un objectif vide.
+
+     Il est modifiable à tout moment plutôt qu'exigé à la création : la V2
+     crée parfois un dossier silencieusement quand on ouvre un agent, et
+     imposer un formulaire à ce moment-là casserait ce parcours sans
+     friction. L'affichage est mis à jour tout de suite ; en cas d'échec on
+     revient à l'état précédent plutôt que de laisser croire à un
+     enregistrement qui n'a pas eu lieu. */
+  const updateWorkspaceFields = useCallback(async (workspaceId, fields) => {
+    if (!workspaceId) return false;
+    let precedent = null;
+    setWorkspaces(current => current.map(item => {
+      if (item.folder_id !== workspaceId) return item;
+      precedent = item;
+      return { ...item, ...fields };
+    }));
+    try {
+      const response = await fetchV2(`/api/folders/${encodeURIComponent(workspaceId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fields),
+      });
+      if (isLoginResponse(response)) { window.location.assign('/login'); return false; }
+      const payload = await readApiPayload(response, 'La mise à jour du workspace');
+      if (!response.ok || !payload?.success) throw new Error(payload?.error || '');
+      return true;
+    } catch (_) {
+      if (precedent) setWorkspaces(current => current.map(item => item.folder_id === workspaceId ? precedent : item));
+      setBackendError('Cet objectif n’a pas pu être enregistré. Réessayez.');
+      return false;
+    }
+  }, []);
+
   useEffect(() => {
     try {
       window.localStorage.setItem('gabriel-v2:left-width', String(leftWidth));
@@ -725,7 +761,7 @@ export function AppShell({ bootstrap }) {
             ? <WorkspaceActivity workspace={activeWorkspace} mission={mission} />
             : <WorkspaceMemory workspace={activeWorkspace} />}
     </section>
-    <ContextPanel mission={mission} workspace={activeWorkspace} activeAgent={activeAgent} onStartMission={startMission} isStartingMission={isStartingMission} creatorSettings={creatorSettings} onCreatorSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} creatorHasOutput={creatorHasOutput} onCreatorRefinement={text => setCreatorRefinementRequest({ id: Date.now(), text })} onCreatorClose={() => setRightCollapsed(true)} />
+    <ContextPanel mission={mission} workspace={activeWorkspace} onUpdateWorkspace={updateWorkspaceFields} activeAgent={activeAgent} onStartMission={startMission} isStartingMission={isStartingMission} creatorSettings={creatorSettings} onCreatorSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} creatorHasOutput={creatorHasOutput} onCreatorRefinement={text => setCreatorRefinementRequest({ id: Date.now(), text })} onCreatorClose={() => setRightCollapsed(true)} />
     {!effectiveLeftCollapsed && <button className="gv2-resize-handle gv2-resize-handle--left" type="button" onPointerDown={event => beginResize('left', event)} onDoubleClick={() => setLeftWidth(LEFT_DEFAULT)} onKeyDown={event => handleResizeKey('left', event)} aria-label="Redimensionner la navigation" title="Glisser pour redimensionner · double clic pour réinitialiser" />}
     {!effectiveRightCollapsed && <button className="gv2-resize-handle gv2-resize-handle--right" type="button" onPointerDown={event => beginResize('right', event)} onDoubleClick={() => setRightWidth(RIGHT_DEFAULT)} onKeyDown={event => handleResizeKey('right', event)} aria-label="Redimensionner le contexte" title="Glisser pour redimensionner · double clic pour réinitialiser" />}
     {onboardingOpen && <OnboardingTour onFinish={finishOnboarding} onOpenNavigation={showNavigation} />}

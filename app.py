@@ -2190,7 +2190,10 @@ def history():
 @app.route('/dossiers')
 @login_required_page
 def dossiers_page():
-    return render_template('dossiers.html', active_page='dossiers', current_user=current_user())
+    """La page V1 listait, créait et supprimait des dossiers. La V2 fait les
+    trois dans sa navigation, avec les mêmes appels : il n'y a rien à
+    afficher de plus ici."""
+    return redirect('/orchestrateur')
 
 
 @app.route('/dossiers/<folder_id>')
@@ -2199,10 +2202,11 @@ def dossier_detail_page(folder_id):
     uid    = (current_user() or {}).get('user_id')
     folder = _db.get_folder_by_id(folder_id, uid)
     if not folder:
-        return redirect('/dossiers')
+        return redirect('/orchestrateur')
+    # Le dossier reste sélectionné en session : un lien partagé ou mis en
+    # favori doit rouvrir le bon dossier, pas celui d'avant.
     session['active_folder_id'] = folder_id
-    return render_template('dossier.html', active_page='dossiers',
-                           current_user=current_user(), folder=folder)
+    return redirect(f'/orchestrateur?folder_id={folder_id}')
 
 
 @app.route('/api/folders', methods=['GET'])
