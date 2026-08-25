@@ -35,3 +35,21 @@ export function getAgent(id) {
 export function isAgentTab(id) {
   return Boolean(getAgent(id));
 }
+
+/* Les anciennes adresses (/psychologue, /stratege, /createur) renvoient vers
+   la V2 en indiquant l'agent visé : /orchestrateur?agent=stratege. Sans cette
+   lecture, toutes ces redirections atterriraient sur la Conversation. */
+export function tabFromUrl(href) {
+  let demande = null;
+  try { demande = new URL(href).searchParams.get('agent'); } catch { return 'conversation'; }
+  return demande && isAgentTab(demande) ? demande : 'conversation';
+}
+
+/* L'adresse suit l'onglet ouvert : recharger la page rouvre le même écran et
+   le lien reste partageable. Renvoie l'adresse à inscrire dans l'historique. */
+export function urlWithTab(href, tab) {
+  const url = new URL(href);
+  if (isAgentTab(tab)) url.searchParams.set('agent', tab);
+  else url.searchParams.delete('agent');
+  return url.toString();
+}

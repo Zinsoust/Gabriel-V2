@@ -26,6 +26,12 @@ UID = 'uid-gating-a'
 
 GATED_ROUTES = ['/psychologue', '/stratege', '/createur', '/mes-analyses', '/mes-strategies']
 
+# Les trois pages d'agent ne s'affichent plus en V1 : elles renvoient vers
+# l'interface V2. Les deux autres n'ont pas encore d'écran V2 et répondent
+# donc encore en direct.
+AGENT_ROUTES = ['/psychologue', '/stratege', '/createur']
+PAGES_V1_RESTANTES = ['/mes-analyses', '/mes-strategies']
+
 
 def _client():
     c = _app.app.test_client()
@@ -45,7 +51,10 @@ def test_gated_routes_auto_create_folder_without_active_folder():
     for route in GATED_ROUTES:
         c = _client()
         r = c.get(route)
-        assert r.status_code == 200, f'{route} devrait répondre 200 sans dossier actif'
+        # Ce qui compte : l'accès n'est jamais refusé (ni /login, ni blocage).
+        assert r.status_code in (200, 302), f'{route} ne devrait pas bloquer'
+        if r.status_code == 302:
+            assert '/login' not in r.headers['Location'], f'{route} ne devrait pas exiger une reconnexion'
         with c.session_transaction() as s:
             assert s.get('active_folder_id'), f'{route} devrait créer un dossier actif en session'
 
@@ -55,21 +64,31 @@ def test_gated_routes_auto_create_folder_without_active_folder():
 # ══════════════════════════════════════════════════════════════════════════════
 def test_folder_id_param_unlocks_access():
     """Un folder_id passé en paramètre d'URL débloque l'accès immédiatement."""
-    for route in GATED_ROUTES:
+    for route in PAGES_V1_RESTANTES:
         c = _client()
         r = c.get(f'{route}?folder_id=fid-test-123')
         assert r.status_code == 200, f'{route}?folder_id=... devrait répondre 200'
+    for route in AGENT_ROUTES:
+        c = _client()
+        r = c.get(f'{route}?folder_id=fid-test-123')
+        # Renvoyé vers la V2, mais le dossier demandé doit survivre au trajet :
+        # sans lui, l'utilisateur arriverait sur un autre dossier que le sien.
+        assert r.status_code == 302, f'{route} devrait renvoyer vers la V2'
+        assert 'folder_id=fid-test-123' in r.headers['Location'], (
+            f'{route} perd le dossier demandé en chemin')
 
 
 def test_folder_id_param_persists_in_session():
     """Une fois le folder_id passé une fois, les visites suivantes sans paramètre passent aussi."""
     c = _client()
     r1 = c.get('/psychologue?folder_id=fid-test-456')
-    assert r1.status_code == 200
+    assert r1.status_code == 302
+    with c.session_transaction() as s:
+        assert s.get('active_folder_id') == 'fid-test-456'
 
     # Deuxième requête, même client (donc même session), sans folder_id explicite
     r2 = c.get('/stratege')
-    assert r2.status_code == 200
+    assert r2.status_code == 302
 
     r3 = c.get('/mes-analyses')
     assert r3.status_code == 200
@@ -84,7 +103,7 @@ def test_dossier_detail_page_sets_active_folder():
     r = c.get('/dossiers/unknown-folder-xyz')
     assert r.status_code in (302, 301)
     r2 = c.get('/psychologue')
-    assert r2.status_code == 200  # accès libre : un dossier est auto-créé
+    assert r2.status_code == 302  # renvoyé vers la V2, jamais bloqué
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -78,7 +78,7 @@ def test_creator_workspace_exposes_readable_accessible_controls():
     with isolated_client.session_transaction() as s:
         s['active_folder_id'] = 'folder-creator-ux'
 
-    r = isolated_client.get('/createur')
+    r = isolated_client.get('/createur?embedded=1')
     assert r.status_code == 200
     html = r.get_data(as_text=True)
 
@@ -102,7 +102,7 @@ def test_strategist_interview_exposes_immersive_state_machine():
     with isolated_client.session_transaction() as s:
         s['active_folder_id'] = 'folder-strategist-ux'
 
-    r = isolated_client.get('/stratege')
+    r = isolated_client.get('/stratege?embedded=1')
     assert r.status_code == 200
     html = r.get_data(as_text=True)
 
@@ -580,7 +580,7 @@ def test_welcome_screen_matches_product_spec():
     _auth_session(c)
     with c.session_transaction() as s:
         s['active_folder_id'] = 'folder-welcome-spec'   # sinon /stratege redirige
-    html = c.get('/stratege').get_data(as_text=True)
+    html = c.get('/stratege?embedded=1').get_data(as_text=True)
     assert 'Bienvenue dans votre Salle de Conseil' in html
     assert 'Commencer l’entretien stratégique' in html
     assert "StrategyWorkspace.goTo('interview')" in html
@@ -594,7 +594,7 @@ def test_strategist_generation_uses_is_ready_as_single_source_of_truth():
     _auth_session(c)
     with c.session_transaction() as s:
         s['active_folder_id'] = 'folder-ready-contract'
-    html = c.get('/stratege').get_data(as_text=True)
+    html = c.get('/stratege?embedded=1').get_data(as_text=True)
 
     accept_body = html.split('function acceptPsychoAnalysis()', 1)[1].split(
         'function skipPsychoImport()', 1

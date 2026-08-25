@@ -445,8 +445,24 @@ def tarifs():
 
 @app.route('/app')
 def index():
-    """Ancienne interface à onglets — redirige vers /dossiers."""
-    return redirect('/dossiers')
+    """Ancienne interface à onglets — redirige vers l'interface V2."""
+    return redirect('/orchestrateur')
+
+
+def _vers_la_v2(agent):
+    """Renvoie l'utilisateur vers l'interface V2 plutôt que d'afficher la page
+    historique. Une seule exception : le shell V2 charge lui-même certaines
+    pages dans une iframe marquée « embedded=1 » — sans cette exception,
+    l'iframe se rechargerait à l'infini.
+
+    Renvoie None quand la page historique doit bien être servie."""
+    if request.args.get('embedded') == '1':
+        return None
+    cible = f'/orchestrateur?agent={agent}'
+    dossier = request.args.get('folder_id')
+    if dossier:
+        cible += f'&folder_id={dossier}'
+    return redirect(cible)
 
 
 def _ensure_folder(f):
@@ -478,6 +494,8 @@ def _ensure_folder(f):
 @login_required
 @_ensure_folder
 def psychologue_page():
+    _v2 = _vers_la_v2('psychologue')
+    if _v2: return _v2
     uid_psy      = (current_user() or {}).get('user_id')
     _psy_profile = _get_user_profile(uid_psy)
     brain_ctx    = json.dumps(_psy_profile, ensure_ascii=False) if _psy_profile else ''
@@ -503,6 +521,8 @@ def psychologue_page():
 @login_required
 @_ensure_folder
 def stratege_page():
+    _v2 = _vers_la_v2('stratege')
+    if _v2: return _v2
     uid_strat        = (current_user() or {}).get('user_id')
     folder_id        = request.args.get('folder_id') or session.get('active_folder_id', '')
     folder_strategy_id  = ''
@@ -1716,6 +1736,8 @@ def strategize():
 @login_required
 @_ensure_folder
 def createur_page():
+    _v2 = _vers_la_v2('createur')
+    if _v2: return _v2
     resp = make_response(render_template(
         'createur.html',
         current_user=current_user(),

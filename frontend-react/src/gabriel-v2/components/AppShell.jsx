@@ -10,7 +10,7 @@ import { PsychologueView } from './PsychologueView.jsx';
 import { OnboardingTour } from './OnboardingTour.jsx';
 import { Icon } from '../icons.jsx';
 import { missionFromConversationResponse, workspaceInitial } from '../data-adapters.js';
-import { getAgent, isAgentTab } from '../agent-registry.js';
+import { getAgent, isAgentTab, tabFromUrl, urlWithTab } from '../agent-registry.js';
 import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
 
 function timeNow() {
@@ -145,7 +145,10 @@ export function AppShell({ bootstrap }) {
   // L'accueil reste un Hall neutre. Un workspace existant n'est ouvert que si
   // l'utilisateur l'a demandé dans l'URL ou depuis la navigation.
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(bootstrap.selectedWorkspaceId || null);
-  const [tab, setTab] = useState('conversation');
+  /* Les anciennes adresses (/psychologue, /stratege, /createur) renvoient
+     désormais vers la V2 en indiquant l'agent visé. Sans cette lecture,
+     toutes ces redirections atterriraient sur la Conversation. */
+  const [tab, setTab] = useState(() => tabFromUrl(window.location.href));
   const activeWorkspace = useMemo(() => workspaces.find(item => item.folder_id === activeWorkspaceId) || null, [workspaces, activeWorkspaceId]);
   const [items, setItems] = useState(() => [welcomeMessage(null)]);
   const [mission, setMission] = useState(null);
@@ -161,7 +164,8 @@ export function AppShell({ bootstrap }) {
   const [rightCollapsed, setRightCollapsed] = useState(() => savedBoolean('gabriel-v2:context-collapsed', true));
   const [discussionWidth, setDiscussionWidth] = useState(() => savedNumber('gabriel-v2:discussion-width', DISCUSSION_DEFAULT, DISCUSSION_MIN, DISCUSSION_MAX));
   const [discussionCollapsed, setDiscussionCollapsed] = useState(() => savedBoolean('gabriel-v2:discussion-collapsed'));
-  const [darkMode, setDarkMode] = useState(() => savedBoolean('gabriel-v2:dark-mode'));
+  // Le design blanc reste le thème d'entrée de Gabriel.
+  const [darkMode, setDarkMode] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(onboardingIsPending);
   const [creatorSettings, setCreatorSettings] = useState(CREATOR_DEFAULTS);
   const [creatorHasOutput, setCreatorHasOutput] = useState(false);
@@ -291,6 +295,9 @@ export function AppShell({ bootstrap }) {
       return;
     }
     setTab(nextTab);
+    /* L'adresse suit l'onglet : recharger la page rouvre le même écran, et
+       le lien reste partageable. */
+    window.history.replaceState({}, '', urlWithTab(window.location.href, nextTab));
   }
 
   function resizePanel(side, delta) {
@@ -690,7 +697,7 @@ export function AppShell({ bootstrap }) {
           </div>
           <div className="gv2-header-actions">
             <button className={`gv2-header-icon gv2-theme-toggle${darkMode ? ' is-active' : ''}`} type="button" onClick={() => setDarkMode(current => !current)} aria-label={darkMode ? 'Passer au mode clair' : 'Passer au mode sombre'} title={darkMode ? 'Passer au mode clair' : 'Passer au mode sombre'} aria-pressed={darkMode}><Icon name={darkMode ? 'sun' : 'moon'} size={18} /></button>
-            {hasContextToSurface && <button className="gv2-header-icon gv2-context-toggle" type="button" onClick={toggleContext} aria-label={effectiveRightCollapsed ? 'Afficher le contexte du workspace' : 'Masquer le contexte du workspace'} title={effectiveRightCollapsed ? 'Afficher le contexte du workspace' : 'Masquer le contexte du workspace'}><Icon name="sparkle" size={18} /></button>}
+            {hasContextToSurface && <button className={`gv2-header-icon gv2-context-toggle${tab === 'createur' ? ' gv2-context-toggle--atelier' : ''}`} type="button" onClick={toggleContext} aria-label={tab === 'createur' ? (effectiveRightCollapsed ? 'Ouvrir l’Atelier' : 'Fermer l’Atelier') : (effectiveRightCollapsed ? 'Afficher le contexte du workspace' : 'Masquer le contexte du workspace')} title={tab === 'createur' ? (effectiveRightCollapsed ? 'Ouvrir l’Atelier' : 'Fermer l’Atelier') : (effectiveRightCollapsed ? 'Afficher le contexte du workspace' : 'Masquer le contexte du workspace')}>{tab === 'createur' ? <span>Atelier</span> : <Icon name="sparkle" size={18} />}</button>}
             <div className="gv2-account-menu-wrap" ref={accountMenuRef}>
               <button className="gv2-header-credit" type="button" onClick={() => setAccountMenuOpen(current => !current)} aria-label={`Vos crédits : ${displayedCredits}`} title="Voir vos crédits et les offres"><Icon name="sparkle" size={14} /><strong>{displayedCredits}</strong><span>crédits</span></button>
               <button className="gv2-header-avatar gv2-header-avatar--button" type="button" onClick={() => setAccountMenuOpen(current => !current)} aria-expanded={accountMenuOpen} aria-controls="gv2-account-menu" aria-label="Ouvrir le menu du compte">{workspaceInitial(bootstrap.user?.name || bootstrap.user?.email || 'Nalay')}</button>
@@ -709,7 +716,7 @@ export function AppShell({ bootstrap }) {
       {tab === 'conversation'
         ? <section className={`gv2-conversation-stage${isConversationLanding ? ' is-landing' : ''}`}><ConversationFeed items={items} firstName={firstName} isSubmitting={isSubmitting} landing={isConversationLanding} /><Composer onSend={sendMessage} disabled={isSubmitting} landing={isConversationLanding} /></section>
         : tab === 'createur'
-          ? <CreatorConversation workspace={activeWorkspace} settings={creatorSettings} refinementRequest={creatorRefinementRequest} onHasOutputChange={setCreatorHasOutput} onWorkspaceChange={refreshWorkspace} contextCollapsed={effectiveRightCollapsed} onShowContext={() => setRightCollapsed(false)} />
+          ? <CreatorConversation workspace={activeWorkspace} settings={creatorSettings} refinementRequest={creatorRefinementRequest} onHasOutputChange={setCreatorHasOutput} onWorkspaceChange={refreshWorkspace} onSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} contextCollapsed={effectiveRightCollapsed} onShowContext={() => setRightCollapsed(false)} />
           : tab === 'psychologue'
           ? <PsychologueView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} />
           : isAgentTab(tab)
@@ -718,7 +725,7 @@ export function AppShell({ bootstrap }) {
             ? <WorkspaceActivity workspace={activeWorkspace} mission={mission} />
             : <WorkspaceMemory workspace={activeWorkspace} />}
     </section>
-    <ContextPanel mission={mission} workspace={activeWorkspace} activeAgent={activeAgent} onStartMission={startMission} isStartingMission={isStartingMission} creatorSettings={creatorSettings} onCreatorSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} creatorHasOutput={creatorHasOutput} onCreatorRefinement={text => setCreatorRefinementRequest({ id: Date.now(), text })} />
+    <ContextPanel mission={mission} workspace={activeWorkspace} activeAgent={activeAgent} onStartMission={startMission} isStartingMission={isStartingMission} creatorSettings={creatorSettings} onCreatorSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} creatorHasOutput={creatorHasOutput} onCreatorRefinement={text => setCreatorRefinementRequest({ id: Date.now(), text })} onCreatorClose={() => setRightCollapsed(true)} />
     {!effectiveLeftCollapsed && <button className="gv2-resize-handle gv2-resize-handle--left" type="button" onPointerDown={event => beginResize('left', event)} onDoubleClick={() => setLeftWidth(LEFT_DEFAULT)} onKeyDown={event => handleResizeKey('left', event)} aria-label="Redimensionner la navigation" title="Glisser pour redimensionner · double clic pour réinitialiser" />}
     {!effectiveRightCollapsed && <button className="gv2-resize-handle gv2-resize-handle--right" type="button" onPointerDown={event => beginResize('right', event)} onDoubleClick={() => setRightWidth(RIGHT_DEFAULT)} onKeyDown={event => handleResizeKey('right', event)} aria-label="Redimensionner le contexte" title="Glisser pour redimensionner · double clic pour réinitialiser" />}
     {onboardingOpen && <OnboardingTour onFinish={finishOnboarding} onOpenNavigation={showNavigation} />}
