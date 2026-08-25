@@ -970,7 +970,7 @@ def get_strategies(user_id=None, limit=50, folder_id=None):
         try:
             q = (
                 _supabase.table(_T_STRATEGIES)
-                .select('strategy_id,analysis_id,strategy_result,created_at')
+                .select('strategy_id,analysis_id,folder_id,strategy_result,created_at')
                 .eq('user_id', user_id)
             )
             if folder_id:
@@ -979,6 +979,7 @@ def get_strategies(user_id=None, limit=50, folder_id=None):
             return [_attach_feedback({
                 'strategy_id': r.get('strategy_id'),
                 'analysis_id': r.get('analysis_id', ''),
+                'folder_id':   r.get('folder_id', ''),
                 'title':       _strategy_title(r.get('strategy_result') or {}),
                 'created_at':  r.get('created_at', ''),
             }, fb_index) for r in (res.data or [])]
@@ -990,6 +991,7 @@ def get_strategies(user_id=None, limit=50, folder_id=None):
     return [_attach_feedback({
         'strategy_id': r.get('strategy_id'),
         'analysis_id': r.get('analysis_id', ''),
+        'folder_id':   r.get('folder_id', ''),
         'title':       r.get('title') or _strategy_title(r.get('strategy_result') or {}),
         'created_at':  r.get('created_at', ''),
     }, fb_index) for r in rows[:limit]]

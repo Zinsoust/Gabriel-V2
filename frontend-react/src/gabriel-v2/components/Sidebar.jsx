@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { GabrielMark, Icon } from '../icons.jsx';
 import { workspaceInitial } from '../data-adapters.js';
 import { agents } from '../agent-registry.js';
+import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
 
 const railItems = [
   { id: 'home', icon: 'home', label: 'Accueil' },
@@ -9,6 +10,7 @@ const railItems = [
   { id: 'library', icon: 'library', label: 'Bibliothèque' },
   { id: 'team', icon: 'team', label: 'Équipe' },
   { id: 'activity', icon: 'activity', label: 'Activité' },
+  { id: 'strategies', icon: 'archive', label: 'Stratégies' },
 ];
 
 const sectionCopy = {
@@ -17,6 +19,7 @@ const sectionCopy = {
   library: { eyebrow: 'Contexte', title: 'Bibliothèque', search: 'Rechercher une source' },
   team: { eyebrow: 'Spécialistes', title: 'Équipe', search: 'Rechercher un agent' },
   activity: { eyebrow: 'Suivi', title: 'Activité', search: 'Rechercher une activité' },
+  strategies: { eyebrow: 'Décisions', title: 'Stratégies', search: 'Rechercher une stratégie' },
   settings: { eyebrow: 'Préférences', title: 'Paramètres', search: 'Rechercher un réglage' },
 };
 
@@ -80,6 +83,115 @@ function TeamPanel({ activeTab, query, onSelectAgent }) {
     {filtered.map(agent => <AgentRow key={agent.id} agent={agent} active={activeTab === agent.id} onClick={() => onSelectAgent(agent.id)} />)}
     {!filtered.length && <p className="gv2-nav-empty">Aucun agent ne correspond à cette recherche.</p>}
   </div></div>;
+}
+
+const RESULTAT_LABEL = {
+  fonctionne:    { classe: 'worked',   texte: 'A fonctionné' },
+  sans_resultat: { classe: 'noresult', texte: 'Sans résultat' },
+};
+
+function fmtDateStrategie(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch (_) { return ''; }
+}
+
+/* Le retour terrain — « cette stratégie a-t-elle fonctionné ? » — est la
+   seule chose que l'ancienne page « Mes stratégies » offrait et qu'on ne
+   retrouvait nulle part dans la V2. Le reste (ouvrir, lire l'avancement)
+   est déjà couvert par la liste des workspaces. */
+function StrategyCard({ strategie, onMarquer, onSupprimer, suppression }) {
+  const resultat = RESULTAT_LABEL[strategie.resultat];
+  return <article className="gv2-strategy-card">
+    <div className="gv2-strategy-card-top">
+      <div>
+        <div className="gv2-strategy-card-title">{strategie.title || 'Stratégie'}</div>
+        <div className="gv2-strategy-card-meta">
+          <span>{fmtDateStrategie(strategie.created_at)}</span>
+          {resultat && <span className={`gv2-strategy-badge is-${resultat.classe}`}>{resultat.texte}</span>}
+        </div>
+      </div>
+      <div className="gv2-strategy-card-actions">
+        <a className="gv2-strategy-open" href={`/strategies/${encodeURIComponent(strategie.strategy_id)}/open`}>Ouvrir</a>
+        <button type="button" className="gv2-strategy-delete" disabled={suppression} onClick={() => onSupprimer(strategie.strategy_id)} aria-label="Supprimer cette stratégie" title="Supprimer"><Icon name="close" size={13} /></button>
+      </div>
+    </div>
+    <div className="gv2-strategy-track">
+      <p>Cette stratégie a-t-elle fonctionné sur le terrain ?</p>
+      <div className="gv2-strategy-track-options">
+        <button type="button" className={strategie.resultat === 'fonctionne' ? 'is-selected' : ''} onClick={() => onMarquer(strategie.strategy_id, 'fonctionne')}>Oui, elle a marché</button>
+        <button type="button" className={strategie.resultat === 'sans_resultat' ? 'is-selected' : ''} onClick={() => onMarquer(strategie.strategy_id, 'sans_resultat')}>Appliquée, sans résultat</button>
+        <button type="button" className={!strategie.resultat ? 'is-selected' : ''} onClick={() => onMarquer(strategie.strategy_id, '')}>Pas encore testée</button>
+      </div>
+    </div>
+  </article>;
+}
+
+function StrategiesPanel() {
+  const [strategies, setStrategies] = useState(null);
+  const [suppression, setSuppression] = useState('');
+
+  useEffect(() => {
+    let vivant = true;
+    fetchV2('/strategies').then(async response => {
+      if (isLoginResponse(response)) return;
+      const payload = await readApiPayload(response, 'Vos stratégies').catch(() => null);
+      if (vivant) setStrategies(Array.isArray(payload) ? payload : []);
+    }).catch(() => { if (vivant) setStrategies([]); });
+    return () => { vivant = false; };
+  }, []);
+
+  async function marquer(strategyId, resultat) {
+    setStrategies(current => current.map(item => item.strategy_id === strategyId ? { ...item, resultat } : item));
+    const strategie = (strategies || []).find(item => item.strategy_id === strategyId);
+    try {
+      await fetchV2('/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ strategy_id: strategyId, analysis_id: strategie?.analysis_id || '', resultat }),
+      });
+    } catch (_) { /* Le retour terrain reste affiché ; il se resynchronisera au prochain chargement. */ }
+  }
+
+  async function supprimer(strategyId) {
+    if (!window.confirm('Supprimer définitivement cette stratégie ?')) return;
+    setSuppression(strategyId);
+    try {
+      await fetchV2(`/strategies/${encodeURIComponent(strategyId)}`, { method: 'DELETE' });
+      setStrategies(current => current.filter(item => item.strategy_id !== strategyId));
+    } finally {
+      setSuppression('');
+    }
+  }
+
+  if (strategies === null) {
+    return <div className="gv2-nav-content"><p className="gv2-nav-loading">Chargement de vos stratégies…</p></div>;
+  }
+
+  if (!strategies.length) {
+    return <div className="gv2-nav-content">
+      <section className="gv2-nav-note">
+        <span className="gv2-nav-note-mark"><Icon name="archive" size={16} /></span>
+        <div><strong>Aucune stratégie sauvegardée</strong><p>Chaque stratégie générée par Ariane est conservée ici. Vous pourrez suivre si elle a fonctionné sur le terrain.</p></div>
+      </section>
+    </div>;
+  }
+
+  const total  = strategies.length;
+  const marche = strategies.filter(s => s.resultat === 'fonctionne').length;
+
+  return <div className="gv2-nav-content gv2-nav-content--strategies">
+    <div className="gv2-strategy-stats">
+      <div><strong>{total}</strong><span>Créées</span></div>
+      <div><strong>{marche}</strong><span>Ont fonctionné</span></div>
+    </div>
+    <div className="gv2-strategy-list">
+      {strategies.map(strategie => <StrategyCard key={strategie.strategy_id} strategie={strategie}
+        onMarquer={marquer} onSupprimer={supprimer} suppression={suppression === strategie.strategy_id} />)}
+    </div>
+  </div>;
 }
 
 function ActivityPanel({ mission, onSelectConversation }) {
@@ -154,6 +266,7 @@ export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, active
       {activeSection === 'library' && <LibraryPanel activeWorkspace={activeWorkspace} />}
       {activeSection === 'team' && <TeamPanel activeTab={activeTab} query={query} onSelectAgent={onSelectAgent} />}
       {activeSection === 'activity' && <ActivityPanel mission={mission} onSelectConversation={onSelectConversation} />}
+      {activeSection === 'strategies' && <StrategiesPanel />}
       {activeSection === 'settings' && <SettingsPanel user={user} darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onStartGuide={onStartGuide} />}
     </section>}
   </aside>;

@@ -102,3 +102,78 @@ def test_un_dossier_introuvable_ne_renvoie_pas_vers_la_v1():
     r = _client().get('/dossiers/inexistant-xyz')
     assert r.status_code == 302
     assert '/dossiers' not in r.headers['Location']
+
+
+def test_mes_analyses_ne_s_affiche_plus():
+    r = _client().get('/mes-analyses')
+    assert r.status_code == 302
+    assert r.headers['Location'] == '/orchestrateur'
+
+
+def test_mes_strategies_ne_s_affiche_plus():
+    r = _client().get('/mes-strategies')
+    assert r.status_code == 302
+    assert r.headers['Location'] == '/orchestrateur'
+
+
+def test_historique_ne_s_affiche_plus():
+    r = _client().get('/historique')
+    assert r.status_code == 302
+    assert r.headers['Location'] == '/orchestrateur'
+
+
+def test_ouvrir_une_analyse_orpheline_l_adopte_dans_un_dossier(monkeypatch):
+    """Une analyse d'avant les dossiers (aucun folder_id) doit rester
+    atteignable — sans dossier auto-créé pour la recevoir, elle deviendrait
+    définitivement hors d'atteinte une fois la page d'historique disparue."""
+    monkeypatch.setattr(_app._db, 'get_analysis_by_id',
+                        lambda aid, uid=None: {'analysis_id': aid, 'title': 'Vieille analyse', 'folder_id': ''})
+    créés = {}
+    monkeypatch.setattr(_app._db, 'create_folder',
+                        lambda fid, uid, title, **kw: créés.setdefault('folder_id', fid) or {'folder_id': fid})
+    lié = {}
+    monkeypatch.setattr(_app._db, 'update_folder',
+                        lambda fid, uid, **kw: lié.update(kw))
+    r = _client().get('/history/vieille-analyse/open')
+    assert r.status_code == 302
+    assert 'agent=psychologue' in r.headers['Location']
+    assert créés['folder_id'] in r.headers['Location']
+    assert lié.get('analysis_id') == 'vieille-analyse'
+
+
+def test_ouvrir_une_analyse_deja_dans_un_dossier_ne_cree_rien(monkeypatch):
+    """Le cas courant : l'analyse a déjà un dossier, on ne doit pas en créer
+    un second."""
+    monkeypatch.setattr(_app._db, 'get_analysis_by_id',
+                        lambda aid, uid=None: {'analysis_id': aid, 'folder_id': 'dossier-existant'})
+    def _pas_dappel(*a, **k): raise AssertionError('create_folder ne devrait pas être appelé')
+    monkeypatch.setattr(_app._db, 'create_folder', _pas_dappel)
+    r = _client().get('/history/aid-1/open')
+    assert r.status_code == 302
+    assert 'folder_id=dossier-existant' in r.headers['Location']
+
+
+def test_ouvrir_une_analyse_introuvable_ne_plante_pas(monkeypatch):
+    monkeypatch.setattr(_app._db, 'get_analysis_by_id', lambda aid, uid=None: None)
+    r = _client().get('/history/inexistante/open')
+    assert r.status_code == 302
+    assert r.headers['Location'] == '/orchestrateur'
+
+
+def test_ouvrir_une_strategie_orpheline_l_adopte_dans_un_dossier(monkeypatch):
+    monkeypatch.setattr(_app._db, 'get_strategy_by_id',
+                        lambda sid, uid=None: {'strategy_id': sid, 'folder_id': ''})
+    créés = {}
+    monkeypatch.setattr(_app._db, 'create_folder',
+                        lambda fid, uid, title, **kw: créés.setdefault('folder_id', fid) or {'folder_id': fid})
+    monkeypatch.setattr(_app._db, 'update_folder', lambda fid, uid, **kw: True)
+    r = _client().get('/strategies/vieille-strategie/open')
+    assert r.status_code == 302
+    assert 'agent=stratege' in r.headers['Location']
+    assert créés['folder_id'] in r.headers['Location']
+
+
+def test_un_folder_id_survit_a_la_redirection_de_mes_analyses():
+    r = _client().get('/mes-analyses?folder_id=fid-abc')
+    assert r.status_code == 302
+    assert 'folder_id=fid-abc' in r.headers['Location']

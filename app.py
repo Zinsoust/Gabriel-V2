@@ -449,7 +449,7 @@ def index():
     return redirect('/orchestrateur')
 
 
-def _vers_la_v2(agent):
+def _vers_la_v2(agent=None):
     """Renvoie l'utilisateur vers l'interface V2 plutôt que d'afficher la page
     historique. Une seule exception : le shell V2 charge lui-même certaines
     pages dans une iframe marquée « embedded=1 » — sans cette exception,
@@ -458,10 +458,10 @@ def _vers_la_v2(agent):
     Renvoie None quand la page historique doit bien être servie."""
     if request.args.get('embedded') == '1':
         return None
-    cible = f'/orchestrateur?agent={agent}'
+    cible = f'/orchestrateur?agent={agent}' if agent else '/orchestrateur'
     dossier = request.args.get('folder_id')
     if dossier:
-        cible += f'&folder_id={dossier}'
+        cible += ('&' if agent else '?') + f'folder_id={dossier}'
     return redirect(cible)
 
 
@@ -2163,18 +2163,59 @@ def account_delete():
 @login_required
 @_ensure_folder
 def mes_analyses():
-    return render_template('history.html', active_page='history', current_user=current_user())
+    """La V2 liste déjà les dossiers, chacun avec son analyse, dans sa
+    navigation : rien à afficher de plus ici. Un folder_id éventuel survit
+    au trajet, comme pour les pages d'agent."""
+    dossier = request.args.get('folder_id')
+    return redirect(f'/orchestrateur?folder_id={dossier}' if dossier else '/orchestrateur')
+
+
+@app.route('/history/<analysis_id>/open')
+@login_required
+def open_history_entry(analysis_id):
+    """Filet de sécurité pour un lien ou une capture ancienne : ouvre
+    l'analyse dans son dossier V2. Une analyse d'avant les dossiers (aucun
+    folder_id) est adoptée par un dossier créé en silence — le même
+    mécanisme qui en crée déjà un quand on ouvre un agent sans en avoir
+    choisi un — plutôt que de rester définitivement hors d'atteinte."""
+    uid   = (current_user() or {}).get('user_id')
+    entry = _db.get_analysis_by_id(analysis_id, uid)
+    if not entry:
+        return redirect('/orchestrateur')
+    folder_id = entry.get('folder_id')
+    if not folder_id:
+        folder_id = str(uuid.uuid4())[:16]
+        titre = entry.get('title') or entry.get('video_title') or entry.get('source') or 'Analyse'
+        _db.create_folder(folder_id, uid, titre, folder_type='workspace')
+        _db.update_folder(folder_id, uid, analysis_id=analysis_id)
+    return redirect(f'/orchestrateur?agent=psychologue&folder_id={folder_id}')
 
 
 @app.route('/mes-strategies')
 @login_required
 @_ensure_folder
 def mes_strategies():
-    resp = make_response(render_template(
-        'mes_strategies.html', active_page='strategies', current_user=current_user(),
-    ))
-    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
-    return resp
+    """Le retour terrain (cette stratégie a-t-elle fonctionné ?) vit
+    maintenant dans le panneau Stratégies de la V2. Un folder_id éventuel
+    survit au trajet, comme pour les pages d'agent."""
+    dossier = request.args.get('folder_id')
+    return redirect(f'/orchestrateur?folder_id={dossier}' if dossier else '/orchestrateur')
+
+
+@app.route('/strategies/<strategy_id>/open')
+@login_required
+def open_strategy_entry(strategy_id):
+    """Filet de sécurité, même logique que pour une analyse."""
+    uid = (current_user() or {}).get('user_id')
+    s_row = _db.get_strategy_by_id(strategy_id, uid)
+    if not s_row:
+        return redirect('/orchestrateur')
+    folder_id = s_row.get('folder_id')
+    if not folder_id:
+        folder_id = str(uuid.uuid4())[:16]
+        _db.create_folder(folder_id, uid, 'Stratégie', folder_type='workspace')
+        _db.update_folder(folder_id, uid, strategy_id=strategy_id)
+    return redirect(f'/orchestrateur?agent=stratege&folder_id={folder_id}')
 
 
 @app.route('/history', methods=['GET'])
@@ -2691,14 +2732,8 @@ def delete_strategy_route(strategy_id):
 @app.route('/historique')
 @login_required
 def historique_page():
-    """Page HTML de l'historique des analyses."""
-    resp = make_response(render_template(
-        'history.html',
-        current_user=current_user(),
-        active_page='history',
-    ))
-    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
-    return resp
+    """Ancien alias de /mes-analyses — même destination."""
+    return redirect('/orchestrateur')
 
 
 @app.route('/export/pdf/<analysis_id>')

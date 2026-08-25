@@ -26,11 +26,9 @@ UID = 'uid-gating-a'
 
 GATED_ROUTES = ['/psychologue', '/stratege', '/createur', '/mes-analyses', '/mes-strategies']
 
-# Les trois pages d'agent ne s'affichent plus en V1 : elles renvoient vers
-# l'interface V2. Les deux autres n'ont pas encore d'écran V2 et répondent
-# donc encore en direct.
-AGENT_ROUTES = ['/psychologue', '/stratege', '/createur']
-PAGES_V1_RESTANTES = ['/mes-analyses', '/mes-strategies']
+# Les cinq pages ne s'affichent plus en V1 : elles renvoient toutes vers
+# l'interface V2, en conservant le dossier demandé.
+AGENT_ROUTES = ['/psychologue', '/stratege', '/createur', '/mes-analyses', '/mes-strategies']
 
 
 def _client():
@@ -63,11 +61,7 @@ def test_gated_routes_auto_create_folder_without_active_folder():
 # 2. Déblocage — folder_id en paramètre d'URL
 # ══════════════════════════════════════════════════════════════════════════════
 def test_folder_id_param_unlocks_access():
-    """Un folder_id passé en paramètre d'URL débloque l'accès immédiatement."""
-    for route in PAGES_V1_RESTANTES:
-        c = _client()
-        r = c.get(f'{route}?folder_id=fid-test-123')
-        assert r.status_code == 200, f'{route}?folder_id=... devrait répondre 200'
+    """Un folder_id passé en paramètre d'URL survit à la redirection vers la V2."""
     for route in AGENT_ROUTES:
         c = _client()
         r = c.get(f'{route}?folder_id=fid-test-123')
@@ -91,7 +85,7 @@ def test_folder_id_param_persists_in_session():
     assert r2.status_code == 302
 
     r3 = c.get('/mes-analyses')
-    assert r3.status_code == 200
+    assert r3.status_code == 302
 
 
 def test_dossier_detail_page_sets_active_folder():
