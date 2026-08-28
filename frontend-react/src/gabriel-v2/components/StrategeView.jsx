@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Icon } from '../icons.jsx';
 import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
 
+const VOICE_MODE_KEY = 'gabriel_voice_mode';
+const VOICE_ID_KEY = 'gabriel_voice_id';
+
 /* ── StrategeView — Tranches A + B ────────────────────────────────────────
    Réimplémentation native (React) de l'agent Le Stratège, jusqu'ici
    encapsulé en <iframe> depuis templates/stratege.html (voir
@@ -376,11 +379,191 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
   const [interviewInput, setInterviewInput] = useState('');
   const [sending, setSending] = useState(false);
   const [psychoHandoff, setPsychoHandoff] = useState(null);
+
+  /* Couche vocale (Tranche C) — même patron que la dictée du composeur
+     principal (Conversation.jsx:311-421), pas réinventé : reconnaissance du
+     navigateur en priorité (gratuite, résultat immédiat dans le champ),
+     repli sur MediaRecorder + /voice/transcribe (ElevenLabs) si le
+     navigateur n'a pas SpeechRecognition (Firefox notamment). Contrairement
+     à l'ancienne page, pas de sous-titrage plein écran séparé du texte
+     réellement envoyé : le texte reconnu devient directement la réponse,
+     modifiable avant l'envoi — plus simple, même résultat fonctionnel. */
+  const [isRecording, setIsRecording] = useState(false);
+  const [voiceError, setVoiceError] = useState('');
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [voiceId, setVoiceId] = useState('');
+  const [voices, setVoices] = useState(null);
+  const [speaking, setSpeaking] = useState(false);
+  const speechRecognitionRef = useRef(null);
+  const speechBaseRef = useRef('');
+  const speechFinalRef = useRef('');
+  const speechHeardRef = useRef(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const audioStreamRef = useRef(null);
+  const audioElRef = useRef(null);
   const aliveRef = useRef(true);
   const pollingRef = useRef(false);
 
   useEffect(() => { aliveRef.current = true; return () => { aliveRef.current = false; }; }, []);
   useEffect(() => { setPsychoHandoff(lireHandoffPsycho()); }, []);
+
+  useEffect(() => {
+    try {
+      setVoiceMode(window.localStorage.getItem(VOICE_MODE_KEY) === '1');
+      setVoiceId(window.localStorage.getItem(VOICE_ID_KEY) || '');
+    } catch (_) { /* localStorage indisponible (navigation privée) */ }
+  }, []);
+
+  useEffect(() => () => {
+    const recognition = speechRecognitionRef.current;
+    if (recognition) { try { recognition.abort(); } catch (_) { /* déjà terminée */ } }
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    audioStreamRef.current?.getTracks().forEach(track => track.stop());
+    audioElRef.current?.pause();
+  }, []);
+
+  function toggleVoiceMode() {
+    setVoiceMode(current => {
+      const next = !current;
+      try { window.localStorage.setItem(VOICE_MODE_KEY, next ? '1' : '0'); } catch (_) {}
+      if (next && voices === null) {
+        fetchV2('/voice/voices').then(async response => {
+          const payload = await readApiPayload(response, 'Les voix disponibles').catch(() => null);
+          setVoices(payload?.available ? (payload.voices || []) : []);
+        }).catch(() => setVoices([]));
+      }
+      return next;
+    });
+  }
+
+  function changerVoix(id) {
+    setVoiceId(id);
+    try { window.localStorage.setItem(VOICE_ID_KEY, id); } catch (_) {}
+  }
+
+  async function lire(texte, pace) {
+    if (!texte || !voiceMode) return;
+    try {
+      const response = await fetchV2('/voice/speak', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: texte, voice_id: voiceId || undefined, pace: pace || undefined }),
+      });
+      if (!response.ok) return; // le mode vocal reste actif, silencieux sur cette réponse
+      const blob = await response.blob();
+      const audio = new Audio(URL.createObjectURL(blob));
+      audioElRef.current = audio;
+      audio.onplay = () => setSpeaking(true);
+      audio.onended = () => setSpeaking(false);
+      audio.onerror = () => setSpeaking(false);
+      await audio.play();
+    } catch (_) { setSpeaking(false); }
+  }
+
+  function mergeDictation(base, transcript) {
+    const spoken = String(transcript || '').trim();
+    if (!spoken) return base;
+    return `${base}${base && !/\s$/.test(base) ? ' ' : ''}${spoken}`;
+  }
+
+  function startBrowserDictation(SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    speechBaseRef.current = interviewInput;
+    speechFinalRef.current = '';
+    speechHeardRef.current = false;
+    recognition.lang = 'fr-FR';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => setIsRecording(true);
+    recognition.onresult = event => {
+      let interim = '';
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const transcript = event.results[index]?.[0]?.transcript || '';
+        if (event.results[index].isFinal) speechFinalRef.current += `${transcript} `;
+        else interim += transcript;
+      }
+      const spoken = `${speechFinalRef.current}${interim}`.trim();
+      if (!spoken) return;
+      speechHeardRef.current = true;
+      setInterviewInput(mergeDictation(speechBaseRef.current, spoken));
+    };
+    recognition.onerror = event => {
+      const message = {
+        'not-allowed': 'Autorisez le microphone dans votre navigateur pour utiliser la dictée.',
+        'service-not-allowed': 'La reconnaissance vocale est bloquée par votre navigateur.',
+        'audio-capture': 'Aucun microphone n’a été détecté.',
+        network: 'La reconnaissance vocale nécessite une connexion internet.',
+      }[event.error] || (event.error === 'no-speech' ? 'Je ne vous ai pas entendu. Réessayez en parlant un peu plus près du micro.' : 'La dictée a été interrompue. Réessayez dans un instant.');
+      setVoiceError(message);
+    };
+    recognition.onend = () => {
+      if (speechRecognitionRef.current === recognition) speechRecognitionRef.current = null;
+      setIsRecording(false);
+      if (!speechHeardRef.current) setVoiceError(current => current || 'Je ne vous ai pas entendu. Vérifiez votre microphone puis réessayez.');
+    };
+    speechRecognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch (_) {
+      speechRecognitionRef.current = null;
+      setVoiceError('La dictée ne peut pas démarrer. Réessayez dans un instant.');
+    }
+  }
+
+  async function startServerDictation() {
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setVoiceError('La dictée n’est pas disponible dans ce navigateur. Utilisez une version récente de Chrome, Edge ou Safari.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const preferredMimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find(type => window.MediaRecorder.isTypeSupported?.(type));
+      const recorder = preferredMimeType ? new MediaRecorder(stream, { mimeType: preferredMimeType }) : new MediaRecorder(stream);
+      audioStreamRef.current = stream;
+      audioChunksRef.current = [];
+      recorder.ondataavailable = event => { if (event.data?.size) audioChunksRef.current.push(event.data); };
+      recorder.onerror = () => { setIsRecording(false); setVoiceError('La dictée a été interrompue. Réessayez dans un instant.'); };
+      recorder.onstop = async () => {
+        const mimeType = recorder.mimeType || 'audio/webm';
+        const audio = new Blob(audioChunksRef.current, { type: mimeType });
+        audioStreamRef.current?.getTracks().forEach(track => track.stop());
+        audioStreamRef.current = null;
+        mediaRecorderRef.current = null;
+        setIsRecording(false);
+        if (!audio.size) return;
+        const form = new FormData();
+        form.append('audio', audio, `dictee-gabriel.${mimeType.includes('mp4') ? 'm4a' : 'webm'}`);
+        try {
+          const response = await fetchV2('/voice/transcribe', { method: 'POST', body: form });
+          if (isLoginResponse(response)) { window.location.assign('/login'); return; }
+          const payload = await readApiPayload(response, 'Le service de dictée');
+          if (!response.ok || !payload?.text) throw new Error(response.status === 503 ? 'La transcription serveur n’est pas disponible. Essayez depuis Chrome pour utiliser la dictée intégrée.' : (payload?.error || 'La transcription est indisponible.'));
+          setInterviewInput(current => `${current}${current && !/\s$/.test(current) ? ' ' : ''}${String(payload.text).trim()}`);
+        } catch (error) {
+          setVoiceError(error.message || 'La transcription est indisponible.');
+        }
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start(250);
+      setIsRecording(true);
+    } catch (error) {
+      setVoiceError(error?.name === 'NotAllowedError' ? 'Autorisez le microphone dans votre navigateur pour utiliser la dictée.' : 'Le microphone est indisponible. Vérifiez qu’il est connecté puis réessayez.');
+    }
+  }
+
+  function toggleDictation() {
+    setVoiceError('');
+    const activeRecognition = speechRecognitionRef.current;
+    if (activeRecognition) { try { activeRecognition.stop(); } catch (_) {} return; }
+    const activeRecorder = mediaRecorderRef.current;
+    if (activeRecorder && activeRecorder.state !== 'inactive') { activeRecorder.stop(); return; }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) { startBrowserDictation(SpeechRecognition); return; }
+    void startServerDictation();
+  }
 
   useEffect(() => {
     let vivant = true;
@@ -440,6 +623,8 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
       if (payload?.error) { setMessages(current => [...current, { role: 'assistant', content: payload.error }]); return; }
       const texte = payload.reply?.display_text || (typeof payload.reply === 'string' ? payload.reply : '');
       if (texte) setMessages(current => [...current, { role: 'assistant', content: texte }]);
+      const aLire = payload.reply?.speech_text || texte;
+      lire(aLire, payload.reply?.speech_profile?.pace);
       setContextProgress(payload.context_progress || null);
       setInterviewReady(Boolean(payload.is_ready));
       setUpdatedContext(payload.updated_context || {});
@@ -576,15 +761,35 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
   }
 
   if (stage === 'interview') {
+    const dicteeDisponible = typeof window !== 'undefined'
+      && (window.SpeechRecognition || window.webkitSpeechRecognition || (navigator.mediaDevices?.getUserMedia && window.MediaRecorder));
     return <div className="gv2-strat-interview">
       {psychoHandoff && <div className="gv2-strat-banner">Analyse Psychologue détectée — elle sera prise en compte dans la stratégie.</div>}
+      <div className="gv2-strat-voice-bar">
+        <button type="button" className={`gv2-strat-voice-toggle${voiceMode ? ' is-active' : ''}`} onClick={toggleVoiceMode}
+          aria-pressed={voiceMode} title="Gabriel lit ses réponses à voix haute">
+          <span className="gv2-strat-voice-dot" />Mode vocal
+        </button>
+        {voiceMode && voices && voices.length > 0 && (
+          <select className="gv2-strat-voice-picker" value={voiceId} onChange={event => changerVoix(event.target.value)} aria-label="Voix de Gabriel">
+            <option value="">Voix par défaut</option>
+            {voices.map(v => <option key={v.id} value={v.id}>{v.label}</option>)}
+          </select>
+        )}
+        {speaking && <span className="gv2-strat-voice-speaking">Gabriel parle…</span>}
+      </div>
       <ProgressChips contextProgress={contextProgress} />
       <div className="gv2-strat-chat" role="log" aria-live="polite">
         {messages.map((m, i) => <ChatMessage key={i} role={m.role} content={m.content} />)}
         {sending && <div className="gv2-strat-msg gv2-strat-msg--assistant is-thinking">…</div>}
       </div>
+      {voiceError && <p className="gv2-strat-voice-error" role="alert">{voiceError}</p>}
       {interviewReady && <button type="button" className="gv2-strat-generate" onClick={genererDepuisEntretien}>Générer la stratégie</button>}
       <div className="gv2-strat-composer">
+        {dicteeDisponible && <button type="button" className={`gv2-strat-mic${isRecording ? ' is-recording' : ''}`}
+          onClick={toggleDictation} disabled={sending} aria-label={isRecording ? 'Arrêter la dictée' : 'Répondre à la voix'} title="Parler">
+          <Icon name="mic" size={16} />
+        </button>}
         <textarea rows={1} value={interviewInput} placeholder="Écrivez votre réponse…" disabled={sending}
           onChange={event => setInterviewInput(event.target.value)}
           onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); envoyerReponse(); } }} />
