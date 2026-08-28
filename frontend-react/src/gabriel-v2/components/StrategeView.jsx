@@ -2,23 +2,30 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Icon } from '../icons.jsx';
 import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
 
-/* ── StrategeView — Tranche A ─────────────────────────────────────────────
+/* ── StrategeView — Tranches A + B ────────────────────────────────────────
    Réimplémentation native (React) de l'agent Le Stratège, jusqu'ici
    encapsulé en <iframe> depuis templates/stratege.html (voir
    AgentWorkspace.jsx). Même contrat API — /strategize, /status/<jobId>,
-   /strategies/<id>, /strategy_chat — aucun changement backend.
+   /strategies/<id>, /business-context, /context-chat — aucun changement
+   backend. Contrat de l'entretien documenté dans
+   docs/interview_frontend_contract.md : le frontend n'y déduit aucun fait
+   business et ne recalcule pas la complétude, il affiche ce que le serveur
+   renvoie (context_progress.understood/remaining notamment).
 
-   Cette tranche couvre : la reprise d'une stratégie déjà enregistrée
+   Couvert : la reprise d'une stratégie déjà enregistrée
    (workspace.strategy_id), la génération classique à partir d'une analyse
    Psychologue existante (workspace.analysis_id → /strategize → /status),
-   et le tableau de bord à 5 onglets (Synthèse, Marketing, Branding, Plan
-   d'action, Décision).
+   l'entretien textuel qui construit le contexte business depuis zéro
+   (/business-context → /context-chat, tour par tour, jusqu'à is_ready),
+   et le tableau de bord à 5 onglets une fois la stratégie prête. La
+   bannière de passerelle Psychologue (sessionStorage gabriel_for_stratege,
+   écrite par PsychologueView.jsx) est reprise ici, pas dans la tranche A :
+   elle nourrit l'entretien, pas la génération classique seule.
 
-   Restent hors périmètre de cette tranche, par construction : l'entretien
-   conversationnel qui construit le contexte business depuis zéro
-   (/context-chat, 12 états d'entretien) et la couche vocale (micro,
-   ElevenLabs). Sans l'un des deux déclencheurs ci-dessus, l'écran l'indique
-   honnêtement plutôt que de simuler un entretien qui n'existe pas encore.
+   Hors périmètre, par construction : la couche vocale (micro, ElevenLabs,
+   lecture audio) — l'entretien fonctionne entièrement en tapant, comme le
+   permet déjà le contrat serveur. Sans micro, il ne manque rien de
+   fonctionnel, seulement le confort de la voix.
 
    Simplification délibérée, actée avec l'utilisateur : les jauges SVG, le
    poster d'offre et l'échelle de prix animée de l'ancienne page laissent
@@ -324,21 +331,61 @@ function Dashboard({ strategy, onGoToCreateur }) {
 
 function pause(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+/* Reprise du handoff écrit par PsychologueView.jsx avant de naviguer vers
+   « stratege » (voir goToStratege) : {analysis_id, folder_id, psycho_brief,
+   psycho_data}. N'existe que si l'utilisateur vient de cliquer « Stratège
+   → » depuis une analyse — jamais lu ni écrit ailleurs. */
+function lireHandoffPsycho() {
+  try {
+    const raw = window.sessionStorage.getItem('gabriel_for_stratege');
+    if (!raw) return null;
+    const stored = JSON.parse(raw);
+    return stored && stored.analysis_id ? stored : null;
+  } catch (_) { return null; }
+}
+
+function ChatMessage({ role, content }) {
+  return <div className={`gv2-strat-msg gv2-strat-msg--${role}`}>{esc(content)}</div>;
+}
+
+/* « Déjà compris » / « À éclaircir » — déjà groupés côté serveur
+   (context_progress, agents/context_builder/orchestrator.py). Le
+   contrat (docs/interview_frontend_contract.md) est explicite : le
+   frontend ne déduit aucun fait business et ne recalcule pas la
+   complétude — on affiche ces deux listes telles quelles. */
+function ProgressChips({ contextProgress }) {
+  if (!contextProgress) return null;
+  const { understood = [], remaining = [] } = contextProgress;
+  if (!understood.length && !remaining.length) return null;
+  return <div className="gv2-strat-progress-chips">
+    {understood.map(l => <span key={l} className="is-done">{l}</span>)}
+    {remaining.map(l => <span key={l} className="is-pending">{l}</span>)}
+  </div>;
+}
+
 export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) {
-  const [stage, setStage] = useState('loading'); // loading | need_analysis | no_context | generating | result | error
+  const [stage, setStage] = useState('loading'); // loading | need_analysis | need_profile | interview | generating | result | error
   const [strategy, setStrategy] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [missingFields, setMissingFields] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [messages, setMessages] = useState([]);
+  const [contextProgress, setContextProgress] = useState(null);
+  const [interviewReady, setInterviewReady] = useState(false);
+  const [updatedContext, setUpdatedContext] = useState(null);
+  const [interviewInput, setInterviewInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const [psychoHandoff, setPsychoHandoff] = useState(null);
   const aliveRef = useRef(true);
   const pollingRef = useRef(false);
 
   useEffect(() => { aliveRef.current = true; return () => { aliveRef.current = false; }; }, []);
+  useEffect(() => { setPsychoHandoff(lireHandoffPsycho()); }, []);
 
   useEffect(() => {
     let vivant = true;
     async function bootstrap() {
-      if (!workspace) { setStage('no_context'); return; }
+      if (!workspace) { setStage('interview'); return; }
       if (workspace.strategy_id) {
         setStage('loading');
         try {
@@ -351,11 +398,57 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
       }
       if (!vivant) return;
       if (workspace.analysis_id) { setStage('need_analysis'); return; }
-      setStage('no_context');
+      setStage('interview');
     }
     bootstrap();
     return () => { vivant = false; };
   }, [workspace?.folder_id, workspace?.strategy_id, workspace?.analysis_id]);
+
+  useEffect(() => {
+    if (stage !== 'interview' || messages.length > 0) return;
+    let vivant = true;
+    (async () => {
+      try {
+        const response = await fetchV2(`/business-context?folder_id=${encodeURIComponent(workspace?.folder_id || '')}`);
+        if (isLoginResponse(response)) { window.location.assign('/login'); return; }
+        const payload = await readApiPayload(response, 'L’entretien stratégique');
+        if (!vivant) return;
+        setMessages(Array.isArray(payload.messages) ? payload.messages : []);
+        setContextProgress(payload.context_progress || null);
+        setInterviewReady(Boolean(payload.is_ready));
+        setUpdatedContext(payload.updated_context || {});
+      } catch (_) {
+        if (vivant) setMessages([{ role: 'assistant', content: 'Parlez-moi de votre entreprise — je pose une question à la fois.' }]);
+      }
+    })();
+    return () => { vivant = false; };
+  }, [stage, workspace?.folder_id]);
+
+  async function envoyerReponse() {
+    const message = interviewInput.trim();
+    if (!message || sending) return;
+    setSending(true); setInterviewInput('');
+    setMessages(current => [...current, { role: 'user', content: message }]);
+    try {
+      const response = await fetchV2('/context-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message }),
+      });
+      if (isLoginResponse(response)) { window.location.assign('/login'); return; }
+      const payload = await readApiPayload(response, 'L’entretien stratégique');
+      if (payload?.error) { setMessages(current => [...current, { role: 'assistant', content: payload.error }]); return; }
+      const texte = payload.reply?.display_text || (typeof payload.reply === 'string' ? payload.reply : '');
+      if (texte) setMessages(current => [...current, { role: 'assistant', content: texte }]);
+      setContextProgress(payload.context_progress || null);
+      setInterviewReady(Boolean(payload.is_ready));
+      setUpdatedContext(payload.updated_context || {});
+    } catch (_) {
+      setMessages(current => [...current, { role: 'assistant', content: 'Erreur réseau — réessayez.' }]);
+    } finally {
+      setSending(false);
+    }
+  }
 
   async function pollStrategize(jobId) {
     if (pollingRef.current) return;
@@ -388,42 +481,64 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
     }
   }
 
-  async function generer() {
+  const dernierDeclencheurRef = useRef(null); // 'classique' | 'entretien' — pour le bouton Réessayer
+
+  /* Deux formes de réponse possibles selon le flux emprunté côté serveur
+     (app.py:/strategize) : un job_id à suivre (flux classique, asynchrone,
+     même mécanisme que pollStrategize), ou — quand un entretien seul sans
+     analyse liée aboutit — la stratégie renvoyée directement, de façon
+     synchrone. Les deux sont légitimes, pas une erreur à normaliser. */
+  async function lancerGeneration(payload) {
     setStage('generating'); setProgress(0); setErrorMsg(''); setMissingFields(null);
     try {
       const response = await fetchV2('/strategize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ analysis_id: workspace.analysis_id, folder_id: workspace.folder_id }),
+        body: JSON.stringify(payload),
       });
       if (isLoginResponse(response)) { window.location.assign('/login'); return; }
-      const payload = await readApiPayload(response, 'La génération de la stratégie');
-      if (response.status === 402 || payload?.error === 'credits_insufficient') {
-        setStage('error'); setErrorMsg(`Il vous faut ${payload.cost} crédits pour une stratégie — il vous en reste ${payload.credits}.`);
+      const body = await readApiPayload(response, 'La génération de la stratégie');
+      if (response.status === 402 || body?.error === 'credits_insufficient') {
+        setStage('error'); setErrorMsg(`Il vous faut ${body.cost} crédits pour une stratégie — il vous en reste ${body.credits}.`);
         return;
       }
-      if (payload?.missing_fields) {
-        setMissingFields(payload.missing_fields); setStage('need_profile');
+      if (body?.missing_fields) {
+        setMissingFields(body.missing_fields); setStage('need_profile');
         return;
       }
-      if (payload?.error) { setStage('error'); setErrorMsg(payload.error); return; }
-      if (payload?.job_id) { await pollStrategize(payload.job_id); return; }
+      if (body?.error) { setStage('error'); setErrorMsg(body.error); return; }
+      if (body?.job_id) { await pollStrategize(body.job_id); return; }
+      if (body?.success) { setStrategy(body); setStage('result'); await onWorkspaceChange?.(); return; }
       setStage('error'); setErrorMsg('Réponse inattendue du serveur.');
     } catch (error) {
       setStage('error'); setErrorMsg(error.message || 'Erreur réseau. Réessayez.');
     }
   }
 
-  if (stage === 'loading') {
-    return <div className="gv2-strat-empty"><p>Chargement…</p></div>;
+  function generer() {
+    dernierDeclencheurRef.current = 'classique';
+    lancerGeneration({ analysis_id: workspace.analysis_id, folder_id: workspace.folder_id });
   }
 
-  if (stage === 'no_context') {
-    return <div className="gv2-strat-empty">
-      <h2>Aucune analyse liée à ce dossier</h2>
-      <p>Le Stratège construit sa décision à partir d'une analyse d'audience. Lancez d'abord Le Psychologue sur ce dossier, puis revenez ici.</p>
-      <button type="button" onClick={() => onNavigateAgent?.('psychologue')}>Ouvrir Le Psychologue</button>
-    </div>;
+  /* Une analyse Psychologue liée (bannière acceptée) fait basculer côté
+     serveur sur le flux classique plutôt que Context Builder — même
+     logique que l'ancienne page (_linkedAnalysisId) : le contexte de
+     l'entretien enrichit alors brain_profile au lieu de context. */
+  function genererDepuisEntretien() {
+    dernierDeclencheurRef.current = 'entretien';
+    const payload = psychoHandoff
+      ? { analysis_id: psychoHandoff.analysis_id, brain_profile: updatedContext, folder_id: workspace?.folder_id }
+      : { context: updatedContext, psycho_summary: psychoHandoff?.psycho_brief || '', folder_id: workspace?.folder_id };
+    lancerGeneration(payload);
+  }
+
+  function reessayer() {
+    if (dernierDeclencheurRef.current === 'entretien') genererDepuisEntretien();
+    else generer();
+  }
+
+  if (stage === 'loading') {
+    return <div className="gv2-strat-empty"><p>Chargement…</p></div>;
   }
 
   if (stage === 'need_analysis') {
@@ -431,6 +546,7 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
       <h2>Une analyse est disponible pour ce dossier</h2>
       <p>Gabriel peut générer une stratégie à partir de l'analyse d'audience déjà réalisée et de votre profil business.</p>
       <button type="button" onClick={generer}>Générer la stratégie</button>
+      <button type="button" className="gv2-strat-secondary" onClick={() => setStage('interview')}>Ou décrivez-moi votre activité maintenant</button>
     </div>;
   }
 
@@ -440,6 +556,7 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
       <p>Gabriel a besoin de ces informations pour générer une stratégie fiable :</p>
       <ul className="gv2-strat-missing">{(missingFields || []).map(f => <li key={f.field}>{f.label}</li>)}</ul>
       <a href="/orchestrateur?section=settings">Compléter mon profil business</a>
+      <button type="button" className="gv2-strat-secondary" onClick={() => setStage('interview')}>Ou décrivez-moi votre activité maintenant</button>
     </div>;
   }
 
@@ -454,7 +571,25 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
     return <div className="gv2-strat-empty">
       <h2>Un problème est survenu</h2>
       <p>{errorMsg}</p>
-      {workspace?.analysis_id && <button type="button" onClick={generer}>Réessayer</button>}
+      <button type="button" onClick={reessayer}>Réessayer</button>
+    </div>;
+  }
+
+  if (stage === 'interview') {
+    return <div className="gv2-strat-interview">
+      {psychoHandoff && <div className="gv2-strat-banner">Analyse Psychologue détectée — elle sera prise en compte dans la stratégie.</div>}
+      <ProgressChips contextProgress={contextProgress} />
+      <div className="gv2-strat-chat" role="log" aria-live="polite">
+        {messages.map((m, i) => <ChatMessage key={i} role={m.role} content={m.content} />)}
+        {sending && <div className="gv2-strat-msg gv2-strat-msg--assistant is-thinking">…</div>}
+      </div>
+      {interviewReady && <button type="button" className="gv2-strat-generate" onClick={genererDepuisEntretien}>Générer la stratégie</button>}
+      <div className="gv2-strat-composer">
+        <textarea rows={1} value={interviewInput} placeholder="Écrivez votre réponse…" disabled={sending}
+          onChange={event => setInterviewInput(event.target.value)}
+          onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); envoyerReponse(); } }} />
+        <button type="button" disabled={sending || !interviewInput.trim()} onClick={envoyerReponse} aria-label="Envoyer">Envoyer</button>
+      </div>
     </div>;
   }
 

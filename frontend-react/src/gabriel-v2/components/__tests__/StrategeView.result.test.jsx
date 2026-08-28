@@ -109,11 +109,19 @@ describe('Génération classique depuis une analyse existante', () => {
   });
 });
 
-describe('Aucun déclencheur disponible', () => {
-  it('l’indique honnêtement plutôt que de simuler un entretien', async () => {
+describe('Aucun déclencheur disponible : l’entretien démarre directement', () => {
+  it('ouvre l’entretien plutôt que de dériver vers un écran mort', async () => {
+    /* Sans analyse ni stratégie, l'ancienne page allait déjà directement à
+       l'entretien (loadBusinessContext) — la Tranche A y renvoyait un
+       message honnête faute d'entretien construit ; la Tranche B le
+       remplace par le vrai entretien. */
+    global.fetch = routeFetch([
+      [/^\/business-context/, () => ({ json: { messages: [{ role: 'assistant', content: 'Parlez-moi de votre activité.' }],
+        context_progress: { understood: [], remaining: ['Identité'] }, is_ready: false, updated_context: {} } })],
+    ]);
     render(<StrategeView workspace={WORKSPACE_EMPTY} />);
-    await waitFor(() => expect(screen.getByText('Aucune analyse liée à ce dossier')).toBeInTheDocument());
-    expect(screen.getByRole('button', { name: 'Ouvrir Le Psychologue' })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Parlez-moi de votre activité.')).toBeInTheDocument());
+    expect(screen.getByPlaceholderText('Écrivez votre réponse…')).toBeInTheDocument();
   });
 });
 
