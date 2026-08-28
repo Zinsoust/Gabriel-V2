@@ -190,3 +190,15 @@ def test_retour_stripe_reussi_ramene_vers_les_parametres():
     r = _client().get('/stripe/success?session_id=cs_test_123')
     assert r.status_code == 302
     assert r.headers['Location'] == '/orchestrateur?section=settings'
+
+
+def test_csp_autorise_la_lecture_audio_en_blob():
+    """La lecture vocale de l'Entretien stratégique (POST /voice/speak, voir
+    StrategeView.jsx) charge l'audio via new Audio(URL.createObjectURL(blob)) :
+    sans media-src incluant blob:, Chrome bloque la lecture en silence même
+    sous 'self' — trouvé en testant réellement dans le navigateur, jamais en
+    Vitest (jsdom n'applique aucune CSP)."""
+    r = _client().get('/')
+    csp = r.headers.get('Content-Security-Policy', '')
+    assert "media-src" in csp
+    assert "blob:" in csp.split("media-src")[1].split(";")[0]

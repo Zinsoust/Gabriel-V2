@@ -222,6 +222,13 @@ def _security_headers(response):
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: https:; "
+            # blob: — la lecture vocale de l'Entretien stratégique (Stratège
+            # Tranche C, /voice/speak) charge l'audio ElevenLabs via
+            # new Audio(URL.createObjectURL(blob)) : sans cette autorisation
+            # explicite, Chrome bloque le blob: en silence même sous 'self'
+            # (trouvé en testant réellement dans le navigateur, pas en Vitest
+            # — jsdom n'applique aucune CSP).
+            "media-src 'self' blob:; "
             "connect-src 'self' https://api.stripe.com; "
             "frame-src 'self' https://js.stripe.com; "
             "object-src 'none'; "
