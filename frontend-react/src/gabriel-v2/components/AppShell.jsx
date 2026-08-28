@@ -7,6 +7,7 @@ import { ContextPanel } from './ContextPanel.jsx';
 import { AgentWorkbench } from './AgentWorkbench.jsx';
 import { CreatorConversation } from './CreatorConversation.jsx';
 import { PsychologueView } from './PsychologueView.jsx';
+import { StrategeView } from './StrategeView.jsx';
 import { OnboardingTour } from './OnboardingTour.jsx';
 import { Icon } from '../icons.jsx';
 import { missionFromConversationResponse, workspaceInitial } from '../data-adapters.js';
@@ -759,6 +760,8 @@ export function AppShell({ bootstrap }) {
           ? <CreatorConversation workspace={activeWorkspace} settings={creatorSettings} refinementRequest={creatorRefinementRequest} onHasOutputChange={setCreatorHasOutput} onWorkspaceChange={refreshWorkspace} onSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} contextCollapsed={effectiveRightCollapsed} onShowContext={() => setRightCollapsed(false)} />
           : tab === 'psychologue'
           ? <PsychologueView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} />
+          : tab === 'stratege'
+          ? <StrategeView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} />
           : isAgentTab(tab)
           ? <AgentWorkbench agentId={tab} agent={activeAgent} workspace={activeWorkspace} items={items} firstName={firstName} isSubmitting={isSubmitting} onSend={sendMessage} discussionCollapsed={discussionCollapsed} onToggleDiscussion={() => setDiscussionCollapsed(current => !current)} onResizeStart={beginDiscussionResize} onResizeKey={handleDiscussionResizeKey} onResizeReset={() => setDiscussionWidth(DISCUSSION_DEFAULT)} onReturnToConversation={() => selectTab('conversation')} onNavigateAgent={selectTab} contextCollapsed={effectiveRightCollapsed && hasContextToSurface} onShowContext={() => setRightCollapsed(false)} darkMode={darkMode} />
           : tab === 'activity'
