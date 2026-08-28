@@ -424,16 +424,26 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
     audioElRef.current?.pause();
   }, []);
 
+  /* Le catalogue des voix doit se charger dès que le mode vocal est actif —
+     pas seulement au clic qui l'active. Un mode vocal déjà activé lors
+     d'une session précédente (repris via localStorage à l'ouverture) doit
+     lui aussi proposer le sélecteur ; sans cet effet séparé, la lecture
+     fonctionnait déjà correctement (elle ne dépend que de voiceMode), mais
+     le sélecteur de voix restait invisible tant qu'on ne rebasculait pas
+     manuellement — trouvé en testant réellement une session reprise. */
+  useEffect(() => {
+    if (voiceMode && voices === null) {
+      fetchV2('/voice/voices').then(async response => {
+        const payload = await readApiPayload(response, 'Les voix disponibles').catch(() => null);
+        setVoices(payload?.available ? (payload.voices || []) : []);
+      }).catch(() => setVoices([]));
+    }
+  }, [voiceMode, voices]);
+
   function toggleVoiceMode() {
     setVoiceMode(current => {
       const next = !current;
       try { window.localStorage.setItem(VOICE_MODE_KEY, next ? '1' : '0'); } catch (_) {}
-      if (next && voices === null) {
-        fetchV2('/voice/voices').then(async response => {
-          const payload = await readApiPayload(response, 'Les voix disponibles').catch(() => null);
-          setVoices(payload?.available ? (payload.voices || []) : []);
-        }).catch(() => setVoices([]));
-      }
       return next;
     });
   }

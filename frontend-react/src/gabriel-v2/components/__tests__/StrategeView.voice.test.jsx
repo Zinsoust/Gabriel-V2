@@ -71,9 +71,27 @@ describe('Mode vocal : bascule et persistance', () => {
 
   it('reprend le mode vocal déjà activé lors d’une session précédente', async () => {
     window.localStorage.setItem('gabriel_voice_mode', '1');
-    global.fetch = routeFetch([[/^\/business-context/, () => ({ json: OUVERTURE })]]);
+    global.fetch = routeFetch([
+      [/^\/business-context/, () => ({ json: OUVERTURE })],
+      [/^\/voice\/voices/, () => ({ json: { voices: [], available: true } })],
+    ]);
     render(<StrategeView workspace={WORKSPACE} />);
     await waitFor(() => expect(screen.getByRole('button', { name: /Mode vocal/ })).toHaveAttribute('aria-pressed', 'true'));
+  });
+
+  it('charge le catalogue des voix dès l’ouverture si le mode vocal était déjà actif', async () => {
+    /* Un mode vocal repris de la session précédente (localStorage) ne doit
+       pas laisser le sélecteur invisible faute d'avoir été rebasculé — trouvé
+       en testant une session reprise dans un vrai navigateur : la lecture
+       fonctionnait déjà (elle ne dépend que du mode, pas du catalogue), mais
+       le sélecteur restait vide indéfiniment. */
+    window.localStorage.setItem('gabriel_voice_mode', '1');
+    global.fetch = routeFetch([
+      [/^\/business-context/, () => ({ json: OUVERTURE })],
+      [/^\/voice\/voices/, () => ({ json: { voices: [{ id: 'v1', label: 'Adam' }], available: true } })],
+    ]);
+    render(<StrategeView workspace={WORKSPACE} />);
+    await waitFor(() => expect(screen.getByLabelText('Voix de Gabriel')).toBeInTheDocument());
   });
 
   it('mémorise la voix choisie', async () => {
