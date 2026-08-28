@@ -202,3 +202,66 @@ def test_csp_autorise_la_lecture_audio_en_blob():
     csp = r.headers.get('Content-Security-Policy', '')
     assert "media-src" in csp
     assert "blob:" in csp.split("media-src")[1].split(";")[0]
+
+
+def test_identite_dev_local_obtient_sa_ligne_gabriel_users(monkeypatch):
+    """Sans cette ligne, la déduction de crédits en local (AUTH_ENABLED=false)
+    s'exécute sans erreur mais ne change jamais rien — trouvé en vérifiant le
+    solde après une génération de stratégie réussie en conditions réelles."""
+    import api.auth as _auth
+
+    class _FakeTable:
+        def __init__(self, store):
+            self.store = store
+            self._filter = None
+
+        def select(self, *_a, **_k): return self
+        def eq(self, key, value):
+            self._filter = (key, value)
+            return self
+        def limit(self, *_a, **_k): return self
+        def insert(self, row):
+            self.store.append(row)
+            return self
+        def execute(self):
+            if self._filter and self._filter[0] == 'user_id':
+                matches = [r for r in self.store if r.get('user_id') == self._filter[1]]
+                return type('R', (), {'data': matches})()
+            return type('R', (), {'data': self.store})()
+
+    class _FakeSupabase:
+        def __init__(self): self.rows = []
+        def table(self, _name): return _FakeTable(self.rows)
+
+    fake = _FakeSupabase()
+    monkeypatch.setattr(_auth, '_supabase', fake)
+    monkeypatch.setattr(_auth, '_dev_user_provisioned', False)
+
+    _auth._ensure_dev_user_row()
+    assert len(fake.rows) == 1
+    assert fake.rows[0]['user_id'] == _auth._DEV_USER['user_id']
+    assert 'credits' not in fake.rows[0]  # vient du DEFAULT Supabase, jamais envoyé
+
+    # Un second appel (déjà provisionné) ne recrée pas la ligne.
+    _auth._ensure_dev_user_row()
+    assert len(fake.rows) == 1
+
+
+def test_provisionnement_dev_ne_recree_pas_une_ligne_existante(monkeypatch):
+    import api.auth as _auth
+
+    class _FakeTable:
+        def __init__(self, store):
+            self.store = store
+        def select(self, *_a, **_k): return self
+        def eq(self, *_a, **_k): return self
+        def limit(self, *_a, **_k): return self
+        def insert(self, row): raise AssertionError('ne devrait jamais insérer — la ligne existe déjà')
+        def execute(self): return type('R', (), {'data': [{'user_id': _auth._DEV_USER['user_id']}]})()
+
+    class _FakeSupabase:
+        def table(self, _name): return _FakeTable([])
+
+    monkeypatch.setattr(_auth, '_supabase', _FakeSupabase())
+    monkeypatch.setattr(_auth, '_dev_user_provisioned', False)
+    _auth._ensure_dev_user_row()  # ne doit pas lever

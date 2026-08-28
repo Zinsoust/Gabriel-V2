@@ -102,8 +102,67 @@ def _open_session(user):
     session['user_picture'] = user.get('picture', '')
 
 
+# Identité de secours en dev local (AUTH_ENABLED=false) : sans elle, toute
+# route qui exige un user_id réel (ex. `_db.create_folder`) échoue en silence
+# dès qu'aucune session n'existe — alors que le commentaire en tête de fichier
+# promet que ce mode fait « passer toutes les routes ». N'a aucun effet quand
+# AUTH_ENABLED=true : une vraie session reste alors obligatoire.
+#
+# user_id doit être un UUID valide — la colonne Supabase est typée uuid.
+# 'dev-local' (chaîne littérale) n'en est pas un : chaque requête filtrée
+# dessus (crédits, stratégies, mémoire de cas...) échouait avec
+# invalid input syntax for type uuid: "dev-local", avalé en silence par les
+# except Exception des fonctions d'écriture — trouvé en testant réellement
+# une génération de stratégie en local (le solde de crédits ne bougeait
+# jamais). Ce placeholder reste un UUID reconnaissable au premier coup d'œil
+# dans les journaux ou la base plutôt qu'un UUID aléatoire quelconque.
+_DEV_USER = {
+    'user_id': 'dec0de00-0000-4000-8000-000000000001',
+    'email':   'dev@local.gabriel',
+    'name':    'Dev local',
+    'picture': '',
+}
+
+# Le UUID valide (ci-dessus) suffit à ce que les requêtes Supabase filtrées
+# dessus s'exécutent sans erreur — mais une requête sur une ligne qui n'a
+# jamais été créée n'échoue pas non plus : elle réussit silencieusement en
+# ne touchant aucune ligne. Le crédit affiché retombait donc toujours sur
+# le défaut (voir get_user_credits), la déduction n'ayant jamais rien à
+# mettre à jour — trouvé en vérifiant le solde après une génération réussie
+# en local. Un vrai compte obtient sa ligne à l'inscription
+# (_sb_upsert_google / register_email_user, plus bas dans ce fichier) ; le
+# mode sans authentification contourne entièrement ce chemin. Provisionnée
+# une seule fois par démarrage de processus, avec la même forme que
+# l'inscription email — 'credits' n'est jamais envoyé explicitement, il
+# vient du DEFAULT 300 de la colonne Supabase (voir _sb_upsert_google).
+_dev_user_provisioned = False
+
+
+def _ensure_dev_user_row():
+    global _dev_user_provisioned
+    if _dev_user_provisioned or not _supabase:
+        return
+    try:
+        existing = _supabase.table(_TABLE).select('user_id').eq('user_id', _DEV_USER['user_id']).limit(1).execute()
+        if not existing.data:
+            now = datetime.datetime.utcnow().isoformat()
+            _supabase.table(_TABLE).insert({
+                'user_id':    _DEV_USER['user_id'],
+                'email':      _DEV_USER['email'],
+                'name':       _DEV_USER['name'],
+                'created_at': now,
+                'last_login': now,
+            }).execute()
+    except Exception as e:
+        print(f'[AUTH] _ensure_dev_user_row error : {e}')
+    _dev_user_provisioned = True
+
+
 def current_user():
     if not session.get('user_id'):
+        if os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
+            _ensure_dev_user_row()
+            return _DEV_USER
         return None
     return {
         'user_id': session['user_id'],
