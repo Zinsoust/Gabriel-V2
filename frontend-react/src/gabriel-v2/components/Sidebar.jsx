@@ -202,15 +202,181 @@ function ActivityPanel({ mission, onSelectConversation }) {
   </div>;
 }
 
-function SettingsPanel({ user, darkMode, onToggleDarkMode, onStartGuide }) {
+/* Les champs requis alimentent le contexte business dès qu'aucune source
+   plus précise (entretien stratégique) n'existe — voir la cascade dans
+   core/business_context.py. Les rendre facultatifs les laisserait vides
+   par défaut, et Gabriel perdrait ce filet. */
+const CHAMPS_REQUIS = [
+  { cle: 'role_utilisateur',    label: 'Votre rôle',            placeholder: 'Coach business, fondateur SaaS, consultant marketing…' },
+  { cle: 'activite',            label: 'Activité / entreprise',  placeholder: 'Ce que vous faites concrètement au quotidien' },
+  { cle: 'offre',               label: 'Offre principale',       placeholder: 'Programme, formation, service, logiciel, produit…' },
+  { cle: 'cible',               label: 'Cible idéale',           placeholder: 'Entrepreneurs, PME, indépendants, e-commerçants…' },
+  { cle: 'modele_economique',   label: 'Modèle économique',      placeholder: 'Abonnement mensuel, vente unique, commission, freemium…' },
+  { cle: 'resultats_actuels',   label: 'Résultats actuels',      placeholder: 'CA mensuel, nombre de clients, taux de conversion, audience…', long: true },
+  { cle: 'objectif_principal',  label: 'Objectif prioritaire',   placeholder: 'Ce que vous voulez atteindre dans les 90 prochains jours', long: true },
+];
+const CHAMPS_OPTIONNELS = [
+  { cle: 'vision_strategique', label: 'Vision stratégique', placeholder: 'Où voulez-vous amener votre entreprise dans 3 ans ?', long: true },
+  { cle: 'ton_de_marque',      label: 'Ton de marque',      placeholder: 'Expert, chaleureux, direct, premium, provocateur…' },
+];
+
+function ProfileField({ champ, valeur, onChange }) {
+  const props = { id: champ.cle, value: valeur, onChange: event => onChange(champ.cle, event.target.value), placeholder: champ.placeholder };
+  return <div className="gv2-profile-row">
+    <label htmlFor={champ.cle}>{champ.label}</label>
+    {champ.long ? <textarea rows={2} {...props} /> : <input type="text" {...props} />}
+  </div>;
+}
+
+/* Le profil est la mémoire la plus ancienne de Gabriel — dernier recours de
+   la cascade business_context quand ni la requête ni l'entretien stratégique
+   ne fournissent le contexte. L'ancienne page V1 n'avait pas d'équivalent V2 :
+   sans ce port, cette mémoire resterait à jamais vide pour tout nouveau
+   compte. */
+function ProfileForm() {
+  const [valeurs, setValeurs] = useState(null);
+  const [enregistrement, setEnregistrement] = useState('repos');
+
+  useEffect(() => {
+    let vivant = true;
+    fetchV2('/profil/data').then(async response => {
+      if (isLoginResponse(response)) return;
+      const payload = await readApiPayload(response, 'Votre profil').catch(() => ({}));
+      if (vivant) setValeurs(payload && typeof payload === 'object' ? payload : {});
+    }).catch(() => { if (vivant) setValeurs({}); });
+    return () => { vivant = false; };
+  }, []);
+
+  function changer(cle, valeur) {
+    setValeurs(current => ({ ...(current || {}), [cle]: valeur }));
+  }
+
+  async function enregistrer(event) {
+    event.preventDefault();
+    setEnregistrement('en_cours');
+    try {
+      const response = await fetchV2('/profil', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(valeurs || {}),
+      });
+      const payload = await readApiPayload(response, 'Votre profil').catch(() => null);
+      setEnregistrement(response.ok && payload?.success ? 'reussi' : 'echec');
+    } catch (_) {
+      setEnregistrement('echec');
+    }
+    setTimeout(() => setEnregistrement('repos'), 2200);
+  }
+
+  if (valeurs === null) return <p className="gv2-nav-loading">Chargement de votre profil…</p>;
+
+  const remplis = CHAMPS_REQUIS.filter(c => (valeurs[c.cle] || '').trim().length > 0).length;
+  const total = CHAMPS_REQUIS.length;
+  const etat = remplis === total ? 'complet' : remplis >= 3 ? 'partiel' : 'vide';
+  const etatTexte = {
+    complet: 'Profil complet — Gabriel a tout ce qu’il lui faut',
+    partiel: 'Profil partiel — complétez pour de meilleurs résultats',
+    vide: 'Profil vide — commencez par renseigner votre rôle',
+  }[etat];
+
+  return <form className="gv2-profile-form" onSubmit={enregistrer}>
+    <div className={`gv2-profile-status is-${etat}`}>
+      <div className="gv2-profile-status-track"><div className="gv2-profile-status-fill" style={{ width: `${Math.round(remplis / total * 100)}%` }} /></div>
+      <div className="gv2-profile-status-row"><span>{etatTexte}</span><span>{remplis} / {total}</span></div>
+    </div>
+    <p className="gv2-nav-section-label">L’ESSENTIEL</p>
+    {CHAMPS_REQUIS.map(champ => <ProfileField key={champ.cle} champ={champ} valeur={valeurs[champ.cle] || ''} onChange={changer} />)}
+    <p className="gv2-nav-section-label">FACULTATIF</p>
+    {CHAMPS_OPTIONNELS.map(champ => <ProfileField key={champ.cle} champ={champ} valeur={valeurs[champ.cle] || ''} onChange={changer} />)}
+    <button type="submit" className={`gv2-profile-save is-${enregistrement}`} disabled={enregistrement === 'en_cours'}>
+      {enregistrement === 'en_cours' ? 'Enregistrement…' : enregistrement === 'reussi' ? '✓ Enregistré' : enregistrement === 'echec' ? 'Erreur — réessayer' : 'Enregistrer'}
+    </button>
+  </form>;
+}
+
+/* Le plan et la consommation ne changent quasiment jamais dans la session :
+   un chargement silencieux à l'ouverture du panneau suffit, pas de polling. */
+function PlanUsage({ workspaces }) {
+  const [usage, setUsage] = useState(null);
+  useEffect(() => {
+    let vivant = true;
+    fetchV2('/usage').then(async response => {
+      const payload = await readApiPayload(response, 'Votre consommation').catch(() => null);
+      if (vivant) setUsage(payload || {});
+    }).catch(() => { if (vivant) setUsage({}); });
+    return () => { vivant = false; };
+  }, []);
+
+  const PLANS = { free: 'Gratuit', early_access: 'Early Access', standard: 'Standard', pme: 'PME' };
+  const plan = usage?.plan || 'free';
+  return <div className="gv2-plan-usage">
+    <div className={`gv2-plan-badge${plan === 'free' ? ' is-free' : ''}`}>{PLANS[plan] || plan}</div>
+    <div className="gv2-plan-stats">
+      <div><strong>{usage ? (usage.limit ? `${usage.used || 0} / ${usage.limit}` : `${usage.used || 0}`) : '…'}</strong><span>Analyses</span></div>
+      <div><strong>{workspaces?.length ?? '—'}</strong><span>Dossiers</span></div>
+    </div>
+  </div>;
+}
+
+/* La suppression est irréversible : taper l'email exact du compte est la
+   seule confirmation, comme sur l'ancienne page — le serveur revalide de
+   toute façon cette correspondance avant d'agir. */
+function DeleteAccount({ user }) {
+  const [ouvert, setOuvert] = useState(false);
+  const [saisie, setSaisie] = useState('');
+  const [suppression, setSuppression] = useState(false);
+  const [erreur, setErreur] = useState('');
+  const email = (user?.email || '').trim().toLowerCase();
+  const correspond = saisie.trim().toLowerCase() === email && email.length > 0;
+
+  async function confirmer() {
+    setSuppression(true);
+    setErreur('');
+    try {
+      const response = await fetchV2('/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm_email: saisie.trim() }),
+      });
+      const payload = await readApiPayload(response, 'La suppression du compte').catch(() => null);
+      if (response.ok && payload?.success) { window.location.assign('/'); return; }
+      setErreur(payload?.error || 'Impossible de supprimer ce compte.');
+    } catch (_) {
+      setErreur('Erreur réseau.');
+    }
+    setSuppression(false);
+  }
+
+  if (!ouvert) {
+    return <button type="button" className="gv2-account-delete-open" onClick={() => setOuvert(true)}>Supprimer définitivement mon compte</button>;
+  }
+  return <div className="gv2-account-delete-confirm">
+    <p>Tapez <strong>{user?.email}</strong> pour confirmer. Cette action supprime toutes vos données et est irréversible.</p>
+    <input type="email" value={saisie} onChange={event => setSaisie(event.target.value)} placeholder={user?.email} aria-label="Confirmez votre email" />
+    {erreur && <p className="gv2-account-delete-error" role="alert">{erreur}</p>}
+    <div className="gv2-account-delete-actions">
+      <button type="button" onClick={() => { setOuvert(false); setSaisie(''); setErreur(''); }}>Annuler</button>
+      <button type="button" className="is-danger" disabled={!correspond || suppression} onClick={confirmer}>{suppression ? 'Suppression…' : 'Supprimer définitivement'}</button>
+    </div>
+  </div>;
+}
+
+function SettingsPanel({ user, workspaces, darkMode, onToggleDarkMode, onStartGuide }) {
   return <div className="gv2-nav-content">
-    <section className="gv2-nav-note"><span className="gv2-user-avatar">{workspaceInitial(user?.name || user?.email || 'G')}</span><div><strong>{user?.name || user?.email?.split('@')[0] || 'Votre compte'}</strong><p>Les préférences personnelles, notifications et intégrations seront gérées ici.</p></div></section>
+    <section className="gv2-nav-note"><span className="gv2-user-avatar">{workspaceInitial(user?.name || user?.email || 'G')}</span><div><strong>{user?.name || user?.email?.split('@')[0] || 'Votre compte'}</strong><p>{user?.email}</p></div></section>
+    <PlanUsage workspaces={workspaces} />
     <section className="gv2-nav-theme" aria-label="Apparence">
       <span><Icon name={darkMode ? 'moon' : 'sun'} size={16} /></span>
       <div><strong>Mode sombre</strong><p>{darkMode ? 'Activé' : 'Désactivé'}</p></div>
       <button type="button" role="switch" aria-checked={darkMode} aria-label="Activer le mode sombre" className={darkMode ? 'is-active' : ''} onClick={onToggleDarkMode}><i /></button>
     </section>
     <button className="gv2-nav-guide" type="button" onClick={onStartGuide}><Icon name="sparkle" size={15} /><span>Relancer le guide</span><Icon name="chevronRight" size={14} /></button>
+    <p className="gv2-nav-section-label">VOTRE PROFIL BUSINESS</p>
+    <ProfileForm />
+    <div className="gv2-account-danger">
+      <p className="gv2-nav-section-label">ZONE DE DANGER</p>
+      <DeleteAccount user={user} />
+    </div>
   </div>;
 }
 
@@ -267,7 +433,7 @@ export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, active
       {activeSection === 'team' && <TeamPanel activeTab={activeTab} query={query} onSelectAgent={onSelectAgent} />}
       {activeSection === 'activity' && <ActivityPanel mission={mission} onSelectConversation={onSelectConversation} />}
       {activeSection === 'strategies' && <StrategiesPanel />}
-      {activeSection === 'settings' && <SettingsPanel user={user} darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onStartGuide={onStartGuide} />}
+      {activeSection === 'settings' && <SettingsPanel user={user} workspaces={workspaces} darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onStartGuide={onStartGuide} />}
     </section>}
   </aside>;
 }
