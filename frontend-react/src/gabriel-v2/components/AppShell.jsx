@@ -160,7 +160,11 @@ export function AppShell({ bootstrap }) {
   const [rightWidth, setRightWidth] = useState(() => savedNumber('gabriel-v2:right-width', RIGHT_DEFAULT, RIGHT_MIN, RIGHT_MAX));
   // Le rail compact est la vue de travail par défaut. Le panneau détaillé
   // s'ouvre uniquement quand l'utilisateur en a besoin.
-  const [leftCollapsed, setLeftCollapsed] = useState(() => savedBoolean('gabriel-v2:sidebar-compact-spatial', true));
+  /* /upgrade et le retour Stripe renvoient vers ?section=settings : la
+     navigation doit déjà être ouverte à l'arrivée, sinon le panneau visé
+     n'apparaît jamais. */
+  const sectionDemandee = useMemo(() => new URL(window.location.href).searchParams.get('section'), []);
+  const [leftCollapsed, setLeftCollapsed] = useState(() => sectionDemandee ? false : savedBoolean('gabriel-v2:sidebar-compact-spatial', true));
   const [rightCollapsed, setRightCollapsed] = useState(() => savedBoolean('gabriel-v2:context-collapsed', true));
   const [discussionWidth, setDiscussionWidth] = useState(() => savedNumber('gabriel-v2:discussion-width', DISCUSSION_DEFAULT, DISCUSSION_MIN, DISCUSSION_MAX));
   const [discussionCollapsed, setDiscussionCollapsed] = useState(() => savedBoolean('gabriel-v2:discussion-collapsed'));
@@ -722,7 +726,7 @@ export function AppShell({ bootstrap }) {
   }
 
   return <main className={`gv2-shell${darkMode ? ' gv2-theme-dark' : ''}${effectiveLeftCollapsed ? ' is-left-collapsed' : ''}${effectiveRightCollapsed ? ' is-right-collapsed' : ''}${isConversationLanding ? ' is-landing' : ''}`} ref={shellRef} style={{ '--gv2-left-width': `${effectiveLeftCollapsed ? 0 : leftWidth}px`, '--gv2-right-width': `${effectiveRightCollapsed ? 0 : rightWidth}px`, '--gv2-discussion-width': `${discussionCollapsed ? 47 : discussionWidth}px` }}>
-    <Sidebar workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} activeWorkspace={activeWorkspace} activeTab={tab} mission={mission} onSelectWorkspace={selectWorkspace} onCreateWorkspace={createWorkspace} onDeleteWorkspace={deleteWorkspace} deletingWorkspaceId={deletingWorkspaceId} onSelectConversation={() => selectTab('conversation')} onStartNewConversation={startNewConversation} onSelectAgent={selectTab} user={bootstrap.user} collapsed={effectiveLeftCollapsed} onToggleCollapsed={toggleNavigation} darkMode={darkMode} onToggleDarkMode={() => setDarkMode(current => !current)} onStartGuide={() => setOnboardingOpen(true)} />
+    <Sidebar workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} activeWorkspace={activeWorkspace} activeTab={tab} mission={mission} onSelectWorkspace={selectWorkspace} onCreateWorkspace={createWorkspace} onDeleteWorkspace={deleteWorkspace} deletingWorkspaceId={deletingWorkspaceId} onSelectConversation={() => selectTab('conversation')} onStartNewConversation={startNewConversation} onSelectAgent={selectTab} user={bootstrap.user} collapsed={effectiveLeftCollapsed} onToggleCollapsed={toggleNavigation} darkMode={darkMode} onToggleDarkMode={() => setDarkMode(current => !current)} onStartGuide={() => setOnboardingOpen(true)} initialSection={sectionDemandee} />
     <section className="gv2-main-column">
       <header className="gv2-workspace-header">
         <div className="gv2-topline">

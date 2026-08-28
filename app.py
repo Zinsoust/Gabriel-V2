@@ -2394,19 +2394,9 @@ def api_delete_folder(folder_id):
 @app.route('/upgrade')
 @login_required
 def upgrade_page():
-    _cu  = current_user() or {}
-    uid  = _cu.get('user_id')
-    email = _cu.get('email', '')
-    info = _db.check_usage_limit(uid, email=email) if uid else {'used': 0, 'limit': _db.FREE_ANALYSES_LIMIT, 'plan': 'free'}
-    return render_template('upgrade.html',
-        current_user=current_user(),
-        active_page='upgrade',
-        analyses_used=info.get('used', 0),
-        analyses_limit=info.get('limit', _db.FREE_ANALYSES_LIMIT),
-        plan=info.get('plan', 'free'),
-        stripe_public_key=_STRIPE_PUBLIC_KEY,
-        stripe_ready=bool(_STRIPE_SECRET and _STRIPE_PLANS),
-    )
+    """Les trois offres vivent maintenant dans le panneau Paramètres de la
+    V2 (mêmes plans, même contrat Stripe) : ce n'est plus une page à part."""
+    return redirect('/orchestrateur?section=settings')
 
 
 @app.route('/usage', methods=['GET'])
@@ -4337,8 +4327,10 @@ def stripe_checkout():
 @app.route('/stripe/success')
 @login_required
 def stripe_success():
-    """Page de retour après paiement Stripe réussi."""
-    return redirect('/dossiers?upgrade=success')
+    """Page de retour après paiement Stripe réussi. Ramène vers le panneau
+    où le nouveau plan est visible, plutôt que vers Dossiers — un paramètre
+    ?upgrade=success y avait été prévu mais n'a jamais été lu."""
+    return redirect('/orchestrateur?section=settings')
 
 
 @app.route('/stripe/webhook', methods=['POST'])

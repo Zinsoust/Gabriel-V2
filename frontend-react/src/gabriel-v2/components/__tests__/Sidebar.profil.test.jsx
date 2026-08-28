@@ -82,9 +82,46 @@ describe('Profil : plan et consommation', () => {
        liste. */
     const user = await afficherPanneau();
     await ouvrirParametres(user);
-    await waitFor(() => expect(screen.getByText('Standard')).toBeInTheDocument());
+    await waitFor(() => expect(document.querySelector('.gv2-plan-badge')).not.toBeNull());
+    expect(document.querySelector('.gv2-plan-badge').textContent).toBe('Standard');
     expect(screen.getByText('4 / 20')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
+  });
+
+  it('marque le plan actif parmi les offres, sans bouton pour le reprendre', async () => {
+    const user = await afficherPanneau();
+    await ouvrirParametres(user);
+    await waitFor(() => expect(document.querySelector('.gv2-plan-badge')).not.toBeNull());
+    expect(screen.getByText('Votre plan actuel')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Passer en Standard' })).toBeNull();
+  });
+
+  it('ouvre une session Stripe au clic sur une autre offre', async () => {
+    const user = await afficherPanneau();
+    await ouvrirParametres(user);
+    await waitFor(() => expect(document.querySelector('.gv2-plan-badge')).not.toBeNull());
+    const assignSpy = vi.fn();
+    const ancienLocation = window.location;
+    Object.defineProperty(window, 'location', { value: { ...ancienLocation, assign: assignSpy }, writable: true, configurable: true });
+    global.fetch.mockImplementation((url) => {
+      if (url === '/stripe/checkout') return Promise.resolve({ status: 200, ok: true, redirected: false, url, text: () => Promise.resolve(JSON.stringify({ url: 'https://checkout.stripe.com/session-123' })) });
+      return Promise.resolve({ status: 200, redirected: false, url, text: () => Promise.resolve('{}') });
+    });
+    await user.click(screen.getByRole('button', { name: 'Passer en PME' }));
+    await waitFor(() => expect(assignSpy).toHaveBeenCalledWith('https://checkout.stripe.com/session-123'));
+    Object.defineProperty(window, 'location', { value: ancienLocation, writable: true, configurable: true });
+  });
+
+  it('affiche l’erreur du serveur sans planter si Stripe refuse', async () => {
+    const user = await afficherPanneau();
+    await ouvrirParametres(user);
+    await waitFor(() => expect(document.querySelector('.gv2-plan-badge')).not.toBeNull());
+    global.fetch.mockImplementation((url) => {
+      if (url === '/stripe/checkout') return Promise.resolve({ status: 503, ok: false, redirected: false, url, text: () => Promise.resolve(JSON.stringify({ error: 'Paiement non encore configuré.' })) });
+      return Promise.resolve({ status: 200, redirected: false, url, text: () => Promise.resolve('{}') });
+    });
+    await user.click(screen.getByRole('button', { name: 'Passer en PME' }));
+    await waitFor(() => expect(screen.getByText('Paiement non encore configuré.')).toBeInTheDocument());
   });
 });
 

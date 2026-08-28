@@ -294,10 +294,38 @@ function ProfileForm() {
   </form>;
 }
 
+const PLANS = { free: 'Gratuit', early_access: 'Early Access', standard: 'Standard', pme: 'PME' };
+
+/* Les trois offres payantes, reprises telles quelles de l'ancienne page
+   /upgrade (mêmes plans, mêmes prix, même contrat Stripe côté serveur —
+   _STRIPE_PLANS dans app.py). Le plan actif est marqué plutôt que masqué :
+   on garde la vue d'ensemble, comme sur l'ancienne page. */
+const OFFRES = [
+  { id: 'early_access', badge: '🚀 Offre de lancement', nom: 'Early Access', prix: '29 €', accent: 'featured',
+    cta: 'Rejoindre en Early Access' },
+  { id: 'standard', nom: 'Standard', prix: '49 €', cta: 'Passer en Standard' },
+  { id: 'pme', badge: '🏢 Équipe & besoins avancés', nom: 'PME', prix: '99 €', accent: 'premium',
+    cta: 'Passer en PME' },
+];
+
+function PlanCard({ offre, actif, enCours, onChoisir }) {
+  return <div className={`gv2-plan-card${offre.accent ? ` is-${offre.accent}` : ''}${actif ? ' is-active' : ''}`}>
+    {offre.badge && <div className="gv2-plan-card-badge">{offre.badge}</div>}
+    <div className="gv2-plan-card-name">{offre.nom}</div>
+    <div className="gv2-plan-card-price">{offre.prix}<span>/mois</span></div>
+    {actif
+      ? <div className="gv2-plan-card-current">Votre plan actuel</div>
+      : <button type="button" disabled={enCours} onClick={() => onChoisir(offre.id)}>{enCours ? 'Redirection…' : offre.cta}</button>}
+  </div>;
+}
+
 /* Le plan et la consommation ne changent quasiment jamais dans la session :
    un chargement silencieux à l'ouverture du panneau suffit, pas de polling. */
 function PlanUsage({ workspaces }) {
   const [usage, setUsage] = useState(null);
+  const [enCours, setEnCours] = useState('');
+  const [erreur, setErreur] = useState('');
+
   useEffect(() => {
     let vivant = true;
     fetchV2('/usage').then(async response => {
@@ -307,14 +335,44 @@ function PlanUsage({ workspaces }) {
     return () => { vivant = false; };
   }, []);
 
-  const PLANS = { free: 'Gratuit', early_access: 'Early Access', standard: 'Standard', pme: 'PME' };
   const plan = usage?.plan || 'free';
-  return <div className="gv2-plan-usage">
-    <div className={`gv2-plan-badge${plan === 'free' ? ' is-free' : ''}`}>{PLANS[plan] || plan}</div>
-    <div className="gv2-plan-stats">
-      <div><strong>{usage ? (usage.limit ? `${usage.used || 0} / ${usage.limit}` : `${usage.used || 0}`) : '…'}</strong><span>Analyses</span></div>
-      <div><strong>{workspaces?.length ?? '—'}</strong><span>Dossiers</span></div>
+
+  /* Un clic ouvre une session de paiement Stripe réelle : c'est la personne
+     qui clique qui déclenche l'ouverture, exactement comme sur l'ancienne
+     page. Aucune confirmation supplémentaire n'est ajoutée ni retirée. */
+  async function choisir(offreId) {
+    setEnCours(offreId);
+    setErreur('');
+    try {
+      const response = await fetchV2('/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: offreId }),
+      });
+      const payload = await readApiPayload(response, 'Le paiement').catch(() => null);
+      if (response.ok && payload?.url) { window.location.assign(payload.url); return; }
+      setErreur(payload?.error || 'Erreur lors du paiement. Réessayez.');
+    } catch (_) {
+      setErreur('Erreur réseau. Réessayez.');
+    }
+    setEnCours('');
+  }
+
+  return <div className="gv2-plan-section">
+    <div className="gv2-plan-usage">
+      <div className={`gv2-plan-badge${plan === 'free' ? ' is-free' : ''}`}>{PLANS[plan] || plan}</div>
+      <div className="gv2-plan-stats">
+        <div><strong>{usage ? (usage.limit ? `${usage.used || 0} / ${usage.limit}` : `${usage.used || 0}`) : '…'}</strong><span>Analyses</span></div>
+        <div><strong>{workspaces?.length ?? '—'}</strong><span>Dossiers</span></div>
+      </div>
     </div>
+    <p className="gv2-nav-section-label">CHANGER D’OFFRE</p>
+    <div className="gv2-plan-grid">
+      {OFFRES.map(offre => <PlanCard key={offre.id} offre={offre} actif={offre.id === plan}
+        enCours={enCours === offre.id} onChoisir={choisir} />)}
+    </div>
+    {erreur && <p className="gv2-plan-error" role="alert">{erreur}</p>}
+    <p className="gv2-plan-note">Paiement sécurisé par Stripe · Annulable à tout moment</p>
   </div>;
 }
 
@@ -380,11 +438,11 @@ function SettingsPanel({ user, workspaces, darkMode, onToggleDarkMode, onStartGu
   </div>;
 }
 
-export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, activeTab, mission, onSelectWorkspace, onCreateWorkspace, onDeleteWorkspace, deletingWorkspaceId, onSelectConversation, onStartNewConversation, onSelectAgent, user, collapsed, onToggleCollapsed, darkMode, onToggleDarkMode, onStartGuide }) {
+export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, activeTab, mission, onSelectWorkspace, onCreateWorkspace, onDeleteWorkspace, deletingWorkspaceId, onSelectConversation, onStartNewConversation, onSelectAgent, user, collapsed, onToggleCollapsed, darkMode, onToggleDarkMode, onStartGuide, initialSection }) {
   const [creating, setCreating] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');
   const [creatingPending, setCreatingPending] = useState(false);
-  const [activeSection, setActiveSection] = useState('workspaces');
+  const [activeSection, setActiveSection] = useState(initialSection || 'workspaces');
   const [query, setQuery] = useState('');
   const content = sectionCopy[activeSection] || sectionCopy.workspaces;
 

@@ -177,3 +177,16 @@ def test_un_folder_id_survit_a_la_redirection_de_mes_analyses():
     r = _client().get('/mes-analyses?folder_id=fid-abc')
     assert r.status_code == 302
     assert 'folder_id=fid-abc' in r.headers['Location']
+
+
+def test_upgrade_ne_s_affiche_plus():
+    """Les trois offres vivent dans le panneau Paramètres de la V2."""
+    r = _client().get('/upgrade')
+    assert r.status_code == 302
+    assert r.headers['Location'] == '/orchestrateur?section=settings'
+
+
+def test_retour_stripe_reussi_ramene_vers_les_parametres():
+    r = _client().get('/stripe/success?session_id=cs_test_123')
+    assert r.status_code == 302
+    assert r.headers['Location'] == '/orchestrateur?section=settings'
