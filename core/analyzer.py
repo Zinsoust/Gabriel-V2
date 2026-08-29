@@ -1047,9 +1047,16 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
+    # Repli temporaire (palier rapide) : le compte Mistral configuré a refusé
+    # mistral-large-latest (palier profond) avec une 403 tier_not_allowed —
+    # trouvé en conditions réelles, confirmé dans les journaux serveur
+    # ([ANALYZE_ERROR] step=llm_principal). Le Stratège utilise le même
+    # palier profond et fonctionne : ne pas toucher au palier partagé
+    # (core/llm_client.py MODEL_TIERS) pour ne pas dégrader ce qui marche
+    # déjà ailleurs. À retirer une fois le compte Mistral mis à niveau.
     with ThreadPoolExecutor(max_workers=2) as executor:
-        fut_a = executor.submit(call_llm, prompt_a, max_tokens=5000, label="main_a")
-        fut_b = executor.submit(call_llm, prompt_b, max_tokens=7500, label="main_b")
+        fut_a = executor.submit(call_llm, prompt_a, max_tokens=5000, fast=True, label="main_a")
+        fut_b = executor.submit(call_llm, prompt_b, max_tokens=7500, fast=True, label="main_b")
         data_a = _parse_json(fut_a.result())
         data_b = _parse_json(fut_b.result())
 
