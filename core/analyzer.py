@@ -1253,7 +1253,9 @@ Reponds UNIQUEMENT avec ce JSON (un seul persona) :
 
     def _one_persona(cluster_source, mission):
         prompt = f"{shared}\nTA MISSION : {mission}\n{persona_schema.format(cluster_source=cluster_source)}"
-        text = call_llm(prompt, max_tokens=3000, label=f"persona[{cluster_source}]")
+        # Repli temporaire (palier rapide) : voir commentaire sur main_a/main_b
+        # plus haut — même compte Mistral, même blocage 403 tier_not_allowed.
+        text = call_llm(prompt, max_tokens=3000, fast=True, label=f"persona[{cluster_source}]")
         data = _parse_json(text)
         # Champs en toute fin de schéma — les premiers perdus si la réponse est tronquée
         _check_completeness(data, ["nom", "mission_cachee", "besoin_d_appartenance",
@@ -1340,7 +1342,9 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
-    text = call_llm(prompt, max_tokens=2500, label="recommandations")
+    # Repli temporaire (palier rapide) : voir commentaire sur main_a/main_b
+    # plus haut — même compte Mistral, même blocage 403 tier_not_allowed.
+    text = call_llm(prompt, max_tokens=2500, fast=True, label="recommandations")
     data = _parse_json(text)
     return data.get('recommandations', {})
 
@@ -1540,7 +1544,9 @@ Reponds UNIQUEMENT avec ce JSON :
   }}
 }}"""
 
-    text = call_llm(prompt, max_tokens=2000, label="livrables_ia")
+    # Repli temporaire (palier rapide) : voir commentaire sur main_a/main_b
+    # plus haut — même compte Mistral, même blocage 403 tier_not_allowed.
+    text = call_llm(prompt, max_tokens=2000, fast=True, label="livrables_ia")
     try:
         return _parse_json(text)
     except Exception as e:

@@ -121,8 +121,18 @@ RETRY_NONE = RetryPolicy(max_attempts=1)
 # Deux leviers complémentaires : le sémaphore plafonne les appels SIMULTANÉS,
 # le throttle espace les LANCEMENTS (le vrai levier contre une limite
 # « requêtes/seconde »).
-_MAX_CONCURRENCY = int(os.environ.get("MISTRAL_MAX_CONCURRENCY", "4"))
-_MIN_INTERVAL = float(os.environ.get("MISTRAL_MIN_INTERVAL", "0.5"))
+#
+# Défauts abaissés (4→2, 0.5s→1.0s) après un diagnostic en conditions réelles :
+# le compte Mistral configuré renvoie une 403 "tier_not_allowed" — un message
+# qui ressemble à un modèle interdit, mais qui apparaît aussi sur mistral-small
+# (censé être accessible) dès que plusieurs appels partent en même temps. Testé
+# en direct : un appel "deep" isolé échoue toujours (modèle réellement hors
+# palier), mais une rafale de 8 appels "fast" simultanés en perd ~5 en 403,
+# alors que la même rafale sérialisée à 2 passe intégralement (0 échec sur 22
+# appels, y compris 2 analyses lancées en même temps). Le vrai plafond du
+# compte est donc un plafond de CONCURRENCE, pas seulement de modèle.
+_MAX_CONCURRENCY = int(os.environ.get("MISTRAL_MAX_CONCURRENCY", "2"))
+_MIN_INTERVAL = float(os.environ.get("MISTRAL_MIN_INTERVAL", "1.0"))
 _semaphore = threading.Semaphore(_MAX_CONCURRENCY)
 _rate_lock = threading.Lock()
 _last_launch = [0.0]
