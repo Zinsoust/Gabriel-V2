@@ -32,6 +32,10 @@ const paths = {
   archive: <><path d="M3 7h18v13H3zM5 3h14v4H5zM9 12h6" /></>,
   copy: <><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4" /></>,
   refresh: <><path d="M20 11a8 8 0 1 0 2 5.3" /><path d="M20 4v7h-7" /></>,
+  download: <><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></>,
+  scissors: <><circle cx="6" cy="7" r="3" /><circle cx="6" cy="17" r="3" /><path d="m8.7 8.3 11.3 6.2M8.7 15.7 20 9.5" /></>,
+  split: <><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" /><path d="m9 8 6 8M15 8l-2 2" /></>,
+  coin: <><circle cx="12" cy="12" r="9" /><path d="M12 6.5v11" /><path d="M15.2 9.2a3 3 0 0 0-3-1.7h-.6a2.5 2.5 0 0 0 0 5h.8a2.5 2.5 0 0 1 0 5h-.6a3 3 0 0 1-3-1.7" /></>,
 };
 
 export function Icon({ name, size = 20, strokeWidth = 1.7, className = '' }) {

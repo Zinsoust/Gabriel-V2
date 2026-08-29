@@ -475,7 +475,10 @@ export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, active
     <nav className="gv2-rail" aria-label="Navigation globale">
       <button type="button" className="gv2-rail-brand" onClick={expandNavigation} aria-label="Ouvrir le menu Gabriel"><GabrielMark size={18} /></button>
       <div className="gv2-rail-items">{railItems.map(item => <RailButton key={item.id} item={item} active={activeSection === item.id} onClick={() => selectSection(item.id)} />)}</div>
-      <div className="gv2-rail-bottom"><button type="button" className="gv2-rail-user" title={user?.name || user?.email || 'Votre compte'} aria-label="Votre compte" onClick={() => selectSection('settings')}><Icon name="settings" size={17} /></button></div>
+      <div className="gv2-rail-bottom">
+        <a href="/tarifs" className="gv2-rail-tarifs" title="Voir les tarifs" aria-label="Voir les tarifs"><Icon name="coin" size={17} /></a>
+        <button type="button" className="gv2-rail-user" title={user?.name || user?.email || 'Votre compte'} aria-label="Votre compte" onClick={() => selectSection('settings')}><Icon name="settings" size={17} /></button>
+      </div>
     </nav>
     <button type="button" className={`gv2-sidebar-toggle${collapsed ? ' is-collapsed' : ''}`} onClick={onToggleCollapsed} aria-label={collapsed ? 'Agrandir le menu' : 'Réduire le menu'} title={collapsed ? 'Agrandir le menu' : 'Réduire le menu'}>
       <Icon name="panelLeft" size={18} />
