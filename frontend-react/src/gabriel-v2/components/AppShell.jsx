@@ -8,6 +8,7 @@ import { AgentWorkbench } from './AgentWorkbench.jsx';
 import { CreatorConversation } from './CreatorConversation.jsx';
 import { PsychologueView } from './PsychologueView.jsx';
 import { StrategeView } from './StrategeView.jsx';
+import { TarifsView } from './TarifsView.jsx';
 import { OnboardingTour } from './OnboardingTour.jsx';
 import { Icon } from '../icons.jsx';
 import { missionFromConversationResponse, workspaceInitial } from '../data-adapters.js';
@@ -738,7 +739,7 @@ export function AppShell({ bootstrap }) {
           </div>
           <div className="gv2-header-actions">
             <button className={`gv2-header-icon gv2-theme-toggle${darkMode ? ' is-active' : ''}`} type="button" onClick={() => setDarkMode(current => !current)} aria-label={darkMode ? 'Passer au mode clair' : 'Passer au mode sombre'} title={darkMode ? 'Passer au mode clair' : 'Passer au mode sombre'} aria-pressed={darkMode}><Icon name={darkMode ? 'sun' : 'moon'} size={18} /></button>
-            <a className="gv2-header-icon" href="/tarifs" title="Voir les tarifs" aria-label="Voir les tarifs"><Icon name="coin" size={18} /></a>
+            <button className={`gv2-header-icon${tab === 'tarifs' ? ' is-active' : ''}`} type="button" onClick={() => selectTab('tarifs')} title="Voir les tarifs" aria-label="Voir les tarifs" aria-pressed={tab === 'tarifs'}><Icon name="coin" size={18} /></button>
             {hasContextToSurface && <button className={`gv2-header-icon gv2-context-toggle${tab === 'createur' ? ' gv2-context-toggle--atelier' : ''}`} type="button" onClick={toggleContext} aria-label={tab === 'createur' ? (effectiveRightCollapsed ? 'Ouvrir l’Atelier' : 'Fermer l’Atelier') : (effectiveRightCollapsed ? 'Afficher le contexte du workspace' : 'Masquer le contexte du workspace')} title={tab === 'createur' ? (effectiveRightCollapsed ? 'Ouvrir l’Atelier' : 'Fermer l’Atelier') : (effectiveRightCollapsed ? 'Afficher le contexte du workspace' : 'Masquer le contexte du workspace')}>{tab === 'createur' ? <span>Atelier</span> : <Icon name="sparkle" size={18} />}</button>}
             <div className="gv2-account-menu-wrap" ref={accountMenuRef}>
               <button className="gv2-header-credit" type="button" onClick={() => setAccountMenuOpen(current => !current)} aria-label={`Vos crédits : ${displayedCredits}`} title="Voir vos crédits et les offres"><Icon name="sparkle" size={14} /><strong>{displayedCredits}</strong><span>crédits</span></button>
@@ -763,6 +764,8 @@ export function AppShell({ bootstrap }) {
           ? <PsychologueView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} />
           : tab === 'stratege'
           ? <StrategeView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} />
+          : tab === 'tarifs'
+          ? <TarifsView />
           : isAgentTab(tab)
           ? <AgentWorkbench agentId={tab} agent={activeAgent} workspace={activeWorkspace} items={items} firstName={firstName} isSubmitting={isSubmitting} onSend={sendMessage} discussionCollapsed={discussionCollapsed} onToggleDiscussion={() => setDiscussionCollapsed(current => !current)} onResizeStart={beginDiscussionResize} onResizeKey={handleDiscussionResizeKey} onResizeReset={() => setDiscussionWidth(DISCUSSION_DEFAULT)} onReturnToConversation={() => selectTab('conversation')} onNavigateAgent={selectTab} contextCollapsed={effectiveRightCollapsed && hasContextToSurface} onShowContext={() => setRightCollapsed(false)} darkMode={darkMode} />
           : tab === 'activity'

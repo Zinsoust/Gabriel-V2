@@ -476,7 +476,7 @@ export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, active
       <button type="button" className="gv2-rail-brand" onClick={expandNavigation} aria-label="Ouvrir le menu Gabriel"><GabrielMark size={18} /></button>
       <div className="gv2-rail-items">{railItems.map(item => <RailButton key={item.id} item={item} active={activeSection === item.id} onClick={() => selectSection(item.id)} />)}</div>
       <div className="gv2-rail-bottom">
-        <a href="/tarifs" className="gv2-rail-tarifs" title="Voir les tarifs" aria-label="Voir les tarifs"><Icon name="coin" size={17} /></a>
+        <button type="button" className={`gv2-rail-tarifs${activeTab === 'tarifs' ? ' is-active' : ''}`} title="Voir les tarifs" aria-label="Voir les tarifs" aria-pressed={activeTab === 'tarifs'} onClick={() => onSelectAgent('tarifs')}><Icon name="coin" size={17} /></button>
         <button type="button" className="gv2-rail-user" title={user?.name || user?.email || 'Votre compte'} aria-label="Votre compte" onClick={() => selectSection('settings')}><Icon name="settings" size={17} /></button>
       </div>
     </nav>
