@@ -33,7 +33,7 @@ def run(ctx) -> None:
         "cible":           _first(biz, "target", "cible", "target_audience"),
         "positionnement":  _first(strat, "angle_positionnel", "positionnement"),
         "decision":        _first(strat, "decision_centrale", "executive_decision"),
-        "insight_audience": _first(brief, "insight_cle", "synthese"),
+        "insight_audience": _first(brief, "insight", "insight_cle", "qui", "synthese"),
         "frustrations":    (psy.get("frustrations") or [])[:3],
         "desirs":          (psy.get("desirs_caches") or [])[:3],
         "objectif_util":   ctx.objective or _first(ctx.intent or {}, "objectif"),

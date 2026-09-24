@@ -67,6 +67,7 @@ def test_cross_launch_runs_as_job_and_preserves_the_simple_pipeline_boundary(mon
     monkeypatch.setattr(app_module, 'interpret_cross_analysis', lambda _result: {'status': 'completed'})
     monkeypatch.setattr(app_module, 'run_dialectic_review', lambda *_args: {'status': 'completed'})
     monkeypatch.setattr(app_module, 'apply_cross_interpretation', lambda result, *_args: result)
+    monkeypatch.setattr(app_module, 'synthesize_cross', lambda _result: {'status': 'unavailable'})
     monkeypatch.setattr(app_module._cross_pipeline, 'run', fake_pipeline)
 
     response = _client().post('/api/v2/agents/psychologue/cross-analyses', json={'sources': [
@@ -242,6 +243,7 @@ def test_cross_reuse_gives_each_session_its_own_identity_and_does_not_rebill_cac
     monkeypatch.setattr(app_module, 'interpret_cross_analysis', lambda _result: {'status': 'completed'})
     monkeypatch.setattr(app_module, 'run_dialectic_review', lambda *_args: {'status': 'completed'})
     monkeypatch.setattr(app_module, 'apply_cross_interpretation', lambda result, *_args: result)
+    monkeypatch.setattr(app_module, 'synthesize_cross', lambda _result: {'status': 'unavailable'})
     monkeypatch.setattr(type(app_module.gabriel), 'run_psycho', fake_run_psycho)
     monkeypatch.setattr(app_module._cross_pipeline.youtube_provider, 'collect', fake_collect)
 

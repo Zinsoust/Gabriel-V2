@@ -40,7 +40,7 @@ def _scores(ctx) -> dict:
     )
     try:
         from agents.createur import _call_llm, _parse_json
-        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=300)
+        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=1200)
         data = _parse_json(raw)
         if isinstance(data, dict) and not data.get("parse_error"):
             return data

@@ -97,6 +97,7 @@ STAGE_LABELS = {
     "writing":      "Gabriel rédige votre contenu…",
     "dialectic":    "Gabriel critique son propre texte…",
     "optimization": "Gabriel renforce les points faibles…",
+    "fact_guard":   "Gabriel vérifie qu'aucun fait n'est inventé…",
     "quality":      "Gabriel valide la qualité finale…",
 }
 
@@ -177,7 +178,7 @@ class CreationPipeline:
         while (self._needs_improvement(ctx) and passes < self.max_optim_passes):
             passes += 1
             for name, fn in self.stages:
-                if name in ("optimization", "quality"):
+                if name in ("optimization", "fact_guard", "quality"):
                     t0 = time.time()
                     try:
                         fn(ctx)
@@ -212,7 +213,7 @@ def _default_stages() -> List[tuple]:
     pour que le pipeline se charge même si un moteur a un souci d'import."""
     from agents.creation import (
         intent, context, emotion, knowledge, planning,
-        writing, dialectic, optimization, quality,
+        writing, dialectic, optimization, quality, fact_guard,
     )
     return [
         ("intent",       intent.run),        # Compréhension
@@ -223,6 +224,7 @@ def _default_stages() -> List[tuple]:
         ("writing",      writing.run),        # Rédaction (le LLM écrit)
         ("dialectic",    dialectic.run),      # Critique (penser contre soi)
         ("optimization", optimization.run),   # Optimisation ciblée
+        ("fact_guard",   fact_guard.run),     # Aucun fait inventé (voir fact_guard.py)
         ("quality",      quality.run),        # Validation + auto-évaluation
     ]
 
@@ -239,7 +241,8 @@ def shape_draft(ctx) -> dict:
     qu'il est écrit — sans attendre la critique et l'optimisation. Même contrat
     que generate_result, en plus léger (pas encore de scores ni de checklist).
     Le drapeau `is_draft` permet à l'écran d'indiquer que Gabriel relit encore."""
-    draft = ctx.draft or {}
+    from agents.creation.fact_guard import guard_numbers, sources_text
+    draft, _ = guard_numbers(ctx.draft or {}, sources_text(ctx.user_request, ctx.psycho_data, ctx.business_context, ctx.strategy, ctx.persona))
     fmt_key = (ctx.content_type or "hooks").lower().replace("-", "_").replace(" ", "_")
     try:
         from agents.createur import Createur
@@ -277,6 +280,9 @@ def generate_result(on_stage=None, on_draft=None, **kwargs) -> dict:
     final = ctx.final or ctx.draft or {}
     if not final or final.get("parse_error") or final.get("success") is False:
         raise RuntimeError("pipeline: contenu illisible")
+    from agents.creation.fact_guard import guard_numbers, sources_text
+    _sources = sources_text(ctx.user_request, ctx.psycho_data, ctx.business_context, ctx.strategy, ctx.persona)
+    final, _chiffres_retires = guard_numbers(final, _sources)
 
     fmt_key = (ctx.content_type or "hooks").lower().replace("-", "_").replace(" ", "_")
 
@@ -320,4 +326,5 @@ def generate_result(on_stage=None, on_draft=None, **kwargs) -> dict:
         "auto_eval":       ctx.scores or {},
         "pipeline_trace":  ctx.trace,
         "pipeline_seconds": ctx.total_seconds(),
+        "unverified_figures": sorted(set(_chiffres_retires)),
     }

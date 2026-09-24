@@ -195,7 +195,7 @@ Intention : Inspirer confiance, sérieux et légitimité collective.
 Règles :
 - Voix collective (nous, notre organisation). Jamais "je".
 - Référence à la mission, aux valeurs, aux engagements concrets.
-- Données et chiffres pour crédibiliser.
+- Données et chiffres pour crédibiliser — uniquement ceux fournis dans le brief, jamais inventés.
 - Pas de langage publicitaire. Pas de promesses non vérifiables.
 - Formulations mesurées, claires, sans ambiguïté.
 Séquence obligatoire : Contexte → message central → justification → suite attendue.\
@@ -456,6 +456,17 @@ Chaque phrase doit sentir qu'elle a été écrite pour une seule personne préci
 """
 
 
+# Promesse de Gabriel.ai : aucun chiffre inventé. Observé le 13/09/2026 : un
+# script citait une « étude INRAP 2024 » et « +60 % de subventions » sortis de
+# nulle part. Injectée dans chaque brief de rédaction (création et raffinement).
+_TRUTH_RULE = """\
+── RÈGLE ABSOLUE — VÉRITÉ ──
+N'invente JAMAIS de chiffre, de pourcentage, d'étude, de source, de témoignage, de nom de client, d'entreprise ou de ville.
+Utilise uniquement les faits présents dans ce brief. Sans chiffre vérifié, écris SANS chiffre : convaincs par une démonstration décrite, par les mots réels de l'audience, par un raisonnement concret. Tout chiffre non fourni sera de toute façon retiré automatiquement.
+Si une preuve chiffrée est indispensable, mets au plus 3 emplacements explicites dans tout le texte, par exemple [chiffre réel à insérer] ou [témoignage client à ajouter].\
+"""
+
+
 _PERSONA_IMMERSION = """\
 ── IMMERSION — TU ES CETTE PERSONNE ──
 Avant d'écrire une seule ligne, entre dans la peau de cette personne.
@@ -506,7 +517,7 @@ _FORMAT_LABEL = {
 
 _SYSTEM_PROMPTS = {
     'hooks': """\
-Tu es LE CRÉATEUR de Gabriel — spécialiste des hooks viraux et de l'accroche psychologique.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — spécialiste des hooks viraux et de l'accroche psychologique.
 Ta mission : écrire 10 hooks d'accroche puissants, fondés sur les émotions et frustrations réelles détectées par le Psychologue, alignés sur l'angle stratégique.
 
 RÈGLE ABSOLUE : chaque hook doit partir d'une tension réelle de l'audience. Pas de généralité. Pas de clichés.
@@ -517,7 +528,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'script': """\
-Tu es LE CRÉATEUR de Gabriel — expert en scripts vidéo marketing et storytelling.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en scripts vidéo marketing et storytelling.
 Ta mission : écrire un script vidéo complet, exploitant les insights psychologiques de l'audience et aligné sur la stratégie.
 
 Structure obligatoire :
@@ -533,7 +544,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'tiktok': """\
-Tu es LE CRÉATEUR de Gabriel — expert en scripts TikTok et Reels viraux.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en scripts TikTok et Reels viraux.
 Ta mission : écrire un script TikTok court, percutant, fondé sur les tensions réelles de l'audience.
 
 RÈGLES TIKTOK :
@@ -549,7 +560,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'youtube': """\
-Tu es LE CRÉATEUR de Gabriel — expert en scripts YouTube longs.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en scripts YouTube longs.
 Ta mission : écrire un script YouTube complet (8-15 min), fondé sur les insights psychologiques et la stratégie.
 
 Structure obligatoire :
@@ -564,7 +575,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'post': """\
-Tu es LE CRÉATEUR de Gabriel — expert en posts viraux réseaux sociaux.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en posts viraux réseaux sociaux.
 Ta mission : écrire 3 posts de haute qualité, chacun avec un angle différent, fondés sur les tensions et désirs réels de l'audience.
 
 Angles possibles : Frustration→Solution, Contre-intuition, Identité, Preuve sociale, Insight, Controverse maîtrisée.
@@ -576,7 +587,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'linkedin': """\
-Tu es LE CRÉATEUR de Gabriel — expert en content marketing LinkedIn et personal branding expert.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en content marketing LinkedIn et personal branding expert.
 Ta mission : écrire 2 posts LinkedIn de haute qualité (800-1500 caractères), fondés sur l'analyse psychologique et l'angle expert de la stratégie.
 
 RÈGLES LINKEDIN :
@@ -590,7 +601,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'email': """\
-Tu es LE CRÉATEUR de Gabriel — expert en email marketing émotionnel.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en email marketing émotionnel.
 Ta mission : écrire une séquence de 3 emails, fondée sur les insights psychologiques et la stratégie.
 
 Séquence :
@@ -603,7 +614,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'speech': """\
-Tu es LE CRÉATEUR de Gabriel — expert en discours et prise de parole.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en discours et prise de parole.
 Ta mission : écrire un discours complet, prêt à être prononcé, fondé sur les insights de l'audience et la stratégie.
 
 Structure obligatoire :
@@ -620,7 +631,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'ad': """\
-Tu es LE CRÉATEUR de Gabriel — expert en copywriting publicitaire.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en copywriting publicitaire.
 Ta mission : écrire 3 messages publicitaires percutants (formats différents), fondés sur les tensions et désirs de l'audience.
 
 RÈGLES PUB :
@@ -636,7 +647,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'sales_page': """\
-Tu es LE CRÉATEUR de Gabriel — expert en copywriting de pages de vente.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en copywriting de pages de vente.
 Ta mission : écrire une page de vente courte et puissante, fondée sur les insights psychologiques et la stratégie.
 
 Structure obligatoire :
@@ -656,7 +667,7 @@ Retourne UNIQUEMENT un JSON valide :
 """,
 
     'angles': """\
-Tu es LE CRÉATEUR de Gabriel — expert en stratégie éditoriale.
+Tu es LE CRÉATEUR, rédacteur au service de l'utilisateur (tu écris pour SON offre, jamais pour vendre l'outil) — expert en stratégie éditoriale.
 Ta mission : générer 7 angles de contenu originaux exploitant les tensions et désirs détectés par le Psychologue.
 
 Chaque angle doit être distinct, exploiter une tension différente et proposer un format adapté.
@@ -674,6 +685,11 @@ _SYSTEM_PROMPTS['publicite'] = _SYSTEM_PROMPTS['ad']
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
+
+# Plafond de sortie des créations : large, pour ne jamais couper un script ou un
+# article long. Réglable sans toucher au code (CREATOR_MAX_TOKENS).
+CREATION_MAX_TOKENS = int(os.environ.get('CREATOR_MAX_TOKENS') or 12000)
+
 
 def _call_llm(prompt, max_tokens=3000, temperature=None):
     """Appelle le LLM via la couche fournisseur unifiée (``core.llm_client``).
@@ -835,8 +851,19 @@ class Createur(BaseAgent):
         frus   = psycho.get('frustrations') or []
         desirs = psycho.get('desirs_caches') or []
         motiv  = psycho.get('motivations_profondes') or []
-        objec  = psycho.get('objections_principales') or []
-        mots   = (psycho_data.get('nlp') or {}).get('mots_frequents') or []
+        # Noms actuels du Psychologue en priorité, anciens noms en repli : le
+        # brief lisait des clés disparues (synthese, insight_cle,
+        # objections_principales, nlp.mots_frequents) et le Créateur écrivait
+        # sans l'insight ni les mots réels de l'audience (13/09/2026).
+        objec  = (psycho.get('objections_principales')
+                  or [*(mkt.get('objections_visibles') or []), *(mkt.get('objections_invisibles') or [])])
+        mots   = ((psycho_data.get('nlp') or {}).get('mots_frequents')
+                  or [m[0] if isinstance(m, (list, tuple)) else (m.get('mot') if isinstance(m, dict) else m)
+                      for m in ((psycho_data.get('dashboard') or {}).get('lexique') or {}).get('top_mots') or []])
+        recos  = psycho_data.get('recommandations') or {}
+        verbatims = [v for v in (emots.get('commentaires_revelateurs') or []) if isinstance(v, str)]
+        verbatims += [c.get('text') for c in (psycho_data.get('top_comments') or [])
+                      if isinstance(c, dict) and c.get('text')]
         rep    = emots.get('repartition') or []
         espoir = emots.get('espoir_decu') or ''
         hooks_det = mkt.get('hooks_performants') or []
@@ -845,8 +872,9 @@ class Createur(BaseAgent):
         lines.append("\n" + skill_registry.render(
             'writing.persona_immersion', 'createur').content)
 
-        if brief.get('synthese'):
-            lines.append(f"\nQui elle est : {brief['synthese'][:250]}")
+        qui = brief.get('qui') or brief.get('synthese')
+        if qui:
+            lines.append(f"\nQui elle est : {qui[:400]}")
 
         if frus:
             lines.append(f"\nCe qui l'épuise chaque jour :")
@@ -879,9 +907,54 @@ class Createur(BaseAgent):
             emo_list = [e.get('emotion', '') for e in rep[:4] if isinstance(e, dict)]
             lines.append(f"\nSon état émotionnel dominant : {', '.join(e for e in emo_list if e)}")
 
-        if brief.get('insight_cle'):
+        insight = brief.get('insight') or brief.get('insight_cle')
+        if insight:
             lines.append(f"\nLa vérité qu'elle ne s'est jamais dite à elle-même :")
-            lines.append(f"  → {brief['insight_cle'][:200]}")
+            lines.append(f"  → {insight[:400]}")
+
+        peurs = psycho.get('peurs_implicites') or []
+        if peurs:
+            lines.append("\nCe qu'elle redoute sans le dire :")
+            for p_ in peurs[:3]:
+                lines.append(f"  → {p_}")
+
+        if verbatims:
+            # Les phrases exactes de l'audience : la matière la plus précieuse
+            # pour écrire avec ses mots, pas avec ceux d'une IA.
+            lines.append("\nCe qu'elle écrit vraiment (verbatims réels, à ne pas recopier tels quels) :")
+            vus = set()
+            for v in verbatims:
+                cle = v.strip().lower()[:80]
+                if cle in vus:
+                    continue
+                vus.add(cle)
+                lines.append(f"  « {v.strip()[:220]} »")
+                if len(vus) >= 6:
+                    break
+
+        a_entendre = recos.get('ce_qu_ils_ne_disent_pas_mais_veulent_entendre')
+        if a_entendre or recos.get('message_central') or recos.get('verite_de_l_audience'):
+            lines.append("\nCe que la lecture du Psychologue recommande de lui dire :")
+            if recos.get('verite_de_l_audience'):
+                lines.append(f"  Vérité de l'audience : {str(recos['verite_de_l_audience'])[:300]}")
+            if a_entendre:
+                lines.append(f"  Ce qu'elle veut entendre sans le dire : {str(a_entendre)[:300]}")
+            if recos.get('message_central'):
+                lines.append(f"  Message central : {str(recos['message_central'])[:240]}")
+            if recos.get('promesse_authentique'):
+                lines.append(f"  Promesse authentique : {str(recos['promesse_authentique'])[:240]}")
+
+        # Cross Analyse : plusieurs audiences réelles. On garde ce qui les
+        # distingue et ce qu'elles fuient, pour ne pas écrire à une audience
+        # moyenne qui n'existe pas.
+        if recos.get('nuances_par_audience'):
+            lines.append("\nCe qui distingue chaque audience (à respecter, ne pas les fusionner) :")
+            for n in recos['nuances_par_audience'][:6]:
+                lines.append(f"  → {str(n)[:300]}")
+        if recos.get('a_eviter'):
+            lines.append("\nCe qui les ferait fuir (à éviter) :")
+            for e in recos['a_eviter'][:4]:
+                lines.append(f"  → {str(e)[:260]}")
 
         if persona and isinstance(persona, dict):
             # Quand un persona est fourni, il devient la référence PRINCIPALE.
@@ -960,6 +1033,7 @@ class Createur(BaseAgent):
         if mkt.get('positionnement_recommande'):
             lines.append(f"Positionnement recommandé : {mkt['positionnement_recommande'][:120]}")
 
+        lines.append("\n" + _TRUTH_RULE)
         return '\n'.join(lines)
 
     # ── Vérification cohérence ────────────────────────────────────────────────
@@ -979,10 +1053,18 @@ class Createur(BaseAgent):
         psycho    = psycho_data.get('psychologie') or {}
         frus      = psycho.get('frustrations') or []
         desirs    = psycho.get('desirs_caches') or []
-        based_psy = any(
-            str(f)[:20].lower() in text.lower()
-            for f in (frus[:2] + desirs[:1])
-        )
+        # Un texte ne recopie presque jamais une frustration mot pour mot : on
+        # cherche aussi les mots réels de l'audience (lexique mesuré). Sans
+        # cela, un script nourri par l'analyse était jugé « non basé » dessus.
+        lexique = ((psycho_data.get('dashboard') or {}).get('lexique') or {}).get('top_mots') or []
+        mots_audience = [
+            str(m[0] if isinstance(m, (list, tuple)) else (m.get('mot') if isinstance(m, dict) else m)).lower()
+            for m in lexique[:15]
+        ]
+        mots_audience = [m for m in mots_audience if len(m) >= 4 and m not in ('merci', 'vidéo', 'video', 'cette', 'comme', 'pour')]
+        texte_min = text.lower()
+        based_psy = any(str(f)[:20].lower() in texte_min for f in (frus[:2] + desirs[:1])) \
+            or sum(1 for m in mots_audience if m in texte_min) >= 2
 
         strat_key = (strategy or {}).get('angle_positionnel', '')
         based_str = bool(strat_key and strat_key[:15].lower() in text.lower())
@@ -1139,7 +1221,7 @@ class Createur(BaseAgent):
                 except Exception as e:
                     print(f"[CREATEUR] Génération de variante échouée (non bloquant) : {e}")
         else:
-            raw = _call_llm(prompt, max_tokens=3000)
+            raw = _call_llm(prompt, max_tokens=CREATION_MAX_TOKENS)
 
         content_result = _parse_json(raw)
         content_result['content_type'] = content_type
@@ -1217,7 +1299,7 @@ class Createur(BaseAgent):
             "en respectant la discipline de tonalité. JSON pur, sans markdown."
         )
 
-        raw = _call_llm(prompt, max_tokens=2500)
+        raw = _call_llm(prompt, max_tokens=CREATION_MAX_TOKENS)
         result = _parse_json(raw)
         result['refined']      = True
         result['instruction']  = instruction
@@ -1263,7 +1345,7 @@ class Createur(BaseAgent):
             f"{brief_text}\n\n"
             "Génère une VARIANTE avec cette discipline. Même structure JSON, logique d'écriture différente. JSON pur."
         )
-        raw = _call_llm(prompt, max_tokens=2000)
+        raw = _call_llm(prompt, max_tokens=CREATION_MAX_TOKENS)
         var = _parse_json(raw)
         return {
             'angle':     alt_tone,

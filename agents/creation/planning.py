@@ -45,7 +45,8 @@ def run(ctx) -> None:
         # 550 au lieu de 900 : le plan est une ossature, pas un texte. Mesuré
         # en conditions réelles, cette étape coûtait 20 s — l'essentiel du temps
         # partait à rédiger des phrases longues dont la rédaction n'a pas besoin.
-        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=550)
+        from agents.creation.fact_guard import SOURCE_RULE
+        raw = _call_llm(_SYSTEM + "\n\n" + SOURCE_RULE + "\n\n" + prompt, max_tokens=2000)
         data = _parse_json(raw)
         if isinstance(data, dict) and not data.get("parse_error"):
             ctx.plan = data

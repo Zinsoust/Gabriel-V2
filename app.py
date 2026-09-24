@@ -20,7 +20,12 @@ from dotenv import load_dotenv
 _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
 load_dotenv(_env_path, override=False)
 
+# Avant tout client HTTP : un IPv6 cassé bloquait YouTube, Mistral et Supabase.
+from core.network import prefer_ipv4
+prefer_ipv4()
+
 from core.orchestrator import Gabriel
+from core.llm_client import model_for_tier as _llm_model_for_tier
 from core.memory import GabrielMemory
 from core.business_context import (
     get_user_profile as _get_user_profile,
@@ -47,6 +52,7 @@ from core.cross_analysis import (
 )
 from core.cross_pipeline import CrossAnalysisPipeline
 from core.analyzer import MISTRAL_MODELS
+from core.cross_synthesis import build_source_profiles, cross_as_psycho, synthesize_cross
 from core.cross_interpreter import (
     apply_cross_interpretation,
     interpret_cross_analysis,
@@ -59,6 +65,7 @@ from services.scraper import (
     scrape_instagram_rapidapi,
     scrape_tiktok_rapidapi,
     SocialCollectionError,
+    YouTubeCollectionError,
     parse_manual_comments,
     RapidAPIUnavailable,
 )
@@ -424,6 +431,14 @@ def _looks_like_url(value):
 
 @app.route('/')
 def landing():
+    """Landing centrée sur le Psychologue (repositionnement du 13/09/2026) :
+    Gabriel se présente d'abord comme une IA d'analyse du comportement humain."""
+    return render_template('landing_psychologue.html', current_user=current_user())
+
+
+@app.route('/landing-classique')
+def landing_classique():
+    """Ancienne landing « trois agents », conservée pour comparaison."""
     return render_template('landing.html')
 
 
@@ -890,6 +905,13 @@ def analyze():
                        metadata={'platform': e.platform, 'reason': e.reason})
         statut = 400 if e.reason == 'invalidUrl' else 503
         return jsonify({'error': str(e)}), statut
+    except YouTubeCollectionError as e:
+        # Commentaires désactivés, vidéo privée, quota, YouTube injoignable :
+        # le message dit quoi faire, au lieu de « Erreur lors de l'analyse ».
+        safe_log_event('youtube_collection_failed', metadata={'reason': e.reason})
+        temporaire = e.reason in ('network', 'quotaExceeded', 'dailyLimitExceeded', 'unknown') \
+            or str(e.reason).isdigit()
+        return jsonify({'error': str(e)}), 503 if temporaire else 400
     except RapidAPIUnavailable as e:
         safe_log_event('rapidapi_not_subscribed', metadata={'platform': e.platform})
         return jsonify({
@@ -985,6 +1007,14 @@ def _cross_job_state(cross, job=None):
         'sources': sources,
         'failed_sources': result.get('failed_sources', []),
     }
+
+
+@app.route('/api/v2/agents/psychologue/cross-analyses', methods=['GET'])
+@login_required_api
+def list_psychologue_cross_analyses():
+    """Liste des Cross Analyses de l'utilisateur, pour le menu « Cross Analyses »."""
+    uid = (current_user() or {}).get('user_id')
+    return jsonify({'success': True, 'cross_analyses': _db.list_cross_analyses(uid)})
 
 
 @app.route('/api/v2/agents/psychologue/cross-analyses', methods=['POST'])
@@ -1188,6 +1218,15 @@ def launch_psychologue_cross_analysis():
                 else {'status': 'not_run', 'reason': 'interpretation_unavailable'}
             )
             cross_result = apply_cross_interpretation(cross_result, interpretation, review)
+            # Salle Cross : profils par audience (déterministes) et synthèse
+            # sémantique vérifiée — ce qui rassemble, sépare, sujets, repoussoirs.
+            _on_progress('synthese_croisee', 98)
+            cross_result['source_profiles'] = build_source_profiles(cross_result)
+            try:
+                cross_result['cross_synthesis'] = synthesize_cross(cross_result)
+            except Exception as exc:  # la comparaison mesurée reste livrée sans synthèse
+                print(f"[CROSS] synthèse croisée indisponible : {exc}")
+                cross_result['cross_synthesis'] = {'status': 'unavailable'}
             cross_result.update({
                 'cross_analysis_id': cross_analysis_id,
                 'job_id': job_id,
@@ -1321,6 +1360,10 @@ def get_psychologue_cross_analysis(cross_analysis_id):
     # Le détail profond des sources a son endpoint dédié : le dashboard Cross
     # reste léger, même avec cinq vidéos et leurs preuves complètes.
     source_analyses = result.pop('source_analyses', [])
+    if not result.get('source_profiles') and source_analyses:
+        # Cross Analyses antérieures à la Salle Cross : profils recalculés à la lecture.
+        from core.cross_synthesis import build_source_profiles
+        result['source_profiles'] = build_source_profiles({'source_analyses': source_analyses})
     result['sources'] = [
         {
             'source_id': item.get('source_id'),
@@ -1786,6 +1829,13 @@ def _resolve_psycho(data, uid):
     Vérifie que le cache appartient bien à uid avant de le retourner."""
     psycho_data = data.get('psycho_data') or {}
     analysis_id = data.get('analysis_id', '')
+    cross_id = str(data.get('cross_analysis_id') or '')
+    if not psycho_data and cross_id:
+        # Salle Cross → Créateur : la synthèse croisée vérifiée, pas une seule audience.
+        cross = _db.get_cross_analysis(cross_id, uid) or {}
+        result = cross.get('result_data') or {}
+        if result:
+            psycho_data = cross_as_psycho(result)
     if not psycho_data and analysis_id:
         cached_entry = _psycho_cache.get(analysis_id)
         cache_uid    = (cached_entry or {}).get('user_id')
@@ -1865,8 +1915,18 @@ def creator_generate():
             'cost':             _cost_createur,
         }), 402
 
-    psycho_data = _resolve_psycho(data, uid)
-    strategy    = _resolve_strategy(data, uid)
+    # Un format inconnu devenait silencieusement « 10 hooks » (14/09/2026 :
+    # « script_video » demandé, hooks livrés). On refuse clairement.
+    from agents.createur import _SYSTEM_PROMPTS as _creator_formats
+    content_type = str(content_type or 'hooks').lower().replace('-', '_').replace(' ', '_')
+    if content_type not in _creator_formats:
+        return jsonify({'error': f"Format inconnu : {content_type}. Formats disponibles : {', '.join(sorted(_creator_formats))}."}), 400
+
+    # Le Créateur fonctionne seul, avec l'analyse du Psychologue, et/ou avec la
+    # stratégie d'Ariane : chaque source n'est utilisée que si elle est
+    # demandée. Sans indication (anciens clients), comportement historique.
+    psycho_data = {} if data.get('use_psycho') is False else _resolve_psycho(data, uid)
+    strategy    = {} if data.get('use_strategy') is False else _resolve_strategy(data, uid)
 
     # Le persona utilisé doit être l'objet exact généré par le Psychologue pour
     # cette analyse — jamais celui envoyé par le client. Le nom sert seulement
@@ -1885,8 +1945,9 @@ def creator_generate():
 
     def _legacy_generate():
         from agents.createur import Createur
+        from agents.creation.fact_guard import guard_result, sources_text
         agent = Createur()
-        return agent.generate_script_or_text(
+        return guard_result(agent.generate_script_or_text(
             content_type     = content_type,
             psycho_data      = psycho_data,
             strategy         = strategy,
@@ -1898,7 +1959,7 @@ def creator_generate():
             user_request     = user_request,
             generate_variant = generate_variant,
             emotion          = emotion,
-        )
+        ), sources_text(user_request, psycho_data, business_context, strategy, persona))
 
     def _job():
         # Nouveau moteur de création stratégique (pipeline modulaire) piloté par
@@ -2009,8 +2070,8 @@ def creator_refine():
     # Le shell V2 transmet des identifiants de workspace, pas des objets de
     # stratégie client. On résout donc la stratégie validée en base de la même
     # façon que lors d'une création initiale.
-    strategy         = _resolve_strategy(data, uid)
-    psycho_data      = _resolve_psycho(data, uid)
+    strategy         = {} if data.get('use_strategy') is False else _resolve_strategy(data, uid)
+    psycho_data      = {} if data.get('use_psycho') is False else _resolve_psycho(data, uid)
 
     if not instruction:
         return jsonify({'error': 'instruction requise'}), 400
@@ -2030,6 +2091,11 @@ def creator_refine():
         from agents.createur import Createur
         agent = Createur()
         result = agent.refine_content(original_content, instruction, psycho_data, strategy, content_type, tone)
+        # La version déjà validée fait partie des sources : un chiffre qu'elle
+        # contenait (et que l'utilisateur a gardé) n'est pas une invention.
+        from agents.creation.fact_guard import guard_result, sources_text
+        result = guard_result(result, sources_text(instruction, psycho_data, None, strategy,
+                                                   original_content))
         return jsonify({'success': True, 'data': result})
     except Exception as e:
         import traceback; traceback.print_exc()
@@ -3229,7 +3295,7 @@ RÈGLES ABSOLUES :
     try:
         client = _get_mistral_client(timeout_ms=90_000)
         response = client.chat.complete(
-            model="mistral-large-latest",
+            model=_llm_model_for_tier('deep'),
             max_tokens=1200,
             messages=messages,
         )
@@ -3364,7 +3430,7 @@ def _call_mistral_orchestrator_fallback(messages, max_output_tokens, use_web,
 
     client = _get_mistral_client(timeout_ms=90_000)
     response = client.chat.complete(
-        model=os.environ.get('MISTRAL_ORCHESTRATOR_MODEL', 'mistral-large-latest'),
+        model=os.environ.get('MISTRAL_ORCHESTRATOR_MODEL') or _llm_model_for_tier('deep'),
         max_tokens=int(max_output_tokens),
         messages=fallback_messages,
     )

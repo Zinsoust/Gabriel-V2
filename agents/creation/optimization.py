@@ -19,6 +19,8 @@ Règles :
 - Corrige uniquement les zones signalées.
 - Ne change pas le format ni la structure JSON du texte fourni.
 - Chaque correction doit être défendable : plus fort, plus clair, plus incarné.
+- N'ajoute jamais de chiffre, d'étude, de source, de témoignage, de pseudo ou d'anecdote personnelle absent des données : reformule l'idée sans eux. Pour corriger un manque de « preuve », utilise les mots réels de l'audience, jamais un fait fabriqué.
+- Si une faiblesse signale un fait inventé, retire-le et reformule sans emplacement entre crochets.
 
 Réponds UNIQUEMENT avec le JSON du texte amélioré, même schéma que l'original, sans commentaire."""
 
@@ -61,7 +63,9 @@ def run(ctx) -> None:
     )
     try:
         from agents.createur import _call_llm, _parse_json
-        raw = _call_llm(_SYSTEM + "\n\n" + prompt, max_tokens=3000)
+        from agents.createur import CREATION_MAX_TOKENS
+        from agents.creation.fact_guard import SOURCE_RULE
+        raw = _call_llm(_SYSTEM + "\n\n" + SOURCE_RULE + "\n\n" + prompt, max_tokens=CREATION_MAX_TOKENS)
         improved = _parse_json(raw)
         if isinstance(improved, dict) and not improved.get("parse_error"):
             improved["content_type"] = ctx.content_type

@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gabriel.ai · Système multi-agents d'analyse du comportement humain</title>
+  <meta name="description" content="Gabriel.ai est un système multi-agents. Son agent principal, le Psychologue, analyse les commentaires, avis et réactions de votre audience pour révéler émotions, peurs, objections et aspirations, à partir de signaux observables et avec des limites toujours visibles.">
+  <meta property="og:title" content="Gabriel.ai · Psychologie avancée : le marché caché, les peurs et les aspirations de votre audience">
+  <meta property="og:description" content="Une IA spécialisée dans l'analyse du comportement humain à partir de signaux observables. Puis stratégie et contenu.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="{{ static_v('images/psychologue-agent.jpeg') }}">
+  <meta name="theme-color" content="#131313">
+  <link rel="icon" type="image/png" href="{{ static_v('brand/gabriel-mark-gold.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Gabriel.ai","applicationCategory":"BusinessApplication","operatingSystem":"Web","inLanguage":"fr","description":"IA spécialisée dans l'analyse du comportement humain à partir de signaux observables : émotions exprimées, peurs, objections, aspirations, personas et comparaison d'audiences."}
+  </script>
+  <script>
+    // Version sombre native : le clair n'apparaît que sur choix explicite.
+    var t = 'dark';
+    try { if (localStorage.getItem('gabriel-landing-theme') === 'light') t = 'light'; } catch (e) {}
+    document.documentElement.setAttribute('data-theme', t);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('anim');
+  </script>
+  <style>
+    :root {
+      --ground: #ffffff; --band: #f3f4f5; --ink: #141414; --body: #3f4246; --soft: #6b6e72;
+      --line: #e3e4e6; --mark: #a8906a; --ok: #2f8a4c;
+      --nav-bg: rgba(255,255,255,.92); --shadow: rgba(20,20,20,.28);
+      --stance-1: #c9cbce; --stance-2: #141414; --stance-3: #8a8d91; --stance-4: #a8906a;
+      --on-ink: #ffffff;
+      --display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+      --text: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    }
+    /* Version sombre inspirée de klausen.com : anthracites neutres
+       (#0f0f0f · #131313 · #181818 · #1d1d1d · #202020), textes #ffffff ·
+       #e4e4e4 · #cacaca · #9a9a9a, accent or doux #b4a06e. Suit le réglage
+       du système, sauf choix explicite via le bouton du menu. */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --ground: #131313; --band: #181818; --ink: #ffffff; --body: #e4e4e4; --soft: #9a9a9a;
+        --line: #262626; --mark: #b4a06e; --ok: #7bc496;
+        --nav-bg: rgba(19,19,19,.9); --shadow: rgba(0,0,0,.6);
+        --stance-1: #4a4a4a; --stance-2: #ffffff; --stance-3: #9a9a9a; --stance-4: #b4a06e;
+        --on-ink: #131313;
+      }
+    }
+    :root[data-theme="dark"] {
+      --ground: #131313; --band: #181818; --ink: #ffffff; --body: #e4e4e4; --soft: #9a9a9a;
+      --line: #262626; --mark: #b4a06e; --ok: #7bc496;
+      --nav-bg: rgba(19,19,19,.9); --shadow: rgba(0,0,0,.6);
+      --stance-1: #4a4a4a; --stance-2: #ffffff; --stance-3: #9a9a9a; --stance-4: #b4a06e;
+      --on-ink: #131313;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--ground); color: var(--ink); font: 400 16px/1.6 var(--text); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    img { max-width: 100%; display: block; }
+    .wrap { width: 100%; max-width: 1320px; margin: 0 auto; padding: 0 clamp(20px, 3.4vw, 56px); }
+    .mono { font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--soft); }
+    .eyebrow { display: inline-flex; align-items: center; gap: 14px; }
+    .eyebrow::before { content: ""; width: 8px; height: 8px; background: var(--mark); }
+    :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+    /* Navigation */
+    .nav { position: sticky; top: 0; z-index: 10; background: var(--nav-bg); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; }
+    .nav.is-scrolled { border-bottom-color: var(--line); }
+    .nav > .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 24px; }
+    .brand { font: 600 18px/1 var(--display); letter-spacing: -.01em; text-decoration: none; }
+    .brand span { color: var(--soft); font-weight: 500; }
+    .nav > .wrap { display: grid; grid-template-columns: auto 1fr auto; }
+    .nav-sections { display: flex; justify-content: center; gap: 30px; }
+    .nav-sections a, .nav-account > a:not(.btn) { position: relative; padding: 6px 0; color: var(--soft); font-size: 15px; text-decoration: none; transition: color .18s ease; }
+    .nav-sections a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .22s ease; }
+    .nav-sections a:hover, .nav-sections a.is-active, .nav-account > a:not(.btn):hover { color: var(--ink); }
+    .nav-sections a.is-active::after { transform: scaleX(1); }
+    .nav-account { display: flex; align-items: center; gap: 24px; }
+    .nav-account > a:not(.btn):first-child { padding-right: 24px; border-right: 1px solid var(--line); }
+    .theme-toggle { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; transition: border-color .18s ease; }
+    .theme-toggle:hover { border-color: var(--soft); }
+    .theme-toggle .icon-sun { display: none; }
+    :root[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+    :root[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .theme-toggle .icon-sun { display: block; }
+      :root:not([data-theme="light"]) .theme-toggle .icon-moon { display: none; }
+    }
+    .nav-toggle { display: none; width: 44px; height: 44px; align-items: center; justify-content: center; border: 1px solid var(--line); background: var(--ground); color: var(--ink); cursor: pointer; }
+    .nav-panel { border-top: 1px solid var(--line); background: var(--ground); }
+    .nav-panel .wrap { display: grid; padding-top: 12px; padding-bottom: 24px; }
+    .nav-panel .mono { margin: 18px 0 6px; }
+    .nav-panel a { padding: 12px 0; border-bottom: 1px solid var(--line); font: 500 20px/1.2 var(--display); text-decoration: none; }
+    section[id] { scroll-margin-top: 76px; }
+    footer nav { flex-wrap: wrap; align-items: center; }
+    .footer-sep { width: 1px; height: 14px; background: var(--line); }
+    .btn { display: inline-flex; align-items: center; gap: 12px; padding: 16px 26px; background: var(--ink); color: var(--on-ink); font: 500 16px/1 var(--text); text-decoration: none; border: 1px solid var(--ink); transition: opacity .18s ease; }
+    .btn:hover { opacity: .86; }
+    .btn svg { transition: transform .18s ease; }
+    .btn:hover svg { transform: translateX(3px); }
+    .btn-small { padding: 11px 16px; font-size: 14px; }
+    .link { font: 500 16px/1 var(--text); text-decoration: none; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+    .link:hover { border-bottom-color: var(--ink); }
+    .btn-ghost { display: inline-flex; align-items: center; gap: 12px; padding: 14px 20px; border: 1px solid var(--line); background: var(--band); text-decoration: none; font-weight: 500; box-shadow: 0 1px 2px rgba(20,20,20,.06); }
+    .btn-ghost:hover { border-color: var(--ink); }
+
+    /* Hero */
+    .hero .wrap { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 88px); padding-top: clamp(40px, 7vh, 88px); padding-bottom: clamp(56px, 9vh, 120px); align-items: start; }
+    h1 { margin: 34px 0 30px; font: 500 clamp(44px, 5.4vw, 86px)/1 var(--display); letter-spacing: -.035em; text-wrap: balance; }
+    h1 span { color: var(--soft); }
+    /* Même photo de fond que l'accueil du Psychologue dans l'application :
+       en couleur, voile sombre pour le texte, fondu progressif vers la page. */
+    .hero { position: relative; isolation: isolate; overflow-x: clip; }
+    .hero::before, .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 52%, rgba(0,0,0,.9) 60%, rgba(0,0,0,.7) 68%, rgba(0,0,0,.46) 76%, rgba(0,0,0,.24) 84%, rgba(0,0,0,.08) 93%, transparent 100%);
+              mask-image: linear-gradient(180deg, #000 0%, #000 52%, rgba(0,0,0,.9) 60%, rgba(0,0,0,.7) 68%, rgba(0,0,0,.46) 76%, rgba(0,0,0,.24) 84%, rgba(0,0,0,.08) 93%, transparent 100%); }
+    .hero::before { background: url("{{ static_v('images/psychologue-fond.jpg') }}") 70% 22% / cover no-repeat, #131313; }
+    .hero::after { background:
+      linear-gradient(90deg, rgba(15,15,15,.78) 0%, rgba(15,15,15,.55) 45%, rgba(15,15,15,.25) 100%),
+      linear-gradient(180deg, rgba(15,15,15,.35) 0%, rgba(15,15,15,.1) 60%); }
+    .hero .wrap { padding-bottom: clamp(140px, 20vh, 220px); }
+    .hero-copy { --ink: #ffffff; --soft: rgba(255,255,255,.74); --line: rgba(255,255,255,.28); --mark: #b4a06e; --on-ink: #131313; color: #ffffff; }
+    .hero-copy .btn { background: #ffffff; border-color: #ffffff; color: #131313; }
+    .hero-copy .link { color: #ffffff; }
+    .hero-copy .mono { color: rgba(255,255,255,.72); }
+    .subtitle { max-width: 22ch; margin: -6px 0 28px; font: 500 clamp(26px, 2.6vw, 40px)/1.15 var(--display); letter-spacing: -.02em; text-wrap: balance; }
+    .subtitle span { color: var(--soft); }
+    .lede { max-width: 40ch; margin: 0 0 40px; color: var(--soft); font-size: clamp(18px, 1.5vw, 22px); line-height: 1.55; }
+    .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 30px; }
+    .trust { display: flex; align-items: center; gap: 10px; margin: 30px 0 0; color: var(--soft); font-size: 15px; }
+    .trust svg { flex: none; }
+
+    .panel { position: relative; border: 1px solid var(--line); background: var(--ground); margin-top: 12px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 26px; border-bottom: 1px solid var(--line); }
+    .panel-head .mono { display: inline-flex; align-items: center; gap: 12px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+    .cells { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--line); }
+    .cell { padding: 24px 26px 26px; border-right: 1px solid var(--line); }
+    .cell:last-child { border-right: 0; }
+    .cell b { display: block; font: 400 clamp(32px, 3vw, 46px)/1 var(--mono); letter-spacing: -.02em; margin-top: 18px; font-variant-numeric: tabular-nums; }
+    .cell b small { font-size: 14px; color: var(--soft); margin-left: 4px; }
+    .chart { padding: 26px 26px 30px; }
+    .chart-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 10px 0 22px; }
+    .chart-title strong { font-weight: 500; font-size: 17px; }
+    .chart-title em { font: normal 500 13px var(--mono); color: var(--soft); }
+    .bars { display: grid; gap: 12px; }
+    .bar { display: grid; grid-template-columns: 112px 1fr 56px; align-items: center; gap: 14px; font-size: 14px; }
+    .bar i { position: relative; height: 6px; background: var(--band); }
+    .bar i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--v); background: var(--ink); transform-origin: left; animation: grow .9s cubic-bezier(.2,.7,.2,1) both; }
+    .bar.is-lead i::after { background: var(--mark); }
+    .bar span:last-child { text-align: right; font: 400 13px var(--mono); color: var(--soft); font-variant-numeric: tabular-nums; }
+    .stance { margin-top: 28px; }
+    .stance-track { display: flex; height: 10px; margin: 12px 0 10px; gap: 2px; }
+    .stance-track span { display: block; }
+    .stance-legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--soft); }
+    .stance-legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; background: var(--c); }
+    .panel-foot { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 16px 26px; border-top: 1px solid var(--line); color: var(--soft); font-size: 14px; }
+    .float { position: absolute; left: -48px; bottom: -58px; width: min(340px, 80%); padding: 20px 24px; background: var(--ground); border: 1px solid var(--line); box-shadow: 0 24px 50px -24px var(--shadow); }
+    .float strong { display: block; margin-top: 12px; font: 500 18px/1.35 var(--text); }
+    @keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+    /* Bande : une autre idée de la psychologie */
+    .band { background: var(--band); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .band .wrap { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; padding-left: 0; padding-right: 0; }
+    .band-intro { padding: 72px clamp(20px, 3.4vw, 56px); border-right: 1px solid var(--line); }
+    .band-intro h2 { font-size: clamp(28px, 2.5vw, 40px); }
+    h2 { margin: 26px 0 0; font: 500 clamp(30px, 3.2vw, 46px)/1.14 var(--display); letter-spacing: -.02em; text-wrap: balance; }
+    .step { padding: 72px 36px; border-right: 1px solid var(--line); }
+    .step:last-child { border-right: 0; }
+    .step .num { font: 400 14px var(--mono); color: var(--mark); }
+    h3 { margin: 70px 0 18px; font: 500 24px/1.2 var(--display); letter-spacing: -.01em; }
+    .step p { margin: 0; color: var(--soft); line-height: 1.7; }
+
+    /* Portrait + capacités */
+    .split .wrap { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 120px); padding-top: 110px; padding-bottom: 110px; align-items: center; }
+    .portrait { position: relative; aspect-ratio: 1 / 1; overflow: hidden; background: #111; }
+    .portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; filter: grayscale(1) contrast(1.05); }
+    .portrait::after { content: ""; position: absolute; inset: 40% 0 0; background: linear-gradient(to top, rgba(0,0,0,.72), rgba(0,0,0,0)); }
+    .portrait figcaption { position: absolute; left: 48px; right: 48px; bottom: 48px; z-index: 1; color: #fff; }
+    .portrait figcaption .mono { color: rgba(255,255,255,.72); }
+    .portrait figcaption p { margin: 14px 0 0; font: 500 clamp(22px, 2.1vw, 30px)/1.3 var(--display); }
+    .caps { display: grid; grid-template-columns: 1fr 1fr; gap: 0 44px; margin: 48px 0 44px; }
+    .cap { padding: 26px 0 30px; border-top: 1px solid var(--line); }
+    .cap svg { color: var(--ink); }
+    .cap strong { display: block; margin: 18px 0 8px; font: 500 19px/1.3 var(--display); }
+    .cap p { margin: 0; color: var(--soft); line-height: 1.65; }
+
+    /* Cas d'usage */
+    .uses .wrap { padding-top: 20px; padding-bottom: 110px; }
+    .uses-grid { display: grid; grid-template-columns: repeat(5, 1fr); margin-top: 40px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+    .use { padding: 28px 24px 34px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .use strong { display: block; font: 500 18px/1.3 var(--display); margin-bottom: 12px; }
+    .use p { margin: 0; color: var(--soft); font-size: 15px; line-height: 1.6; }
+
+    /* Prolongements */
+    .ext { border-top: 1px solid var(--line); }
+    .ext .wrap { display: grid; grid-template-columns: 1.15fr 1fr 1fr; padding-left: 0; padding-right: 0; }
+    .ext-intro { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px 64px; align-items: end; padding: 88px clamp(20px, 3.4vw, 56px) 56px; border-bottom: 1px solid var(--line); }
+    .ext-intro .mono { grid-column: 1 / -1; }
+    .ext-intro h2 { margin: 0; }
+    .ext-intro h2 span { color: var(--soft); }
+    .ext-intro p { margin: 0; max-width: 52ch; color: var(--soft); font-size: 17px; line-height: 1.65; }
+    .agent { display: grid; grid-template-columns: 1fr; gap: 24px; padding: 48px 40px 56px; border-right: 1px solid var(--line); align-content: start; }
+    .agent.is-main { background: var(--band); }
+    .agent-badge { display: inline-block; margin-left: 12px; padding: 3px 8px; border: 1px solid var(--mark); color: var(--mark); font: 500 10.5px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; vertical-align: 1px; }
+    .agent ul { margin: 18px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+    .agent li { padding: 11px 0; border-bottom: 1px solid var(--line); color: var(--body); font-size: 15px; }
+    .agent:last-child { border-right: 0; }
+    .agent img { width: 72px; height: 72px; object-fit: cover; filter: grayscale(1); }
+    .agent strong { display: block; margin: 10px 0 10px; font: 500 22px/1.25 var(--display); }
+    .agent p { margin: 0; color: var(--soft); line-height: 1.65; }
+
+    /* Limites */
+    .limits { background: var(--band); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .limits .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: clamp(32px, 6vw, 120px); padding-top: 96px; padding-bottom: 96px; }
+    .limits ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+    .limits li { display: grid; grid-template-columns: 28px 1fr; gap: 14px; padding: 20px 0; border-bottom: 1px solid var(--line); line-height: 1.6; }
+    .limits li strong { font-weight: 500; }
+    .limits li span { color: var(--soft); }
+
+    /* Appel final */
+    .final .wrap { padding-top: 120px; padding-bottom: 120px; text-align: center; }
+    .final h2 { max-width: 18ch; margin: 26px auto 22px; font-size: clamp(38px, 4.8vw, 72px); line-height: 1.04; }
+    .final h2 span { color: var(--soft); }
+    .final p { max-width: 52ch; margin: 0 auto 44px; color: var(--soft); font-size: 18px; }
+    .final .hero-actions { justify-content: center; }
+
+    footer { border-top: 1px solid var(--line); }
+    footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; padding-top: 30px; padding-bottom: 36px; color: var(--soft); font-size: 14px; }
+    footer nav { display: flex; gap: 24px; }
+    footer a { text-decoration: none; }
+    footer a:hover { color: var(--ink); }
+
+    .reveal { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+    .reveal-2 { animation-delay: .08s; } .reveal-3 { animation-delay: .16s; }
+    @keyframes rise { from { opacity: .001; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    /* ── Animations fluides (activées seulement si le mouvement est accepté) ── */
+    body { transition: background-color .45s ease, color .45s ease; }
+    .anim [data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); transition-delay: var(--d, 0s); }
+    .anim [data-reveal].is-in { opacity: 1; transform: none; }
+    .anim .hero::before { animation: drift 22s ease-in-out infinite alternate; transform-origin: 60% 30%; }
+    @keyframes drift { from { transform: scale(1.08) translate3d(0, var(--py, 0px), 0); } to { transform: scale(1.0) translate3d(-1.2%, var(--py, 0px), 0); } }
+    .anim .panel { transition: transform .6s cubic-bezier(.2,.7,.2,1), box-shadow .6s ease; }
+    .anim .panel:hover { transform: translateY(-4px); box-shadow: 0 30px 60px -36px var(--shadow); }
+    .anim .float { animation: floaty 7s ease-in-out 1.2s infinite alternate; }
+    @keyframes floaty { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+    .anim .bar i::after { animation-delay: .5s; animation-duration: 1.4s; }
+    .anim .cell b { transition: color .3s ease; }
+    .anim .cap, .anim .use, .anim .step { transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1), background-color .35s ease; transition-delay: var(--d, 0s), var(--d, 0s), 0s; }
+    .anim .use:hover, .anim .step:hover { background-color: var(--band); }
+    .anim .band .step:hover { background-color: var(--ground); }
+    .anim .cap svg, .anim .use strong { transition: transform .35s ease; }
+    .anim .cap:hover svg { transform: translateX(4px); }
+    .anim .portrait img { transition: transform 1.6s cubic-bezier(.2,.7,.2,1), filter .6s ease; transform: scale(1.06); }
+    .anim .portrait.is-in img { transform: scale(1); }
+    .anim .portrait:hover img { transform: scale(1.03); }
+    .anim .btn, .anim .btn-ghost, .anim .theme-toggle { transition: opacity .18s ease, transform .25s ease, border-color .25s ease; }
+    .anim .btn:hover, .anim .btn-ghost:hover { transform: translateY(-2px); }
+    @media (prefers-reduced-motion: reduce) { .reveal, .bar i::after { animation: none; } html { scroll-behavior: auto; } }
+
+    @media (max-width: 1180px) {
+      .nav-sections { display: none; }
+      .nav > .wrap { grid-template-columns: 1fr auto; }
+      .nav-toggle { display: inline-flex; }
+    }
+    @media (max-width: 1080px) {
+      .hero .wrap, .split .wrap, .limits .wrap { grid-template-columns: 1fr; }
+      .float { position: relative; left: auto; bottom: auto; width: auto; margin: -1px 0 0; box-shadow: none; }
+      .band .wrap { grid-template-columns: 1fr 1fr 1fr; }
+      .band-intro { grid-column: 1 / -1; border-right: 0; border-bottom: 1px solid var(--line); padding-bottom: 48px; }
+      .step { padding: 48px 28px; } h3 { margin-top: 36px; }
+      .uses-grid { grid-template-columns: repeat(2, 1fr); }
+      .ext .wrap { grid-template-columns: 1fr; }
+      .ext-intro { grid-template-columns: 1fr; padding-bottom: 40px; }
+      .agent { border-right: 0; border-bottom: 1px solid var(--line); }
+      .agent { padding: 44px 28px; }
+    }
+    @media (max-width: 680px) {
+      .nav-account > a:not(.btn), .nav-account .btn { display: none; }
+      .band .wrap, .ext .wrap { grid-template-columns: 1fr; }
+      .step, .agent { border-right: 0; border-bottom: 1px solid var(--line); }
+      .cells { grid-template-columns: 1fr 1fr 1fr; } .cell { padding: 18px 14px; }
+      .bar { grid-template-columns: 90px 1fr 48px; }
+      .caps, .uses-grid { grid-template-columns: 1fr; }
+      .portrait figcaption { left: 24px; right: 24px; bottom: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="/">Gabriel<span>.ai</span></a>
+    <nav class="nav-sections" aria-label="Sections de la page">
+      <a href="#methode">Méthode</a>
+      <a href="#analyses">Analyses</a>
+      <a href="#pour-qui">Pour qui</a>
+      <a href="#agents">Agents</a>
+      <a href="#limites">Limites</a>
+    </nav>
+    <div class="nav-account">
+      <a href="/tarifs">Tarifs</a>
+      <button class="theme-toggle" type="button" aria-label="Passer en version sombre" title="Changer de thème">
+        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></svg>
+        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      {% if current_user %}
+      <a class="btn btn-small" href="/orchestrateur">Ouvrir Gabriel.ai <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+      {% else %}
+      <a href="/login">Se connecter</a>
+      <a class="btn btn-small" href="/orchestrateur">Analyser une audience <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+      {% endif %}
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-panel" aria-label="Ouvrir le menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 8h18M3 16h18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="nav-panel" id="nav-panel" hidden>
+    <div class="wrap">
+      <span class="mono">Sur cette page</span>
+      <a href="#methode">Méthode</a>
+      <a href="#analyses">Analyses</a>
+      <a href="#pour-qui">Pour qui</a>
+      <a href="#agents">Agents</a>
+      <a href="#limites">Limites</a>
+      <span class="mono">Compte</span>
+      <a href="/tarifs">Tarifs</a>
+      {% if current_user %}<a href="/orchestrateur">Ouvrir Gabriel.ai</a>{% else %}<a href="/login">Se connecter</a>{% endif %}
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div class="hero-copy">
+        <div class="mono eyebrow reveal">Gabriel.ai · Système multi-agents</div>
+        <h1 id="hero-title" class="reveal reveal-2">Psychologie avancée.</h1>
+        <p class="subtitle reveal reveal-2">Découvrez le marché caché, les peurs et les aspirations <span>de votre audience.</span></p>
+        <p class="lede reveal reveal-3">Gabriel.ai réunit des agents IA spécialisés. Le Psychologue, son agent principal, lit les commentaires, avis et réactions de vos audiences ; Ariane en tire une stratégie, le Créateur des contenus.</p>
+        <div class="hero-actions reveal reveal-3">
+          <a class="btn" href="/orchestrateur">Analyser une audience <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="link" href="#methode">Voir la méthode</a>
+        </div>
+        <p class="trust"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>Aucune pensée devinée. Chaque lecture part de ce qui a été écrit.</p>
+      </div>
+
+      <figure class="panel reveal reveal-2" aria-label="Exemple de lecture d'audience sur une vraie vidéo YouTube">
+        <div class="panel-head">
+          <span class="mono"><i class="dot" aria-hidden="true"></i>Lecture d'audience · exemple réel</span>
+          <span class="mono">YouTube</span>
+        </div>
+        <div class="cells">
+          <div class="cell"><span class="mono">Commentaires</span><b data-count="115">115</b></div>
+          <div class="cell"><span class="mono">Fiabilité</span><b><span data-count="68">68</span><small>%</small></b></div>
+          <div class="cell"><span class="mono">Groupes</span><b data-count="5" data-pad="2">05</b></div>
+        </div>
+        <div class="chart">
+          <span class="mono">Émotions exprimées</span>
+          <div class="chart-title"><strong>Ce que ressent cette audience</strong><em>part des commentaires</em></div>
+          <div class="bars">
+            <div class="bar is-lead"><span>Confusion</span><i style="--v:37.4%"></i><span>37,4 %</span></div>
+            <div class="bar"><span>Admiration</span><i style="--v:20.9%"></i><span>20,9 %</span></div>
+            <div class="bar"><span>Joie</span><i style="--v:12.2%"></i><span>12,2 %</span></div>
+            <div class="bar"><span>Espoir</span><i style="--v:9.6%"></i><span>9,6 %</span></div>
+            <div class="bar"><span>Frustration</span><i style="--v:8.7%"></i><span>8,7 %</span></div>
+          </div>
+          <div class="stance">
+            <span class="mono">Positions</span>
+            <div class="stance-track" role="img" aria-label="Positions : neutre 47,8 %, favorable 24,3 %, nuancé 16,5 %, opposé 10,4 %">
+              <span style="flex:47.8;background:var(--stance-1)"></span><span style="flex:24.3;background:var(--stance-2)"></span><span style="flex:16.5;background:var(--stance-3)"></span><span style="flex:10.4;background:var(--stance-4)"></span>
+            </div>
+            <div class="stance-legend"><span style="--c:var(--stance-1)">Neutre 47,8 %</span><span style="--c:var(--stance-2)">Favorable 24,3 %</span><span style="--c:var(--stance-3)">Nuancé 16,5 %</span><span style="--c:var(--stance-4)">Opposé 10,4 %</span></div>
+          </div>
+        </div>
+        <div class="panel-foot"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6l-7-3Z"/></svg>Limites toujours visibles</div>
+        <div class="float">
+          <span class="mono">Signal dominant</span>
+          <strong>Des questions, pas des objections : rassurer avant d'enseigner.</strong>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="band" id="methode" aria-labelledby="methode-title">
+    <div class="wrap">
+      <div class="band-intro" data-reveal>
+        <span class="mono">Une autre idée de la psychologie</span>
+        <h2 id="methode-title">Comprendre un public ne passe pas par une IA qui prétend lire dans les pensées.</h2>
+      </div>
+      <div class="step" data-reveal><span class="num">01</span><h3>Collecter</h3><p>Un lien YouTube, Instagram ou TikTok, des avis collés ou un export CSV, Excel, JSON. Gabriel écarte ce qui est hors sujet.</p></div>
+      <div class="step" data-reveal><span class="num">02</span><h3>Comprendre</h3><p>Émotions, positions, groupes et vocabulaire sont mesurés sans IA. L'interprétation psychologique s'appuie ensuite sur ces chiffres.</p></div>
+      <div class="step" data-reveal><span class="num">03</span><h3>Décider</h3><p>Messages, objections à lever, personas : chaque recommandation reste reliée aux verbatims qui la justifient.</p></div>
+    </div>
+  </section>
+
+  <section class="split" id="analyses" aria-labelledby="analyses-title">
+    <div class="wrap">
+      <figure class="portrait" data-reveal>
+        <img src="{{ static_v('images/psychologue-agent.jpeg') }}" alt="Portrait en noir et blanc symbolisant le Psychologue de Gabriel" loading="lazy">
+        <figcaption><span class="mono">Signaux observables</span><p>La machine repère les récurrences. Vous gardez l'interprétation.</p></figcaption>
+      </figure>
+      <div>
+        <span class="mono">Du verbatim à la décision</span>
+        <h2 id="analyses-title">Ce que le Psychologue fait ressortir.</h2>
+        <div class="caps">
+          <div class="cap" data-reveal>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 12h3l2-5 4 10 2-5h7"/></svg>
+            <strong>Émotions exprimées</strong><p>Leur répartition, leur intensité, et l'espoir déçu derrière les critiques.</p>
+          </div>
+          <div class="cap" data-reveal>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M12 3v10M12 17v.5"/><circle cx="12" cy="12" r="9"/></svg>
+            <strong>Peurs et objections</strong><p>Ce qui freine l'adhésion, visible ou implicite, avec les phrases qui le montrent.</p>
+          </div>
+          <div class="cap" data-reveal>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 20 20 4M9 4h11v11"/></svg>
+            <strong>Aspirations</strong><p>Qui ils veulent devenir, ce qu'ils veulent protéger, ce qui les ferait avancer.</p>
+          </div>
+          <div class="cap" data-reveal>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.8-3.4 3.2-5 6-5s5.2 1.6 6 5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 15c1.6.6 2.6 2.2 3 5"/></svg>
+            <strong>Personas fondés</strong><p>Construits à partir des groupes réellement observés, avec leur niveau de fiabilité.</p>
+          </div>
+          <div class="cap" data-reveal>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="12" r="5"/><circle cx="16" cy="12" r="5"/></svg>
+            <strong>Cross Analyse</strong><p>De 2 à 5 audiences : noyau commun, divergences, spécificités de chacune.</p>
+          </div>
+          <div class="cap" data-reveal>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+            <strong>Preuves chiffrées</strong><p>Indicateurs expliqués, méthode de calcul consultable, part des commentaires écartés.</p>
+          </div>
+        </div>
+        <a class="btn-ghost" href="/orchestrateur">Découvrir l'espace Psychologue <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="uses" id="pour-qui" aria-labelledby="uses-title">
+    <div class="wrap">
+      <span class="mono">Pour qui</span>
+      <h2 id="uses-title">Pour toutes celles et ceux qui décident en fonction de personnes réelles.</h2>
+      <div class="uses-grid">
+        <div class="use" data-reveal><strong>Entrepreneurs</strong><p>Savoir pourquoi une offre attire, fait hésiter ou fait fuir.</p></div>
+        <div class="use" data-reveal><strong>Marketeurs</strong><p>Écrire des messages qui répondent aux objections réelles.</p></div>
+        <div class="use" data-reveal><strong>Chercheurs et analystes</strong><p>Structurer des milliers de verbatims sans perdre la source.</p></div>
+        <div class="use" data-reveal><strong>Équipes produit</strong><p>Comprendre les réactions à un lancement ou à une fonctionnalité.</p></div>
+        <div class="use" data-reveal><strong>Créateurs</strong><p>Voir ce que leur communauté attend, et ce qui la divise.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ext" id="agents" aria-labelledby="ext-title">
+    <div class="wrap">
+      <div class="ext-intro" data-reveal>
+        <span class="mono">Les agents de Gabriel.ai</span>
+        <h2 id="ext-title">Un système multi-agents. <span>Un agent principal.</span></h2>
+        <p>Chaque agent a un métier. Ils partagent le même contexte : ce que le Psychologue comprend nourrit la stratégie d'Ariane et les contenus du Créateur. Chacun peut aussi être utilisé seul.</p>
+      </div>
+      <article class="agent is-main" data-reveal>
+        <img src="{{ static_v('images/psychologue-agent.jpeg') }}" alt="" loading="lazy">
+        <div>
+          <span class="mono">Comprendre</span><span class="agent-badge">Agent principal</span>
+          <strong>Le Psychologue</strong>
+          <p>Analyse le comportement humain à partir de signaux observables : commentaires, avis, réponses, réactions.</p>
+          <ul><li>Émotions, peurs, objections, aspirations</li><li>Personas fondés sur les groupes observés</li><li>Cross Analyse de 2 à 5 audiences</li></ul>
+        </div>
+      </article>
+      <article class="agent" data-reveal>
+        <img src="{{ static_v('images/personas/p2.jpeg') }}" alt="" loading="lazy">
+        <div>
+          <span class="mono">Décider</span>
+          <strong>Ariane, la stratège</strong>
+          <p>Mène un entretien sur votre activité, puis construit un diagnostic et une stratégie appuyés sur l'analyse du Psychologue.</p>
+          <ul><li>Entretien écrit ou à la voix</li><li>Positionnement et priorités</li><li>Plan d'action daté</li></ul>
+        </div>
+      </article>
+      <article class="agent" data-reveal>
+        <img src="{{ static_v('images/createur-agent.jpeg') }}" alt="" loading="lazy">
+        <div>
+          <span class="mono">Créer</span>
+          <strong>Le Créateur</strong>
+          <p>Écrit des contenus prêts à publier, dans les mots de votre audience, avec ou sans la stratégie d'Ariane.</p>
+          <ul><li>Posts, scripts vidéo, threads, emails</li><li>Accroches issues des vrais verbatims</li><li>Affinage en conversation</li></ul>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="limits" id="limites" aria-labelledby="limits-title">
+    <div class="wrap">
+      <div>
+        <span class="mono">Ce que Gabriel.ai ne fait pas</span>
+        <h2 id="limits-title">La confiance vient des limites qu'on affiche.</h2>
+      </div>
+      <ul>
+        <li data-reveal><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><div><strong>Aucun diagnostic.</strong> <span>Gabriel ne pose ni diagnostic psychologique ni avis médical.</span></div></li>
+        <li data-reveal><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><div><strong>Aucune lecture des pensées.</strong> <span>Il interprète ce que les personnes ont exprimé, pas ce qu'elles taisent.</span></div></li>
+        <li data-reveal><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><div><strong>Une fiabilité affichée.</strong> <span>Chaque analyse indique combien de commentaires ont été retenus et avec quel niveau de confiance.</span></div></li>
+        <li data-reveal><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg><div><strong>Des méthodes consultables.</strong> <span>Les indicateurs chiffrés montrent leur formule et leurs variables.</span></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="final" aria-labelledby="final-title">
+    <div class="wrap" data-reveal>
+      <span class="mono eyebrow">Commencer</span>
+      <h2 id="final-title">Comprendre l'humain <span>avant de décider.</span></h2>
+      <p>Collez le lien d'une vidéo ou quelques avis clients : la première lecture arrive en quelques minutes.</p>
+      <div class="hero-actions">
+        <a class="btn" href="/orchestrateur">Analyser une audience <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="link" href="/tarifs">Voir les tarifs</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Gabriel.ai · Système multi-agents d'analyse du comportement humain</span>
+    <nav aria-label="Pied de page">
+      <a href="#methode">Méthode</a><a href="#analyses">Analyses</a><a href="#pour-qui">Pour qui</a><a href="#limites">Limites</a>
+      <span class="footer-sep" aria-hidden="true"></span>
+      <a href="/tarifs">Tarifs</a><a href="/en-savoir-plus">En savoir plus</a><a href="/login">Connexion</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var nav = document.getElementById('nav');
+    function sync() { nav.classList.toggle('is-scrolled', window.scrollY > 8); }
+    window.addEventListener('scroll', sync, { passive: true }); sync();
+
+    // La section lue est marquée dans le menu : on sait toujours où l'on est.
+    var liens = Array.prototype.slice.call(document.querySelectorAll('.nav-sections a'));
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          liens.forEach(function (lien) {
+            var actif = lien.getAttribute('href') === '#' + entry.target.id;
+            lien.classList.toggle('is-active', actif);
+            if (actif) lien.setAttribute('aria-current', 'location'); else lien.removeAttribute('aria-current');
+          });
+        });
+      }, { rootMargin: '-45% 0px -50% 0px' });
+      liens.forEach(function (lien) {
+        var cible = document.querySelector(lien.getAttribute('href'));
+        if (cible) observer.observe(cible);
+      });
+    }
+
+    if (document.documentElement.classList.contains('anim')) {
+      // Apparition au défilement, en léger décalage dans chaque groupe.
+      var groupes = new Map();
+      document.querySelectorAll('[data-reveal]').forEach(function (el) {
+        var parent = el.parentElement; var i = groupes.get(parent) || 0; groupes.set(parent, i + 1);
+        el.style.setProperty('--d', (i * 0.09).toFixed(2) + 's');
+      });
+      var apparition = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); apparition.unobserve(e.target); } });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+      document.querySelectorAll('[data-reveal]').forEach(function (el) { apparition.observe(el); });
+
+      // Compteurs du tableau d'exemple : de 0 à la valeur réelle.
+      document.querySelectorAll('[data-count]').forEach(function (el) {
+        var cible = +el.getAttribute('data-count'), pad = +(el.getAttribute('data-pad') || 0), t0 = null;
+        function pas(t) { if (!t0) t0 = t; var k = Math.min(1, (t - t0) / 1400); var v = Math.round(cible * (1 - Math.pow(1 - k, 3)));
+          el.textContent = pad ? String(v).padStart(pad, '0') : v; if (k < 1) requestAnimationFrame(pas); }
+        el.textContent = pad ? '0'.padStart(pad, '0') : '0'; setTimeout(function () { requestAnimationFrame(pas); }, 450);
+      });
+
+      // Parallaxe douce de la photo du haut.
+      var hero = document.querySelector('.hero'), attente = false;
+      window.addEventListener('scroll', function () {
+        if (attente) return; attente = true;
+        requestAnimationFrame(function () { hero.style.setProperty('--py', Math.min(window.scrollY * 0.18, 140) + 'px'); attente = false; });
+      }, { passive: true });
+    }
+
+    var themeBtn = nav.querySelector('.theme-toggle');
+    function estSombre() {
+      var t = document.documentElement.getAttribute('data-theme');
+      return t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    function syncTheme() { themeBtn.setAttribute('aria-label', estSombre() ? 'Passer en version claire' : 'Passer en version sombre'); }
+    themeBtn.addEventListener('click', function () {
+      var suivant = estSombre() ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', suivant);
+      try { localStorage.setItem('gabriel-landing-theme', suivant); } catch (e) {}
+      syncTheme();
+    });
+    syncTheme();
+
+    var bouton = nav.querySelector('.nav-toggle');
+    var panneau = document.getElementById('nav-panel');
+    function fermer() { panneau.hidden = true; bouton.setAttribute('aria-expanded', 'false'); bouton.setAttribute('aria-label', 'Ouvrir le menu'); }
+    bouton.addEventListener('click', function () {
+      var ouvrir = panneau.hidden;
+      panneau.hidden = !ouvrir;
+      bouton.setAttribute('aria-expanded', String(ouvrir));
+      bouton.setAttribute('aria-label', ouvrir ? 'Fermer le menu' : 'Ouvrir le menu');
+    });
+    panneau.addEventListener('click', function (e) { if (e.target.closest('a')) fermer(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panneau.hidden) { fermer(); bouton.focus(); } });
+  })();
+</script>
+</body>
+</html>

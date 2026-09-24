@@ -50,8 +50,9 @@ def _build_prompt(ctx) -> tuple:
 
     rag_block = (f"\n── RÉFÉRENCES RÉDACTIONNELLES ──\n{ctx.rag_context}\n") if ctx.rag_context else ""
 
+    from agents.creation.fact_guard import SOURCE_RULE
     prompt = (
-        f"{system_pmt}\n"
+        f"{system_pmt}\n\n{SOURCE_RULE}\n"
         f"{tone_block}{emo_block}"
         f"\n{_plan_block(ctx.plan)}"
         f"{rag_block}\n"
@@ -70,7 +71,8 @@ def run(ctx) -> None:
         prompt, _ = _build_prompt(ctx)
         # Le niveau de créativité pilote la température : c'est à la RÉDACTION
         # qu'il compte le plus (le reste du pipeline reste déterministe).
-        raw = _call_llm(prompt, max_tokens=3000, temperature=ctx.temperature())
+        from agents.createur import CREATION_MAX_TOKENS
+        raw = _call_llm(prompt, max_tokens=CREATION_MAX_TOKENS, temperature=ctx.temperature())
         draft = _parse_json(raw)
         draft["content_type"] = ctx.content_type
         draft["success"] = not draft.get("parse_error", False)

@@ -666,6 +666,48 @@ def save_cross_source_comments(user_id, source, comments, *, cross_analysis_id='
         return False
 
 
+def list_cross_analyses(user_id, limit=30):
+    """Cross Analyses d'un utilisateur, plus récentes d'abord, en vue légère
+    pour le menu : identité des vidéos comparées, sans résultat détaillé."""
+    if not user_id:
+        return []
+    rows = []
+    if _supabase:
+        try:
+            res = _supabase.table(_T_CROSS_ANALYSES)\
+                .select('cross_analysis_id,status,source_count,created_at,updated_at,folder_id')\
+                .eq('user_id', user_id).order('created_at', desc=True).limit(limit).execute()
+            rows = res.data or []
+            ids = [r['cross_analysis_id'] for r in rows]
+            links = []
+            if ids:
+                links = (_supabase.table(_T_CROSS_SOURCES)
+                         .select('cross_analysis_id,position,source_snapshot')
+                         .eq('user_id', user_id).in_('cross_analysis_id', ids).execute().data or [])
+            for row in rows:
+                row['source_records'] = sorted(
+                    [l for l in links if l.get('cross_analysis_id') == row['cross_analysis_id']],
+                    key=lambda l: int(l.get('position') or 0))
+        except Exception as e:
+            print(f'[DB] list_cross_analyses error: {e}')
+            rows = []
+    if not rows:
+        rows = [r for r in _load_json_cross_analyses() if r.get('user_id') == user_id]
+        rows.sort(key=lambda r: r.get('created_at') or '', reverse=True)
+        rows = rows[:limit]
+    return [{
+        'cross_analysis_id': r.get('cross_analysis_id'),
+        'status': r.get('status', 'prepared'),
+        'created_at': r.get('created_at'),
+        'folder_id': r.get('folder_id', ''),
+        'sources': [{
+            'title': ((rec.get('source_snapshot') or {}).get('metadata') or {}).get('title')
+                     or (rec.get('source_snapshot') or {}).get('label', ''),
+            'platform': (rec.get('source_snapshot') or {}).get('platform', ''),
+        } for rec in (r.get('source_records') or []) if isinstance(rec, dict)],
+    } for r in rows]
+
+
 def get_cross_analysis(cross_analysis_id, user_id=None):
     """Retourne une Cross et son état source par source, cloisonnés par user."""
     if not cross_analysis_id:

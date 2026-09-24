@@ -23,6 +23,11 @@ Réponds UNIQUEMENT avec un JSON valide :
 {"faiblesses":[{"zone":"hook|emotion|differenciation|preuve|cta|rythme|authenticite|clarte","probleme":"le défaut concret, en une phrase","gravite":"critique|moyen|mineur"}],"risque_principal":"la raison n°1 pour laquelle ce contenu pourrait ne pas marcher","verdict":"livrable|a_ameliorer"}"""
 
 
+# Ne jamais réclamer des preuves que Gabriel n'a pas : c'est ce qui poussait
+# l'optimisation à inventer benchmarks, anecdotes et pseudos (14/09/2026).
+_CRITIC_SOURCE_RULE = """Tu ne demandes JAMAIS d'ajouter chiffres, benchmarks, témoignages, pseudos ou anecdotes personnelles : le texte n'a droit qu'aux données fournies. Si le texte contient déjà un fait, un chiffre, une expérience vécue ou un témoignage qui semble inventé, signale-le comme faiblesse CRITIQUE en zone « authenticite » (« fait inventé à retirer : … »). Un trou entre crochets ([chiffre à vérifier]) est aussi une faiblesse : demande de reformuler sans chiffre."""
+
+
 def run(ctx) -> None:
     if not ctx.draft or ctx.draft.get("parse_error"):
         ctx.critique = {"faiblesses": [], "risque_principal": "", "verdict": "livrable"}
@@ -47,7 +52,7 @@ def run(ctx) -> None:
     from core.critiques import CREATION_CRITIQUE
 
     ctx.critique = critic.review(
-        CREATION_CRITIQUE, _SYSTEM + "\n\n" + prompt,
+        CREATION_CRITIQUE, _SYSTEM + "\n\n" + _CRITIC_SOURCE_RULE + "\n\n" + prompt,
         call_llm=lambda p, max_tokens: _call_llm(p, max_tokens=max_tokens),
-        parse_json=_parse_json, max_tokens=500,
+        parse_json=_parse_json, max_tokens=1500,
     ).data
