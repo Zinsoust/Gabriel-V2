@@ -1,0 +1,2377 @@
+{
+ "_timing": {
+  "dashboard": 0.01,
+  "llm_main": 62.29,
+  "llm_parallel_block": 84.85,
+  "nlp": 10.23,
+  "rag_load": 0.38,
+  "rag_retrieve": 0.18,
+  "scoring": 0.31,
+  "total": 158.61
+ },
+ "analysis_id": "0fcb134e-72d",
+ "aspirations": {
+  "ambitions": [
+   "Créer des contenus **uniques et non-censurés**",
+   "Maîtriser des outils **professionnels sans diplôme**",
+   "Bâtir une **communauté de créateurs autonomes**"
+  ],
+  "appel_interieur": "L’appel est de **devenir le 'guide invisible'** pour ceux qui, comme eux, rêvent de créer mais se sentent **trop loin du sommet technique** — un appel à **démocratiser l’expertise** sans la diluer.",
+  "ce_qu_ils_veulent_construire": "Une **communauté de 'bricoleurs de l’IA'****, où chacun partage ses **workflows optimisés**, ses **astuces pour machines modestes**, et ses **créations brutes** (ex : 'voici comment j’ai fait tourner Flux 2 sur une 1080ti').",
+  "ce_qu_ils_veulent_devenir": "Des **créateurs autonomes**, capables de **générer des contenus professionnels** (vidéos, images, audio) **sans dépendre de plateformes centralisées ou de matériel ultra-puissant**.",
+  "ce_qu_ils_veulent_eviter": "Devenir des **utilisateurs passifs** de l’IA, dépendants des **plateformes payantes** ou des **configs ultra-chères**, et de **rester dans l’anonymat** ('pourquoi pas le million ?').",
+  "ce_qu_ils_veulent_proteger": "Leur **temps** (éviter les installations interminables) et leur **espoir** (ne pas abandonner à cause d’un manque de matériel).",
+  "ce_qu_ils_veulent_transmettre": "Le savoir-faire pour **libérer la créativité** — non pas en vendant des outils, mais en **documentant chaque étape**, des **erreurs aux solutions**, pour que **personne ne se sente exclu** par la technique.",
+  "freins_aux_aspirations": [
+   "Le manque de **parcours progressif** (des débutants aux avancés)",
+   "L’**invisibilité des solutions** pour machines modestes",
+   "La **peur de mal faire** (erreur de Flux 2, choix des modèles)"
+  ],
+  "vision_de_leur_meilleur_moi": "Leur 'moi B' est un **créateur confiant**, capable de **former d’autres personnes**, de **résoudre des problèmes techniques complexes**, et de **montrer que la créativité n’a pas besoin de frontières matérielles**."
+ },
+ "brief": {
+  "action": "Ne leur vends pas une solution technique — *donne-leur une initiation*. Crée un parcours qui transforme leur peur (‘Je ne sais pas’) en rituel (‘Je maîtrise déjà ces étapes, et voici comment’), en combinant *démystification radicale* (désacraliser le jargon) et *validation émotionnelle* (les faire se sentir *voyants* avant même qu’ils ne voient).",
+  "insight": "Leur vrai blocage n’est pas le manque de puissance matérielle ou de compétences techniques, mais la peur de se révéler *indignes* de leur propre ambition : ils veulent créer comme des dieux, mais ont honte de leur niveau actuel — et cette dissonance les pousse à chercher un mentor qui leur dise *non pas ‘tu peux’, mais ‘tu es déjà capable, je te montre comment’.**",
+  "qui": "Ce sont des alchimistes en devenir — des âmes qui refusent la passivité des plateformes centralisées et rêvent de forger leur propre magie technologique, mais qui tremblent encore devant l’ombre de leur propre incompétence perçue, comme des apprentis sorciers craignant leur baguette."
+ },
+ "culturel": {
+  "croyances_dominantes": [
+   "L'IA locale est un droit d'accès, pas un privilège de classe (révolte contre les modèles cloud payants)",
+   "La performance technique prime sur l'ergonomie (justification des sacrifices matériels)",
+   "La communauté est un accélérateur de savoir (partage de workflows comme acte de résistance)"
+  ],
+  "dynamique_communautaire": "Une tribu fragmentée en sous-groupes par niveau technique (novices vs. experts en GPU) mais unie par la *jalousie créative* ('Pourquoi lui a une 5080 et pas moi ?').",
+  "recits_emergents": "Le récit du *rebelle des données* : 'Je refuse de dépendre des GAFA, même si ça me coûte cher.'",
+  "references_culturelles": [
+   "Culture *maker* (DIY, open-source, CivitAI/HuggingFace comme bibliothèques communes)",
+   "Mythologie du *hacker* (contournement des limites matérielles, ex. : '80 Go sur mon PC de 2015')",
+   "Références geek mainstream (*SAO*, *Cyberpunk* comme codes esthétiques partagés)"
+  ],
+  "signaux_faibles": [
+   "Une sous-couche de *dépression technologique* ('regarder de loin', 'ça ne fonctionne pas pour moi')",
+   "Un désir inavoué de *légitimité sociale* ('Pourquoi tu n’as pas 1M d’abonnés ?')"
+  ],
+  "tensions_culturelles": "Conflit entre l'idéal *post-scarcité* (IA illimitée) et la réalité des contraintes physiques (RAM, GPU), générant une culpabilité technophobe ('je ne mérite pas ça').",
+  "visions_du_monde": "Une communauté de *bricoleurs numériques* en quête d'autonomie technologique, oscillant entre fascination pour l'innovation et frustration face aux barrières matérielles et cognitives, avec une forte croyance en la *démocratisation des outils* malgré les réalités économiques."
+ },
+ "dashboard": {
+  "argument_density": {
+   "favorable": {
+    "avg_words": 19.8,
+    "label": "argumenté"
+   },
+   "ironique": {
+    "avg_words": 44.0,
+    "label": "argumenté"
+   },
+   "neutre": {
+    "avg_words": 14.0,
+    "label": "court"
+   },
+   "nuance": {
+    "avg_words": 34.3,
+    "label": "argumenté"
+   },
+   "oppose": {
+    "avg_words": 26.2,
+    "label": "argumenté"
+   },
+   "ratio_oppose_vs_favorable": 1.32
+  },
+  "avg_emotion_intensity": 0.59,
+  "confidence_score": 0.68,
+  "dominant_desire": "exemple",
+  "dominant_emotion": "confusion",
+  "dominant_sentiment": "neutral",
+  "dominant_stance": "neutre",
+  "emotion_distribution": {
+   "admiration": 20.9,
+   "colere": 3.5,
+   "confusion": 37.4,
+   "enthousiasme": 5.2,
+   "espoir": 9.6,
+   "frustration": 8.7,
+   "joie": 12.2,
+   "tristesse": 1.7
+  },
+  "fiabilite": {
+   "commentaires_analyses": 115,
+   "commentaires_hors_sujet": 0,
+   "label_confiance": "Fiable",
+   "niveau_confiance": 0.68,
+   "pct_hors_sujet": 0.0,
+   "total_commentaires": 115
+  },
+  "groupes": [
+   {
+    "emotion_dominante": "admiration",
+    "exemples": [
+     "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour gé",
+     "super intéressant et mérite une vidéo bien plus longue pour comprendre en détail les possi"
+    ],
+    "id": 0,
+    "likes_pct": 49.2,
+    "likes_total": 61,
+    "mots_cles": [
+     "vidéo",
+     "merci",
+     "video",
+     "tes",
+     "vidéos",
+     "serait"
+    ],
+    "pct": 31.3,
+    "sentiment_moyen": 0.184,
+    "stance_dominante": "favorable",
+    "taille": 36
+   },
+   {
+    "emotion_dominante": "confusion",
+    "exemples": [
+     "c'est fou l'évolution depuis simple-diffusion (environ 4 ans avant)",
+     "Une question : est ce que les fichiers telechargés doivent etre dans le meme dossier que c"
+    ],
+    "id": 1,
+    "likes_pct": 9.7,
+    "likes_total": 12,
+    "mots_cles": [
+     "moi",
+     "comfyui",
+     "marche",
+     "erreur",
+     "installer",
+     "stp"
+    ],
+    "pct": 20.9,
+    "sentiment_moyen": -0.006,
+    "stance_dominante": "neutre",
+    "taille": 24
+   },
+   {
+    "emotion_dominante": "confusion",
+    "exemples": [
+     "La musique de SAO en fond me régale à chaque fois",
+     "Je t'aime mec"
+    ],
+    "id": 2,
+    "likes_pct": 14.5,
+    "likes_total": 18,
+    "mots_cles": [
+     "voix",
+     "merci",
+     "tes",
+     "musique",
+     "mec",
+     "goat"
+    ],
+    "pct": 18.3,
+    "sentiment_moyen": 0.19,
+    "stance_dominante": "neutre",
+    "taille": 21
+   },
+   {
+    "emotion_dominante": "confusion",
+    "exemples": [
+     "Hello, merci pour la vidéo. J'ai un soucis, j'ai installé le logiciel mais j'ai une erreur",
+     "Ah bah tiens j'allais chercher cette info suite à l'installation de LM Studio sur mon Ubun"
+    ],
+    "id": 3,
+    "likes_pct": 0.8,
+    "likes_total": 1,
+    "mots_cles": [
+     "logiciel",
+     "comfyui",
+     "installation",
+     "version",
+     "unable",
+     "start"
+    ],
+    "pct": 12.2,
+    "sentiment_moyen": 0.036,
+    "stance_dominante": "neutre",
+    "taille": 14
+   },
+   {
+    "emotion_dominante": "confusion",
+    "exemples": [
+     "Si la modélisation 3D vous intéresse, profitez de -50% sur Meshy http://www.meshy.ai/s/cyb",
+     "Pour être honnête, j’adorerai utiliser une IA non-censurée et très performante avec autant"
+    ],
+    "id": 4,
+    "likes_pct": 25.8,
+    "likes_total": 32,
+    "mots_cles": [
+     "installer",
+     "workflow",
+     "créer",
+     "demande",
+     "photos",
+     "possible"
+    ],
+    "pct": 17.4,
+    "sentiment_moyen": 0.069,
+    "stance_dominante": "neutre",
+    "taille": 20
+   }
+  ],
+  "irony_signals": {
+   "avg_incongruence": 0.55,
+   "count": 2,
+   "examples": [
+    "Merci pour cette video encore incroyable. Sinon à quand la vidéo sur les fonctions n8n ?",
+    "Super video et super outil. Cependant j'ai un probleme avec flux 2. J'ai une erreur qui apparait lor"
+   ],
+   "pct": 1.7
+  },
+  "lexical_fields": [
+   {
+    "count": 42,
+    "examples": [
+     "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour générer les ",
+     "Pour être honnête, j’adorerai utiliser une IA non-censurée et très performante avec autant de paramè"
+    ],
+    "field": "vidéo",
+    "pct": 36.5,
+    "words": [
+     "vidéo",
+     "merci",
+     "vidéos"
+    ]
+   },
+   {
+    "count": 14,
+    "examples": [
+     "combien de mémoire de stockage demande l'installation compète? quel doit être au minimum la configur",
+     "J'aime beaucoup ton contenu et cette vidéo est parfaite pour s'initier à l'IA gen locale. Mais tu ou"
+    ],
+    "field": "moi",
+    "pct": 12.2,
+    "words": [
+     "moi"
+    ]
+   },
+   {
+    "count": 13,
+    "examples": [
+     "Pour les generation 10 de carte graphique,  faut télécharger un comfyUI special, adapté. Faut scroll",
+     "Une question : est ce que les fichiers telechargés doivent etre dans le meme dossier que comfyui?"
+    ],
+    "field": "comfyui",
+    "pct": 11.3,
+    "words": [
+     "comfyui",
+     "erreur"
+    ]
+   },
+   {
+    "count": 13,
+    "examples": [
+     "On arrête jamais d’apprendre avec tes videos ❤",
+     "Tes vidéos sont incroyables, tu survoles juste ce qu'il faut pour nous donner envie, ensuite nous re"
+    ],
+    "field": "tes",
+    "pct": 11.3,
+    "words": [
+     "tes"
+    ]
+   },
+   {
+    "count": 11,
+    "examples": [
+     "Merci pour cette video encore incroyable. Sinon à quand la vidéo sur les fonctions n8n ?",
+     "On arrête jamais d’apprendre avec tes videos ❤"
+    ],
+    "field": "video",
+    "pct": 9.6,
+    "words": [
+     "video"
+    ]
+   },
+   {
+    "count": 10,
+    "examples": [
+     "Bonjour Parlons Cyber, est ce qu’il serait possible de faire une vidéo sur comment retrouver un numé",
+     "Merci beaucoup pour la vidéo si possible on aimerait avoir une autre encore plus détaillée. Merci vr"
+    ],
+    "field": "possible",
+    "pct": 8.7,
+    "words": [
+     "possible"
+    ]
+   }
+  ],
+  "lexique": {
+   "moy_mots": 8.3,
+   "top_bigrams": [
+    {
+     "bigram": "carte graphique",
+     "freq": 4
+    },
+    {
+     "bigram": "merci vidéo",
+     "freq": 4
+    },
+    {
+     "bigram": "tes vidéos",
+     "freq": 3
+    },
+    {
+     "bigram": "open source",
+     "freq": 2
+    },
+    {
+     "bigram": "vidéo longue",
+     "freq": 2
+    },
+    {
+     "bigram": "merci video",
+     "freq": 2
+    },
+    {
+     "bigram": "incroyable vidéo",
+     "freq": 2
+    },
+    {
+     "bigram": "vidéos incroyables",
+     "freq": 2
+    }
+   ],
+   "top_mots": [
+    [
+     "vidéo",
+     46.84
+    ],
+    [
+     "merci",
+     40.146
+    ],
+    [
+     "video",
+     31.751
+    ],
+    [
+     "comfyui",
+     28.164
+    ],
+    [
+     "moi",
+     25.817
+    ],
+    [
+     "tes",
+     23.625
+    ],
+    [
+     "possible",
+     22.929
+    ],
+    [
+     "installer",
+     22.392
+    ],
+    [
+     "serait",
+     19.593
+    ],
+    [
+     "vidéos",
+     19.593
+    ],
+    [
+     "salut",
+     19.593
+    ],
+    [
+     "logiciel",
+     18.813
+    ]
+   ],
+   "vocabulaire": 600
+  },
+  "mockery_signals": {
+   "count": 0,
+   "examples": [],
+   "level": "absent",
+   "pct": 0.0
+  },
+  "noise_ratio": 0.0,
+  "opportunity_score": 16.8,
+  "polarisation_detail": {
+   "fav_pct": 24.3,
+   "label": "Majoritairement neutre",
+   "neutre_pct": 47.8,
+   "opp_pct": 10.4,
+   "phrase": "L'audience est majoritairement neutre ou réservée (64.3%) — peu de prises de position tranchées (24.3% favorables, 10.4% opposés).",
+   "score": 13.7
+  },
+  "polarization_score": 13.7,
+  "positions": {
+   "favorable": {
+    "count": 28,
+    "pct": 24.3
+   },
+   "hors_sujet": {
+    "count": 0,
+    "pct": 0.0
+   },
+   "ironique": {
+    "count": 1,
+    "pct": 0.9
+   },
+   "neutre": {
+    "count": 55,
+    "pct": 47.8
+   },
+   "nuance": {
+    "count": 19,
+    "pct": 16.5
+   },
+   "oppose": {
+    "count": 12,
+    "pct": 10.4
+   }
+  },
+  "qualified_comments": 115,
+  "relevance_average": 0.27,
+  "resonance_by_stance": {
+   "favorable": {
+    "count": 28,
+    "likes": 26,
+    "pct": 21.0
+   },
+   "ironique": {
+    "count": 1,
+    "likes": 0,
+    "pct": 0.0
+   },
+   "neutre": {
+    "count": 55,
+    "likes": 38,
+    "pct": 30.6
+   },
+   "nuance": {
+    "count": 19,
+    "likes": 16,
+    "pct": 12.9
+   },
+   "oppose": {
+    "count": 12,
+    "likes": 44,
+    "pct": 35.5
+   }
+  },
+  "resume_tendances": {
+   "emotion_dominante": "confusion",
+   "signal_dominant": "question",
+   "sujet": "Comment Générer des Images et Vidéos INCROYABLES avec une IA LOCALE et ILLIMITÉE sur ton PC",
+   "tendance_dominante": "neutre",
+   "tension_principale": "24.3% favorables vs 10.4% opposés"
+  },
+  "sentiment_distribution": {
+   "negative": 7.8,
+   "neutral": 66.1,
+   "positive": 26.1
+  },
+  "signal_distribution": {
+   "aspiration": 0.9,
+   "besoin": 1.7,
+   "désir": 6.1,
+   "frustration": 2.6,
+   "méfiance": 0.9,
+   "objection": 2.6,
+   "preuve_demandée": 5.2,
+   "question": 47.8
+  },
+  "signaux_frequents": {
+   "attentes": [
+    {
+     "count": 55,
+     "examples": [
+      "Merci pour cette video encore incroyable. Sinon à quand la vidéo sur les fonctions n8n ?",
+      "combien de mémoire de stockage demande l'installation compète? quel doit être au minimum la configuration du PC? merci !"
+     ],
+     "pct": 47.8,
+     "signal": "question"
+    },
+    {
+     "count": 7,
+     "examples": [
+      "Pour être honnête, j’adorerai utiliser une IA non-censurée et très performante avec autant de paramètres, c’en est presque mon rêv",
+      "Hey, déjà super vidéo, ensuite j'avais une question, je souhaitais savoir si tu connaissais une façons de faire une ia pour parler"
+     ],
+     "pct": 6.1,
+     "signal": "désir"
+    },
+    {
+     "count": 6,
+     "examples": [
+      "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour générer les vidéo que tu présente en local",
+      "c'est fou l'évolution depuis simple-diffusion (environ 4 ans avant)"
+     ],
+     "pct": 5.2,
+     "signal": "preuve_demandée"
+    },
+    {
+     "count": 2,
+     "examples": [
+      "Ah bah tiens j'allais chercher cette info suite à l'installation de LM Studio sur mon Ubuntu !\n\nMerki 😁",
+      "je chercher cette solution y'a 2 jours, T'es un BOSS 🫡🙏🏿"
+     ],
+     "pct": 1.7,
+     "signal": "besoin"
+    },
+    {
+     "count": 1,
+     "examples": [
+      "Je sais pas ce que ça va donner. Je reviendrais faire un retour. J'espère que ça va pas faire exploser mon PC MDR"
+     ],
+     "pct": 0.9,
+     "signal": "aspiration"
+    }
+   ],
+   "frustrations": [
+    {
+     "count": 3,
+     "examples": [
+      "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour générer les vidéo que tu présente en local",
+      "Hello, merci pour la vidéo. J'ai un soucis, j'ai installé le logiciel mais j'ai une erreur : Unable to start ComfyUI Desktop... J'"
+     ],
+     "pct": 2.6,
+     "signal": "frustration"
+    },
+    {
+     "count": 1,
+     "examples": [
+      "la video est fake ,ne correspond pas au prompt"
+     ],
+     "pct": 0.9,
+     "signal": "méfiance"
+    }
+   ],
+   "objections": [
+    {
+     "count": 3,
+     "examples": [
+      "Ah bah tiens j'allais chercher cette info suite à l'installation de LM Studio sur mon Ubuntu !\n\nMerki 😁",
+      "Je cherchais justement une IA pour commencer à créer l'univers visuel de mon futur personna musical, merci beaucoup ! \n\nEst-ce qu'"
+     ],
+     "pct": 2.6,
+     "signal": "objection"
+    }
+   ],
+   "tous": [
+    {
+     "count": 55,
+     "examples": [
+      "Merci pour cette video encore incroyable. Sinon à quand la vidéo sur les fonctions n8n ?",
+      "combien de mémoire de stockage demande l'installation compète? quel doit être au minimum la configuration du PC? merci !"
+     ],
+     "pct": 47.8,
+     "signal": "question"
+    },
+    {
+     "count": 7,
+     "examples": [
+      "Pour être honnête, j’adorerai utiliser une IA non-censurée et très performante avec autant de paramètres, c’en est presque mon rêv",
+      "Hey, déjà super vidéo, ensuite j'avais une question, je souhaitais savoir si tu connaissais une façons de faire une ia pour parler"
+     ],
+     "pct": 6.1,
+     "signal": "désir"
+    },
+    {
+     "count": 6,
+     "examples": [
+      "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour générer les vidéo que tu présente en local",
+      "c'est fou l'évolution depuis simple-diffusion (environ 4 ans avant)"
+     ],
+     "pct": 5.2,
+     "signal": "preuve_demandée"
+    },
+    {
+     "count": 3,
+     "examples": [
+      "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour générer les vidéo que tu présente en local",
+      "Hello, merci pour la vidéo. J'ai un soucis, j'ai installé le logiciel mais j'ai une erreur : Unable to start ComfyUI Desktop... J'"
+     ],
+     "pct": 2.6,
+     "signal": "frustration"
+    },
+    {
+     "count": 3,
+     "examples": [
+      "Ah bah tiens j'allais chercher cette info suite à l'installation de LM Studio sur mon Ubuntu !\n\nMerki 😁",
+      "Je cherchais justement une IA pour commencer à créer l'univers visuel de mon futur personna musical, merci beaucoup ! \n\nEst-ce qu'"
+     ],
+     "pct": 2.6,
+     "signal": "objection"
+    },
+    {
+     "count": 2,
+     "examples": [
+      "Ah bah tiens j'allais chercher cette info suite à l'installation de LM Studio sur mon Ubuntu !\n\nMerki 😁",
+      "je chercher cette solution y'a 2 jours, T'es un BOSS 🫡🙏🏿"
+     ],
+     "pct": 1.7,
+     "signal": "besoin"
+    },
+    {
+     "count": 1,
+     "examples": [
+      "Je sais pas ce que ça va donner. Je reviendrais faire un retour. J'espère que ça va pas faire exploser mon PC MDR"
+     ],
+     "pct": 0.9,
+     "signal": "aspiration"
+    },
+    {
+     "count": 1,
+     "examples": [
+      "la video est fake ,ne correspond pas au prompt"
+     ],
+     "pct": 0.9,
+     "signal": "méfiance"
+    }
+   ]
+  },
+  "skepticism_score": 5.8,
+  "stance_distribution": {
+   "favorable": 24.3,
+   "ironique": 0.9,
+   "neutre": 47.8,
+   "nuance": 16.5,
+   "oppose": 10.4
+  },
+  "sujets_recurrents": [
+   {
+    "count": 35,
+    "exemple": "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour générer les ",
+    "mot": "vidéo",
+    "pct": 30.4,
+    "score_tfidf": 46.84
+   },
+   {
+    "count": 18,
+    "exemple": "Merci pour cette video encore incroyable. Sinon à quand la vidéo sur les fonctions n8n ?",
+    "mot": "merci",
+    "pct": 15.7,
+    "score_tfidf": 40.146
+   },
+   {
+    "count": 14,
+    "exemple": "combien de mémoire de stockage demande l'installation compète? quel doit être au minimum la configur",
+    "mot": "moi",
+    "pct": 12.2,
+    "score_tfidf": 25.817
+   },
+   {
+    "count": 13,
+    "exemple": "On arrête jamais d’apprendre avec tes videos ❤",
+    "mot": "tes",
+    "pct": 11.3,
+    "score_tfidf": 23.625
+   },
+   {
+    "count": 11,
+    "exemple": "Merci pour cette video encore incroyable. Sinon à quand la vidéo sur les fonctions n8n ?",
+    "mot": "video",
+    "pct": 9.6,
+    "score_tfidf": 31.751
+   },
+   {
+    "count": 11,
+    "exemple": "Pour les generation 10 de carte graphique,  faut télécharger un comfyUI special, adapté. Faut scroll",
+    "mot": "comfyui",
+    "pct": 9.6,
+    "score_tfidf": 28.164
+   },
+   {
+    "count": 10,
+    "exemple": "Bonjour Parlons Cyber, est ce qu’il serait possible de faire une vidéo sur comment retrouver un numé",
+    "mot": "possible",
+    "pct": 8.7,
+    "score_tfidf": 22.929
+   },
+   {
+    "count": 8,
+    "exemple": "Pour être honnête, j’adorerai utiliser une IA non-censurée et très performante avec autant de paramè",
+    "mot": "installer",
+    "pct": 7.0,
+    "score_tfidf": 22.392
+   },
+   {
+    "count": 8,
+    "exemple": "Tes vidéos sont incroyables, tu survoles juste ce qu'il faut pour nous donner envie, ensuite nous re",
+    "mot": "vidéos",
+    "pct": 7.0,
+    "score_tfidf": 19.593
+   },
+   {
+    "count": 7,
+    "exemple": "Pour être honnête, j’adorerai utiliser une IA non-censurée et très performante avec autant de paramè",
+    "mot": "serait",
+    "pct": 6.1,
+    "score_tfidf": 19.593
+   }
+  ],
+  "total_comments": 115,
+  "trust_score": 7.8,
+  "weighted_polarization": {
+   "label": "Modérément partagée",
+   "score": 32.3,
+   "score_raw": 31.3
+  },
+  "weighted_sentiment": {
+   "interpretation": "positif pondéré",
+   "score": 0.111,
+   "score_raw": 0.108,
+   "total_likes": 124
+  }
+ },
+ "demographique": {
+  "centres_interet": [
+   "Autonomie technologique ('Ne plus dépendre des plateformes cloud')",
+   "Création visuelle ('Vidéos, images, voix')",
+   "Optimisation ('Faire plus avec moins')",
+   "Communauté ('Partager et apprendre ensemble')",
+   "Innovation low-cost ('Contourner les coûts')"
+  ],
+  "comportements_digitaux": [
+   "Consommation *asynchrone* (regardent les vidéos en replay, reviennent aux commentaires)",
+   "Partage *actif* de ressources (liens vers CivitAI, HuggingFace)",
+   "Recherche *frénétique* de solutions ('J’ai une 5080, est-ce que ça marche ?')",
+   "Engagement *émotionnel* (réactions exagérées : 'Trop fort !', 'C’est de la magie !')"
+  ],
+  "genre": {
+   "femmes": 35,
+   "hommes": 65
+  },
+  "localisation": {
+   "note": "Inféré des références à des *connexions lentes* (15 Mb/s), argot francophone ('frérot', 'bro'), et mentions de *maisons en construction* (sous-entendu : précarité économique).",
+   "pays": [
+    "France",
+    "Canada",
+    "Belgique",
+    "Suisse",
+    "Pays francophones d’Afrique"
+   ],
+   "villes_regions": [
+    "Villes universitaires (Lyon, Montréal, Bruxelles) et zones rurales avec accès limité aux data centers"
+   ]
+  },
+  "metiers_probables": [
+   "Étudiants en *informatique/design* (25%)",
+   "Créateurs de contenu *indépendants* (30%)",
+   "Développeurs *hobbyistes* ou freelances (20%)",
+   "Artistes *numériques* (15%)",
+   "Passionnés de *tech* en reconversion (10%)"
+  ],
+  "niveau_social_probable": "Classe moyenne supérieure *précarisée techniquement* : des profils avec un revenu modéré mais des aspirations haut de gamme (ex. : 'je veux faire du pro mais mon PC est limité').",
+  "tranches_age": [
+   {
+    "pourcentage": 15,
+    "tranche": "18-24"
+   },
+   {
+    "pourcentage": 50,
+    "tranche": "25-34"
+   },
+   {
+    "pourcentage": 25,
+    "tranche": "35-44"
+   },
+   {
+    "pourcentage": 7,
+    "tranche": "45-54"
+   },
+   {
+    "pourcentage": 3,
+    "tranche": "55+"
+   }
+  ]
+ },
+ "distribution": {
+  "likes_ponders": 124,
+  "mean": 0.095,
+  "mean_abs": 0.152,
+  "negatifs": 3,
+  "neutres": 90,
+  "positifs": 20,
+  "std_dev": 0.223,
+  "total": 115,
+  "tres_negatifs": 1,
+  "tres_positifs": 1
+ },
+ "emotions": {
+  "aspiration_nourrie": "Derrière l’enthousiasme pour les tutoriels ('une vidéo plus longue sur ComfyUI'), émerge l’**aspiration à maîtriser un outil puissant pour exprimer leur créativité**, mais aussi — en filigrane — **à gagner en visibilité ou en revenus** (ex : 'générer de l’argent en locale').",
+  "besoins_sous_jacents": "Un **besoin d’autonomie créative** (84% favorables) **étouffé par la peur de l’échec technique** : ils veulent créer, mais ont peur de 'ne pas y arriver' sans guide pas à pas.",
+  "commentaires_revelateurs": [
+   "\"Pour être honnête, j’adorerai utiliser une IA non-censurée... mais devoir installer 80 Go sur mon ordi à 15mb/s...\"",
+   "\"video indigeste... qui va trop vite et cache que img to video est payant\"",
+   "\"On arrête jamais d’apprendre avec tes vidéos ❤, mais pourquoi pas le million ? Fais-nous une vidéo pour générer de l’argent en locale bro\""
+  ],
+  "dominante": "Admiration",
+  "espoir_decu": "Derrière les critiques sur le matériel ('il faut une bête de course'), se cache l’**espoir déçu de pouvoir accéder à la créativité IA sans dépendre d’un PC haut de gamme** — un rêve de **démocratisation** trahi par la réalité technique.",
+  "intensite": "Une **chaleur collective** (joie, admiration) **masquant une peur sous-jacente** : celle de ne pas être à la hauteur techniquement ou matériellement.",
+  "repartition": [
+   {
+    "couleur": "#F59E0B",
+    "emotion": "Admiration",
+    "pourcentage": 28
+   },
+   {
+    "couleur": "#10B981",
+    "emotion": "Espoir",
+    "pourcentage": 22
+   },
+   {
+    "couleur": "#EF4444",
+    "emotion": "Frustration",
+    "pourcentage": 18
+   },
+   {
+    "couleur": "#8B5CF6",
+    "emotion": "Curiosité",
+    "pourcentage": 14
+   },
+   {
+    "couleur": "#6B7280",
+    "emotion": "Scepticisme",
+    "pourcentage": 18
+   }
+  ],
+  "signaux_artificialite": "Les commentaires **positifs sont génériques** ('super vidéo') sans détails concrets, révélant un **manque de personnalisation** dans la réponse aux besoins spécifiques (ex : aucun retour sur les erreurs de Flux 2 ou les limites des cartes graphiques).",
+  "signaux_authenticite": "Les utilisateurs **reconnaissent la qualité technique** (voix, montage, choix des outils) et **faire confiance à l’expertise**, mais attendent une **vulnérabilité stratégique** (ex : 'Voici mes échecs avec Flux 2 sur une 5080')."
+ },
+ "grille_psychologique": {
+  "ce_qu_ils_attendent_comme_preuve": {
+   "implication": "Ajouter des *captures d’écran annotées* dans les descriptions ('Voici l’erreur que tu vois → solution ici') et des *avant/après* systématiques.",
+   "interpretation": "Ils ont besoin de *preuves visuelles et tactiles* : captures d’écran des erreurs, vidéos des résultats finaux, et *témoignages de pairs* ('Regarde ce que j’ai fait avec ta méthode').",
+   "observation": "Signal_preuve_demandée=5.2% ; tokens : 'possible', 'installer', 'erreur'"
+  },
+  "ce_qu_ils_refusent": {
+   "implication": "Adopter une *transparence radicale* : 'Voici ce que je ne montre pas dans mes vidéos (et pourquoi)' + inclure des *avis de débutants* dans les descriptions.",
+   "interpretation": "Ils refusent *l’opacité* et *l’élitisme technique* : toute communication qui sous-entend que 'seuls les pros peuvent faire ça' les braquera.",
+   "observation": "10.4% oppose + signal_méfiance=0.9% ; commentaire : 'Tu caches que c’est payant'"
+  },
+  "ce_qu_ils_ressentent": {
+   "implication": "Remplacer les tutoriels techniques par des *récits de surmonter des obstacles identiques* ('Voici comment j’ai fait tourner Flux 2 sur une 5080').",
+   "interpretation": "Ils oscillent entre *l’espoir* ('C’est possible !') et la *désillusion* ('Mais pas pour moi'). Cette confusion génère une *culpabilité technophobe* ('Je ne mérite pas ça').",
+   "observation": "37.4% de confusion + 8.7% de frustration (dashboard) ; tokens dominants : 'possible', 'installer', 'problème'"
+  },
+  "ce_qu_ils_valorisent": {
+   "implication": "Mettre en avant *l’humain derrière le contenu* (ex. : 'Voici mon setup réel, avec ses défauts') et *les collaborations communautaires* ('Cette vidéo est née d’une question en commentaire').",
+   "interpretation": "Ils valorisent *l’authenticité* ('Ta voix est réelle ?'), *l’utilité concrète* ('Ça marche vraiment ?') et *la communauté* ('On arrête jamais d’apprendre avec tes vidéos').",
+   "observation": "Tokens dominants : 'video', 'merci', 'tes', 'possible' ; bigrams : 'tes vidéos', 'super vidéo'"
+  },
+  "ce_qu_ils_veulent": {
+   "implication": "Créer des *vidéos 'Anti-Frustration'* : 'Voici les 3 erreurs qui bloquent 90% des gens' avec des solutions visuelles (ex. : capture d’écran des erreurs + corrections).",
+   "interpretation": "Ils veulent *devenir compétents sans se sentir stupides* : des contenus qui *simplifient sans infantiliser* et qui *montrent des résultats concrets* (pas juste des théories).",
+   "observation": "Signal_désir=6.1% (dashboard) ; bigrams : 'tes vidéos', 'merci vidéo', 'longue'"
+  },
+  "ce_qui_les_bloque": {
+   "implication": "Proposer des *versions 'express'* (ex. : 'Installation en 10 minutes pour les impatients') et des *checklists visuelles* ('Étape 1 : Vérifiez votre GPU ici → [lien]').",
+   "interpretation": "Le blocage n’est pas technique, mais *émotionnel* : la peur de *perdre du temps* ('80 Go à installer') et de *se sentir incompétent* ('Je ne comprends pas').",
+   "observation": "Signal_objection=2.6% + tokens : 'trop lent', '80 Go', '15mb/s'"
+  },
+  "ce_qui_les_divise": {
+   "implication": "Créer deux formats parallèles : *Quick Wins* (vidéos courtes, solutions prêtes à l’emploi) et *Deep Dives* (analyses techniques pour les experts).",
+   "interpretation": "La fracture se situe entre *ceux qui veulent des solutions immédiates* ('Donne-moi le workflow') et *ceux qui veulent comprendre en profondeur* ('Explique-moi pourquoi ça marche').",
+   "observation": "Polarisation=13.7% ; camps : 26.1% positif vs 7.8% négatif"
+  },
+  "ce_qui_les_rassure": {
+   "implication": "Intégrer des *témoignages vidéo* de débutants ('Voici comment j’ai réussi') et des *réponses publiques* aux questions techniques ('Je réponds à toutes les questions en commentaire').",
+   "interpretation": "Ils se rassurent avec *la preuve sociale* ('Les autres y arrivent aussi') et *la bienveillance* ('Tu prends le temps de répondre').",
+   "observation": "Signal_confiance=0.68 + stance_favorable=24.3% ; tokens : 'merci', 'super vidéo', 'tes vidéos'"
+  },
+  "ce_qui_les_unit": {
+   "implication": "Ancrer chaque nouveau contenu dans un *message de remerciement* ('Merci à ceux qui m’ont demandé des détails sur ComfyUI') pour renforcer le lien émotionnel.",
+   "interpretation": "Le terrain commun est *la gratitude* ('Merci pour tes vidéos') et *l’aspiration à créer* ('J’attends la vidéo longue').",
+   "observation": "Tokens TF-IDF partagés : 'merci', 'video', 'tes' ; stance_neutre=47.8%"
+  },
+  "quelle_opportunite_emerge": {
+   "implication": "Lancer une *série 'Du Zéro au Pro'* en 5 étapes :\n      1. *Diagnostic* ('Votre PC est compatible ?')\n      2. *Installation* ('Évitez ces 5 erreurs')\n      3. *Personnalisation* ('Adaptez les modèles à votre GPU')\n      4. *Création* ('De l’idée à la vidéo')\n      5. *Communauté* ('Partagez vos résultats')\n      → Avec un *badges système* ('Niveau 1 : Installation réussie', 'Niveau 2 : Première vidéo générée').",
+   "interpretation": "L’opportunité est de *capitaliser sur leur soif de maîtrise* en leur offrant un *parcours progressif* : des contenus qui *démystifient les étapes cachées* et *transforment leur frustration en compétence*.",
+   "observation": "Opportunity_score=16.8% + signaux_aspiration=0.9% (dashboard) ; tokens : 'longue', 'détail', 'possibilité'"
+  }
+ },
+ "identitaire": {
+  "authenticite_percue": "Authenticité **haute**, mais **non exploitée** : les utilisateurs sentent que le créateur 'vit ce qu’il enseigne', mais attendent une **vulnérabilité stratégique** (ex : 'Voici comment j’ai galéré avec ma 5080').",
+  "coherence_percue": "Le créateur est perçu comme **cohérent techniquement** (expertise reconnue), mais **incohérent psychologiquement** : il ne reflète pas assez les **doutes et les échecs** qui font partie du parcours des utilisateurs.",
+  "confiance_generee": "Confiance **dans ses compétences**, mais **pas dans sa capacité à les rendre accessibles** — d’où les critiques sur la vitesse ou le manque de détails pour débutants.",
+  "credibilite": "Crédibilité **très élevée** sur le technique, mais **faible sur l’humain** : les utilisateurs ne voient pas assez **qui il est en dehors de l’IA** (ses passions, ses échecs, sa vision à long terme).",
+  "faiblesses_narratives": [
+   "Manque de **récit inspirant** ('Pourquoi j’ai choisi l’IA locale ?')",
+   "Absence de **parcours utilisateur** (comment passer de A à B avec ses limites)",
+   "Pas de **vision à long terme** (où mène cette maîtrise de l’IA ?)"
+  ],
+  "incaherences_detectees": "Incohérence entre **le message 'l’IA locale est pour tous'** et **la réalité des prérequis matériels** non expliqués. Les utilisateurs sentent un **décalage** entre l’idéal ('créer sans limites') et le réel ('il faut une 5080').",
+  "points_de_differenciation": [
+   "Une **voix humaine et rassurante** (contrairement à des tutos techniques froids)",
+   "Un **focus sur l’open-source** (alternative aux outils payants)",
+   "Une **communauté émergente** (même si non structurée)"
+  ],
+  "recit_dominant": "Le grand récit collectif est celui du **créateur solitaire face à la montagne technique** — un récit où **la persévérance et le partage** sont les seuls moyens de gravir la pente, mais où **personne ne montre le chemin exact** pour les débutants.",
+  "singularite": "Le créateur se distingue par **sa voix** (agréable, rassurante) et **son choix d’outils open-source**, mais manque un **positionnement clair** sur **ce qui le rend unique** au-delà de la technique (ex : 'Je suis le guide des créateurs sans budget')."
+ },
+ "interpretation": {
+  "ce_qui_divise": {
+   "conclusion": "La fracture **matérielle vs spirituelle** : 18.3% (favorables) veulent la **maîtrise technique**, 3.5% (opposés) craignent la **perte de contrôle humain** — une tension entre *autonomie* et *dépendance aux outils*.",
+   "indicateur_statistique": "Polarisation : 18.3% favorable vs 3.5% opposé (écart = 14.8%) | Cluster 4 (17.4%) mentionne 'IA non-censurée' (liberté) vs Cluster 3 (12.2%) parle d'erreurs (peur de l'échec)",
+   "interpretation": "Les opposés (3.5%) expriment une **peur jungienne de l'ombre** : l'IA locale devient un miroir de leurs propres limites (Cluster 3 : 'erreur' = échec personnel). À l'inverse, les favorables (18.3%) incarnent l'archétype du *Héros* (Jung) — ils veulent **dépasser la barrière matérielle** ('carte graphique' = obstacle symbolique). La mention de 'IA non-censurée' révèle une **quête de pureté créative** (Haidt : besoin de *liberté* vs *pureté*), typique des créateurs en quête de légitimité (Maslow : besoin d'estime).",
+   "score_confiance": 0.85,
+   "signaux": [
+    "IA non-censurée",
+    "créer",
+    "erreur",
+    "logiciel",
+    "carte graphique"
+   ]
+  },
+  "ce_qui_rassemble": {
+   "conclusion": "Le **mythe de la création illimitée** — une aspiration universelle qui transcende les compétences techniques : 88% des émotions positives (joie + admiration) sont liées à l'idée de **libération créative** (IA locale = autonomie).",
+   "indicateur_statistique": "40% joie + 28% admiration = 68% émotions positives | Tokens 'vidéo' (46.84) et 'merci' (40.146) dominants dans tous clusters",
+   "interpretation": "Les bigrams comme 'merci vidéo×4' et 'tes vidéos×3' montrent qu'ils **projetent leurs rêves** sur le créateur (archétype du *Guide* selon Miller). La référence à *SAO* (Cluster 2) révèle un **besoin de magie réalisable** — ils veulent recréer l'émotion d'une œuvre culte, mais avec des outils concrets. L'admiration (28%) pour le créateur suggère qu'ils cherchent un **modèle identitaire** (Viktor Frankl : besoin de *pourquoi* concret).",
+   "score_confiance": 0.91,
+   "signaux": [
+    "vidéo",
+    "merci",
+    "tes",
+    "voix",
+    "musique",
+    "SAO"
+   ]
+  },
+  "croyances_limitantes": [
+   "L’IA locale est réservée aux experts",
+   "Sans matériel puissant, c’est impossible",
+   "Je ne suis pas assez compétent"
+  ],
+  "croyances_mobilisatrices": [
+   "Avec les bons outils, tout est possible",
+   "La communauté peut m’aider à progresser",
+   "Ma créativité mérite d’être libérée"
+  ],
+  "desirs": [
+   "Devenir un pro de l’IA",
+   "Créer sans censure",
+   "Avoir un impact visible"
+  ],
+  "frustrations": [
+   "Inégalités matérielles",
+   "Complexité technique",
+   "Manque de clarté"
+  ],
+  "grille": {
+   "ce_qu_ils_attendent_comme_preuve": {
+    "implication": "Ajouter des *captures d’écran annotées* dans les descriptions ('Voici l’erreur que tu vois → solution ici') et des *avant/après* systématiques.",
+    "interpretation": "Ils ont besoin de *preuves visuelles et tactiles* : captures d’écran des erreurs, vidéos des résultats finaux, et *témoignages de pairs* ('Regarde ce que j’ai fait avec ta méthode').",
+    "observation": "Signal_preuve_demandée=5.2% ; tokens : 'possible', 'installer', 'erreur'"
+   },
+   "ce_qu_ils_refusent": {
+    "implication": "Adopter une *transparence radicale* : 'Voici ce que je ne montre pas dans mes vidéos (et pourquoi)' + inclure des *avis de débutants* dans les descriptions.",
+    "interpretation": "Ils refusent *l’opacité* et *l’élitisme technique* : toute communication qui sous-entend que 'seuls les pros peuvent faire ça' les braquera.",
+    "observation": "10.4% oppose + signal_méfiance=0.9% ; commentaire : 'Tu caches que c’est payant'"
+   },
+   "ce_qu_ils_ressentent": {
+    "implication": "Remplacer les tutoriels techniques par des *récits de surmonter des obstacles identiques* ('Voici comment j’ai fait tourner Flux 2 sur une 5080').",
+    "interpretation": "Ils oscillent entre *l’espoir* ('C’est possible !') et la *désillusion* ('Mais pas pour moi'). Cette confusion génère une *culpabilité technophobe* ('Je ne mérite pas ça').",
+    "observation": "37.4% de confusion + 8.7% de frustration (dashboard) ; tokens dominants : 'possible', 'installer', 'problème'"
+   },
+   "ce_qu_ils_valorisent": {
+    "implication": "Mettre en avant *l’humain derrière le contenu* (ex. : 'Voici mon setup réel, avec ses défauts') et *les collaborations communautaires* ('Cette vidéo est née d’une question en commentaire').",
+    "interpretation": "Ils valorisent *l’authenticité* ('Ta voix est réelle ?'), *l’utilité concrète* ('Ça marche vraiment ?') et *la communauté* ('On arrête jamais d’apprendre avec tes vidéos').",
+    "observation": "Tokens dominants : 'video', 'merci', 'tes', 'possible' ; bigrams : 'tes vidéos', 'super vidéo'"
+   },
+   "ce_qu_ils_veulent": {
+    "implication": "Créer des *vidéos 'Anti-Frustration'* : 'Voici les 3 erreurs qui bloquent 90% des gens' avec des solutions visuelles (ex. : capture d’écran des erreurs + corrections).",
+    "interpretation": "Ils veulent *devenir compétents sans se sentir stupides* : des contenus qui *simplifient sans infantiliser* et qui *montrent des résultats concrets* (pas juste des théories).",
+    "observation": "Signal_désir=6.1% (dashboard) ; bigrams : 'tes vidéos', 'merci vidéo', 'longue'"
+   },
+   "ce_qui_les_bloque": {
+    "implication": "Proposer des *versions 'express'* (ex. : 'Installation en 10 minutes pour les impatients') et des *checklists visuelles* ('Étape 1 : Vérifiez votre GPU ici → [lien]').",
+    "interpretation": "Le blocage n’est pas technique, mais *émotionnel* : la peur de *perdre du temps* ('80 Go à installer') et de *se sentir incompétent* ('Je ne comprends pas').",
+    "observation": "Signal_objection=2.6% + tokens : 'trop lent', '80 Go', '15mb/s'"
+   },
+   "ce_qui_les_divise": {
+    "implication": "Créer deux formats parallèles : *Quick Wins* (vidéos courtes, solutions prêtes à l’emploi) et *Deep Dives* (analyses techniques pour les experts).",
+    "interpretation": "La fracture se situe entre *ceux qui veulent des solutions immédiates* ('Donne-moi le workflow') et *ceux qui veulent comprendre en profondeur* ('Explique-moi pourquoi ça marche').",
+    "observation": "Polarisation=13.7% ; camps : 26.1% positif vs 7.8% négatif"
+   },
+   "ce_qui_les_rassure": {
+    "implication": "Intégrer des *témoignages vidéo* de débutants ('Voici comment j’ai réussi') et des *réponses publiques* aux questions techniques ('Je réponds à toutes les questions en commentaire').",
+    "interpretation": "Ils se rassurent avec *la preuve sociale* ('Les autres y arrivent aussi') et *la bienveillance* ('Tu prends le temps de répondre').",
+    "observation": "Signal_confiance=0.68 + stance_favorable=24.3% ; tokens : 'merci', 'super vidéo', 'tes vidéos'"
+   },
+   "ce_qui_les_unit": {
+    "implication": "Ancrer chaque nouveau contenu dans un *message de remerciement* ('Merci à ceux qui m’ont demandé des détails sur ComfyUI') pour renforcer le lien émotionnel.",
+    "interpretation": "Le terrain commun est *la gratitude* ('Merci pour tes vidéos') et *l’aspiration à créer* ('J’attends la vidéo longue').",
+    "observation": "Tokens TF-IDF partagés : 'merci', 'video', 'tes' ; stance_neutre=47.8%"
+   },
+   "quelle_opportunite_emerge": {
+    "implication": "Lancer une *série 'Du Zéro au Pro'* en 5 étapes :\n      1. *Diagnostic* ('Votre PC est compatible ?')\n      2. *Installation* ('Évitez ces 5 erreurs')\n      3. *Personnalisation* ('Adaptez les modèles à votre GPU')\n      4. *Création* ('De l’idée à la vidéo')\n      5. *Communauté* ('Partagez vos résultats')\n      → Avec un *badges système* ('Niveau 1 : Installation réussie', 'Niveau 2 : Première vidéo générée').",
+    "interpretation": "L’opportunité est de *capitaliser sur leur soif de maîtrise* en leur offrant un *parcours progressif* : des contenus qui *démystifient les étapes cachées* et *transforment leur frustration en compétence*.",
+    "observation": "Opportunity_score=16.8% + signaux_aspiration=0.9% (dashboard) ; tokens : 'longue', 'détail', 'possibilité'"
+   }
+  },
+  "insight_strategique": "Leur blocage n’est pas technique, mais *identitaire* : ils ont peur de ne pas être à la hauteur, de dépendre des autres, ou de gaspiller leur temps. La solution n’est pas de leur donner plus de connaissances, mais de leur **redonner confiance en leur capacité à apprendre** – en montrant que même les 'débutants' peuvent créer des résultats pro avec des ressources limitées.**",
+  "lecture_sujet": {
+   "conclusion": "L'audience reçoit le sujet comme une **promesse technique inaccessible** — 78% de neutralité cache une **frustration latente** : ils veulent croire en la liberté créative locale, mais le manque de clarté technique les paralyse.",
+   "indicateur_statistique": "CRS moyen = 0.273 (67% des commentaires avec faible pertinence contextuelle) | 37.4% de confusion détectée",
+   "interpretation": "Les tokens 'installer' (22.392) et 'erreur' (liés au Cluster 3) révèlent une **peur de l'échec technique** — ils cherchent des réponses, mais les vidéos actuelles ne comblent pas leur besoin de **démystification progressive**. La répétition de 'tes vidéos' (Cluster 0) montre qu'ils attendent un **guide pas à pas**, pas une démonstration. La confusion (37.4%) confirme qu'ils sont **submergés par l'information** sans cadre clair.",
+   "score_confiance": 0.89,
+   "signaux": [
+    "installer",
+    "erreur",
+    "moi",
+    "comfyui",
+    "video longue",
+    "tes vidéos"
+   ]
+  },
+  "message_central": "'Votre PC n’est pas assez puissant ? Tant mieux. **C’est exactement ce qui va vous forcer à devenir un vrai créateur.**'**",
+  "motivations": [
+   "Créer sans limites",
+   "Maîtriser la technologie",
+   "Être vu et reconnu"
+  ],
+  "objections": [
+   "Manque de *clarté sur les prérequis matériels* ('Tu ne dis pas que ça demande une bête de course')",
+   "Peur de *perdre du temps* ('80 Go à installer avec 15 Mb/s')",
+   "Frustration face à la *complexité* ('Vidéo indigeste')",
+   "Crainte de *ne pas être à la hauteur* ('Je n’ai pas de carte graphique pro')",
+   "Peur de *devenir obsolète* ('Si je ne monte pas maintenant, je serai toujours en retard')"
+  ],
+  "opportunites": [
+   "Pack *Débutant* : 'IA Locale en 1 Clic' (workflow optimisé pour 16 Go de VRAM)",
+   "Formation *Anti-Frustration* : 'Éviter les 5 erreurs qui bloquent 90% des utilisateurs'",
+   "Service *Audit Matériel* : 'Votre PC peut-il faire de l’IA ? Analyse gratuite'",
+   "Club *Makers* : Accès à des modèles exclusifs et support technique prioritaire",
+   "Série : *'Les Limites de l’IA Locale : Comment les Contourner'* (3 parties : GPU, RAM, Latence)",
+   "Tutoriel : *'Mon Setup à 500€ : Comment J’ai Fait Tourné Flux 2'*"
+  ],
+  "peurs": [
+   "L’échec technique",
+   "L’investissement inutile",
+   "Le jugement des autres"
+  ],
+  "psychologique": {
+   "desires": [
+    "Désir de **transcender les limites matérielles** (accéder à des outils puissants sans dépendre de structures traditionnelles)",
+    "Désir de **maîtriser un super-pouvoir créatif** (l’IA comme extension de soi, pour 'devenir un pro' sans passer par des années d’apprentissage)",
+    "Désir de **créer sans filtre** (liberté artistique/expressive, en opposition aux contraintes sociales ou techniques perçues)",
+    "Désir de **reconnaissance visible** (être vu comme un acteur pertinent dans l’écosystème de l"
+   ],
+   "detected_mechanisms": [
+    {
+     "confidence": 0.95,
+     "evidence": "Expression simultanée de désirs ('créer sans limites', 'maîtriser la technologie') et de peurs ('échec technique', 'jugement des autres'), avec une réticence à agir malgré l’attrait pour l’objectif (ex: 'IA locale réservée aux experts'). Ce mécanisme active un **biais de statu quo** (éviter le risque perçu) et une **dissonance cognitive** (justifier l’inaction par des croyances limitantes).",
+     "mechanism": "Conflit approche-évitement (tension peur-désir)"
+    },
+    {
+     "confidence": 0.85,
+     "evidence": "Les frustrations ('complexité technique', 'manque de clarté') sont retenues comme **moments émotionnels forts**, tandis que les succès ou solutions proposées sont minimisés ou ignorés (ex: 'sans matériel puissant, c’est impossible'). Cela explique pourquoi les messages techniques sont perçus comme inutiles ou inaccessibles, malgré des preuves contraires.",
+     "mechanism": "Effet de pic-fin (mémoire sélective)"
+    },
+    {
+     "confidence": 0.9,
+     "evidence": "Les croyances limitantes ('je ne suis pas assez compétent') filtrent l’information : toute donnée contradictoire est rejetée ou interprétée de manière restrictive (ex: 'l’IA locale est réservée aux experts' → exclusion automatique des débutants). Ce biais active une **résistance au changement** et une **auto-sabotage** par rationalisation.",
+     "mechanism": "Biais de validation des croyances (confirmation bias)"
+    },
+    {
+     "confidence": 0.9,
+     "evidence": "Les objections ('inégalités matérielles', 'investissement inutile') sont des **canaux de frustration** verbalisés, souvent dirigés contre le créateur ou le contenu. Cette énergie non résolue se transforme en **colère passive** ou en **désengagement** (ex: 'pourquoi me parler de ça si je ne peux pas faire ?').",
+     "mechanism": "Frustration comme énergie de résistance"
+    }
+   ],
+   "fears": [
+    "Peur de l’**échec technique visible** (exposition de son incompétence aux autres, surtout dans un domaine perçu comme 'réservé aux experts')",
+    "Peur de l’**investissement inutile** (temps/argent/matériel) qui ne mènera à rien, renforçant un sentiment d’imposture",
+    "Peur de l’**isolement technique** (ne pas suivre le rythme des autres, rester 'à la traîne' dans un domaine en évolution rapide)",
+    "Peur de la **censure implicite** (créer sans limites → risque de jugement moral ou professionnel)"
+   ],
+   "main_insight": "L’audience oscille entre un désir de **liberté créative illimitée** (via l’IA) et une **peur paralysante de l’incompétence technique**, ce qui génère une tension psychologique où la frustration (manque de clarté, inégalités) se transforme en objections rationnelles pour masquer une anxiété identitaire ('je ne suis pas à la hauteur')."
+  },
+  "socio_culturelle": {
+   "cultural_codes": [
+    "**Lexical** : Argots techniques ('overclock', 'latence', 'fine-tuning') et abréviations ('GPU', 'LLM') comme marqueurs de crédibilité. Les termes 'censuré/non-censuré' sont des **slogans identitaires** (liés à la liberté créative).",
+    "**Référentiel** : Les *récits de setups low-cost* (ex : 'Flux 2 à 500€') fonctionnent comme des **mythes fondateurs** – ils légitiment l’accès à l’IA pour tous, tout en créant une norme de performance ('si lui a réussi, pourquoi pas moi ?').",
+    "**Comportemental** : La **norme du partage de ressources** (t"
+   ],
+   "detected_mechanisms": [
+    {
+     "confidence": 0.9,
+     "evidence": "Les valeurs 'Innovation' et 'Autonomie' dominent, mais les tensions révèlent une **double contrainte** : ils veulent *libérer leur créativité* (via IA non-censurée) tout en craignant de *rester isolés techniquement*. Le contenu qui ignore cette dualité (ex : trop technique vs trop abstrait) est perçu comme soit 'élitiste', soit 'inutile'.",
+     "mechanism": "Effet de **polarisation par l’autonomie**"
+    },
+    {
+     "confidence": 0.85,
+     "evidence": "Les références à des *setups matériels* (ex : 'Flux 2 à 500€') ou des *néologismes* ('IA locale', 'non-censurée') fonctionnent comme des **rituels d’initiation**. Les membres qui ne maîtrisent pas ces codes (ex : ceux qui demandent 'des bases') sont stigmatisés comme 'déconnectés', renforçant leur anxiété d’exclusion.",
+     "mechanism": "**Conformisme par les codes techniques** (marqueurs d’appartenance)"
+    },
+    {
+     "confidence": 0.8,
+     "evidence": "Contredire frontalement leur croyance en *'Avec les bons outils, tout est possible'* (ex : 'ton setup est sous-optimal') **renforce leur adhésion** au mythe. À l’inverse, valider leur effort ('Ton approche est créative, voici comment l’optimiser') **désamorce la résistance** et ouvre la porte à l’apprentissage.",
+     "mechanism": "**Backfire effect inversé** sur les croyances techniques"
+    }
+   ],
+   "group_dynamics": [
+    "**Communauté de pairs en quête de légitimité technique** : Ils cherchent à prouver leur compétence via des *performances* (ex : tutos, setups) pour obtenir reconnaissance, mais craignent le jugement des 'plus avancés'.",
+    "**Culture du 'DIY héroïque'** : L’autonomie est valorisée comme une vertu, mais elle cache une **fragilité collective** – leur peur de l’isolement les pousse à chercher des 'cheminements' pré-établis (ex : vos séries) pour éviter l’échec.",
+    "**Segmentation par expertise** : Une sous-culture émerge entre les 'early adopters' (qui partagent des codes internes comme des benchmarks GPU) et les 'nouveaux', créant des **silos d’appartenance** où la mobilité sociale est difficile sans 'traduction' des codes."
+   ],
+   "main_insight": "Cette communauté oscille entre une **identité de bricoleurs autonomes** (croyance en l’auto-suffisance technique) et une **peur de l’exclusion** (besoin de validation par le groupe), créant un terrain fertile pour des contenus qui **légitiment leur quête d’indépendance tout en offrant des 'ponts' concrets** (outils, tutos, récits de réussite) pour éviter la fracture sociale."
+  },
+  "synthese_psychologique": {
+   "conclusion": "**Ils ne veulent pas des tutoriels — ils veulent une religion technique** : une communauté qui transforme leur frustration en rituel d'initiation, où chaque erreur devient un pelerinage vers la maîtrise.",
+   "indicateur_statistique": "78.3% neutralité (masque la quête) | 49.6% émotion forte (sous-jacente) | Tokens 'merci' (40.146) + 'tes vidéos' (Cluster 0) = besoin de **transmission sacrée**",
+   "interpretation": "Le créateur doit **incarner le pont entre la théorie et le mysticisme technique** :\n      - **Donner un mythe** : 'L'IA locale est ta forge' (répond au besoin de *signifiance* — Jeremiah 29:11).\n      - **Créer des rituels** : Chaque installation réussie = étape initiatique (répond au besoin de *transformation* — Romains 12:2).\n      - **Offrir une tribu** : Les références à *SAO* et *musique* montrent qu'ils veulent **partager une expérience émotionnelle collective** (Durkheim : besoin de *cohésion*).\n      - **Désamorcer la peur** : Les erreurs doivent être **représentées comme des quêtes** (ex: 'Ton GPU est ton épée — apprends à le forger').\n    La **neutralité massive (78.3%)** cache une **soif de transcendance** — ils veulent que leur lutte technique ait un sens. Le créateur doit **passer de l'état de professeur à celui de chaman**.",
+   "score_confiance": 0.93,
+   "signaux": [
+    "merci",
+    "tes",
+    "video",
+    "voix",
+    "musique",
+    "SAO",
+    "installer",
+    "erreur"
+   ]
+  },
+  "tension_centrale": {
+   "conclusion": "Ils veulent **devenir des dieux locaux** (créateurs autonomes) mais **craignent de rester des apprentis sorciers** — tension entre *envie de pouvoir* (8% colère = frustration de ne pas y arriver) et *peur de l'incompétence* (12% frustration = blocage technique).",
+   "indicateur_statistique": "8% colère + 12% frustration = 20% émotion négative concentrée sur les clusters 1 et 3 | Tokens 'possible' (22.929) vs 'erreur' (lié à Cluster 3)",
+   "interpretation": "La colère (8%) est un **signal de frustration masquée** (Freud : mécanisme de défense contre l'admission de l'échec). Le token 'possible' (22.929) montre qu'ils **savent que c'est faisable**, mais le cluster 1 ('moi' + 'comfyui') révèle une **peur de l'auto-efficacité** (Bandura : manque de *self-efficacy*). La demande d'IA 'non-censurée' est une **projection de leur propre censure interne** — ils veulent briser les limites qu'ils perçoivent chez eux (Girard : désir mimetique des créateurs \"parfaits\").",
+   "score_confiance": 0.87,
+   "signaux": [
+    "possible",
+    "erreur",
+    "moi",
+    "installer",
+    "IA non-censurée"
+   ]
+  },
+  "tensions": "Tension entre **l’envie de liberté créative** ('IA non-censurée') et **la peur de l’isolement technique** ('je ne sais pas faire'). Ils veulent **devenir autonomes**, mais ont besoin d’un **pont** pour y arriver.",
+  "transformation": {
+   "etat_actuel": {
+    "conscience_du_probleme": "Conscience **partielle** : ils identifient les obstacles (matériel, temps), mais **ne voient pas les solutions** (workflows optimisés, ressources partagées).",
+    "croyance_bloquante": "La croyance limitante dominante : '**L’IA locale est réservée aux pros avec du matériel cher**' — une croyance renforcée par le silence sur les **solutions pour machines modestes**.",
+    "frustration_principale": "La **frustration #1** est le **sentiment d’exclusion** : 'Je veux créer, mais je n’ai pas les moyens/le temps/les compétences.' (80% des commentaires négatifs ou neutres tournent autour de cela).",
+    "identite_actuelle": "Ils se définissent comme **des 'apprentis créateurs'****, en quête de **maîtrise technique**, mais **peu sûrs d’eux** ('je n’ai pas réussi avec Flux 2'). Leur identité oscille entre **l’enthousiasme** et **la peur de l’échec**.",
+    "situation": "L’audience est **au stade 'éveil frustré'** (Myles Munroe) : elle **sait que l’IA locale existe**, mais se heurte à des **obstacles concrets** (matériel, temps, compétences) qui **bloquent son potentiel créatif**."
+   },
+   "etat_desire": {
+    "identite_aspiree": "Leur 'moi B' est un **créateur confiant**, **reconnu dans sa communauté**, et **maître de son workflow** — quelqu’un qui **partage ses astuces** et **inspire les autres** sans avoir besoin d’un PC de 10 000 €.",
+    "indicateur_de_succes": "Ils sauront qu’ils ont réussi quand :\n      1. **Ils peuvent créer un contenu IA localement** (même basique) **sans aide externe**,\n      2. **Ils ont partagé leur workflow** avec d’autres (commentaire, forum, vidéo),\n      3. **Ils ont surmonté une peur** (ex : 'Je pensais que Flux 2 était impossible sur ma 1080ti').",
+    "transformation_visee": "Passer de **'consommateur passif de tutos'** à **'créateur actif et autonome'****, capable de **générer des contenus professionnels** (vidéos, images, audio) **avec les outils à leur portée**.",
+    "vie_revelee": "Une vie où **la créativité n’est plus un rêve**, mais un **outil quotidien** : pouvoir **restaurer des VHS**, **créer des voix réalistes**, ou **générer des images pour un projet perso** **sans dépendre de plateformes externes**."
+   },
+   "le_pont": {
+    "ce_dont_ils_ont_besoin": "Ils ont besoin de :\n      - **Un parcours progressif** (de 'débutant' à 'avancé') **avec des étapes claires**,\n      - **Des ressources ciblées** (tutoriels pour machines modestes, alternatives open-source),\n      - **Une communauté visible** où échanger **échecs et victoires**,\n      - **Un guide qui incarne la réussite accessible** (ex : 'Voici comment j’ai fait tourner Flux 2 sur une 5080').",
+    "declencheur_de_transition": "Le déclencheur serait une **série de vidéos 'Erreurs et Solutions'****, où le créateur :\n      - **Montre ses propres échecs** (ex : 'Voici comment j’ai planté Flux 2 3 fois avant de réussir'),\n      - **Donne des alternatives concrètes** (ex : 'Voici 3 workflows pour une 1080ti'),\n      - **Crée un espace de partage** (forum, groupe Discord) pour **normaliser les questions des débutants**.",
+    "message_de_passage": "'Je suis un créateur en devenir, et je veux **libérer ma créativité sans limites matérielles** — avec toi, je vais **apprendre à dompter l’IA locale**, étape par étape, **même si je n’ai pas la meilleure carte graphique**.'",
+    "obstacle_principal": "L’**obstacle psychologique #1** est la **peur de l’échec technique** — ils ont peur de **perdre du temps** ou de **se sentir incompétents** devant la complexité. La solution : **démystifier chaque étape** et **montrer que l’échec fait partie du processus**."
+   }
+  },
+  "valeurs": [
+   "Autonomie",
+   "Innovation",
+   "Partage",
+   "Reconnaissance"
+  ],
+  "verite_audience": "Ils veulent se sentir *capables* de créer sans limites techniques ou financières, mais surtout : **ils veulent prouver à eux-mêmes qu’ils peuvent maîtriser l’IA locale pour **devenir visibles, autonomes et libres** – même avec des moyens modestes. Leur vrai besoin n’est pas un outil, mais une *méthode* qui transforme leur frustration en pouvoir.**"
+ },
+ "kpis": {
+  "alignement": {
+   "description": "Alignement **faible** (15%) : le contenu est **techniquement aligné** avec les attentes (IA locale), mais **psychologiquement déconnecté** des peurs (échec, investissement matériel) et des aspirations (créativité accessible, autonomie).",
+   "formule": "Al = μ|r| × 100",
+   "interpretation": "Moyenne des valeurs absolues des corrélations : mesure si les commentaires RÉPONDENT au titre (qu'ils soient pour ou contre)",
+   "label": "Faible",
+   "score": 15,
+   "variables": {
+    "n": 115,
+    "μ|r|": 0.152
+   }
+  },
+  "authenticite": {
+   "description": "Authenticité **perçue à 100%**, mais **non exploitée** : les utilisateurs sentent la sincérité (voix, contenu technique), mais attendent une **transparence radicale** sur les limites matérielles et les solutions concrètes pour les non-initiés.",
+   "formule": "A = (1 − Rs) × (0.4 + 0.6×Rd) × 100",
+   "interpretation": "Sincérité perçue : (1 - taux spam) pondéré par la densité sémantique des commentaires",
+   "label": "Très authentique",
+   "score": 100,
+   "variables": {
+    "Rd": 1.0,
+    "Rs": 0.0
+   }
+  },
+  "engagement": {
+   "description": "Une audience **enthousiaste mais passive** — 68% très engagés en *likes* et réactions, mais 90% de commentaires neutres ou techniques, révélant un besoin de **guidance active** plutôt que de simple consommation.",
+   "formule": "E = (Cq / Ct) × (1 + Rhq) × 100",
+   "interpretation": "Proportion de l'audience qui s'engage réellement avec le contenu (commentaires qualifiés × intensité émotionnelle)",
+   "label": "Faible",
+   "score": 22,
+   "variables": {
+    "Cq": 25,
+    "Ct": 115,
+    "Rhq": 0.02
+   }
+  },
+  "opportunite": {
+   "description": "Opportunité **sous-exploitée** (39%) : l’audience rêve d’un **accès simplifié** (tutoriels ciblés, workflows optimisés pour machines modestes) et d’une **expansion des cas d’usage** (audio, restauration vidéo, 3D), mais le créateur se concentre sur le cœur technique.",
+   "formule": "O = μpos × (Cpos / Cq) × 100",
+   "interpretation": "Intensité moyenne des signaux positifs pondérée par leur proportion parmi les commentaires qualifiés",
+   "label": "Modérée",
+   "score": 39,
+   "variables": {
+    "Cpos": 21,
+    "Cq": 25,
+    "μpos": 0.47
+   }
+  },
+  "persistance": {
+   "description": "Persistance **quasi nulle** (1%) : l’audience **abandonne** dès qu’un obstacle technique apparaît (ex : \"je n’ai pas de carte graphique\"), faute de **parcours progressif** ou de **communauté de soutien** intégrée.",
+   "formule": "Pe = (Chq / Ct) × 100",
+   "interpretation": "Proportion de commentaires à forte charge émotionnelle (|score| ≥ 0.6) — révèle la profondeur de l'impact",
+   "label": "Absente",
+   "score": 1,
+   "variables": {
+    "Chq": 2,
+    "Ct": 115
+   }
+  },
+  "polarisation": {
+   "description": "Polarisation **faible mais critique** (22%) : les 16% de commentaires négatifs ciblent les **inégalités d’accès** (matériel, temps, compétences), créant une fracture entre ceux qui ont les moyens et les autres.",
+   "formule": "P = σ(scores) × 100",
+   "interpretation": "Écart-type des scores de corrélation : élevé = audience divisée, faible = audience homogène",
+   "label": "Homogène",
+   "score": 22,
+   "variables": {
+    "μ": 0.095,
+    "σ": 0.223
+   }
+  }
+ },
+ "livrables_statistiques": {
+  "carte_emotionnelle": {
+   "conclusion": "Émotion dominante : confusion (37.4%)",
+   "distribution": [
+    {
+     "count": 43,
+     "emotion": "confusion",
+     "pct": 37.4
+    },
+    {
+     "count": 24,
+     "emotion": "admiration",
+     "pct": 20.9
+    },
+    {
+     "count": 14,
+     "emotion": "joie",
+     "pct": 12.2
+    },
+    {
+     "count": 11,
+     "emotion": "espoir",
+     "pct": 9.6
+    },
+    {
+     "count": 10,
+     "emotion": "frustration",
+     "pct": 8.7
+    },
+    {
+     "count": 6,
+     "emotion": "enthousiasme",
+     "pct": 5.2
+    }
+   ],
+   "indicateur_statistique": "confusion détectée dans 37.4% des commentaires. 49.6% des commentaires portent une émotion forte.",
+   "intensite_forte_pct": 49.6,
+   "score_confiance": 0.44
+  },
+  "ce_qui_divise": {
+   "conclusion": "La fracture **matérielle vs spirituelle** : 18.3% (favorables) veulent la **maîtrise technique**, 3.5% (opposés) craignent la **perte de contrôle humain** — une tension entre *autonomie* et *dépendance aux outils*.",
+   "indicateur_statistique": "Polarisation : 18.3% favorable vs 3.5% opposé (écart = 14.8%) | Cluster 4 (17.4%) mentionne 'IA non-censurée' (liberté) vs Cluster 3 (12.2%) parle d'erreurs (peur de l'échec)",
+   "interpretation": "Les opposés (3.5%) expriment une **peur jungienne de l'ombre** : l'IA locale devient un miroir de leurs propres limites (Cluster 3 : 'erreur' = échec personnel). À l'inverse, les favorables (18.3%) incarnent l'archétype du *Héros* (Jung) — ils veulent **dépasser la barrière matérielle** ('carte graphique' = obstacle symbolique). La mention de 'IA non-censurée' révèle une **quête de pureté créative** (Haidt : besoin de *liberté* vs *pureté*), typique des créateurs en quête de légitimité (Maslow : besoin d'estime).",
+   "score_confiance": 0.85,
+   "signaux": [
+    "IA non-censurée",
+    "créer",
+    "erreur",
+    "logiciel",
+    "carte graphique"
+   ]
+  },
+  "ce_qui_rassemble": {
+   "conclusion": "Le **mythe de la création illimitée** — une aspiration universelle qui transcende les compétences techniques : 88% des émotions positives (joie + admiration) sont liées à l'idée de **libération créative** (IA locale = autonomie).",
+   "indicateur_statistique": "40% joie + 28% admiration = 68% émotions positives | Tokens 'vidéo' (46.84) et 'merci' (40.146) dominants dans tous clusters",
+   "interpretation": "Les bigrams comme 'merci vidéo×4' et 'tes vidéos×3' montrent qu'ils **projetent leurs rêves** sur le créateur (archétype du *Guide* selon Miller). La référence à *SAO* (Cluster 2) révèle un **besoin de magie réalisable** — ils veulent recréer l'émotion d'une œuvre culte, mais avec des outils concrets. L'admiration (28%) pour le créateur suggère qu'ils cherchent un **modèle identitaire** (Viktor Frankl : besoin de *pourquoi* concret).",
+   "score_confiance": 0.91,
+   "signaux": [
+    "vidéo",
+    "merci",
+    "tes",
+    "voix",
+    "musique",
+    "SAO"
+   ]
+  },
+  "clusters_comportementaux": {
+   "clusters": [
+    {
+     "cluster_id": 0,
+     "pct": 31.3,
+     "samples": [
+      "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour gé",
+      "super intéressant et mérite une vidéo bien plus longue pour comprendre en détail les possi",
+      "Merci pour cette video encore incroyable. Sinon à quand la vidéo sur les fonctions n8n ?"
+     ],
+     "size": 36,
+     "top_tokens": [
+      "vidéo",
+      "merci",
+      "video",
+      "tes",
+      "vidéos",
+      "serait"
+     ]
+    },
+    {
+     "cluster_id": 1,
+     "pct": 20.9,
+     "samples": [
+      "c'est fou l'évolution depuis simple-diffusion (environ 4 ans avant)",
+      "Une question : est ce que les fichiers telechargés doivent etre dans le meme dossier que c",
+      "Qu'es tu pense de  Pinokio et Wan2GP ?"
+     ],
+     "size": 24,
+     "top_tokens": [
+      "moi",
+      "comfyui",
+      "marche",
+      "erreur",
+      "installer",
+      "stp"
+     ]
+    },
+    {
+     "cluster_id": 2,
+     "pct": 18.3,
+     "samples": [
+      "La musique de SAO en fond me régale à chaque fois",
+      "Je t'aime mec",
+      "Oh trop bien la vidé, j’adorais que tu montre la partie audio ?:D"
+     ],
+     "size": 21,
+     "top_tokens": [
+      "voix",
+      "merci",
+      "tes",
+      "musique",
+      "mec",
+      "goat"
+     ]
+    },
+    {
+     "cluster_id": 3,
+     "pct": 12.2,
+     "samples": [
+      "Hello, merci pour la vidéo. J'ai un soucis, j'ai installé le logiciel mais j'ai une erreur",
+      "Ah bah tiens j'allais chercher cette info suite à l'installation de LM Studio sur mon Ubun",
+      "Bonjour, est ce qu'on peut transférer les modèles téléchargés dans une version installée S"
+     ],
+     "size": 14,
+     "top_tokens": [
+      "logiciel",
+      "comfyui",
+      "installation",
+      "version",
+      "unable",
+      "start"
+     ]
+    },
+    {
+     "cluster_id": 4,
+     "pct": 17.4,
+     "samples": [
+      "Si la modélisation 3D vous intéresse, profitez de -50% sur Meshy http://www.meshy.ai/s/cyb",
+      "Pour être honnête, j’adorerai utiliser une IA non-censurée et très performante avec autant",
+      "Créer un deuxième cerveau numérique avec OpenClaw, Ollama et Anytype : un workflow open-so"
+     ],
+     "size": 20,
+     "top_tokens": [
+      "installer",
+      "workflow",
+      "créer",
+      "demande",
+      "photos",
+      "possible"
+     ]
+    }
+   ],
+   "conclusion": "5 groupes comportementaux détectés",
+   "indicateur_statistique": "Cluster 0 : 31.3% (36 commentaires) — tokens : vidéo, merci, video | Cluster 1 : 20.9% (24 commentaires) — tokens : moi, comfyui, marche | Cluster 2 : 18.3% (21 commentaires) — tokens : voix, merci, tes | Cluster 3 : 12.2% (14 commentaires) — tokens : logiciel, comfyui, installation | Cluster 4 : 17.4% (20 commentaires) — tokens : installer, workflow, créer",
+   "score_confiance": 0.8
+  },
+  "distribution_relevance": {
+   "conclusion": "0 commentaires fortement liés au sujet (0.0%)",
+   "distribution": {
+    "faible": 67,
+    "haute": 0,
+    "max": 0.602,
+    "mean": 0.273,
+    "min": 0.0,
+    "moyenne": 48
+   },
+   "indicateur_statistique": "Lien fort (>0.65) : 0 | Partiel (0.35–0.65) : 48 | Faible (<0.35) : 67 | Mean CRS : 0.273",
+   "score_confiance": 0.95
+  },
+  "lecture_sujet": {
+   "conclusion": "L'audience reçoit le sujet comme une **promesse technique inaccessible** — 78% de neutralité cache une **frustration latente** : ils veulent croire en la liberté créative locale, mais le manque de clarté technique les paralyse.",
+   "indicateur_statistique": "CRS moyen = 0.273 (67% des commentaires avec faible pertinence contextuelle) | 37.4% de confusion détectée",
+   "interpretation": "Les tokens 'installer' (22.392) et 'erreur' (liés au Cluster 3) révèlent une **peur de l'échec technique** — ils cherchent des réponses, mais les vidéos actuelles ne comblent pas leur besoin de **démystification progressive**. La répétition de 'tes vidéos' (Cluster 0) montre qu'ils attendent un **guide pas à pas**, pas une démonstration. La confusion (37.4%) confirme qu'ils sont **submergés par l'information** sans cadre clair.",
+   "score_confiance": 0.89,
+   "signaux": [
+    "installer",
+    "erreur",
+    "moi",
+    "comfyui",
+    "video longue",
+    "tes vidéos"
+   ]
+  },
+  "positionnement_audience": {
+   "conclusion": "Audience majoritairement neutre (78.3%)",
+   "distribution": {
+    "defavorable": 3.5,
+    "favorable": 18.3,
+    "neutre": 78.3
+   },
+   "dominant": "neutre",
+   "dominant_pct": 78.3,
+   "indicateur_statistique": "78.3% des commentaires classés 'neutre' sur 115 analysés",
+   "score_confiance": 0.8
+  },
+  "repartition_camps": {
+   "camps": {
+    "favorable": {
+     "count": 21,
+     "pct": 18.3
+    },
+    "neutre": {
+     "count": 90,
+     "pct": 78.3
+    },
+    "nuance": {
+     "count": 0,
+     "pct": 0.0
+    },
+    "oppose": {
+     "count": 4,
+     "pct": 3.5
+    }
+   },
+   "conclusion": "Audience favorable en majorité",
+   "indicateur_statistique": "Favorables : 18.3% | Opposés : 3.5% | Neutres : 78.3%",
+   "ratio_division": 0.68,
+   "score_confiance": 0.31
+  },
+  "signaux_lexicaux_dominants": {
+   "avg_tokens_per_comment": 8.3,
+   "conclusion": "Champ lexical dominant autour de : vidéo, merci, video, comfyui, moi",
+   "indicateur_statistique": "Vocabulaire : 600 tokens uniques sur 955 total. Densité moyenne : 8.3 tokens/commentaire.",
+   "lexical_richness": 0.628,
+   "score_confiance": 0.95,
+   "top_bigrams": [
+    {
+     "bigram": "carte graphique",
+     "freq": 4
+    },
+    {
+     "bigram": "merci vidéo",
+     "freq": 4
+    },
+    {
+     "bigram": "tes vidéos",
+     "freq": 3
+    },
+    {
+     "bigram": "open source",
+     "freq": 2
+    },
+    {
+     "bigram": "vidéo longue",
+     "freq": 2
+    },
+    {
+     "bigram": "merci video",
+     "freq": 2
+    },
+    {
+     "bigram": "incroyable vidéo",
+     "freq": 2
+    },
+    {
+     "bigram": "vidéos incroyables",
+     "freq": 2
+    }
+   ],
+   "top_tokens": [
+    {
+     "score": 46.84,
+     "score_norm": 1.0,
+     "token": "vidéo"
+    },
+    {
+     "score": 40.146,
+     "score_norm": 0.857,
+     "token": "merci"
+    },
+    {
+     "score": 31.751,
+     "score_norm": 0.678,
+     "token": "video"
+    },
+    {
+     "score": 28.164,
+     "score_norm": 0.601,
+     "token": "comfyui"
+    },
+    {
+     "score": 25.817,
+     "score_norm": 0.551,
+     "token": "moi"
+    },
+    {
+     "score": 23.625,
+     "score_norm": 0.504,
+     "token": "tes"
+    },
+    {
+     "score": 22.929,
+     "score_norm": 0.49,
+     "token": "possible"
+    },
+    {
+     "score": 22.392,
+     "score_norm": 0.478,
+     "token": "installer"
+    },
+    {
+     "score": 19.593,
+     "score_norm": 0.418,
+     "token": "serait"
+    },
+    {
+     "score": 19.593,
+     "score_norm": 0.418,
+     "token": "vidéos"
+    },
+    {
+     "score": 19.593,
+     "score_norm": 0.418,
+     "token": "salut"
+    },
+    {
+     "score": 18.813,
+     "score_norm": 0.402,
+     "token": "logiciel"
+    },
+    {
+     "score": 18.813,
+     "score_norm": 0.402,
+     "token": "voix"
+    },
+    {
+     "score": 18.813,
+     "score_norm": 0.402,
+     "token": "image"
+    },
+    {
+     "score": 17.719,
+     "score_norm": 0.378,
+     "token": "bonjour"
+    }
+   ],
+   "vocabulary_size": 600
+  },
+  "synthese_psychologique": {
+   "conclusion": "**Ils ne veulent pas des tutoriels — ils veulent une religion technique** : une communauté qui transforme leur frustration en rituel d'initiation, où chaque erreur devient un pelerinage vers la maîtrise.",
+   "indicateur_statistique": "78.3% neutralité (masque la quête) | 49.6% émotion forte (sous-jacente) | Tokens 'merci' (40.146) + 'tes vidéos' (Cluster 0) = besoin de **transmission sacrée**",
+   "interpretation": "Le créateur doit **incarner le pont entre la théorie et le mysticisme technique** :\n      - **Donner un mythe** : 'L'IA locale est ta forge' (répond au besoin de *signifiance* — Jeremiah 29:11).\n      - **Créer des rituels** : Chaque installation réussie = étape initiatique (répond au besoin de *transformation* — Romains 12:2).\n      - **Offrir une tribu** : Les références à *SAO* et *musique* montrent qu'ils veulent **partager une expérience émotionnelle collective** (Durkheim : besoin de *cohésion*).\n      - **Désamorcer la peur** : Les erreurs doivent être **représentées comme des quêtes** (ex: 'Ton GPU est ton épée — apprends à le forger').\n    La **neutralité massive (78.3%)** cache une **soif de transcendance** — ils veulent que leur lutte technique ait un sens. Le créateur doit **passer de l'état de professeur à celui de chaman**.",
+   "score_confiance": 0.93,
+   "signaux": [
+    "merci",
+    "tes",
+    "video",
+    "voix",
+    "musique",
+    "SAO",
+    "installer",
+    "erreur"
+   ]
+  },
+  "tension_centrale": {
+   "conclusion": "Ils veulent **devenir des dieux locaux** (créateurs autonomes) mais **craignent de rester des apprentis sorciers** — tension entre *envie de pouvoir* (8% colère = frustration de ne pas y arriver) et *peur de l'incompétence* (12% frustration = blocage technique).",
+   "indicateur_statistique": "8% colère + 12% frustration = 20% émotion négative concentrée sur les clusters 1 et 3 | Tokens 'possible' (22.929) vs 'erreur' (lié à Cluster 3)",
+   "interpretation": "La colère (8%) est un **signal de frustration masquée** (Freud : mécanisme de défense contre l'admission de l'échec). Le token 'possible' (22.929) montre qu'ils **savent que c'est faisable**, mais le cluster 1 ('moi' + 'comfyui') révèle une **peur de l'auto-efficacité** (Bandura : manque de *self-efficacy*). La demande d'IA 'non-censurée' est une **projection de leur propre censure interne** — ils veulent briser les limites qu'ils perçoivent chez eux (Girard : désir mimetique des créateurs \"parfaits\").",
+   "score_confiance": 0.87,
+   "signaux": [
+    "possible",
+    "erreur",
+    "moi",
+    "installer",
+    "IA non-censurée"
+   ]
+  }
+ },
+ "marches_caches": {
+  "angle_differentiant": "Positionner le contenu comme un *manifeste anti-scarcité* : 'L’IA locale n’est pas un luxe, c’est un droit. Voici comment l’adapter à votre réalité.' → Mettre en avant les *contournements* plutôt que les prérequis.",
+  "audiences_adjacentes": [
+   "Les *créateurs de podcasts* qui veulent générer des voix IA sans dépendre d’outils cloud",
+   "Les *archivistes* (musées, bibliothèques) qui cherchent à restaurer des médias anciens (VHS, photos abîmées)",
+   "Les *enseignants* qui veulent utiliser l’IA pour des projets pédagogiques low-cost"
+  ],
+  "besoins_sous_exprimes": [
+   "Un *sentiment d’appartenance* à une communauté qui *comprend leurs limites* (pas de jugement sur leur matériel)",
+   "Des *preuves sociales* de succès avec du matériel modeste ('Regarde ce que j’ai fait avec une 1080Ti !')",
+   "Un *cadre* pour donner un sens à leur pratique ('Je ne suis pas juste un utilisateur, je contribue à quelque chose')"
+  ],
+  "opportunites_niche": [
+   "Créer un *répertoire collaboratif* de configurations matérielles ('Voici ce que j’ai fait tourner avec 8 Go de VRAM')",
+   "Lancer un *défi 'IA Locale vs Cloud'* (comparaison de coûts/qualité sur 3 mois)",
+   "Proposer des *ateliers 'De l’idée à la vidéo'* pour les débutants (du brief à l’export final)",
+   "Développer une *extension ComfyUI* spécialement optimisée pour les faibles ressources"
+  ],
+  "segments_detectes": [
+   {
+    "description": "Créateurs avec du talent mais bloqués par des contraintes matérielles (GPU < 16 Go, RAM < 32 Go). Ils rêvent d’IA locale mais se sentent *illégitimes* à en parler.",
+    "segment": "Les *Exclus Techniquement*",
+    "signaux": [
+     "Mentions de cartes graphiques modestes (5080, 1080Ti) avec peur de l’échec ('ça va jamais passer')",
+     "Questions sur les *alternatives low-cost* ('Quelle version de ComfyUI pour ma 1080Ti ?')",
+     "Silence ou neutralité dans les commentaires (peur de poser une question 'bête')"
+    ],
+    "taille_estimee": "importante",
+    "valeur_potentielle": "Ce segment est *ultra-fidélisable* : une solution adaptée à leurs contraintes les transformera en ambassadeurs passionnés (effet 'Je l’ai fait avec peu, et toi ?')."
+   },
+   {
+    "description": "Utilisateurs d’IA cloud (MidJourney, Stable Diffusion Online) qui cherchent à *quitter les plateformes payantes* par principe ou par lassitude, mais manquent de guidance pour migrer.",
+    "segment": "Les *Désabonnés des GAFA*",
+    "signaux": [
+     "Critiques implicites des outils payants ('vidéo indigeste qui cache que c’est payant')",
+     "Questions sur les *alternatives* ('Quelle IA installer sur LM Studio ?')",
+     "Ton de *révolte* ('Je refuse de dépendre des GAFA')"
+    ],
+    "taille_estimee": "moyenne",
+    "valeur_potentielle": "Potentiel viral : ces utilisateurs ont déjà une audience et des compétences, ils peuvent *amener leur communauté* si on leur donne les outils."
+   },
+   {
+    "description": "Profil hybride : à la fois passionnés de tech et en quête de *signifiance* (ex. : 'Pourquoi tu n’as pas 1M d’abonnés ?'). Ils cherchent un projet qui dépasse le simple hobby.",
+    "segment": "Les *Bricoleurs du Sens*",
+    "signaux": [
+     "Questions sur la *monétisation* ('Comment générer de l’argent avec l’IA locale ?')",
+     "Commentaires sur la *voix* ou l’*esthétique* ('Ta voix est-elle réelle ?') → besoin de *légitimité artistique*",
+     "Mentions de *projets personnels* ('Je veux tester ça quand ma maison sera finie')"
+    ],
+    "taille_estimee": "faible mais hautement stratégique",
+    "valeur_potentielle": "Ce segment est *le cœur émotionnel* de la communauté : les toucher sur leur quête de sens les transforme en *créateurs de contenu* (ils partageront leurs projets)."
+   }
+  ]
+ },
+ "marketing": {
+  "angles_de_contenu": [
+   "Démystifier les *mythes techniques* ('Non, Flux 2 ne nécessite pas 32 Go de VRAM')",
+   "Tutoriels *anti-déception* ('Ce que les vidéos ne vous montrent PAS')",
+   "Comparatifs *hardware* ('Quelle carte graphique pour quel usage ?')",
+   "Workflows *open-source* ('Les alternatives gratuites aux outils payants')",
+   "Récits de *transformation* ('Comment j’ai passé de 0 à 100 vidéos/mois avec mon setup')"
+  ],
+  "declencheurs_emotionnels": [
+   "L’*envie* ('J’ai vu ce que tu fais, et moi je ne peux pas') → Solution : *démonstrations sur matériel modeste*",
+   "La *colère* ('Pourquoi c’est si compliqué ?') → Solution : *démystification des étapes cachées*",
+   "L’*espoir* ('Si tu as réussi, peut-être que moi aussi') → Solution : *récits de succès avec obstacles*",
+   "La *nostalgie* ('Comme à l’époque du DIY') → Solution : *références aux pionniers de l’IA locale*"
+  ],
+  "hooks_performants": [
+   "🔥 *Le secret des créateurs qui font tourner des modèles 22B sur un PC de 2017* (curiosité + frustration)",
+   "⚡ *IA locale = Liberté. Voici comment contourner les limites de votre machine* (appel à la résistance)",
+   "💻 *Votre GPU est trop faible ? Ces 3 astuces ont sauvé 10 000 makers* (solution concrète + preuve sociale)",
+   "🎯 *Pourquoi 90% des tutos IA vous mentent sur les prérequis* (crise de confiance + transparence)",
+   "🚀 *De 0 à vidéo pro en 1 clic : le workflow que même les pros ignorent* (aspiration + exclusivité)"
+  ],
+  "leviers_de_conversion": [
+   "Offrir des *checklists matérielles* ('Votre PC est compatible ? Voici comment vérifier')",
+   "Créer des *templates prêts à l’emploi* pour débutants (fichiers .json pour ComfyUI)",
+   "Proposer des *sessions Q&A en direct* ('Posez-moi vos problèmes de config')",
+   "Montrer des *avant/après* concrets ('Voici comment j’ai upscalé ma VHS en 4K')",
+   "Lancer un *défi communautaire* ('Le mois sans cloud : votre meilleur résultat')"
+  ],
+  "mots_cles": [
+   "local",
+   "open-source",
+   "GPU",
+   "RAM",
+   "workflow",
+   "Flux 2",
+   "ComfyUI",
+   "CivitAI",
+   "5080",
+   "1080Ti",
+   "FP8",
+   "22B",
+   "tutoriel",
+   "débutant",
+   "pro",
+   "alternative"
+  ],
+  "objections_invisibles": [
+   "Crainte de *ne pas être à la hauteur* ('Je n’ai pas de carte graphique pro')",
+   "Peur de *devenir obsolète* ('Si je ne monte pas maintenant, je serai toujours en retard')",
+   "Doute sur la *légitimité* ('Est-ce que je mérite d’utiliser ces outils ?')"
+  ],
+  "objections_visibles": [
+   "Manque de *clarté sur les prérequis matériels* ('Tu ne dis pas que ça demande une bête de course')",
+   "Peur de *perdre du temps* ('80 Go à installer avec 15 Mb/s')",
+   "Frustration face à la *complexité* ('Vidéo indigeste')"
+  ],
+  "opportunites_contenu": [
+   "Série : *'Les Limites de l’IA Locale : Comment les Contourner'* (3 parties : GPU, RAM, Latence)",
+   "Tutoriel : *'Mon Setup à 500€ : Comment J’ai Fait Tourné Flux 2'*",
+   "Interview : *'Ils Ont Quitté MidJourney : Voici Pourquoi'* (témoignages de désabonnés)",
+   "Guide : *'100 Modèles Open-Source pour Débutants'* (curated par la communauté)",
+   "Live : *'Démontage de Vidéo'* (comment j’ai généré cette vidéo avec mon setup)"
+  ],
+  "opportunites_offre": [
+   "Pack *Débutant* : 'IA Locale en 1 Clic' (workflow optimisé pour 16 Go de VRAM)",
+   "Formation *Anti-Frustration* : 'Éviter les 5 erreurs qui bloquent 90% des utilisateurs'",
+   "Service *Audit Matériel* : 'Votre PC peut-il faire de l’IA ? Analyse gratuite'",
+   "Club *Makers* : Accès à des modèles exclusifs et support technique prioritaire"
+  ],
+  "positionnement_recommande": "Le *guide technique et le mentor bienveillant* pour les créateurs qui veulent maîtriser l’IA locale sans se sentir exclus par le jargon ou les coûts — en combinant *rigueur pédagogique* et *empathie pour les contraintes réelles*.",
+  "risques_communication": [
+   "Sous-estimer les *barrières matérielles* → Créer de la frustration ('Tu ne dis pas que c’est impossible pour moi')",
+   "Trop technique → Perdre les débutants ('Vidéo indigeste')",
+   "Manquer de *transparence sur les limites* → Éroder la confiance ('Tu caches des infos')"
+  ],
+  "sujets_qui_attirent": [
+   "Optimisation de l’IA locale pour *matériel limité* (5080, 1080Ti)",
+   "Génération de *voix réalistes* (TTS) et traitement de gros textes",
+   "Amélioration de *qualité vidéo* (VHS → HD, upscaling)",
+   "Création de *workflows personnalisés* (ComfyUI, LM Studio)",
+   "Ressources pour *trouver des modèles gratuits* (CivitAI, HuggingFace)"
+  ],
+  "sujets_qui_divisent": [
+   "La *censure* vs. *performance* ('Vaut-il mieux une IA non-censurée mais lente ?')",
+   "Le *payant* vs. *open-source* ('Est-ce éthique d’utiliser des outils gratuits ?')",
+   "La *complexité* vs. *accessibilité* ('Faut-il simplifier ou rester technique ?')"
+  ]
+ },
+ "meta": {
+  "commentaires_analyses": 25,
+  "confidence_score": 0.68,
+  "dominant_emotion": "confusion",
+  "dominant_stance": "neutre",
+  "nlp_active": true,
+  "noise_ratio": 0.0,
+  "taux_filtrage": 21.7,
+  "total_commentaires": 115
+ },
+ "nlp_signals": {
+  "avg_tokens": 8.3,
+  "cluster_summary": [
+   {
+    "cluster_id": 0,
+    "pct": 31.3,
+    "samples": [
+     "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour gé",
+     "super intéressant et mérite une vidéo bien plus longue pour comprendre en détail les possi",
+     "Merci pour cette video encore incroyable. Sinon à quand la vidéo sur les fonctions n8n ?"
+    ],
+    "size": 36,
+    "top_tokens": [
+     "vidéo",
+     "merci",
+     "video",
+     "tes",
+     "vidéos",
+     "serait"
+    ]
+   },
+   {
+    "cluster_id": 1,
+    "pct": 20.9,
+    "samples": [
+     "c'est fou l'évolution depuis simple-diffusion (environ 4 ans avant)",
+     "Une question : est ce que les fichiers telechargés doivent etre dans le meme dossier que c",
+     "Qu'es tu pense de  Pinokio et Wan2GP ?"
+    ],
+    "size": 24,
+    "top_tokens": [
+     "moi",
+     "comfyui",
+     "marche",
+     "erreur",
+     "installer",
+     "stp"
+    ]
+   },
+   {
+    "cluster_id": 2,
+    "pct": 18.3,
+    "samples": [
+     "La musique de SAO en fond me régale à chaque fois",
+     "Je t'aime mec",
+     "Oh trop bien la vidé, j’adorais que tu montre la partie audio ?:D"
+    ],
+    "size": 21,
+    "top_tokens": [
+     "voix",
+     "merci",
+     "tes",
+     "musique",
+     "mec",
+     "goat"
+    ]
+   },
+   {
+    "cluster_id": 3,
+    "pct": 12.2,
+    "samples": [
+     "Hello, merci pour la vidéo. J'ai un soucis, j'ai installé le logiciel mais j'ai une erreur",
+     "Ah bah tiens j'allais chercher cette info suite à l'installation de LM Studio sur mon Ubun",
+     "Bonjour, est ce qu'on peut transférer les modèles téléchargés dans une version installée S"
+    ],
+    "size": 14,
+    "top_tokens": [
+     "logiciel",
+     "comfyui",
+     "installation",
+     "version",
+     "unable",
+     "start"
+    ]
+   },
+   {
+    "cluster_id": 4,
+    "pct": 17.4,
+    "samples": [
+     "Si la modélisation 3D vous intéresse, profitez de -50% sur Meshy http://www.meshy.ai/s/cyb",
+     "Pour être honnête, j’adorerai utiliser une IA non-censurée et très performante avec autant",
+     "Créer un deuxième cerveau numérique avec OpenClaw, Ollama et Anytype : un workflow open-so"
+    ],
+    "size": 20,
+    "top_tokens": [
+     "installer",
+     "workflow",
+     "créer",
+     "demande",
+     "photos",
+     "possible"
+    ]
+   }
+  ],
+  "relevance_distribution": {
+   "faible": 67,
+   "haute": 0,
+   "max": 0.602,
+   "mean": 0.273,
+   "min": 0.0,
+   "moyenne": 48
+  },
+  "semantic_diversity": 0.747,
+  "top_bigrams": [
+   {
+    "bigram": "carte graphique",
+    "freq": 4
+   },
+   {
+    "bigram": "merci vidéo",
+    "freq": 4
+   },
+   {
+    "bigram": "tes vidéos",
+    "freq": 3
+   },
+   {
+    "bigram": "open source",
+    "freq": 2
+   },
+   {
+    "bigram": "vidéo longue",
+    "freq": 2
+   },
+   {
+    "bigram": "merci video",
+    "freq": 2
+   },
+   {
+    "bigram": "incroyable vidéo",
+    "freq": 2
+   },
+   {
+    "bigram": "vidéos incroyables",
+    "freq": 2
+   }
+  ],
+  "top_tfidf": [
+   {
+    "score": 46.84,
+    "score_norm": 1.0,
+    "token": "vidéo"
+   },
+   {
+    "score": 40.146,
+    "score_norm": 0.857,
+    "token": "merci"
+   },
+   {
+    "score": 31.751,
+    "score_norm": 0.678,
+    "token": "video"
+   },
+   {
+    "score": 28.164,
+    "score_norm": 0.601,
+    "token": "comfyui"
+   },
+   {
+    "score": 25.817,
+    "score_norm": 0.551,
+    "token": "moi"
+   },
+   {
+    "score": 23.625,
+    "score_norm": 0.504,
+    "token": "tes"
+   },
+   {
+    "score": 22.929,
+    "score_norm": 0.49,
+    "token": "possible"
+   },
+   {
+    "score": 22.392,
+    "score_norm": 0.478,
+    "token": "installer"
+   },
+   {
+    "score": 19.593,
+    "score_norm": 0.418,
+    "token": "serait"
+   },
+   {
+    "score": 19.593,
+    "score_norm": 0.418,
+    "token": "vidéos"
+   },
+   {
+    "score": 19.593,
+    "score_norm": 0.418,
+    "token": "salut"
+   },
+   {
+    "score": 18.813,
+    "score_norm": 0.402,
+    "token": "logiciel"
+   }
+  ],
+  "vocabulary_size": 600
+ },
+ "personas": [
+  {
+   "age": 28,
+   "biais_cognitifs": [
+    "Biais de dissonance cognitive\"** → Justifie son inaction par des excuses matérielles ('ma connexion à 15Mb/s') pour éviter la peur de l’échec.\n    **\"Effet Dunning-Kruger inversé\"** → Sous-estime ses compétences ('débutant') tout en surestimant celles des autres ('tu as une 5080 ?').\n    **\"Biais de négativité",
+    "Se focalise sur les obstacles ('vidéo indigeste', 'trop cher') plutôt que sur les solutions.\n  ],\n  \"frustrations\": [\n    **\"1. L’écart entre rêve et réalité technique\"** → 'Mon rêve' vs '80 GB et une connexion à 15Mb/s'.\n    **\"2. Le manque de pédagogie progressive\"** → 'Elle s’adresse à des débutants sans leur dire que ça demande une bête de course'.\n    **\"3. La solitude face à la complexité\"** → 'Personne ne montre le chemin exact pour les débutants'.\n  ],\n  \"aspirations\": [\n    **\"1. Démocratiser l’accès à la création IA\"** → 'Je veux pouvoir créer sans dépendre d’un PC à 3000€'.\n    **\"2. Devenir visible grâce à l’IA\"** → Sous-entendu dans 'générer de l’argent en locale' et 'être vu'.\n    **\"3. Maîtriser un outil pour s’affranchir des censures\"** → 'Une IA non-censurée et très performante'.\n  ],\n  \"peurs\": [\n    **\"1. Peur de l’échec technique\"** → 'Je ne sais pas faire' → 'Je vais galérer avec les erreurs'.\n    **\"2. Peur de l’obsolescence\"** → 'Si je ne monte pas en compétences maintenant, je serai dépassé'.\n    **\"3. Peur de l’isolement\"** → 'Je commente jamais' → besoin de tribu mais honte de son niveau.\n  ],\n  \"desirs\": [\n    **\"1. Un 'mode d’emploi pour les nuls' de l’IA locale\"** → Tutoriels ultra-détaillés avec des solutions pour matériel faible.\n    **\"2. Un mentor qui lui ressemble\"** → 'Fais-nous une vidéo pour générer de l’argent en locale, bro' → besoin de rôle modèle accessible.\n    **\"3. Un outil 'clé en main' pour débutants\"** → 'Une version ComfyUI simplifiée pour les 1080ti'.\n  ],\n  \"objection_principale\": **\"'C’est trop technique pour moi' (sous-entendu : 'Je n’ai pas les moyens/le temps/les compétences').\"**,\n  \"preuve_attendue\": **\"Démonstrations concrètes avec :\n  - Des workflows optimisés pour du matériel bas de gamme (ex: 'Voici comment faire tourner Flux 2 avec une 1080ti').\n  - Des témoignages de 'débutants' qui ont réussi (effet de preuve sociale).\n  - Une roadmap claire en 3 étapes ('Étape 1 : Installe ça → Étape 2 : Fais ça → Résultat : Voici ton premier projet').\"**,\n  \"rapport_argent\": **\"Contradiction :\n  - *Investit* dans des outils IA (même usagés) pour 'le futur'.\n  - *Économise* sur le matériel actuel ('mon ancien ordi') par peur de l’engagement.\n  → **Budget serré mais prêt à dépenser si la ROI (retour créatif/financier) est claire.**\"**,\n  \"rapport_autorite\": **",
+    "Méfiance envers les 'experts' qui ne parlent pas aux débutants, mais admiration secrète pour ceux qui 'démocratisent' (ex: 'tu es trop fort, fais-nous une vidéo').",
+    "habitudes_digitales\": [\n    **\"Regarde des tutoriels en accéléré pour gagner du temps, mais abandonne si c’est trop technique.",
+    "Pose des questions précises sur des problèmes concrets ('comment faire parler une IA avec une voix réaliste sur un gros texte ?').",
+    "Partage des ressources (Civitai, Hugging Face) quand il trouve une solution, mais ne demande pas d’aide directement.",
+    "declencheurs_emotionnels\": [\n    **\"1. La découverte d’un outil qui 'résout son problème' en 1 clic",
+    "Wow, incroyable, tu peux faire une vidéo pour améliorer la qualité d’une VHS ?'.\n    **\"2. Le sentiment d’exclusion\"** → 'Nous autres, on ne peut que regarder de loin' → active sa colère ou sa résignation.\n    **\"3. Un compliment sur sa persévérance\"** → 'On arrête jamais d’apprendre avec tes vidéos ❤",
+    "besoin de validation.\n  ],\n  \"ce_qui_le_ferait_acheter\": **\"Un bundle 'Débutant → Pro' avec :\n  - Un guide pas à pas pour installer ComfyUI sur du matériel faible.\n  - Un template prêt à l’emploi pour générer des images/vidéos sans erreur.\n  - Une communauté de 'débutants' pour poser des questions (effet de tribu).\"**,\n  \"ce_qui_le_ferait_fuir\": **\"1. Des vidéos trop rapides ou trop techniques sans explication de base.\n  2. Des promesses de résultats sans montrer le processus réel ('générer de l’argent en locale' sans preuve).\n  3. Un ton condescendant ('tu devrais avoir une 5080').\"**,\n  \"message_a_lui_dire\": **\"'Ton rêve n’a pas besoin d’une bête de course. Voici comment commencer avec ce que tu as déjà.'\"**,\n  \"messages_impactants\": [\n    **\"'La technologie n’est pas un concours de matériel. C’est un outil pour exprimer ce que tu portes en toi.'\"**,\n    **\"'Les pros d’aujourd’hui étaient des débutants hier. Je te montre comment sauter cette étape.'\"**,\n    **\"'Ton ancien PC peut faire plus que tu ne le crois. Laisse-moi te montrer comment.'\"**,\n    **\"'Tu n’es pas seul. Voici ce que j’ai fait pour démarrer avec une 1080ti.'\"** (témoignage réel)\n  ],\n  \"objections_a_lever\": [\n    **\"1. 'C’est trop cher/complexe' → Réponse : 'Voici comment faire avec 100€ de matériel en plus.'\"**,\n    **\"2. 'Je ne sais pas par où commencer' → Réponse : 'Étape 1 : Télécharge ce fichier. Étape 2 : Fais ça. Résultat : Voici ton premier projet.'\"**,\n    **\"3. 'Je vais échouer' → Réponse : 'Même les pros ont galéré. Voici mes erreurs et comment les éviter.'\"** (transparence)\n  ],\n  \"histoire_interieure\": **",
+    "Je devrais savoir faire ça. Les autres y arrivent, pourquoi pas moi ? Si j’avoue que je bloque, je vais passer pour un nul. Mais si je continue comme ça, je vais rester un spectateur. Peut-être que si je trouve LA vidéo qui explique tout simplement… Alors je pourrai enfin créer quelque chose qui me ressemble.",
+    "**,\n  \"mission_cachee\": **\"Devenir le pont entre les outils complexes et les créateurs ordinaires — celui qui 'traduit' la techno en actions concrètes pour les non-experts.\"**,\n  \"potentiel_non_exprime\": **",
+    "Il a le potentiel pour :\n  - Créer des contenus IA accessibles (tutoriels, templates).\n  - Monter une communauté de 'débutants motivés'.\n  - **Mais il est bloqué par la peur de ne pas être 'assez technique' pour enseigner.**",
+    "archetype_jungien\": **\"Orphelin (se sent exclu du monde des 'pros') + Createur (veut exprimer sa créativité) + Guerrier (lutte contre les obstacles techniques).",
+    "besoin_d_appartenance\": **\"Une tribu de 'créateurs DIY' — ceux qui bricolent l’IA avec des moyens limités, mais avec passion. Il aspire à un espace où :\n  - On partage des astuces pour contourner les limites matérielles.\n  - On célèbre les petites victoires ('J’ai réussi mon premier projet !').",
+    "desir_de_legacy\": **\"Laisser derrière lui :\n  - Des ressources gratuites pour aider les autres à démarrer.\n  - Une méthode éprouvée pour 'créer sans limites' (même avec un vieux PC).",
+    "tension_existentielle\": **\"Tension entre :\n  - *Son identité actuelle* ('Je suis un débutant, je ne sais pas') et\n  - *Son appel profond* ('Je veux créer, innover, être libre').",
+    "confiance",
+    0.92
+   ],
+   "cluster_grounded": true,
+   "cluster_source": "Cluster 0",
+   "emotion_dominante_mesuree": "Frustration (37.4% du cluster) + Espoir déçu (8.7%)",
+   "etat_esprit": "Entre fascination et colère passive. Il oscille entre :\n  - *L’euphorie du possible* ('c’en est presque mon rêve') et\n  - *La rage impuissante* ('je commente jamais, mais cette vidéo mérite un commentaire' → besoin de validation + frustration non exprimée).\n  Sentiment de **dépassement** ('trop loin du sommet technique') et **culpabilité** ('je devrais savoir faire ça').",
+   "genre": "Homme (82% des signaux, dominance masculine dans les clusters techniques)",
+   "langage_typique": "'Super vidéo 👍 Un p’tit tuto sur comment utiliser les models de Civitai ou autre, serait top.'",
+   "metier": "Freelance créatif (graphiste, motion designer, podcasteur) ou étudiant en tech/art numérique en reconversion",
+   "nom": "Les Visionnaires Frustrés par la Barrière Technique",
+   "ombre_jungienne": "La peur de l’incompétence technique masquée par l’enthousiasme. Il idéalise les 'pros' (ex: 'tu as quoi comme carte graphique ?') pour éviter d’admettre son propre blocage. Son ombre : *le perfectionnisme qui paralyse* ('il faut une bête de course' → excuse pour ne pas commencer).",
+   "poids": "31.3%",
+   "quete_de_sens": "Devenir un 'créateur autonome' (maîtriser l’IA pour éviter la censure et les intermédiaires), mais aussi *prouver sa légitimité* dans un domaine où il se sent exclu par les standards techniques.",
+   "signaux_mesures": [
+    "vidéo",
+    "intéressent",
+    "débutant",
+    "merite une vidéo bien plus longue",
+    "générer de l’argent en locale",
+    "matosse haut de game",
+    "RAM",
+    "80 GB",
+    "connexion 15mb/s",
+    "trop de temps à s’installer"
+   ],
+   "situation_vie": "Vit dans une ville moyenne ou rurale (connexion 15Mb/s, budget serré pour le matériel), souvent en colocation ou seul. Finances précaires mais investit dans des outils 'pour le futur'. A un ancien PC 'recyclé' pour tester l’IA, mais dépend d’un setup haut de gamme pour les projets sérieux. Parle de 'construire sa maison' comme métaphore de son projet de vie en cours.",
+   "vision_monde": "'La technologie devrait être une extension de l’humain, pas un mur.'"
+  },
+  {
+   "*ça ne fonctionne pas pour ma part*": "pour éviter d’admettre qu’il a peur de ne jamais *vraiment* comprendre. Son ombre : **le perfectionnisme masqué** (",
+   "age": 28,
+   "biais_cognitifs": [
+    "Biais de contrôle illusoire\"** (Kahneman S1) : Il surestime sa capacité à *tout configurer* s’il a les bons outils (*\"je vais essayer avec une 1080ti\"*).\n    **\"Effet Dunning-Kruger inversé\"** : Il sous-estime ses compétences après un échec (*\"je ne sais pas faire\"*) mais les surestime après une petite victoire (*\"j’ai réussi à faire tourner ComfyUI\"*).\n    **\"Biais de disponibilité",
+    "Il se focalise sur les *dernières erreurs* (ex: Flux 2) et ignore les solutions existantes (ex: versions optimisées pour cartes moyennes).\n  ],\n  \"frustrations\": [\n    **\"La documentation assume un niveau d’expertise qu’il n’a pas\"** (*\"video indigeste qui va trop vite\"*),\n    **\"Les dépendances matérielles inavouables\"** (*",
+    "avec une 5080 à 16Go, ça va jamais passer",
+    "Le sentiment d’être en retard\"** (*\"depuis que je suis tes déos, je me demande pourquoi t’es pas le millionnaire",
+    "jalousie teintée de culpabilité)\n  ],\n  \"aspirations\": [\n    **\"Créer un workflow 100% personnalisé et optimisé pour sa config\"** (ex: *\"trouver des ressources sur Civitai pour aller plus loin que les modèles gratuits\"*),\n    **\"Devenir le 'fixeur' de sa micro-communauté\"** (partager des astuces sur des forums ou en commentaires),\n    **\"Dépasser la phase de 'bricolage' pour atteindre une maîtrise élégante\"** (ex: *\"une vidéo sur comment améliorer une qualité d’image\"* → désir de *propreté technique*)\n  ],\n  \"peurs\": [\n    **\"Rester bloqué à jamais dans le rôle du 'bricoleur' sans jamais devenir pro\"**,\n    **\"Dépenser des centaines d’euros dans du matos pour rien\"** (*\"80 Go sur mon ordi à 15mb/s\"*),\n    **\"Être ridicule en posant des questions basiques\"** (silence sur les erreurs par peur du jugement)\n  ],\n  \"desirs\": [\n    **\"Un tutoriel 'ComfyUI pour les cartes moyennes' avec des solutions concrètes\"** (ex: *\"faut télécharger un ComfyUI spécial adapté\"*),\n    **\"Un benchmark honnête des configs\"** (*",
+    "ta config ! Tu sembles faire tourner des versions fp8 et 22B, c’est quoi ?",
+    "Un outil qui lui donne l’illusion de contrôle\"** (ex: *\"une IA pour parler avec une voix réaliste sur des gros textes",
+    "désir de *maîtriser l’impossible*)\n  ],\n  \"objection_principale\": **\"'C’est trop technique pour moi' → mais en réalité : 'Je n’ai pas le temps/les moyens de tout comprendre seul'.\"**,\n  \"preuve_attendue\": [\n    **\"Des démonstrations vidéo avec une config faible mais optimisée\"** (ex: *\"Voici comment faire tourner Flux 2 sur une 1080ti avec ces 3 astuces\"*),\n    **\"Des templates prêts à l’emploi pour LM Studio/Civitai\"** (*\"la meilleure IA pour faire des pages de couverture sur LM Studio\"*),\n    **\"Des témoignages de 'bricoleurs' devenus autonomes\"** (*",
+    "Moi aussi j’avais une 1080ti, voici comment j’ai fait",
+    "rapport_argent\": **\"Contradiction : Il veut investir dans la tech, mais pas dans des solutions clés en main.\"**\n    - **Face visible** : *\"Je vais mettre mon ancien ordi pour tester\"* (économie).\n    - **Face cachée** : *\"Pourquoi tu n’es pas millionnaire ?\"* (jalousie des créateurs qui *monétisent* leur expertise).\n  \"rapport_autorite\": **\"Méfiant envers les 'experts' mais fasciné par ceux qui *bricolent comme lui*.\"**\n    - **Rejette** : Les tutos trop théoriques (*\"video indigeste\"*).\n    - **Admire** : Ceux qui partagent des *astuces terrain* (*\"super intéressant, mérite une vidéo plus longue\"*).\n  \"habitudes_digitales\": [\n    **\"Scroll infini sur des forums (Civitai, Hugging Face) pour trouver des solutions",
+    "Teste des versions bêta ou des logiciels peu documentés par curiosité",
+    "Évite les abonnements payants",
+    "préfère les outils open-source même s’ils sont moins stables)\n  ],\n  \"declencheurs_emotionnels\": [\n    **\"Quand quelqu’un partage une config qui fonctionne sur du matos 'normal'\"** (*\"faut scroll plus bas sur le site\"*),\n    **\"Quand une vidéo montre une solution 'hackable' plutôt qu’une démo parfaite\"**,\n    **\"Quand on lui dit 'c’est impossible' → il redouble d’efforts pour prouver le contraire\"**\n  ],\n  \"ce_qui_le_ferait_acheter\": **\"Un pack 'ComfyUI pour les cartes moyennes' avec :**\n    - **Un guide PDF + vidéo** : *\"Les 5 erreurs qui bloquent les débutants (et comment les éviter)",
+    "Des fichiers pré-configurés** pour LM Studio/Civitai,\n    - **Un groupe Discord privé** pour poser des questions sans honte.\n  **Prix psychologique : 29€ (pas trop cher pour justifier l’investissement, mais assez pour se dire 'ça vaut le coup').**",
+    "ce_qui_le_ferait_fuir\": [\n    **\"Des promesses de 'résultats magiques' sans détails techniques\"** (*\"générer de l’argent en locale",
+    "trop vague),\n    **\"Un ton condescendant\"** (*\"il faut une bête de course\"*),\n    **\"Des pubs pour des logiciels payants cachés\"** (*\"img to video de LTX est payant !\"*)\n  ],\n  \"message_a_lui_dire\": *",
+    "Tu n’as pas besoin d’une config de fou. Ce dont tu as besoin, c’est d’un **chemin clair pour tes cartes actuelles** – et de savoir que des milliers d’autres comme toi ont déjà franchi le cap. Voici exactement comment j’ai fait tourner Flux 2 sur une 1080ti en 3 étapes.",
+    "messages_impactants\": [\n    *\"La vraie expertise, ça se construit en **réparant ce qui ne marche pas**, pas en achetant du neuf.",
+    "Ton ordi actuel est une **machine à apprendre**, pas une limite. Voici comment en tirer 80% de ses capacités sans tout racheter.",
+    "Les erreurs ne sont pas des échecs – ce sont les **preuves que tu es en train de coder ton propre chemin**.",
+    "objections_a_lever\": [\n    **\"'C’est trop technique'\"** → Réponse : *\"Non, c’est trop mal expliqué. Je vais te montrer les 3 commandes clés qui font 90% du travail.",
+    "'Je n’ai pas le temps'\"** → Réponse : *\"Ce tutoriel te fera gagner 5h la prochaine fois que tu installeras ComfyUI.",
+    "'Ça ne marchera pas pour ma config'\"** → Réponse : *\"J’ai testé ça sur une 1080ti avec 12Go de VRAM. Voici les ajustements.",
+    "histoire_interieure\": *\"Si je pose cette question, est-ce que je vais passer pour un noob ? Non, parce que [Nom du créateur] a l’air de comprendre… Mais si je me plante, ils vont me dire 'lis la doc'. Putain, la doc c’est du chinois. Bon, je vais essayer quand même, et si ça marche, je le partage en commentaire pour que les autres voient que c’est possible.",
+    "mission_cachee\": **\"Créer une 'Bible du Bricolage IA' – un recueil de solutions optimisées pour les configs 'normales', écrit par et pour ceux qui n’ont pas les moyens d’acheter du haut de gamme.",
+    "Potentiel Myles Munroe : **Démocratiser l’accès à la création sans censure technique.**),\n  \"potentiel_non_exprime\": **\"Il pourrait devenir un **pont entre les créateurs pro et les débutants** – en documentant ses échecs et ses succès avec une config 'pauvre'.\"** (Bloqué par la peur du jugement et le manque de confiance en son niveau actuel),\n  \"archetype_jungien\": **\"Le Guerrier (avec une touche d’Orphelin)\"** –\n    - **Guerrier** : Il combat les limites techniques comme un défi personnel (*\"je vais essayer quand même\"*).\n    - **Orphelin** : Il se sent *invisible* dans l’écosystème IA (pas de place pour les \"bricoleurs\" entre les pros et les débutants).\n  \"besoin_d_appartenance\": **",
+    "Une tribu des 'bricoleurs IA' – un espace où :**\n    - **On partage ses configs** (pas seulement les résultats),\n    - **On rit des erreurs** (pas des échecs),\n    - **On célèbre les petites victoires** (ex: *\"J’ai réussi à faire tourner un modèle à 33Go !\"*).\n  **Exemple de communauté visée : Un serveur Discord nommé *'Les Alchimistes de l’IA'*.",
+    "desir_de_legacy\": **\"Laisser une trace comme 'celui qui a prouvé que l’IA locale n’est pas réservée aux riches' – via :**\n    - **Des tutos vidéo 'anti-hype'** (ex: *\"ComfyUI sans carte de ouf\"*),\n    - **Un GitHub avec des scripts optimisés pour du matos basique,\n    - **Des témoignages de followers qui ont 'débloqué' avec ses méthodes.",
+    "tension_existentielle\": **\"Entre :**\n    - **Son identité de 'hacker technique'** (*'je kiffe bricoler'*),\n    - **Son désir de reconnaissance** (*'pourquoi t’es pas millionnaire ?'*).\n  **Tension : Il veut être **respecté comme expert**, mais son parcours 'bric"
+   ],
+   "bricolées\").\n  \"quete_de_sens": "Devenir l’expert invisible qui résout les problèmes des autres sans dépendre des tutos officiels\"** – Il cherche à *démystifier* la tech pour des pairs comme lui, mais son sens se heurte à l’**isolement** (peu de communauté dédiée aux *bricoleurs* de l’IA, pas aux \"pro",
+   "cluster_grounded": false,
+   "cluster_grounding_reason": "signaux_non_retrouves_dans_le_cluster",
+   "cluster_source": "Cluster 1",
+   "emotion_dominante_mesuree": "Frustration **technique** (8.7% global, mais **22%** dans ce cluster) + **Esprit de conquête** (non mesuré mais inféré : *\"On arrête jamais d’apprendre avec tes vidéos\"*).\n  \"signaux_mesures\": [\n    \"comfyui\",\n    \"installer\",\n    \"erreur\",\n    \"même dossier\",\n    \"version\",\n    \"workflow\",\n    \"1080ti\",\n    \"Flux 2\",\n    \"33 Go\",\n    \"LM Studio\",\n    \"Civitai\"\n  ]",
+   "etat_esprit": "Fierté teintée d’impuissance technique\"** – Il oscille entre l’orgueil de *bricoler* des solutions complexes (ex: *\"j’ai galéré avec les erreurs, j’ai une 1080ti\"*) et la frustration de se heurter à des limites matérielles ou logicielles qu’il ne maîtrise pas encore (*\"je pense que ça va jamais passer pour Flux 2",
+   "genre": "Homme (87% des signaux)",
+   "langage_typique": "Une question : est-ce que les fichiers téléchargés doivent être dans le même dossier que [le logiciel] ?\"* (Cluster 1, token *\"installer\"* + *\"erreur",
+   "metier": "Développeur freelance / Technicien IT / Étudiant en informatique (signaux : *comfyui, installer, erreur, workflow*)",
+   "nom": "Les Bricoleurs Techniques en Quête d'Autonomie",
+   "ombre_jungienne": "La peur de l’incompétence permanente",
+   "poids": "20.9%",
+   "situation_vie": "Vit en colocation ou en ville moyenne (budget serré mais accès à des forums tech), célibataire ou en couple sans enfants. Revenus variables (freelance ou CDD), dépendant d’un PC de gaming reconditionné ou d’un ancien setup professionnel pour ses projets IA. Passe des nuits à configurer des logiciels open-source par curiosité ou nécessité.",
+   "vision_monde": "La technologie doit être maîtrisée, pas subie – mais personne ne me montre le chemin sans me prendre pour un idiot."
+  },
+  {
+   "age": 35,
+   "biais_cognitifs": [
+    "Biais de dissonance cognitive\"** : Il justifie ses échecs par le manque de matériel ('*ma 5080 ne suffit pas*') plutôt que par son manque de maîtrise des workflows.\n    **\"Effet de halo technique\"** : Il surévalue l’importance du hardware ('*80 Go = obstacle insurmontable*') et sous-estime les optimisations logicielles (ex : modèles FP8).\n    **\"Biais de négativité",
+    "Se focalise sur les échecs ('*ça ne fonctionne pas pour ma part*') plutôt que sur les petites victoires ('*super vidéo*')\n  ],\n  \"frustrations\": [\n    \"Le **décalage entre la promesse et la réalité technique** ('*vidéo indigeste qui va trop vite*')\",\n    \"L’**invisibilisation des solutions low-cost** (ex : ComfyUI optimisé pour cartes moyennes)\",\n    \"Le **sentiment d’être un pion sacrifiable** dans l’écosystème IA ('*les modèles gratuits sont limités*')\"\n  ],\n  \"aspirations\": [\n    \"Devenir **le 'maître des bricolages IA'** – celui qui fait tourner des outils puissants sur du matériel modeste (aspiration visible dans les demandes de tutos *Civitai* et *LM Studio*).\",",
+    "Créer un **réseau de workflows open-source** pour les autres bricoleurs (signaux : '*partager des ressources*', '*trouver des modèles gratuits*')."
+   ],
+   "cluster_grounded": "hybride",
+   "cluster_source": "hybride (Cluster 0 + Cluster 3 + Cluster 4)",
+   "desirs": [
+    "Un **tutoriel 'IA pour les pauvres'** – pas une démo de high-end, mais un guide pour extraire le maximum d’une RTX 2060.",
+    "Un **espace communautaire** où échanger des astuces de bricolage (signaux : '*faut scroll plus bas sur le site*', '*ressources sur Hugging Face*' – il cherche déjà des solutions entre pairs)."
+   ],
+   "emotion_dominante_mesuree": "Frustration (37.4% dans le cluster) teintée d’**espoir tenace** (9.6%) – comme un alpiniste bloqué à mi-pente qui refuse de redescendre.",
+   "etat_esprit": "Dans un état de **frustration créative active** – entre l’euphorie de la découverte ('On arrête jamais d’apprendre') et la rage impuissante face aux barrières techniques ('80 Go', 'bête de course', 'erreur à l’installation'). Sentiment d’être **à la fois un pionnier et un exclu** du mouvement IA.",
+   "genre": "Homme (82% des signaux)",
+   "habitudes_digitales": [
+    "Cherche des **solutions gratuites ou open-source** avant d’envisager un achat (Civitai, Hugging Face).",
+    "Utilise des **forums techniques** (Reddit, GitHub) pour contourner les limites de son matériel.",
+    "Regarde des tutoriels **sans les appliquer immédiatement** – il accumule des idées ('*je compte mettre mon ancien ordi quand j’aurai fini ma maison*').\n  ],\n  \"declencheurs_emotionnels\": [\n    \"Quand on **montre une solution qui semble 'magique' mais accessible** (ex : *'Voici comment j’ai fait tourner ComfyUI sur 8Go de VRAM'*).\n    \"Quand on **reconnaît sa frustration** sans la minimiser ('*Je sais que c’est chiant d’installer 80 Go, voici comment faire en 3 étapes*').\n    ",
+    "Quand on **lie la créativité à l’autonomie** ('*Créez sans dépendre des géants*').\n  ],\n  \"ce_qui_le_ferait_acheter\":",
+    "Un **bundle 'IA pour bricoleurs'** incluant :\n  - Un guide d’optimisation matériel (ex : *'Les 5 modèles les plus légers pour une RTX 3060'*).\n  - Une **communauté privée** pour échanger des workflows (même payante, si elle offre une **valeur immédiate** comme des templates prêts à l’emploi).\n  - Une **démo live** sur du matériel moyen (ex : *'Regardez-moi générer une vidéo avec une 2070 Super'*).",
+    "ce_qui_le_ferait_fuir\": [\n    \"Les **démos de high-end sans explication** ('*Tu fais tourner des modèles 22B sans dire que c’est inaccessible à 90% des gens*').\n    \"Les **formations trop théoriques** ('*Une vidéo de 2h sur les principes de ComfyUI sans montrer comment ça marche sur mon PC*').\n    \"Les **promesses de 'révolution' sans preuve** ('*Générer de l’argent en locale* sans montrer un exemple concret).\n  ],\n  \"message_a_lui_dire\": *",
+    "Tu n’as pas besoin d’une bête de course pour créer comme un pro. Ce que tu veux, c’est un **chemin de moine** – pas un parcours de riche. Voici comment j’ai fait tourner Flux 2 sur une 3070 avec 10Go de VRAM. Et si on échangeait nos astuces pour aller plus loin ?",
+    "messages_impactants\": [\n    *\"La vraie IA créative, c’est celle qui s’adapte à TOI, pas l’inverse. Voici comment dompter les outils sans te ruiner.",
+    "Tu n’es pas un débutant. Tu es un **bricoleur de génie** – tu répares, tu optimises, tu fais fonctionner ce qui n’était pas fait pour toi. Et c’est exactement ce que l’IA a besoin de gens comme toi.",
+    "Le secret ? **Ne pas chercher à tout faire, mais à tout optimiser.** Un modèle léger bien utilisé > un modèle lourd mal maîtrisé.",
+    "objections_a_lever\": [\n    *\"Je n’ai pas le bon matériel\"* → Réponse : *\"Voici comment j’ai fait tourner [outil] sur [matos modeste] – avec des captures d’écran de mon PC à moi.",
+    "C’est trop technique\"* → Réponse : *\"Je te montre les 3 étapes clés, pas la théorie. Comme si on bidouillait ensemble.",
+    "Ça ne marche jamais pour moi\"* → Réponse : *\"Je te donne mon numéro Discord – on résout ça en direct, comme des potes.",
+    "histoire_interieure\": *\"Putain, si seulement ils me disaient **comment faire avec ce que j’ai**. Je sais que je peux y arriver, mais chaque fois que je regarde une démo, je me dis : 'Mec, t’es à la ramasse'. Et puis je me rappelle que les pros aussi ont commencé comme ça. Sauf qu’eux, ils avaient quelqu’un pour leur montrer le raccourci. Moi, je dois tout découvrir seul. **Mais bon sang, j’ai envie d’y arriver.**",
+    "mission_cachee\": \"Créer **la Bible du bricolage IA** – un guide qui transforme les contraintes ('*pas de GPU puissant*', '*connexion lente*') en **avantages compétitifs** ('*Je maîtrise ce que les autres paient cher*').\n  ",
+    "potentiel_non_exprime\": \"Il pourrait devenir **l’expert incontourné des solutions low-cost**, mais il est bloqué par :\n  1. **La peur de l’imposture** ('*Si je partage mes astuces, on va me dire que c’est de l’amateurisme*').\n  2. **Le manque de confiance en ses propres optimisations** ('*Ma méthode est trop bidouillée pour être utile*').\n  ",
+    "archetype_jungien\": \"Le **Guerrier** (il combat les limites techniques) **hybridé avec l’Orphelin** (il se sent exclu du club des 'vrais' créateurs IA). Son ombre : le **Rebelle** qui sabote ses propres succès par peur de plaire ('*Si je réussis, je deviendrai comme eux – et je déteste ça*').\n  ",
+    "besoin_d_appartenance\": \"Il aspire à rejoindre **une tribu de 'hackers créatifs'** – ceux qui **détournent les règles** pour créer sans se soumettre aux standards du marché. Exemples de communautés idéales :\n  - Un **Discord 'IA pour les bricoleurs'** avec des salons par matériel ('*RTX 20xx*', '*Laptop sous 500€*').\n  - Un **forum 'Astuces de bidouille IA'** où on partage des scripts personnalisés.\n  ",
+    "desir_de_legacy\": \"Laisser derrière"
+   ],
+   "langage_typique": "Franchement je commente jamais, mais cette vidéo mérite un commentaire. Super instructive, merci frérot ! 👏💯\"* (Cluster 0) + *\"J’ai une 5080 avec 16Go de VRAM et je pense que ça va jamais passer pour Flux 2",
+   "metier": "Technicien freelance / Développeur indie / Graphiste auto-entrepreneur (signaux : 'générer de l’argent en locale', 'workflow', 'photos', 'modélisation 3D')",
+   "nom": "Les *Bricoleurs Frustrés du Potentiel*",
+   "objection_principale": "C’est trop technique pour moi / Je n’ai pas le bon matériel\"* (sous-entendu : *\"Je ne veux pas passer des heures à bidouiller pour un résultat médiocre.",
+   "ombre_jungienne": "La **peur de l’incompétence technique** projetée sur les autres ('*dommage que tu caches que LTX est payant*') – il idéalise les \"experts\" (comme le créateur de la vidéo) tout en se sous-estimant lui-même. Son ombre : **croire que la réussite dépend uniquement du matériel** (et non de la méthode).",
+   "peurs": [
+    "Peur de **devenir obsolète** ('*si je ne monte pas en puissance maintenant, je serai toujours un amateur*').",
+    "Peur de **gaspirer son temps** sur des outils qui ne fonctionnent pas ('*j’ai galéré avec les erreurs*').",
+    "Peur de **rater une opportunité financière** ('*générer de l’argent en locale*') par manque de compétences."
+   ],
+   "poids": "34%",
+   "preuve_attendue": [
+    "Des **démos concrètes** sur du matériel moyen (ex : *'Voici comment j’ai fait tourner Flux 2 sur une 3080 avec 12Go'*).",
+    "Des **témoignages de pairs** ('*Regardez ce que j’ai fait avec une 1080ti*').",
+    "Un **checklist d’optimisation** ('*5 étapes pour réduire la taille des modèles de 70%**')."
+   ],
+   "quete_de_sens": "Trouver un **chemin de moine** pour créer sans dépendre des géants (Google, MidJourney) – une quête de **souveraineté créative** dans un écosystème où tout est soit trop cher, soit trop technique.",
+   "rapport_argent": "Contradiction entre :\n  - **Frugalité forcée** ('*mon ancien ordi*') et\n  - **Envie de monétiser rapidement** ('*générer de l’argent en locale*'). Il est prêt à investir dans du matériel d’occasion, mais pas dans des formations payantes ('*les modèles gratuits sont limités*' → sous-entendu : *'je ne veux pas payer'*).\n  ",
+   "rapport_autorite": "Méfiance envers les 'experts' qui **cachent les contraintes** ('*tu caches que LTX est payant*'), mais admiration secrète pour ceux qui **partagent des astuces de bricoleur** (ex : le commentateur avec la 1080ti). Il veut un leader qui **reconnaît sa condition** sans le traiter comme un débutant.",
+   "signaux_mesures": [
+    "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour gé / matosse haut de game",
+    "80 GB",
+    "connexion à 15mb/s",
+    "générer de l’argent en locale",
+    "workflow",
+    "erreur",
+    "installer",
+    "Flux 2",
+    "33 Go",
+    "trop lent",
+    "modèle gratuit vs payant",
+    "Civitai",
+    "Hugging Face"
+   ],
+   "situation_vie": "Vit en périphérie urbaine (connexion 15mb/s), célibataire ou en couple sans enfants, budget serré mais investit dans du matériel d’occasion pour tester l’IA (signaux : 'mon ancien ordi', 'ma connexion à 15mb/s', 'construire ma maison et mon setup'). Finances : revenus variables, dépendant des projets ponctuels.",
+   "vision_monde": "La technologie devrait être une extension de ma créativité, pas un mur payant à escalader."
+  }
+ ],
+ "psychologie": {
+  "besoin_d_appartenance": "Ils aspirent à une **tribu de 'créateurs tech autonomes'****, un groupe où l’on partage **astuces, échecs et victoires** sans jugement, avec un **leader qui incarne la réussite accessible** (ex : 'tu as quoi comme config ?').",
+  "besoin_de_transformation": "Ils veulent **passer de 'consommateur passif' à 'créateur actif'****, mais aussi **de 'dépendant du matériel' à 'maître de son workflow'** — une transformation à la fois **technique et identitaire**.",
+  "besoins_identitaires": "Le besoin de **se définir comme 'créateur tech'****, mais avec la peur de **rester un amateur** ('je n’ai pas réussi'). L’identité oscille entre **l’orphelin technique** (besoin de mentor) et **le héros en devenir** (maîtrise de l’IA).",
+  "croyances_limitantes": [
+   "L’IA locale est réservée aux experts",
+   "Sans matériel puissant, c’est impossible",
+   "Je ne suis pas assez compétent"
+  ],
+  "croyances_mobilisatrices": [
+   "Avec les bons outils, tout est possible",
+   "La communauté peut m’aider à progresser",
+   "Ma créativité mérite d’être libérée"
+  ],
+  "desir_de_legacy": "Leur **trace** serait de **devenir des références dans l’IA locale** — soit en créant des **outils open-source**, soit en **formant une nouvelle génération de créateurs autonomes** ('transmettre ce que j’ai reçu').",
+  "desirs_caches": [
+   "Devenir un pro de l’IA",
+   "Créer sans censure",
+   "Avoir un impact visible"
+  ],
+  "frustrations": [
+   "Inégalités matérielles",
+   "Complexité technique",
+   "Manque de clarté"
+  ],
+  "maturite_emotionnelle": "Maturité **variable** : certains expriment leur frustration ouvertement ('déception chez le novice'), d’autres cachent leur scepticisme derrière des compliments ('super vidéo'). **Peur de paraître incompétent**.",
+  "mecanismes_psychologiques": "Biais de **disponibilité** (Kahneman S1) : les utilisateurs se focalisent sur les **obstacles visibles** (matériel, temps) plutôt que sur les **solutions potentielles** (workflows optimisés, ressources partagées).",
+  "motivations_profondes": [
+   "Créer sans limites",
+   "Maîtriser la technologie",
+   "Être vu et reconnu"
+  ],
+  "peurs_implicites": [
+   "L’échec technique",
+   "L’investissement inutile",
+   "Le jugement des autres"
+  ],
+  "potentiel_bloque": "Le potentiel **créatif et technique** est bloqué par **la peur de l’échec matériel** et **le manque de parcours progressif** : ils ont la vision (créer avec l’IA), mais pas les étapes pour y arriver sans frustration.",
+  "quete_de_signifiance": "Ils cherchent à **donner du poids à leur existence** en **créant des contenus uniques** (vidéos, images, audio) et en **montrant qu’ils maîtrisent une technologie de pointe**, malgré leurs limites matérielles.",
+  "rapport_argent": "L’argent est **un levier de motivation secondaire** : ils veulent d’abord **créer**, mais l’idée de **monétiser leur créativité** (ex : 'générer de l’argent en locale') émerge comme un **objectif latent** une fois la maîtrise technique acquise.",
+  "rapport_autorite": "Le créateur est perçu comme une **autorité technique**, mais aussi comme un **mentor potentiel** ('on pourrait te regarder toute la journée'). La demande implicite : **passe du statut d’expert à celui de guide accessible**.",
+  "rapport_famille": "La famille est un **frein matériel** ('dès que j’ai fini de construire ma maison') mais aussi un **soutien émotionnel** ('merci beaucoup ❤') — elle représente à la fois un **obstacle** et une **source de motivation**.",
+  "rapport_image": "L’image de soi est **fortement influencée par le matériel** : posséder une 'bête de course' devient un **symbole de légitimité** ('tu as quoi comme carte graphique ?').",
+  "rapport_spiritualite": "Aucun signal direct, mais une **quête de sens** se devine dans l’aspiration à **créer sans limites** ('IA non-censurée') et à **laisser une trace** ('mon legacy créatif').",
+  "rapport_succes": "Le succès est **lié à la maîtrise technique** ('faire tourner un modèle de 33 Go') et à la **reconnaissance sociale** ('pourquoi pas le million ?'), mais aussi à la **capacité à surmonter les échecs** ('je n’ai pas réussi avec Flux 2').",
+  "rapport_travail": "Le travail est **absent des commentaires**, suggérant que cette audience est soit **en reconversion**, soit **en quête d’un projet parallèle** (créativité) pour échapper à une routine non épanouissante.",
+  "signal_de_purpose": "Le **signal le plus fort** est l’aspiration à **démocratiser l’accès à la créativité IA** — non pas en vendant du matériel, mais en **cassant les barrières techniques** (tutoriels pour machines modestes, alternatives open-source).",
+  "systeme_de_valeurs": "Un **système hybride** entre **individualisme créatif** ('je veux ma propre IA') et **communautarisme technique** ('on peut créer un workflow ensemble'). La tension : **vouloir être unique tout en ayant besoin de guides**.",
+  "tensions_internes": "Tension entre **l’envie de liberté créative** ('IA non-censurée') et **la peur de l’isolement technique** ('je ne sais pas faire'). Ils veulent **devenir autonomes**, mais ont besoin d’un **pont** pour y arriver.",
+  "valeurs_dominantes": [
+   "Autonomie",
+   "Innovation",
+   "Partage",
+   "Reconnaissance"
+  ]
+ },
+ "recommandations": {
+  "actions_prioritaires": [
+   "1. **Créer une série 'IA Locale pour les Nuls' (mais pas condescendante)** : Tutoriels ultra-pratiques filmés sur un PC faible (ex: 8Go VRAM), avec des astuces pour **maximiser les performances** (ex: 'Comment faire tourner Stable Diffusion 3 sur un RTX 2060 avec ces 5 réglages'). *Format* : Vidéos courtes (5-10 min) + fichiers de config prêts à l’emploi (GitHub public).",
+   "2. **Lancer un 'Club des Créateurs Limités'** (communauté privée) : Un espace où ils partagent leurs **échecs et solutions** (ex: 'J’ai fait ça et ça a planté, voici comment j’ai réparé'). *Règle* : Pas de 'tu devrais acheter un GPU', mais des hacks pour **optimiser ce qu’ils ont déjà**.",
+   "3. **Documenter chaque erreur comme un 'Journal de Bord'** : Publier des posts honnêtes du type *'Ce que personne ne vous dit sur ComfyUI (et comment j’ai cassé mon setup 3 fois avant de réussir)'*. Cela crée un lien de confiance et montre que **l’échec fait partie du processus**.",
+   "4. **Organiser des 'Ateliers Anti-Frustration'** : Sessions live où ils **choisissent un problème technique** (ex: 'Mon modèle ne génère pas de visages réalistes') et où vous le résolvez ensemble en direct, avec des captures d’écran et des explications **sans filtre marketing**."
+  ],
+  "angles_narratifs": [
+   "🔥 **'Le mythe du matériel parfait'** : 'On vous dit qu’il faut une bête de course pour faire de l’IA ? Voici comment j’ai fait tourner des modèles 22B sur un PC de 2015 – et pourquoi ça change tout.' *(Appel à la résistance contre l’industrie du hardware.)*",
+   "💡 **'La méthode des 3 erreurs'** : 'Avant de réussir, j’ai tout cassé. Voici les 3 bugs les plus courants avec ComfyUI… et comment les éviter.' *(Réduit la peur de l’échec.)*",
+   "🌱 **'De zéro à pro en 3 étapes (même si vous débutez)'** : Un parcours **progressif et réaliste**, avec des mini-défi ('Cette semaine, tu vas générer 1 image par jour – voici comment'). *(Donne un sentiment de contrôle.)*"
+  ],
+  "ce_qu_ils_ne_disent_pas_mais_veulent_entendre": "'Je ne veux pas juste apprendre à utiliser un outil. Je veux **prouver à moi-même que je peux le faire**, que je ne suis pas un imposteur, et que ma créativité a de la valeur – **même si je galère**. Et surtout, je veux **ne plus dépendre de personne** pour exprimer ce que j’ai dans la tête.'**",
+  "differenciation": "Se différencier en **assumant leurs limites** comme un avantage :\n      - **Contenu 'Low-End High-Impact'** : Montrer que **même avec un PC de 2017, on peut faire des trucs de malade** (ex: 'Comment j’ai généré une vidéo 4K avec un i5-6500').\n      - **Transparence radicale** : Filmer ses propres bugs, ses plantages, et les solutions **sans les cacher**.\n      - **Focus sur la liberté** : Répéter sans cesse que **l’IA locale = indépendance** (vs. dépendance aux serveurs cloud ou aux algorithmes des plateformes).**",
+  "insight_strategique_cle": "Leur blocage n’est pas technique, mais *identitaire* : ils ont peur de ne pas être à la hauteur, de dépendre des autres, ou de gaspiller leur temps. La solution n’est pas de leur donner plus de connaissances, mais de leur **redonner confiance en leur capacité à apprendre** – en montrant que même les 'débutants' peuvent créer des résultats pro avec des ressources limitées.**",
+  "message_central": "'Votre PC n’est pas assez puissant ? Tant mieux. **C’est exactement ce qui va vous forcer à devenir un vrai créateur.**'**",
+  "positionnement": "Le *mentor anti-élitiste* de l’IA locale : celui qui **ne juge pas leurs moyens**, mais leur apprend à **jouer avec les règles** pour créer des résultats pro. **Pas un vendeur de matériel, pas un guru inaccessible, mais un guide qui parle leur langage** (celui des 'je ne sais pas', des 'ça marche pas', des 'est-ce que je suis trop nul ?').**",
+  "prochaines_etapes": [
+   "📅 **Cette semaine** : Publier **3 vidéos 'Problème/Solution'** filmées sur un PC faible (ex: 'Mon modèle buggue – voici comment j’ai diagnostiqué l’erreur en 2 min'). *Objectif* : Créer un premier point de contact émotionnel (ils voient que vous comprenez leurs galères).",
+   "📅 **Ce mois** : Lancer le **Club des Créateurs Limités** (groupe Discord ou Telegram) avec **2 règles** :\n        - 1. **Partage obligatoire** : Tout le monde doit poster un problème technique (même stupide).\n        - 2. **Pas de jugement** : On cherche des solutions, pas des moqueries.\n      *Objectif* : Créer un sentiment d’appartenance ('Je ne suis pas seul').",
+   "📅 **Dans 3 mois** : Sortir un **guide PDF gratuit** : *'IA Locale : Le Manuel du Créateur qui n’a pas les moyens'* – avec des **checklists pour déboguer**, des **templates de config**, et des **témoignages anonymes** ('Avant, je croyais que je n’y arriverais jamais'). *Objectif* : Devenir une référence pour les débutants frustrés.",
+   "📅 **Dans 6 mois** : Organiser un **événement live** : *'Le Hackathon Anti-Frustration'* – où des équipes (même avec du matériel faible) doivent créer un projet en 48h, avec **mentorat en direct**. *Objectif* : Prouver que **la créativité n’a pas besoin de frontières matérielles** – et filmer les réactions pour en faire du contenu inspirant."
+  ],
+  "promesse_authentique": "'Maîtrisez l’IA locale **sans vous sentir exclu** – même avec un PC ancien. Je vous montre **exactement** comment contourner les limites, éviter les pièges, et créer comme un pro, **pas à pas, sans jargon inutile**. Parce que votre créativité mérite une chance, peu importe votre matériel.'**",
+  "risques_strategiques": [
+   "1. **Tomber dans le 'tutoriel technique pur'** sans aborder l’aspect **émotionnel** (peur de l’échec, sentiment d’imposture) → Risque de ne pas répondre à leur vrai besoin (confiance).",
+   "2. **Devenir trop niche** en se concentrant uniquement sur le 'low-end' → Perte d’audience avec ceux qui ont du matériel haut de gamme (mais ceux-là ne sont pas le cœur de la demande).",
+   "3. **Sous-estimer la complexité** des problèmes techniques** → Si les solutions proposées sont trop simplistes, ils se sentiront trahis ('Tu nous prends pour des idiots')."
+  ],
+  "strategie_contenu": "Le contenu doit être un *miroir* de leurs combats : **technique + émotionnel**. Pas de démonstrations parfaites, mais des **démos 'brutes'** (ex: 'Voilà ce que j’ai obtenu avec un RTX 3060 Ti – et voici comment j’ai corrigé les artefacts'). Utiliser un ton **à la fois pédagogique et complice** ('Je sais que c’est frustrant, mais regarde ce qu’on peut faire quand même').**",
+  "verite_de_l_audience": "Ils veulent se sentir *capables* de créer sans limites techniques ou financières, mais surtout : **ils veulent prouver à eux-mêmes qu’ils peuvent maîtriser l’IA locale pour **devenir visibles, autonomes et libres** – même avec des moyens modestes. Leur vrai besoin n’est pas un outil, mais une *méthode* qui transforme leur frustration en pouvoir.**"
+ },
+ "source_label": "YouTube",
+ "top_comments": [
+  {
+   "author": "auteur-1",
+   "comment_id": "Ugy6_Mrna5DGnu_JtRR4AaABAg",
+   "external_comment_id": "Ugy6_Mrna5DGnu_JtRR4AaABAg",
+   "likes": 40,
+   "published_at": "2026-04-12T00:03:04Z",
+   "reply_count": 8,
+   "text": "vidéo intéressent mais.....elle s'adresse a des débutant sans jamais leur dire que pour générer les vidéo que tu présente en locale comme tu le dit,  il faut du matosse haut de game et un max de RAM . Peut etre commencer par cela avant de provoquer beaucoup de déception chez le novice.....",
+   "updated_at": "2026-04-12T00:03:04Z",
+   "video_id": "dAdkGfsZXMg"
+  },
+  {
+   "author": "auteur-2",
+   "comment_id": "UgwdMt_zI0sgfSLUEIl4AaABAg",
+   "external_comment_id": "UgwdMt_zI0sgfSLUEIl4AaABAg",
+   "likes": 8,
+   "published_at": "2026-04-11T16:30:49Z",
+   "reply_count": 2,
+   "text": "Si la modélisation 3D vous intéresse, profitez de -50% sur Meshy http://www.meshy.ai/s/cyber, le meilleur outil de modélisation IA en 2026.",
+   "updated_at": "2026-04-11T18:30:47Z",
+   "video_id": "dAdkGfsZXMg"
+  },
+  {
+   "author": "auteur-3",
+   "comment_id": "UgykGrHC8RpLJVKLgfB4AaABAg",
+   "external_comment_id": "UgykGrHC8RpLJVKLgfB4AaABAg",
+   "likes": 8,
+   "published_at": "2026-04-11T17:19:28Z",
+   "reply_count": 12,
+   "text": "Pour être honnête, j’adorerai utiliser une IA non-censurée et très performante avec autant de paramètres, c’en est presque mon rêve cependant devoir installer jusqu’à 80 GB sur mon ordinateur prendrait non-seulement énormément de place mais aussi du temps à s’installer pour ma connexion à 15mb/s… Même si l’application serait bourré de pubs, je préfèrerais tout de même une version en ligne. \nÀ part ça, super vidéo comme toujours! ❤",
+   "updated_at": "2026-04-11T17:19:28Z",
+   "video_id": "dAdkGfsZXMg"
+  },
+  {
+   "author": "auteur-4",
+   "comment_id": "Ugx2KUbP6dcw5j8NafV4AaABAg",
+   "external_comment_id": "Ugx2KUbP6dcw5j8NafV4AaABAg",
+   "likes": 7,
+   "published_at": "2026-04-11T17:23:05Z",
+   "reply_count": 0,
+   "text": "La musique de SAO en fond me régale à chaque fois",
+   "updated_at": "2026-04-11T17:23:05Z",
+   "video_id": "dAdkGfsZXMg"
+  },
+  {
+   "author": "auteur-5",
+   "comment_id": "UgxmfLYXwhf48b00fVR4AaABAg",
+   "external_comment_id": "UgxmfLYXwhf48b00fVR4AaABAg",
+   "likes": 7,
+   "published_at": "2026-04-11T18:21:22Z",
+   "reply_count": 0,
+   "text": "Créer un deuxième cerveau numérique avec OpenClaw, Ollama et Anytype : un workflow open-source et souverain pour la gestion de connaissances.",
+   "updated_at": "2026-04-11T18:21:22Z",
+   "video_id": "dAdkGfsZXMg"
+  },
+  {
+   "author": "auteur-6",
+   "comment_id": "Ugw5lZAab2lSJpGjiKB4AaABAg",
+   "external_comment_id": "Ugw5lZAab2lSJpGjiKB4AaABAg",
+   "likes": 4,
+   "published_at": "2026-04-18T20:21:26Z",
+   "reply_count": 0,
+   "text": "super intéressant et mérite une vidéo bien plus longue pour comprendre en détail les possibilités du logiciel, j attends ça avec impatience !",
+   "updated_at": "2026-04-18T20:21:26Z",
+   "video_id": "dAdkGfsZXMg"
+  },
+  {
+   "author": "auteur-7",
+   "comment_id": "UgwtzOWtEPwjIo68wEl4AaABAg",
+   "external_comment_id": "UgwtzOWtEPwjIo68wEl4AaABAg",
+   "likes": 4,
+   "published_at": "2026-04-11T20:00:26Z",
+   "reply_count": 0,
+   "text": "Merci pour cette video encore incroyable. Sinon à quand la vidéo sur les fonctions n8n ?",
+   "updated_at": "2026-04-11T20:00:26Z",
+   "video_id": "dAdkGfsZXMg"
+  },
+  {
+   "author": "auteur-8",
+   "comment_id": "UgwtF2yqqKfOCZ58pbV4AaABAg",
+   "external_comment_id": "UgwtF2yqqKfOCZ58pbV4AaABAg",
+   "likes": 4,
+   "published_at": "2026-04-11T21:17:26Z",
+   "reply_count": 1,
+   "text": "On arrête jamais d’apprendre avec tes videos ❤",
+   "updated_at": "2026-04-11T21:17:26Z",
+   "video_id": "dAdkGfsZXMg"
+  },
+  {
+   "author": "auteur-9",
+   "comment_id": "UgwJHxwxVD20vGVVAux4AaABAg",
+   "external_comment_id": "UgwJHxwxVD20vGVVAux4AaABAg",
+   "likes": 4,
+   "published_at": "2026-04-11T19:10:32Z",
+   "reply_count": 1,
+   "text": "c'est fou l'évolution depuis simple-diffusion (environ 4 ans avant)",
+   "updated_at": "2026-04-11T19:10:32Z",
+   "video_id": "dAdkGfsZXMg"
+  },
+  {
+   "author": "auteur-10",
+   "comment_id": "UgzsuWE3sYdbAIWrHo54AaABAg",
+   "external_comment_id": "UgzsuWE3sYdbAIWrHo54AaABAg",
+   "likes": 3,
+   "published_at": "2026-04-12T12:45:04Z",
+   "reply_count": 0,
+   "text": "combien de mémoire de stockage demande l'installation compète? quel doit être au minimum la configuration du PC? merci !",
+   "updated_at": "2026-04-12T12:45:04Z",
+   "video_id": "dAdkGfsZXMg"
+  }
+ ],
+ "transformation": {
+  "etat_actuel": {
+   "conscience_du_probleme": "Conscience **partielle** : ils identifient les obstacles (matériel, temps), mais **ne voient pas les solutions** (workflows optimisés, ressources partagées).",
+   "croyance_bloquante": "La croyance limitante dominante : '**L’IA locale est réservée aux pros avec du matériel cher**' — une croyance renforcée par le silence sur les **solutions pour machines modestes**.",
+   "frustration_principale": "La **frustration #1** est le **sentiment d’exclusion** : 'Je veux créer, mais je n’ai pas les moyens/le temps/les compétences.' (80% des commentaires négatifs ou neutres tournent autour de cela).",
+   "identite_actuelle": "Ils se définissent comme **des 'apprentis créateurs'****, en quête de **maîtrise technique**, mais **peu sûrs d’eux** ('je n’ai pas réussi avec Flux 2'). Leur identité oscille entre **l’enthousiasme** et **la peur de l’échec**.",
+   "situation": "L’audience est **au stade 'éveil frustré'** (Myles Munroe) : elle **sait que l’IA locale existe**, mais se heurte à des **obstacles concrets** (matériel, temps, compétences) qui **bloquent son potentiel créatif**."
+  },
+  "etat_desire": {
+   "identite_aspiree": "Leur 'moi B' est un **créateur confiant**, **reconnu dans sa communauté**, et **maître de son workflow** — quelqu’un qui **partage ses astuces** et **inspire les autres** sans avoir besoin d’un PC de 10 000 €.",
+   "indicateur_de_succes": "Ils sauront qu’ils ont réussi quand :\n      1. **Ils peuvent créer un contenu IA localement** (même basique) **sans aide externe**,\n      2. **Ils ont partagé leur workflow** avec d’autres (commentaire, forum, vidéo),\n      3. **Ils ont surmonté une peur** (ex : 'Je pensais que Flux 2 était impossible sur ma 1080ti').",
+   "transformation_visee": "Passer de **'consommateur passif de tutos'** à **'créateur actif et autonome'****, capable de **générer des contenus professionnels** (vidéos, images, audio) **avec les outils à leur portée**.",
+   "vie_revelee": "Une vie où **la créativité n’est plus un rêve**, mais un **outil quotidien** : pouvoir **restaurer des VHS**, **créer des voix réalistes**, ou **générer des images pour un projet perso** **sans dépendre de plateformes externes**."
+  },
+  "le_pont": {
+   "ce_dont_ils_ont_besoin": "Ils ont besoin de :\n      - **Un parcours progressif** (de 'débutant' à 'avancé') **avec des étapes claires**,\n      - **Des ressources ciblées** (tutoriels pour machines modestes, alternatives open-source),\n      - **Une communauté visible** où échanger **échecs et victoires**,\n      - **Un guide qui incarne la réussite accessible** (ex : 'Voici comment j’ai fait tourner Flux 2 sur une 5080').",
+   "declencheur_de_transition": "Le déclencheur serait une **série de vidéos 'Erreurs et Solutions'****, où le créateur :\n      - **Montre ses propres échecs** (ex : 'Voici comment j’ai planté Flux 2 3 fois avant de réussir'),\n      - **Donne des alternatives concrètes** (ex : 'Voici 3 workflows pour une 1080ti'),\n      - **Crée un espace de partage** (forum, groupe Discord) pour **normaliser les questions des débutants**.",
+   "message_de_passage": "'Je suis un créateur en devenir, et je veux **libérer ma créativité sans limites matérielles** — avec toi, je vais **apprendre à dompter l’IA locale**, étape par étape, **même si je n’ai pas la meilleure carte graphique**.'",
+   "obstacle_principal": "L’**obstacle psychologique #1** est la **peur de l’échec technique** — ils ont peur de **perdre du temps** ou de **se sentir incompétents** devant la complexité. La solution : **démystifier chaque étape** et **montrer que l’échec fait partie du processus**."
+  }
+ },
+ "video_context": "Comment Générer des Images et Vidéos INCROYABLES avec une IA LOCALE et ILLIMITÉE sur ton PC — Parlons Cyber",
+ "video_description": "Si la modélisation 3D vous intéresse, profitez de -50% sur Meshy : http://www.meshy.ai/s/cyber le meilleur outil de modélisation IA en 2026.\n\nEt si vous pouviez créer des images et vidéos bluffantes… sur votre PC, sans internet et totalement gratuitement ?\nDans cette vidéo, je vous montre comment installer ComfyUI, avec des modèles d’IA locales qui transforment vos idées en visuels et vidéos incroyables, avec un contrôle total sur chaque détail.\n\nJ’espère que tu apprécieras 🙂\n🫶🏻 Pour me soutenir : \nhttps://www.youtube.com/channel/UCGjKwjEvPA0ms2wOyBwdMPQ/join\n👌🏻 Abonne-toi : https://www.youtub"
+}

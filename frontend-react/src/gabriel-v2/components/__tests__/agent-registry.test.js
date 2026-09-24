@@ -10,14 +10,19 @@ describe('L’adresse décide de l’écran ouvert', () => {
     expect(tabFromUrl('https://x.fr/orchestrateur?agent=createur')).toBe('createur');
   });
 
-  it('ouvre la Conversation quand rien n’est demandé', () => {
-    expect(tabFromUrl('https://x.fr/orchestrateur')).toBe('conversation');
+  it('ouvre le Psychologue quand rien n’est demandé : c’est la porte d’entrée', () => {
+    expect(tabFromUrl('https://x.fr/orchestrateur')).toBe('psychologue');
+  });
+
+  it('garde la Conversation accessible par son adresse', () => {
+    expect(tabFromUrl('https://x.fr/orchestrateur?agent=conversation')).toBe('conversation');
+    expect(urlWithTab('https://x.fr/orchestrateur', 'conversation')).toContain('agent=conversation');
   });
 
   it('ignore un agent qui n’existe pas', () => {
     /* Une adresse trafiquée ne doit pas ouvrir un écran vide. */
-    expect(tabFromUrl('https://x.fr/orchestrateur?agent=nimportequoi')).toBe('conversation');
-    expect(tabFromUrl('pas une adresse')).toBe('conversation');
+    expect(tabFromUrl('https://x.fr/orchestrateur?agent=nimportequoi')).toBe('psychologue');
+    expect(tabFromUrl('pas une adresse')).toBe('psychologue');
   });
 
   it('inscrit l’agent ouvert dans l’adresse', () => {
@@ -25,16 +30,21 @@ describe('L’adresse décide de l’écran ouvert', () => {
       .toContain('agent=stratege');
   });
 
-  it('retire l’agent quand on revient sur un écran qui n’en est pas un', () => {
-    expect(urlWithTab('https://x.fr/orchestrateur?agent=stratege', 'conversation'))
+  it('garde une adresse nue pour l’écran d’entrée', () => {
+    expect(urlWithTab('https://x.fr/orchestrateur?agent=stratege', 'psychologue'))
+      .not.toContain('agent=');
+  });
+
+  it('retire le paramètre pour un écran qui ne se partage pas', () => {
+    expect(urlWithTab('https://x.fr/orchestrateur?agent=stratege', 'memory'))
       .not.toContain('agent=');
   });
 
   it('ne perd pas le dossier en cours en changeant d’agent', () => {
     /* Sans cela, changer d'agent ferait basculer l'utilisateur sur un autre
        dossier que le sien. */
-    const url = urlWithTab('https://x.fr/orchestrateur?folder_id=abc', 'psychologue');
+    const url = urlWithTab('https://x.fr/orchestrateur?folder_id=abc', 'stratege');
     expect(url).toContain('folder_id=abc');
-    expect(url).toContain('agent=psychologue');
+    expect(url).toContain('agent=stratege');
   });
 });

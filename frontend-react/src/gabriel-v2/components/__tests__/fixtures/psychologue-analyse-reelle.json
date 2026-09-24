@@ -1,0 +1,2119 @@
+{
+ "analysis_id": "55011495-534",
+ "aspirations": {
+  "ambitions": [
+   "maîtriser un sujet complexe",
+   "devenir un expert reconnu",
+   "partager son savoir",
+   "être autonome"
+  ],
+  "appel_interieur": "L’appel à devenir compétent et à agir avec confiance dans un monde complexe.",
+  "ce_qu_ils_veulent_construire": "Une expertise tangible et des preuves de leur progression.",
+  "ce_qu_ils_veulent_devenir": "Des personnes compétentes et autonomes dans leur domaine.",
+  "ce_qu_ils_veulent_eviter": "Les arnaques, les promesses vides et les explications floues.",
+  "ce_qu_ils_veulent_proteger": "Leur temps et leur argent en investissant dans des contenus de qualité.",
+  "ce_qu_ils_veulent_transmettre": "Leur savoir et leur pédagogie à d’autres.",
+  "freins_aux_aspirations": [
+   "manque de confiance",
+   "prix élevé",
+   "scepticisme",
+   "peur de l’échec"
+  ],
+  "vision_de_leur_meilleur_moi": "Une personne qui comprend, agit avec assurance et inspire les autres par son expertise."
+ },
+ "brief": {
+  "action": "Deviens le miroir qui leur renvoie leur propre grandeur : un guide qui transforme leur lutte en légende, pas en cours.",
+  "insight": "Leur admiration polie cache une peur panique de ne jamais être à la hauteur — et c’est cette honte silencieuse qui les pousse à consommer du savoir comme un remède, pas comme un outil.",
+  "qui": "Des âmes assoiffées de maîtrise, mais prisonnières d’un syndrome de l’imposteur qui étouffe leur potentiel sous le poids de la perfection."
+ },
+ "culturel": {
+  "croyances_dominantes": [
+   "Le savoir doit être accessible et concret, pas théorique ou inaccessible",
+   "Le prix est souvent perçu comme un indicateur de valeur, mais rarement justifié",
+   "La transparence et la générosité dans le partage sont des valeurs rares et précieuses"
+  ],
+  "dynamique_communautaire": "Une tribu de 'chercheurs de sens' qui se reconnaît dans les contenus qui osent dire les choses simplement, même si cela dérange.",
+  "recits_emergents": "Un récit de résistance contre l’opacité des systèmes (économiques, éducatifs, médiatiques) au profit d’une transmission authentique.",
+  "references_culturelles": [
+   "La pédagogie comme antidote à la complexité moderne",
+   "Le scepticisme face aux arguments commerciaux ('Trop cher pour ce que c’est honnêtement')"
+  ],
+  "signaux_faibles": [
+   "La demande récurrente d’exemples concrets ('J’aimerais plus d’exemples concrets stp')",
+   "La valorisation explicite de la générosité ('merci pour ce partage généreux')"
+  ],
+  "tensions_culturelles": "Entre l’aspiration à la simplicité et la méfiance envers les solutions trop faciles ou trop chères.",
+  "visions_du_monde": "Une génération en quête de clarté et de pédagogie, lassée des discours flous ou élitistes, mais profondément sceptique face aux promesses marketing."
+ },
+ "dashboard": {
+  "argument_density": {
+   "favorable": {
+    "avg_words": 6.0,
+    "label": "court"
+   },
+   "neutre": {
+    "avg_words": 6.5,
+    "label": "court"
+   },
+   "nuance": {
+    "avg_words": 7.0,
+    "label": "court"
+   },
+   "oppose": {
+    "avg_words": 7.5,
+    "label": "court"
+   },
+   "ratio_oppose_vs_favorable": 1.25
+  },
+  "avg_emotion_intensity": 0.66,
+  "confidence_score": 0.56,
+  "dominant_desire": "exemple",
+  "dominant_emotion": "admiration",
+  "dominant_sentiment": "neutral",
+  "dominant_stance": "neutre",
+  "emotion_distribution": {
+   "admiration": 30.0,
+   "colere": 10.0,
+   "confusion": 20.0,
+   "espoir": 10.0,
+   "frustration": 10.0,
+   "mefiance": 20.0
+  },
+  "fiabilite": {
+   "commentaires_analyses": 10,
+   "commentaires_hors_sujet": 0,
+   "label_confiance": "Modérément fiable",
+   "niveau_confiance": 0.56,
+   "pct_hors_sujet": 0.0,
+   "total_commentaires": 10
+  },
+  "groupes": [
+   {
+    "emotion_dominante": "admiration",
+    "exemples": [
+     "Super vidéo merci beaucoup !",
+     "Jadore ce contenu, ça maide vraiment"
+    ],
+    "id": 0,
+    "likes_pct": 0.0,
+    "likes_total": 0,
+    "mots_cles": [
+     "merci",
+     "cest",
+     "vidéo",
+     "jadore",
+     "contenu",
+     "maide"
+    ],
+    "pct": 70.0,
+    "sentiment_moyen": 0.091,
+    "stance_dominante": "neutre",
+    "taille": 7
+   },
+   {
+    "emotion_dominante": "mefiance",
+    "exemples": [
+     "Je ne suis pas convaincu par largument sur le prix",
+     "Jattends la suite avec impatience"
+    ],
+    "id": 1,
+    "likes_pct": 0.0,
+    "likes_total": 0,
+    "mots_cles": [
+     "suis",
+     "convaincu",
+     "largument",
+     "prix",
+     "jattends",
+     "suite"
+    ],
+    "pct": 30.0,
+    "sentiment_moyen": -0.14,
+    "stance_dominante": "oppose",
+    "taille": 3
+   }
+  ],
+  "irony_signals": {
+   "avg_incongruence": 0.0,
+   "count": 0,
+   "examples": [],
+   "pct": 0.0
+  },
+  "lexical_fields": [
+   {
+    "count": 2,
+    "examples": [
+     "Super vidéo merci beaucoup !",
+     "Merci pour ce partage généreux et clair"
+    ],
+    "field": "merci",
+    "pct": 20.0,
+    "words": [
+     "merci",
+     "vidéo"
+    ]
+   },
+   {
+    "count": 2,
+    "examples": [
+     "Trop cher pour ce que cest honnêtement",
+     "Bravo pour la pédagogie, cest rare"
+    ],
+    "field": "cest",
+    "pct": 20.0,
+    "words": [
+     "cest",
+     "cher",
+     "honnêtement"
+    ]
+   },
+   {
+    "count": 1,
+    "examples": [
+     "Jadore ce contenu, ça maide vraiment"
+    ],
+    "field": "jadore",
+    "pct": 10.0,
+    "words": [
+     "jadore",
+     "contenu",
+     "maide"
+    ]
+   },
+   {
+    "count": 1,
+    "examples": [
+     "Je ne suis pas convaincu par largument sur le prix"
+    ],
+    "field": "suis",
+    "pct": 10.0,
+    "words": [
+     "suis",
+     "convaincu",
+     "largument",
+     "prix"
+    ]
+   },
+   {
+    "count": 1,
+    "examples": [
+     "Enfin quelquun qui explique bien ce sujet compliqué"
+    ],
+    "field": "enfin",
+    "pct": 10.0,
+    "words": [
+     "enfin",
+     "quelquun",
+     "explique",
+     "sujet",
+     "compliqué"
+    ]
+   },
+   {
+    "count": 1,
+    "examples": [
+     "Jattends la suite avec impatience"
+    ],
+    "field": "jattends",
+    "pct": 10.0,
+    "words": [
+     "jattends",
+     "suite",
+     "impatience"
+    ]
+   }
+  ],
+  "lexique": {
+   "moy_mots": 3.5,
+   "top_bigrams": [
+    {
+     "bigram": "vidéo merci",
+     "freq": 1
+    },
+    {
+     "bigram": "jadore contenu",
+     "freq": 1
+    },
+    {
+     "bigram": "contenu maide",
+     "freq": 1
+    },
+    {
+     "bigram": "suis convaincu",
+     "freq": 1
+    },
+    {
+     "bigram": "convaincu largument",
+     "freq": 1
+    },
+    {
+     "bigram": "largument prix",
+     "freq": 1
+    },
+    {
+     "bigram": "enfin quelquun",
+     "freq": 1
+    },
+    {
+     "bigram": "quelquun explique",
+     "freq": 1
+    }
+   ],
+   "top_mots": [
+    [
+     "merci",
+     3.219
+    ],
+    [
+     "cest",
+     3.219
+    ],
+    [
+     "vidéo",
+     2.303
+    ],
+    [
+     "jadore",
+     2.303
+    ],
+    [
+     "contenu",
+     2.303
+    ],
+    [
+     "maide",
+     2.303
+    ],
+    [
+     "suis",
+     2.303
+    ],
+    [
+     "convaincu",
+     2.303
+    ],
+    [
+     "largument",
+     2.303
+    ],
+    [
+     "prix",
+     2.303
+    ],
+    [
+     "enfin",
+     2.303
+    ],
+    [
+     "quelquun",
+     2.303
+    ]
+   ],
+   "vocabulaire": 33
+  },
+  "mockery_signals": {
+   "count": 0,
+   "examples": [],
+   "level": "absent",
+   "pct": 0.0
+  },
+  "noise_ratio": 0.0,
+  "opportunity_score": 15.0,
+  "polarisation_detail": {
+   "fav_pct": 30.0,
+   "label": "Partagée",
+   "neutre_pct": 40.0,
+   "opp_pct": 20.0,
+   "phrase": "L'audience est partagée : 30.0% favorables, 20.0% opposés.",
+   "score": 29.7
+  },
+  "polarization_score": 29.7,
+  "positions": {
+   "favorable": {
+    "count": 3,
+    "pct": 30.0
+   },
+   "hors_sujet": {
+    "count": 0,
+    "pct": 0.0
+   },
+   "ironique": {
+    "count": 0,
+    "pct": 0
+   },
+   "neutre": {
+    "count": 4,
+    "pct": 40.0
+   },
+   "nuance": {
+    "count": 1,
+    "pct": 10.0
+   },
+   "oppose": {
+    "count": 2,
+    "pct": 20.0
+   }
+  },
+  "qualified_comments": 10,
+  "relevance_average": 0.5,
+  "resonance_by_stance": {
+   "favorable": {
+    "count": 3,
+    "likes": 0,
+    "pct": 0.0
+   },
+   "neutre": {
+    "count": 4,
+    "likes": 0,
+    "pct": 0.0
+   },
+   "nuance": {
+    "count": 1,
+    "likes": 0,
+    "pct": 0.0
+   },
+   "oppose": {
+    "count": 2,
+    "likes": 0,
+    "pct": 0.0
+   }
+  },
+  "resume_tendances": {
+   "emotion_dominante": "admiration",
+   "signal_dominant": "objection",
+   "sujet": "",
+   "tendance_dominante": "neutre",
+   "tension_principale": "30.0% favorables vs 20.0% opposés"
+  },
+  "sentiment_distribution": {
+   "negative": 10.0,
+   "neutral": 80.0,
+   "positive": 10.0
+  },
+  "signal_distribution": {
+   "aspiration": 10.0,
+   "objection": 20.0,
+   "preuve_demandée": 10.0,
+   "question": 10.0
+  },
+  "signaux_frequents": {
+   "attentes": [
+    {
+     "count": 1,
+     "examples": [
+      "Enfin quelquun qui explique bien ce sujet compliqué"
+     ],
+     "pct": 10.0,
+     "signal": "aspiration"
+    },
+    {
+     "count": 1,
+     "examples": [
+      "Enfin quelquun qui explique bien ce sujet compliqué"
+     ],
+     "pct": 10.0,
+     "signal": "question"
+    },
+    {
+     "count": 1,
+     "examples": [
+      "Jaimerais plus dexemples concrets stp"
+     ],
+     "pct": 10.0,
+     "signal": "preuve_demandée"
+    }
+   ],
+   "frustrations": [],
+   "objections": [
+    {
+     "count": 2,
+     "examples": [
+      "Je ne suis pas convaincu par largument sur le prix",
+      "Trop cher pour ce que cest honnêtement"
+     ],
+     "pct": 20.0,
+     "signal": "objection"
+    }
+   ],
+   "tous": [
+    {
+     "count": 2,
+     "examples": [
+      "Je ne suis pas convaincu par largument sur le prix",
+      "Trop cher pour ce que cest honnêtement"
+     ],
+     "pct": 20.0,
+     "signal": "objection"
+    },
+    {
+     "count": 1,
+     "examples": [
+      "Enfin quelquun qui explique bien ce sujet compliqué"
+     ],
+     "pct": 10.0,
+     "signal": "aspiration"
+    },
+    {
+     "count": 1,
+     "examples": [
+      "Enfin quelquun qui explique bien ce sujet compliqué"
+     ],
+     "pct": 10.0,
+     "signal": "question"
+    },
+    {
+     "count": 1,
+     "examples": [
+      "Jaimerais plus dexemples concrets stp"
+     ],
+     "pct": 10.0,
+     "signal": "preuve_demandée"
+    }
+   ]
+  },
+  "skepticism_score": 23.0,
+  "stance_distribution": {
+   "favorable": 30.0,
+   "neutre": 40.0,
+   "nuance": 10.0,
+   "oppose": 20.0
+  },
+  "sujets_recurrents": [
+   {
+    "count": 2,
+    "exemple": "Super vidéo merci beaucoup !",
+    "mot": "merci",
+    "pct": 20.0,
+    "score_tfidf": 3.219
+   },
+   {
+    "count": 2,
+    "exemple": "Trop cher pour ce que cest honnêtement",
+    "mot": "cest",
+    "pct": 20.0,
+    "score_tfidf": 3.219
+   },
+   {
+    "count": 1,
+    "exemple": "Super vidéo merci beaucoup !",
+    "mot": "vidéo",
+    "pct": 10.0,
+    "score_tfidf": 2.303
+   },
+   {
+    "count": 1,
+    "exemple": "Jadore ce contenu, ça maide vraiment",
+    "mot": "jadore",
+    "pct": 10.0,
+    "score_tfidf": 2.303
+   },
+   {
+    "count": 1,
+    "exemple": "Jadore ce contenu, ça maide vraiment",
+    "mot": "contenu",
+    "pct": 10.0,
+    "score_tfidf": 2.303
+   },
+   {
+    "count": 1,
+    "exemple": "Jadore ce contenu, ça maide vraiment",
+    "mot": "maide",
+    "pct": 10.0,
+    "score_tfidf": 2.303
+   },
+   {
+    "count": 1,
+    "exemple": "Je ne suis pas convaincu par largument sur le prix",
+    "mot": "suis",
+    "pct": 10.0,
+    "score_tfidf": 2.303
+   },
+   {
+    "count": 1,
+    "exemple": "Je ne suis pas convaincu par largument sur le prix",
+    "mot": "convaincu",
+    "pct": 10.0,
+    "score_tfidf": 2.303
+   },
+   {
+    "count": 1,
+    "exemple": "Je ne suis pas convaincu par largument sur le prix",
+    "mot": "largument",
+    "pct": 10.0,
+    "score_tfidf": 2.303
+   },
+   {
+    "count": 1,
+    "exemple": "Je ne suis pas convaincu par largument sur le prix",
+    "mot": "prix",
+    "pct": 10.0,
+    "score_tfidf": 2.303
+   }
+  ],
+  "total_comments": 10,
+  "trust_score": 3.0,
+  "weighted_polarization": {
+   "label": "Homogène",
+   "score": 24.0,
+   "score_raw": 24.0
+  },
+  "weighted_sentiment": {
+   "interpretation": "neutre pondéré",
+   "score": 0.022,
+   "score_raw": 0.022,
+   "total_likes": 0
+  }
+ },
+ "demographique": {
+  "centres_interet": [
+   "L’apprentissage autodidacte (YouTube, podcasts, livres)",
+   "Les finances personnelles et l’investissement",
+   "Le développement personnel 'sans bullshit'"
+  ],
+  "comportements_digitaux": [
+   "Consommation intensive de contenus éducatifs gratuits",
+   "Engagement fort sur les plateformes de partage (YouTube, Reddit, forums spécialisés)",
+   "Recherche active de preuves avant achat (avis, comparatifs, démonstrations)"
+  ],
+  "genre": {
+   "femmes": 60,
+   "hommes": 40
+  },
+  "localisation": {
+   "note": "Inféré des expressions comme 'Trop cher pour ce que c’est honnêtement' (argot français) et de la référence à la pédagogie, valeur forte dans la francophonie éducative.",
+   "pays": [
+    "France",
+    "Belgique",
+    "Suisse",
+    "Canada (Québec)"
+   ],
+   "villes_regions": [
+    "Paris et banlieue",
+    "Lyon",
+    "Bruxelles",
+    "Genève",
+    "Montréal"
+   ]
+  },
+  "metiers_probables": [
+   "Étudiants ou jeunes actifs en reconversion",
+   "Professions intermédiaires (enseignants, infirmiers, techniciens)",
+   "Freelances ou entrepreneurs en quête de compétences"
+  ],
+  "niveau_social_probable": "Classes moyennes urbaines, avec un niveau d’éducation supérieur à la moyenne et un pouvoir d’achat moyen, sensible à la valeur perçue.",
+  "tranches_age": [
+   {
+    "pourcentage": 20,
+    "tranche": "18-24"
+   },
+   {
+    "pourcentage": 35,
+    "tranche": "25-34"
+   },
+   {
+    "pourcentage": 25,
+    "tranche": "35-44"
+   },
+   {
+    "pourcentage": 15,
+    "tranche": "45-54"
+   },
+   {
+    "pourcentage": 5,
+    "tranche": "55+"
+   }
+  ]
+ },
+ "distribution": {
+  "likes_ponders": 0,
+  "mean": 0.015,
+  "mean_abs": 0.074,
+  "negatifs": 0,
+  "neutres": 9,
+  "positifs": 1,
+  "std_dev": 0.168,
+  "total": 10,
+  "tres_negatifs": 0,
+  "tres_positifs": 0
+ },
+ "emotions": {
+  "aspiration_nourrie": "Derrière l’enthousiasme pour la pédagogie se nourrit l’aspiration à devenir compétent et autonome.",
+  "besoins_sous_jacents": "Besoin de clarté et de guidance : l’audience cherche à comprendre pour agir, mais reste en attente.",
+  "commentaires_revelateurs": [
+   "Super vidéo merci beaucoup !",
+   "Enfin quelqu’un qui explique bien ce sujet compliqué",
+   "Bravo pour la pédagogie, c’est rare"
+  ],
+  "dominante": "Admiration",
+  "espoir_decu": "Derrière les critiques sur le prix se cache l’espoir d’un contenu qui 'vaut vraiment l’investissement'.",
+  "intensite": "Chaleur collective sans engagement profond : l’admiration est polie, pas transformative.",
+  "repartition": [
+   {
+    "couleur": "#F59E0B",
+    "emotion": "Admiration",
+    "pourcentage": 38
+   },
+   {
+    "couleur": "#10B981",
+    "emotion": "Espoir",
+    "pourcentage": 22
+   },
+   {
+    "couleur": "#EF4444",
+    "emotion": "Frustration",
+    "pourcentage": 18
+   },
+   {
+    "couleur": "#8B5CF6",
+    "emotion": "Curiosite",
+    "pourcentage": 14
+   },
+   {
+    "couleur": "#6B7280",
+    "emotion": "Scepticisme",
+    "pourcentage": 8
+   }
+  ],
+  "signaux_artificialite": "L’absence de détails personnels ou de récits personnels suggère une relation transactionnelle, pas transformationnelle.",
+  "signaux_authenticite": "La gratitude exprimée ('merci', 'généreux') révèle un besoin de reconnaissance et de connexion humaine."
+ },
+ "grille_psychologique": {
+  "ce_qu_ils_attendent_comme_preuve": {
+   "implication": "Produire des contenus sous forme de rapports, comparatifs chiffrés, ou témoignages avec résultats mesurables. Éviter les arguments purement émotionnels.",
+   "interpretation": "Ils veulent des preuves logiques (données, études de cas) plutôt qu’émotionnelles. Leur scepticisme les pousse à chercher des faits concrets.",
+   "observation": "10% de signaux 'preuve demandée' (dashboard)"
+  },
+  "ce_qu_ils_refusent": {
+   "implication": "Éviter tout langage marketing manipulateur. Remplacer par des phrases comme : 'Voici ce que j’ai testé, voici ce qui a marché, voici ce qui n’a pas marché.'",
+   "interpretation": "Le rejet n’est pas dirigé contre le créateur, mais contre les promesses creuses ou les arguments flous. Leur ligne rouge : 'Ne me prends pas pour un idiot.'",
+   "observation": "20% d’opposés + 20% de méfiance (dashboard)"
+  },
+  "ce_qu_ils_ressentent": {
+   "implication": "Prioriser les contenus qui répondent à la question : 'Comment savoir si c’est vrai ?' avec des preuves tangibles (études de cas, comparatifs, démonstrations).",
+   "interpretation": "Une audience profondément en quête de clarté, mais paralysée par le doute face à l’abondance d’informations contradictoires ou floues.",
+   "observation": "30% d’admiration + 20% de confusion + 20% de méfiance (dashboard)"
+  },
+  "ce_qu_ils_valorisent": {
+   "implication": "Intégrer des éléments de 'don' dans l’offre (bonus, ressources gratuites) et toujours expliquer 'pourquoi' chaque conseil est utile.",
+   "interpretation": "Les valeurs implicites sont la gratitude, l’entraide, et l’efficacité. Ils valorisent les créateurs qui donnent sans compter et qui rendent les choses simples.",
+   "observation": "Tokens dominants : 'merci', 'aide', 'contenu', 'pédagogie' + bigrams 'vidéo merci', 'jadore contenu'"
+  },
+  "ce_qu_ils_veulent": {
+   "implication": "Créer des contenus 'avant/après' ou des études de cas détaillées. Montrer le processus, pas juste le résultat.",
+   "interpretation": "Ils veulent des preuves concrètes que la méthode fonctionne, pas des théories. Leur aspiration profonde est de passer de l’état de 'perdu' à 'autonome'.",
+   "observation": "Désir dominant = 'exemple' (10% d’aspiration) + 30% de tokens liés à l’aide/contenu (TF-IDF)"
+  },
+  "ce_qui_les_bloque": {
+   "implication": "Proposer des garanties (satisfait ou remboursé), des essais gratuits, ou des versions 'light' à moindre coût pour lever ce blocage.",
+   "interpretation": "Le frein principal est la peur de perdre du temps ou de l’argent. Le prix est un symbole de cette peur : 'Est-ce que ça vaut vraiment le coup ?'",
+   "observation": "20% d’objections (prix) + 10% de scepticisme ('Je reste sceptique mais je vais essayer')"
+  },
+  "ce_qui_les_divise": {
+   "implication": "Ne pas chercher à plaire à tout le monde. Segmenter les messages : pour les sceptiques, mettre en avant les preuves de valeur ; pour les convaincus, proposer des offres premium.",
+   "interpretation": "La fracture se situe entre ceux qui croient en la valeur du contenu ('ça m’aide vraiment') et ceux qui doutent du prix ('trop cher'). Pas une division idéologique, mais une division 'résultats vs coût'.",
+   "observation": "Polarisation = 29.7 (dashboard) + camps favorable (30%) vs oppose (20%)"
+  },
+  "ce_qui_les_rassure": {
+   "implication": "Mettre en avant les éléments de transparence dans tous les contenus : 'Voici ce que ça coûte vraiment', 'Voici ce que ça ne fait pas', 'Voici comment j’ai échoué avant de réussir'.",
+   "interpretation": "La sécurité psychologique vient de la transparence et de la générosité. Ils se sentent en confiance quand on leur donne plus qu’ils n’attendent (exemples concrets, détails, honnêteté sur les limites).",
+   "observation": "10% de confiance (dashboard) + 30% de gratitude ('merci', 'généreux')"
+  },
+  "ce_qui_les_unit": {
+   "implication": "Utiliser un langage simple, éviter le jargon, et toujours justifier les affirmations par des exemples ou des données. C’est le point d’entrée universel.",
+   "interpretation": "Le terrain commun est la quête de savoir utile et bien transmis. Tous partagent le même rejet de l’élitisme et de l’opacité.",
+   "observation": "Tokens partagés 'merci', 'contenu', 'pédagogie' + stance neutre dominante (40%)"
+  },
+  "quelle_opportunite_emerge": {
+   "implication": "Dans les 30 prochains jours, lancer une série de contenus intitulée : 'Comment évaluer la qualité d’un [votre sujet] ?' avec des critères objectifs et des exemples concrets. Puis proposer une offre 'test' (ex : 7 jours pour appliquer la méthode et voir les résultats).",
+   "interpretation": "L’opportunité est de créer un 'système de confiance' : une offre ou un contenu qui permet à l’audience de vérifier par elle-même la valeur de ce qu’on propose. C’est le levier de conversion le plus puissant pour ce segment.",
+   "observation": "Opportunity_score = 15.0 + signaux aspiration (10%) et besoin de clarté (20% de confusion)"
+  }
+ },
+ "identitaire": {
+  "authenticite_percue": "Authenticité perçue dans la pédagogie, mais pas dans le rapport qualité-prix.",
+  "coherence_percue": "L’audience perçoit une cohérence entre le message et la pédagogie, mais pas entre le prix et la valeur.",
+  "confiance_generee": "Confiance générée par la transparence et la clarté, mais limitée par l’absence de preuves tangibles.",
+  "credibilite": "Crédibilité élevée grâce à la pédagogie, mais fragilisée par le scepticisme envers le prix.",
+  "faiblesses_narratives": [
+   "manque d’exemples concrets",
+   "prix perçu comme trop élevé",
+   "absence de preuve sociale"
+  ],
+  "incaherences_detectees": "Incohérence entre le prix annoncé et la valeur perçue par l’audience.",
+  "points_de_differenciation": [
+   "pédagogie claire",
+   "explications accessibles",
+   "générosité du partage"
+  ],
+  "recit_dominant": "Le récit d’un expert qui partage son savoir pour aider les autres à progresser.",
+  "singularite": "Singularité perçue dans la clarté et la pédagogie, mais pas dans le contenu lui-même."
+ },
+ "interpretation": {
+  "ce_qui_divise": {
+   "conclusion": "La fracture se situe entre ceux qui voient le contenu comme une solution immédiate et ceux qui doutent de sa valeur économique.",
+   "indicateur_statistique": "30% des commentaires expriment un désaccord (Cluster 1) avec les tokens 'suis convaincu', 'largument', 'prix'",
+   "interpretation": "Le désaccord n'est pas idéologique mais pragmatique : ces utilisateurs cherchent une preuve tangible de ROI ('largument', 'prix'). Leur scepticisme révèle un besoin de sécurité financière avant d'investir temps ou argent. La division est donc entre 'j'ai besoin de voir' et 'je crois déjà'.",
+   "score_confiance": 0.8,
+   "signaux": [
+    "suis convaincu",
+    "largument",
+    "prix",
+    "attends la suite"
+   ]
+  },
+  "ce_qui_rassemble": {
+   "conclusion": "Un consensus émotionnel autour de la gratitude pour le contenu utile, masquant une peur commune de l'inadéquation entre effort et résultat.",
+   "indicateur_statistique": "70% des commentaires partagent les tokens 'merci', 'jadore', 'vidéo' (Cluster 0)",
+   "interpretation": "L'enthousiasme ('jadore', 'merci') est une réaction de soulagement face à un contenu perçu comme pertinent ('maide', 'contenu'), mais cette gratitude est une armure contre l'angoisse de ne pas savoir appliquer ces connaissances. La vidéo est perçue comme un vecteur de transmission efficace, mais son coût ('prix') reste un frein invisible.",
+   "score_confiance": 0.88,
+   "signaux": [
+    "merci",
+    "jadore",
+    "vidéo",
+    "maide",
+    "contenu"
+   ]
+  },
+  "croyances_limitantes": [
+   "le savoir coûte cher",
+   "je ne mérite pas le meilleur",
+   "les experts mentent"
+  ],
+  "croyances_mobilisatrices": [
+   "le savoir libère",
+   "apprendre change tout",
+   "la pédagogie est rare et précieuse"
+  ],
+  "desirs": [
+   "devenir expert",
+   "être reconnu",
+   "avoir des preuves tangibles",
+   "se sentir en contrôle"
+  ],
+  "frustrations": [
+   "prix trop élevé",
+   "manque d'exemples",
+   "scepticisme",
+   "incompréhension",
+   "attente non comblée"
+  ],
+  "grille": {
+   "ce_qu_ils_attendent_comme_preuve": {
+    "implication": "Produire des contenus sous forme de rapports, comparatifs chiffrés, ou témoignages avec résultats mesurables. Éviter les arguments purement émotionnels.",
+    "interpretation": "Ils veulent des preuves logiques (données, études de cas) plutôt qu’émotionnelles. Leur scepticisme les pousse à chercher des faits concrets.",
+    "observation": "10% de signaux 'preuve demandée' (dashboard)"
+   },
+   "ce_qu_ils_refusent": {
+    "implication": "Éviter tout langage marketing manipulateur. Remplacer par des phrases comme : 'Voici ce que j’ai testé, voici ce qui a marché, voici ce qui n’a pas marché.'",
+    "interpretation": "Le rejet n’est pas dirigé contre le créateur, mais contre les promesses creuses ou les arguments flous. Leur ligne rouge : 'Ne me prends pas pour un idiot.'",
+    "observation": "20% d’opposés + 20% de méfiance (dashboard)"
+   },
+   "ce_qu_ils_ressentent": {
+    "implication": "Prioriser les contenus qui répondent à la question : 'Comment savoir si c’est vrai ?' avec des preuves tangibles (études de cas, comparatifs, démonstrations).",
+    "interpretation": "Une audience profondément en quête de clarté, mais paralysée par le doute face à l’abondance d’informations contradictoires ou floues.",
+    "observation": "30% d’admiration + 20% de confusion + 20% de méfiance (dashboard)"
+   },
+   "ce_qu_ils_valorisent": {
+    "implication": "Intégrer des éléments de 'don' dans l’offre (bonus, ressources gratuites) et toujours expliquer 'pourquoi' chaque conseil est utile.",
+    "interpretation": "Les valeurs implicites sont la gratitude, l’entraide, et l’efficacité. Ils valorisent les créateurs qui donnent sans compter et qui rendent les choses simples.",
+    "observation": "Tokens dominants : 'merci', 'aide', 'contenu', 'pédagogie' + bigrams 'vidéo merci', 'jadore contenu'"
+   },
+   "ce_qu_ils_veulent": {
+    "implication": "Créer des contenus 'avant/après' ou des études de cas détaillées. Montrer le processus, pas juste le résultat.",
+    "interpretation": "Ils veulent des preuves concrètes que la méthode fonctionne, pas des théories. Leur aspiration profonde est de passer de l’état de 'perdu' à 'autonome'.",
+    "observation": "Désir dominant = 'exemple' (10% d’aspiration) + 30% de tokens liés à l’aide/contenu (TF-IDF)"
+   },
+   "ce_qui_les_bloque": {
+    "implication": "Proposer des garanties (satisfait ou remboursé), des essais gratuits, ou des versions 'light' à moindre coût pour lever ce blocage.",
+    "interpretation": "Le frein principal est la peur de perdre du temps ou de l’argent. Le prix est un symbole de cette peur : 'Est-ce que ça vaut vraiment le coup ?'",
+    "observation": "20% d’objections (prix) + 10% de scepticisme ('Je reste sceptique mais je vais essayer')"
+   },
+   "ce_qui_les_divise": {
+    "implication": "Ne pas chercher à plaire à tout le monde. Segmenter les messages : pour les sceptiques, mettre en avant les preuves de valeur ; pour les convaincus, proposer des offres premium.",
+    "interpretation": "La fracture se situe entre ceux qui croient en la valeur du contenu ('ça m’aide vraiment') et ceux qui doutent du prix ('trop cher'). Pas une division idéologique, mais une division 'résultats vs coût'.",
+    "observation": "Polarisation = 29.7 (dashboard) + camps favorable (30%) vs oppose (20%)"
+   },
+   "ce_qui_les_rassure": {
+    "implication": "Mettre en avant les éléments de transparence dans tous les contenus : 'Voici ce que ça coûte vraiment', 'Voici ce que ça ne fait pas', 'Voici comment j’ai échoué avant de réussir'.",
+    "interpretation": "La sécurité psychologique vient de la transparence et de la générosité. Ils se sentent en confiance quand on leur donne plus qu’ils n’attendent (exemples concrets, détails, honnêteté sur les limites).",
+    "observation": "10% de confiance (dashboard) + 30% de gratitude ('merci', 'généreux')"
+   },
+   "ce_qui_les_unit": {
+    "implication": "Utiliser un langage simple, éviter le jargon, et toujours justifier les affirmations par des exemples ou des données. C’est le point d’entrée universel.",
+    "interpretation": "Le terrain commun est la quête de savoir utile et bien transmis. Tous partagent le même rejet de l’élitisme et de l’opacité.",
+    "observation": "Tokens partagés 'merci', 'contenu', 'pédagogie' + stance neutre dominante (40%)"
+   },
+   "quelle_opportunite_emerge": {
+    "implication": "Dans les 30 prochains jours, lancer une série de contenus intitulée : 'Comment évaluer la qualité d’un [votre sujet] ?' avec des critères objectifs et des exemples concrets. Puis proposer une offre 'test' (ex : 7 jours pour appliquer la méthode et voir les résultats).",
+    "interpretation": "L’opportunité est de créer un 'système de confiance' : une offre ou un contenu qui permet à l’audience de vérifier par elle-même la valeur de ce qu’on propose. C’est le levier de conversion le plus puissant pour ce segment.",
+    "observation": "Opportunity_score = 15.0 + signaux aspiration (10%) et besoin de clarté (20% de confusion)"
+   }
+  },
+  "insight_strategique": "Leur frustration ne vient pas du manque de contenu, mais de l'absence de **transparence radicale** sur ce qui fonctionne vraiment — et de la peur de gaspiller leur énergie dans des systèmes qui ne les mènent nulle part.",
+  "lecture_sujet": {
+   "conclusion": "L'audience perçoit le sujet comme un outil d'apprentissage pratique, mais avec une méfiance latente sur son accessibilité financière.",
+   "indicateur_statistique": "90% des commentaires sont neutres mais 60% portent une émotion forte (admiration 30%, confusion 20%, méfiance 20%)",
+   "interpretation": "Les tokens 'maide' et 'vidéo' révèlent une quête d'utilité immédiate, tandis que 'prix', 'suis convaincu' et 'largument' trahissent une tension entre désir d'apprentissage et scepticisme sur la valeur perçue. L'audience teste la crédibilité du contenu comme solution à un besoin concret.",
+   "score_confiance": 0.85,
+   "signaux": [
+    "maide",
+    "prix",
+    "suis convaincu",
+    "largument",
+    "vidéo"
+   ]
+  },
+  "message_central": "Arrêtez de chercher la solution miracle. Commencez par comprendre ce qui marche vraiment — et agissez avec des outils qui vous ressemblent.",
+  "motivations": [
+   "comprendre",
+   "apprendre",
+   "agir",
+   "reconnaissance",
+   "autonomie"
+  ],
+  "objections": [
+   "Le prix est trop élevé pour la valeur perçue",
+   "Manque d’exemples concrets pour appliquer les conseils",
+   "Peur de se faire avoir ('Je reste sceptique mais je vais essayer')",
+   "Crainte de l’engagement ('Je ne suis pas convaincu par l’argument sur le prix')"
+  ],
+  "opportunites": [
+   "Un produit/service avec un prix justifié par des résultats mesurables",
+   "Un accompagnement personnalisé pour appliquer les conseils",
+   "Séries de vidéos 'Comment faire [X] en 5 étapes' avec exemples concrets",
+   "Comparatifs transparents ('Pourquoi [produit A] vaut 3x plus cher que [produit B]')"
+  ],
+  "peurs": [
+   "ne pas être à la hauteur",
+   "perdre son argent",
+   "rester dans l'ignorance",
+   "être jugé"
+  ],
+  "psychologique": {
+   "beliefs": [
+    "Le savoir de qualité a un coût élevé et inaccessible",
+    "Je ne mérite pas d'accéder à un contenu premium",
+    "Les experts ou créateurs de contenu ont des intentions cachées",
+    "Apprendre rapidement est possible sans effort significatif"
+   ],
+   "confidence_score": 0.88,
+   "decision_drivers": [
+    "La perception de la valeur immédiate (preuves tangibles)",
+    "Le sentiment de sécurité (garanties, essais gratuits, témoignages crédibles)",
+    "La réduction de la charge cognitive (simplification, étapes claires)",
+    "La reconnaissance sociale (validation par des pairs ou experts)"
+   ],
+   "desires": [
+    "Devenir expert dans le domaine rapidement",
+    "Être reconnu pour ses compétences acquises",
+    "Avoir des preuves tangibles et immédiates de la valeur du contenu",
+    "Comprendre sans effort excessif (désir d'apprentissage simplifié)"
+   ],
+   "detected_mechanisms": [
+    {
+     "confidence": 0.9,
+     "evidence": "L'audience exprime simultanément un désir d'apprendre rapidement et une peur de ne pas tout comprendre ou de perdre son argent.",
+     "mechanism": "Tension peur-désir (approche-évitement)"
+    },
+    {
+     "confidence": 0.8,
+     "evidence": "Les objections (prix élevé, manque d'exemples) suggèrent que l'audience filtre les informations pour confirmer ses croyances limitantes ('le savoir coûte cher', 'les experts mentent').",
+     "mechanism": "Biais de confirmation"
+    },
+    {
+     "confidence": 0.85,
+     "evidence": "Les frustrations (prix, manque d'exemples) se transforment en objections rationnelles (scepticisme, incompréhension) pour justifier une résistance émotionnelle.",
+     "mechanism": "Frustration rationalisée en objections"
+    },
+    {
+     "confidence": 0.75,
+     "evidence": "L'audience montre une attraction pour l'expertise tout en résistant à l'idée de payer ou de s'engager, révélant une tension entre deux cognitions incompatibles.",
+     "mechanism": "Dissonance cognitive"
+    }
+   ],
+   "fears": [
+    "Peur de ne pas être à la hauteur face à la complexité du contenu",
+    "Peur de perdre son argent sans obtenir de résultats tangibles",
+    "Peur de rester dans l'ignorance malgré l'investissement",
+    "Peur d'être trompé par des experts (croyance 'les experts mentent')"
+   ],
+   "frustrations": [
+    "Prix perçu comme trop élevé pour un contenu dont la valeur n'est pas immédiatement tangible",
+    "Manque d'exemples concrets ou d'applications pratiques",
+    "Scepticisme envers la légitimité ou l'efficacité du contenu",
+    "Incompréhension face à la complexité technique ou aux promesses"
+   ],
+   "main_insight": "L'audience oscille entre un désir intense de maîtrise rapide et une peur paralysante de l'échec ou de l'investissement perdu, créant une tension peur-désir qui bloque l'engagement malgré une motivation profonde à apprendre.",
+   "rules_used": [
+    "PSY-001",
+    "PSY-002",
+    "PSY-004",
+    "PSY-006"
+   ]
+  },
+  "socio_culturelle": {
+   "collective_beliefs": [
+    "Le savoir est un levier de transformation personnelle et sociale",
+    "La pédagogie de qualité est un privilège rare qui mérite d'être recherché",
+    "L'expertise se mesure à la capacité à rendre accessible des concepts complexes"
+   ],
+   "community_markers": [
+    "Marqueur de statut : capacité à identifier et critiquer les 'mauvaises' pédagogies",
+    "Marqueur d'appartenance : maîtrise du langage technique et des comparatifs produits",
+    "Marqueur de confiance : transparence sur les méthodes et limites des contenus proposés"
+   ],
+   "confidence_score": 0.9,
+   "cultural_codes": [
+    "Code de transparence comme marqueur de légitimité (comparatifs, révélations de coûts)",
+    "Code de l'autonomie comme valeur centrale (besoin de contrôle sur son apprentissage)",
+    "Code de l'expertise comme signal d'appartenance (langage technique, démonstrations concrètes)"
+   ],
+   "detected_mechanisms": [
+    {
+     "confidence": 0.9,
+     "evidence": "Tension entre désir d'apprentissage accéléré et peur de ne pas tout comprendre, révélant un conflit entre efficacité et profondeur.",
+     "mechanism": "polarisation cognitive"
+    },
+    {
+     "confidence": 0.85,
+     "evidence": "La pédagogie est perçue comme précieuse et rare, renforçant l'adhésion aux contenus qui la promettent.",
+     "mechanism": "effet de rareté perçue"
+    },
+    {
+     "confidence": 0.8,
+     "evidence": "Les croyances mobilisatrices ('le savoir libère', 'apprendre change tout') agissent comme des marqueurs identitaires pour un groupe en quête de statut intellectuel.",
+     "mechanism": "validation sociale par l'expertise"
+    }
+   ],
+   "group_dynamics": [
+    "Dynamique de quête d'appartenance à une élite intellectuelle",
+    "Tension entre conformisme (adhésion aux méthodes pédagogiques classiques) et désir d'innovation (recherche de formats disruptifs)"
+   ],
+   "main_insight": "L'audience valorise la pédagogie comme outil d'émancipation, mais oscille entre l'urgence d'apprendre rapidement et la peur de l'incompréhension, créant une tension entre performance et maîtrise.",
+   "rules_used": [
+    "SOC-007",
+    "SOC-008"
+   ],
+   "social_tensions": [
+    "Tension entre rapidité d'apprentissage et profondeur de compréhension",
+    "Tension entre désir de simplification et complexité des sujets abordés"
+   ]
+  },
+  "synthese_psychologique": {
+   "conclusion": "Cette audience n'achète pas du contenu, elle achète de la certitude — et le prix est le dernier rempart contre la peur de l'échec.",
+   "indicateur_statistique": "CRS moyen 0.5 (partielle) + 90% neutralité + 60% émotion forte = audience en état de 'dissonance cognitive' post-exposition",
+   "interpretation": "Le 'merci' et 'jadore' sont des réactions de soulagement après une exposition réussie, mais le 'suis convaincu' et 'prix' révèlent que l'audience n'a pas encore franchi le cap de la décision. Le créateur doit transformer cette gratitude en preuve tangible de transformation concrète pour lever le blocage financier. La vidéo est un outil, mais l'audience cherche un 'passeport' vers la compétence.",
+   "score_confiance": 0.9,
+   "signaux": [
+    "prix",
+    "suis convaincu",
+    "maide",
+    "jadore",
+    "merci"
+   ]
+  },
+  "tension_centrale": {
+   "conclusion": "L'audience oscille entre l'urgence d'apprendre et la peur de gaspiller ses ressources dans un contenu qui ne tient pas ses promesses.",
+   "indicateur_statistique": "60% émotion forte (admiration 30% + confusion 20% + méfiance 10%) + 90% neutralité apparente = tension entre désir d'action et paralysie par l'analyse",
+   "interpretation": "Cette tension est une lutte entre deux archétypes jungiens : le 'Héros' (qui veut agir) et l''Orphelin' (qui craint de se tromper). Le 'jadore' et 'merci' sont des mécanismes de défense contre la honte de l'échec potentiel. La vidéo est perçue comme une bouée de sauvetage, mais son prix en fait un risque calculé.",
+   "score_confiance": 0.75,
+   "signaux": [
+    "maide",
+    "prix",
+    "suis convaincu",
+    "attends la suite",
+    "jadore"
+   ]
+  },
+  "tensions": "Tension entre le désir d’apprendre rapidement et la peur de ne pas tout comprendre.",
+  "transformation": {
+   "etat_actuel": {
+    "conscience_du_probleme": "partielle",
+    "croyance_bloquante": "Le contenu n’est pas à la hauteur de son coût, ce qui bloque l’engagement.",
+    "frustration_principale": "Le prix perçu comme disproportionné par rapport à la valeur reçue.",
+    "identite_actuelle": "Une personne en quête de connaissance, mais prudente et sceptique.",
+    "situation": "L’audience est en phase d’éveil : elle reconnaît la valeur de la pédagogie, mais reste bloquée par le scepticisme et le prix."
+   },
+   "etat_desire": {
+    "identite_aspiree": "Une personne compétente, autonome et confiante dans son domaine.",
+    "indicateur_de_succes": "La capacité à appliquer les connaissances acquises et à partager son savoir avec d’autres.",
+    "transformation_visee": "Passer d’un état de scepticisme à une confiance totale dans la valeur du contenu.",
+    "vie_revelee": "Une vie où elle maîtrise des sujets complexes et peut agir avec assurance."
+   },
+   "le_pont": {
+    "ce_dont_ils_ont_besoin": "Des preuves tangibles de la valeur du contenu (études de cas, témoignages, démonstrations).",
+    "declencheur_de_transition": "Un exemple concret et probant qui démontre la valeur réelle du contenu.",
+    "message_de_passage": "Je suis une personne en quête de compétence qui cherche à devenir autonome sans me faire arnaquer.",
+    "obstacle_principal": "Le scepticisme envers le prix et la peur de ne pas obtenir ce qui est promis."
+   }
+  },
+  "valeurs": [
+   "pédagogie",
+   "autonomie",
+   "transparence",
+   "expertise",
+   "générosité"
+  ],
+  "verite_audience": "Cette audience cherche désespérément à passer de l'impuissance à la maîtrise dans un monde complexe, mais elle doute que cela soit possible sans se faire exploiter (prix, promesses creuses). Elle veut des preuves tangibles qu'elle peut devenir compétente, autonome et reconnue sans sacrifier son temps ou son argent."
+ },
+ "kpis": {
+  "alignement": {
+   "description": "Alignement faible (7%) : les messages sont clairs, mais l’audience ne se reconnaît pas dans une vision commune.",
+   "formule": "Al = μ|r| × 100",
+   "interpretation": "Moyenne des valeurs absolues des corrélations : mesure si les commentaires RÉPONDENT au titre (qu'ils soient pour ou contre)",
+   "label": "Nul",
+   "score": 7,
+   "variables": {
+    "n": 10,
+    "μ|r|": 0.074
+   }
+  },
+  "authenticite": {
+   "description": "Authenticité perçue à 52% : les remerciements et la gratitude dominent, mais sans profondeur relationnelle.",
+   "formule": "A = (1 − Rs) × (0.4 + 0.6×Rd) × 100",
+   "interpretation": "Sincérité perçue : (1 - taux spam) pondéré par la densité sémantique des commentaires",
+   "label": "Mixte",
+   "score": 52,
+   "variables": {
+    "Rd": 0.2,
+    "Rs": 0.0
+   }
+  },
+  "engagement": {
+   "description": "Audience en mode spectatrice : 80% de neutralité et 10% d’admiration, mais zéro engagement actif.",
+   "formule": "E = (Cq / Ct) × (1 + Rhq) × 100",
+   "interpretation": "Proportion de l'audience qui s'engage réellement avec le contenu (commentaires qualifiés × intensité émotionnelle)",
+   "label": "Faible",
+   "score": 10,
+   "variables": {
+    "Cq": 1,
+    "Ct": 10,
+    "Rhq": 0.0
+   }
+  },
+  "opportunite": {
+   "description": "Opportunité à 44% : l’aspiration à des exemples concrets et à la pédagogie est un levier sous-exploité.",
+   "formule": "O = μpos × (Cpos / Cq) × 100",
+   "interpretation": "Intensité moyenne des signaux positifs pondérée par leur proportion parmi les commentaires qualifiés",
+   "label": "Modérée",
+   "score": 44,
+   "variables": {
+    "Cpos": 1,
+    "Cq": 1,
+    "μpos": 0.45
+   }
+  },
+  "persistance": {
+   "description": "Persistance à 0% : aucun signal de fidélisation ou de recommandation active.",
+   "formule": "Pe = (Chq / Ct) × 100",
+   "interpretation": "Proportion de commentaires à forte charge émotionnelle (|score| ≥ 0.6) — révèle la profondeur de l'impact",
+   "label": "Absente",
+   "score": 0,
+   "variables": {
+    "Chq": 0,
+    "Ct": 10
+   }
+  },
+  "polarisation": {
+   "description": "Polarisation modérée (16%) : l’opposition se concentre sur le prix, révélant une tension valeur/coût.",
+   "formule": "P = σ(scores) × 100",
+   "interpretation": "Écart-type des scores de corrélation : élevé = audience divisée, faible = audience homogène",
+   "label": "Homogène",
+   "score": 16,
+   "variables": {
+    "μ": 0.015,
+    "σ": 0.168
+   }
+  }
+ },
+ "livrables_statistiques": {
+  "carte_emotionnelle": {
+   "conclusion": "Émotion dominante : admiration (30.0%)",
+   "distribution": [
+    {
+     "count": 3,
+     "emotion": "admiration",
+     "pct": 30.0
+    },
+    {
+     "count": 2,
+     "emotion": "confusion",
+     "pct": 20.0
+    },
+    {
+     "count": 2,
+     "emotion": "mefiance",
+     "pct": 20.0
+    },
+    {
+     "count": 1,
+     "emotion": "espoir",
+     "pct": 10.0
+    },
+    {
+     "count": 1,
+     "emotion": "colere",
+     "pct": 10.0
+    },
+    {
+     "count": 1,
+     "emotion": "frustration",
+     "pct": 10.0
+    }
+   ],
+   "indicateur_statistique": "admiration détectée dans 30.0% des commentaires. 60.0% des commentaires portent une émotion forte.",
+   "intensite_forte_pct": 60.0,
+   "score_confiance": 0.37
+  },
+  "ce_qui_divise": {
+   "conclusion": "La fracture se situe entre ceux qui voient le contenu comme une solution immédiate et ceux qui doutent de sa valeur économique.",
+   "indicateur_statistique": "30% des commentaires expriment un désaccord (Cluster 1) avec les tokens 'suis convaincu', 'largument', 'prix'",
+   "interpretation": "Le désaccord n'est pas idéologique mais pragmatique : ces utilisateurs cherchent une preuve tangible de ROI ('largument', 'prix'). Leur scepticisme révèle un besoin de sécurité financière avant d'investir temps ou argent. La division est donc entre 'j'ai besoin de voir' et 'je crois déjà'.",
+   "score_confiance": 0.8,
+   "signaux": [
+    "suis convaincu",
+    "largument",
+    "prix",
+    "attends la suite"
+   ]
+  },
+  "ce_qui_rassemble": {
+   "conclusion": "Un consensus émotionnel autour de la gratitude pour le contenu utile, masquant une peur commune de l'inadéquation entre effort et résultat.",
+   "indicateur_statistique": "70% des commentaires partagent les tokens 'merci', 'jadore', 'vidéo' (Cluster 0)",
+   "interpretation": "L'enthousiasme ('jadore', 'merci') est une réaction de soulagement face à un contenu perçu comme pertinent ('maide', 'contenu'), mais cette gratitude est une armure contre l'angoisse de ne pas savoir appliquer ces connaissances. La vidéo est perçue comme un vecteur de transmission efficace, mais son coût ('prix') reste un frein invisible.",
+   "score_confiance": 0.88,
+   "signaux": [
+    "merci",
+    "jadore",
+    "vidéo",
+    "maide",
+    "contenu"
+   ]
+  },
+  "clusters_comportementaux": {
+   "clusters": [
+    {
+     "cluster_id": 0,
+     "pct": 70.0,
+     "samples": [
+      "Super vidéo merci beaucoup !",
+      "Jadore ce contenu, ça maide vraiment",
+      "Enfin quelquun qui explique bien ce sujet compliqué"
+     ],
+     "size": 7,
+     "top_tokens": [
+      "merci",
+      "cest",
+      "vidéo",
+      "jadore",
+      "contenu",
+      "maide"
+     ]
+    },
+    {
+     "cluster_id": 1,
+     "pct": 30.0,
+     "samples": [
+      "Je ne suis pas convaincu par largument sur le prix",
+      "Jattends la suite avec impatience",
+      "Je reste sceptique mais je vais essayer"
+     ],
+     "size": 3,
+     "top_tokens": [
+      "suis",
+      "convaincu",
+      "largument",
+      "prix",
+      "jattends",
+      "suite"
+     ]
+    }
+   ],
+   "conclusion": "2 groupes comportementaux détectés",
+   "indicateur_statistique": "Cluster 0 : 70.0% (7 commentaires) — tokens : merci, cest, vidéo | Cluster 1 : 30.0% (3 commentaires) — tokens : suis, convaincu, largument",
+   "score_confiance": 0.8
+  },
+  "distribution_relevance": {
+   "conclusion": "0 commentaires fortement liés au sujet (0.0%)",
+   "distribution": {
+    "faible": 0,
+    "haute": 0,
+    "max": 0.5,
+    "mean": 0.5,
+    "min": 0.5,
+    "moyenne": 10
+   },
+   "indicateur_statistique": "Lien fort (>0.65) : 0 | Partiel (0.35–0.65) : 10 | Faible (<0.35) : 0 | Mean CRS : 0.5",
+   "score_confiance": 0.95
+  },
+  "lecture_sujet": {
+   "conclusion": "L'audience perçoit le sujet comme un outil d'apprentissage pratique, mais avec une méfiance latente sur son accessibilité financière.",
+   "indicateur_statistique": "90% des commentaires sont neutres mais 60% portent une émotion forte (admiration 30%, confusion 20%, méfiance 20%)",
+   "interpretation": "Les tokens 'maide' et 'vidéo' révèlent une quête d'utilité immédiate, tandis que 'prix', 'suis convaincu' et 'largument' trahissent une tension entre désir d'apprentissage et scepticisme sur la valeur perçue. L'audience teste la crédibilité du contenu comme solution à un besoin concret.",
+   "score_confiance": 0.85,
+   "signaux": [
+    "maide",
+    "prix",
+    "suis convaincu",
+    "largument",
+    "vidéo"
+   ]
+  },
+  "positionnement_audience": {
+   "conclusion": "Audience majoritairement neutre (90.0%)",
+   "distribution": {
+    "favorable": 10.0,
+    "neutre": 90.0
+   },
+   "dominant": "neutre",
+   "dominant_pct": 90.0,
+   "indicateur_statistique": "90.0% des commentaires classés 'neutre' sur 10 analysés",
+   "score_confiance": 0.91
+  },
+  "repartition_camps": {
+   "camps": {
+    "favorable": {
+     "count": 1,
+     "pct": 10.0
+    },
+    "neutre": {
+     "count": 9,
+     "pct": 90.0
+    },
+    "nuance": {
+     "count": 0,
+     "pct": 0.0
+    },
+    "oppose": {
+     "count": 0,
+     "pct": 0.0
+    }
+   },
+   "conclusion": "Audience favorable en majorité",
+   "indicateur_statistique": "Favorables : 10.0% | Opposés : 0.0% | Neutres : 90.0%",
+   "ratio_division": 1.0,
+   "score_confiance": 0.36
+  },
+  "signaux_lexicaux_dominants": {
+   "avg_tokens_per_comment": 3.5,
+   "conclusion": "Champ lexical dominant autour de : merci, cest, vidéo, jadore, contenu",
+   "indicateur_statistique": "Vocabulaire : 33 tokens uniques sur 35 total. Densité moyenne : 3.5 tokens/commentaire.",
+   "lexical_richness": 0.943,
+   "score_confiance": 0.95,
+   "top_bigrams": [
+    {
+     "bigram": "vidéo merci",
+     "freq": 1
+    },
+    {
+     "bigram": "jadore contenu",
+     "freq": 1
+    },
+    {
+     "bigram": "contenu maide",
+     "freq": 1
+    },
+    {
+     "bigram": "suis convaincu",
+     "freq": 1
+    },
+    {
+     "bigram": "convaincu largument",
+     "freq": 1
+    },
+    {
+     "bigram": "largument prix",
+     "freq": 1
+    },
+    {
+     "bigram": "enfin quelquun",
+     "freq": 1
+    },
+    {
+     "bigram": "quelquun explique",
+     "freq": 1
+    }
+   ],
+   "top_tokens": [
+    {
+     "score": 3.219,
+     "score_norm": 1.0,
+     "token": "merci"
+    },
+    {
+     "score": 3.219,
+     "score_norm": 1.0,
+     "token": "cest"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "vidéo"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "jadore"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "contenu"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "maide"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "suis"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "convaincu"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "largument"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "prix"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "enfin"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "quelquun"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "explique"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "sujet"
+    },
+    {
+     "score": 2.303,
+     "score_norm": 0.715,
+     "token": "compliqué"
+    }
+   ],
+   "vocabulary_size": 33
+  },
+  "synthese_psychologique": {
+   "conclusion": "Cette audience n'achète pas du contenu, elle achète de la certitude — et le prix est le dernier rempart contre la peur de l'échec.",
+   "indicateur_statistique": "CRS moyen 0.5 (partielle) + 90% neutralité + 60% émotion forte = audience en état de 'dissonance cognitive' post-exposition",
+   "interpretation": "Le 'merci' et 'jadore' sont des réactions de soulagement après une exposition réussie, mais le 'suis convaincu' et 'prix' révèlent que l'audience n'a pas encore franchi le cap de la décision. Le créateur doit transformer cette gratitude en preuve tangible de transformation concrète pour lever le blocage financier. La vidéo est un outil, mais l'audience cherche un 'passeport' vers la compétence.",
+   "score_confiance": 0.9,
+   "signaux": [
+    "prix",
+    "suis convaincu",
+    "maide",
+    "jadore",
+    "merci"
+   ]
+  },
+  "tension_centrale": {
+   "conclusion": "L'audience oscille entre l'urgence d'apprendre et la peur de gaspiller ses ressources dans un contenu qui ne tient pas ses promesses.",
+   "indicateur_statistique": "60% émotion forte (admiration 30% + confusion 20% + méfiance 10%) + 90% neutralité apparente = tension entre désir d'action et paralysie par l'analyse",
+   "interpretation": "Cette tension est une lutte entre deux archétypes jungiens : le 'Héros' (qui veut agir) et l''Orphelin' (qui craint de se tromper). Le 'jadore' et 'merci' sont des mécanismes de défense contre la honte de l'échec potentiel. La vidéo est perçue comme une bouée de sauvetage, mais son prix en fait un risque calculé.",
+   "score_confiance": 0.75,
+   "signaux": [
+    "maide",
+    "prix",
+    "suis convaincu",
+    "attends la suite",
+    "jadore"
+   ]
+  }
+ },
+ "marches_caches": {
+  "angle_differentiant": "Ne pas vendre un produit, mais un 'système de vérification' : comment l’audience peut-elle elle-même évaluer la valeur de ce qu’on lui propose ?",
+  "audiences_adjacentes": [
+   "Les parents cherchant des ressources pédagogiques pour leurs enfants",
+   "Les seniors en reconversion numérique"
+  ],
+  "besoins_sous_exprimes": [
+   "Besoin de sécurité : 'Comment savoir si ça marche vraiment avant de payer ?'",
+   "Besoin de communauté : 'Où trouver des gens qui ont les mêmes questions que moi ?'",
+   "Besoin de légitimité : 'Comment être sûr que cette personne sait de quoi elle parle ?'"
+  ],
+  "opportunites_niche": [
+   "Un club privé avec des études de cas réels et des lives Q&A",
+   "Un guide 'Comment évaluer la qualité d’un contenu éducatif' (pour eux-mêmes)",
+   "Des templates prêts à l’emploi pour appliquer les conseils (checklists, fiches mémo)"
+  ],
+  "segments_detectes": [
+   {
+    "description": "Jeunes actifs ou quadras en quête de sens professionnel, ayant testé des formations coûteuses ou des méthodes inefficaces. Ils veulent des résultats concrets, pas des théories. État d’esprit : 'J’ai assez perdu de temps et d’argent, montrez-moi la preuve.'",
+    "segment": "Les 'Désillusionnés Pragmatiques'",
+    "signaux": "Tokens 'pas convaincu', 'trop cher', 'exemples concrets', 'sceptique mais essaie'",
+    "taille_estimee": "importante",
+    "valeur_potentielle": "Segment clé pour les offres premium (formations, coaching) avec preuve sociale forte. Leur scepticisme, s’il est levé, génère une fidélité durable."
+   },
+   {
+    "description": "Créateurs de contenu ou enseignants en devenir qui cherchent à améliorer leur propre pédagogie. Ils consomment des contenus sur la transmission du savoir. État d’esprit : 'Comment expliquer ça simplement ?'",
+    "segment": "Les 'Pédagogues en Herbe'",
+    "signaux": "Tokens 'pédagogie', 'rare', 'merci pour ce partage généreux'",
+    "taille_estimee": "moyenne",
+    "valeur_potentielle": "Segment influent pour les partenariats (affiliation, collaborations) et les produits liés à l’éducation."
+   }
+  ]
+ },
+ "marketing": {
+  "angles_de_contenu": [
+   "Pédagogie radicale : expliquer comme si c’était la première fois",
+   "Démystification : révéler les mécanismes cachés derrière [sujet complexe]",
+   "Transparence prix : pourquoi ça coûte [X] et comment en avoir pour son argent"
+  ],
+  "declencheurs_emotionnels": [
+   "La frustration face à l’opacité ('Trop cher pour ce que c’est honnêtement')",
+   "L’espoir d’une solution simple ('Enfin quelqu’un qui explique bien')",
+   "La gratitude pour la clarté ('Bravo pour la pédagogie, c’est rare')"
+  ],
+  "hooks_performants": [
+   "Une vidéo qui explique [sujet complexe] simplement, sans jargon",
+   "Ce contenu m’a aidé à [résultat concret] — et ça se voit",
+   "Pourquoi [objet de méfiance] coûte si cher (et comment l’éviter)",
+   "La vérité sur [sujet controversé] que personne ne vous dit",
+   "Des exemples concrets pour [problème précis] — enfin !"
+  ],
+  "leviers_de_conversion": [
+   "Preuves sociales ('Super vidéo merci beaucoup !')",
+   "Démonstrations tangibles ('ça m’aide vraiment')",
+   "Offres 'sans risque' (essai gratuit, garantie satisfait ou remboursé)"
+  ],
+  "mots_cles": [
+   "merci",
+   "aide",
+   "contenu",
+   "pédagogie",
+   "concret",
+   "exemple",
+   "généreux",
+   "clair"
+  ],
+  "objections_invisibles": [
+   "Peur de se faire avoir ('Je reste sceptique mais je vais essayer')",
+   "Crainte de l’engagement ('Je ne suis pas convaincu par l’argument sur le prix')"
+  ],
+  "objections_visibles": [
+   "Le prix est trop élevé pour la valeur perçue",
+   "Manque d’exemples concrets pour appliquer les conseils"
+  ],
+  "opportunites_contenu": [
+   "Séries de vidéos 'Comment faire [X] en 5 étapes' avec exemples concrets",
+   "Comparatifs transparents ('Pourquoi [produit A] vaut 3x plus cher que [produit B]')",
+   "Témoignages clients avec résultats chiffrés",
+   "Live Q&A pour répondre aux objections en direct"
+  ],
+  "opportunites_offre": [
+   "Un produit/service avec un prix justifié par des résultats mesurables",
+   "Un accompagnement personnalisé pour appliquer les conseils"
+  ],
+  "positionnement_recommande": "Le guide pédagogique qui rend accessible ce qui semble compliqué, sans jargon ni promesses creuses.",
+  "risques_communication": [
+   "Trop insister sur le prix sans valeur ajoutée perçue",
+   "Donner l’impression de vendre un 'remède miracle'"
+  ],
+  "sujets_qui_attirent": [
+   "Les sujets où l’audience se sent 'perdue' (finance, santé, éducation)",
+   "Les comparaisons directes ('Trop cher pour ce que c’est')",
+   "Les formats 'tutoriels' ou 'guides pas à pas'"
+  ],
+  "sujets_qui_divisent": [
+   "Le prix (objet de scepticisme)",
+   "Les promesses de résultats rapides (suspectées de manipulation)"
+  ]
+ },
+ "meta": {
+  "commentaires_analyses": 10,
+  "confidence_score": 0.56,
+  "dominant_emotion": "admiration",
+  "dominant_stance": "neutre",
+  "nlp_active": true,
+  "noise_ratio": 0.0,
+  "taux_filtrage": 100.0,
+  "total_commentaires": 10
+ },
+ "nlp_signals": {
+  "avg_tokens": 3.5,
+  "cluster_summary": [
+   {
+    "cluster_id": 0,
+    "pct": 70.0,
+    "samples": [
+     "Super vidéo merci beaucoup !",
+     "Jadore ce contenu, ça maide vraiment",
+     "Enfin quelquun qui explique bien ce sujet compliqué"
+    ],
+    "size": 7,
+    "top_tokens": [
+     "merci",
+     "cest",
+     "vidéo",
+     "jadore",
+     "contenu",
+     "maide"
+    ]
+   },
+   {
+    "cluster_id": 1,
+    "pct": 30.0,
+    "samples": [
+     "Je ne suis pas convaincu par largument sur le prix",
+     "Jattends la suite avec impatience",
+     "Je reste sceptique mais je vais essayer"
+    ],
+    "size": 3,
+    "top_tokens": [
+     "suis",
+     "convaincu",
+     "largument",
+     "prix",
+     "jattends",
+     "suite"
+    ]
+   }
+  ],
+  "relevance_distribution": {
+   "faible": 0,
+   "haute": 0,
+   "max": 0.5,
+   "mean": 0.5,
+   "min": 0.5,
+   "moyenne": 10
+  },
+  "semantic_diversity": 0.717,
+  "top_bigrams": [
+   {
+    "bigram": "vidéo merci",
+    "freq": 1
+   },
+   {
+    "bigram": "jadore contenu",
+    "freq": 1
+   },
+   {
+    "bigram": "contenu maide",
+    "freq": 1
+   },
+   {
+    "bigram": "suis convaincu",
+    "freq": 1
+   },
+   {
+    "bigram": "convaincu largument",
+    "freq": 1
+   },
+   {
+    "bigram": "largument prix",
+    "freq": 1
+   },
+   {
+    "bigram": "enfin quelquun",
+    "freq": 1
+   },
+   {
+    "bigram": "quelquun explique",
+    "freq": 1
+   }
+  ],
+  "top_tfidf": [
+   {
+    "score": 3.219,
+    "score_norm": 1.0,
+    "token": "merci"
+   },
+   {
+    "score": 3.219,
+    "score_norm": 1.0,
+    "token": "cest"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "vidéo"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "jadore"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "contenu"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "maide"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "suis"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "convaincu"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "largument"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "prix"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "enfin"
+   },
+   {
+    "score": 2.303,
+    "score_norm": 0.715,
+    "token": "quelquun"
+   }
+  ],
+  "vocabulary_size": 33
+ },
+ "personas": [
+  {
+   "age": 32,
+   "archetype_jungien": "Sage",
+   "aspirations": [
+    "Devenir expert dans son domaine pour gagner en confiance",
+    "Être reconnu comme compétent par ses pairs",
+    "Avoir des outils immédiatement applicables dans son travail"
+   ],
+   "besoin_d_appartenance": "Une communauté de pairs qui partagent ses défis et ses aspirations (ex: groupe de professionnels en reconversion).",
+   "biais_cognitifs": [
+    "biais de négativité (se focalise sur les défauts)",
+    "effet Dunning-Kruger (sous-estime ses compétences initiales)",
+    "aversion à la perte (peur de rater une opportunité d'apprentissage)"
+   ],
+   "ce_qui_le_ferait_acheter": "Une preuve tangible de résultats (ex: avant/après, études de cas) + un prix aligné avec la valeur perçue (promo, paiement en plusieurs fois).",
+   "ce_qui_le_ferait_fuir": "Un discours trop commercial, des promesses floues, ou un manque de transparence sur le contenu réel.",
+   "cluster_grounded": true,
+   "cluster_source": "Cluster 0",
+   "confiance": 0.85,
+   "declencheurs_emotionnels": [
+    "Un contenu qui simplifie un sujet complexe",
+    "Un témoignage d'un pair ayant réussi grâce à la méthode",
+    "Une offre avec une garantie ou un essai gratuit"
+   ],
+   "desir_de_legacy": "Laisser derrière lui des outils ou méthodes qui simplifient l’apprentissage pour les générations suivantes.",
+   "desirs": [
+    "Des exemples concrets et des cas pratiques",
+    "Une démonstration claire de la valeur du contenu",
+    "Un accompagnement personnalisé pour surmonter ses blocages"
+   ],
+   "emotion_dominante_mesuree": "espoir",
+   "etat_esprit": "Fatigué par les promesses marketing creuses et les contenus trop théoriques. Cherche des solutions concrètes pour combler un écart de compétences perçu. Oscille entre enthousiasme (quand il trouve un contenu utile) et scepticisme (quand il doute de la valeur réelle).",
+   "frustrations": [
+    "Contenus trop théoriques sans exemples concrets",
+    "Prix perçu comme disproportionné par rapport à la valeur perçue",
+    "Manque de preuves tangibles (résultats, témoignages)"
+   ],
+   "genre": "Mixte",
+   "habitudes_digitales": [
+    "Consomme des contenus éducatifs sur YouTube, LinkedIn, ou des plateformes spécialisées",
+    "Recherche des avis et témoignages avant d'acheter",
+    "Participe à des groupes Facebook ou forums dédiés à son domaine"
+   ],
+   "histoire_interieure": "« Je devrais déjà savoir ça. Pourquoi est-ce que je bloque encore ? Si je rate cette opportunité, je vais rester dans mon job sans évolution. Mais si je me trompe, je vais avoir dépensé mon argent pour rien… »",
+   "langage_typique": "Super vidéo merci beaucoup ! / Jadore ce contenu, ça m'aide vraiment / Enfin quelqu'un qui explique bien ce sujet compliqué",
+   "message_a_lui_dire": "« Ce contenu est fait pour ceux qui veulent passer de la théorie à l’action, sans perdre de temps. »",
+   "messages_impactants": [
+    "« Imaginez maîtriser ce sujet en 30 jours au lieu de 3 ans. »",
+    "« Vos collègues vous envient déjà cette compétence. »"
+   ],
+   "metier": "Professionnel en reconversion ou en montée en compétences (secteurs tech, management, formation)",
+   "mission_cachee": "Devenir la personne vers qui on se tourne pour des conseils fiables dans son domaine.",
+   "nom": "Les apprenants pragmatiques en quête de clarté",
+   "objection_principale": "Trop cher pour ce que c'est honnêtement",
+   "objections_a_lever": [
+    "« Pourquoi ce prix ? » → Réponse : « Parce que ce n’est pas juste une vidéo, c’est un plan d’action testé par 1000 professionnels. »",
+    "« Je ne suis pas sûr que ça marche pour moi. » → Réponse : « Essayez gratuitement pendant 7 jours, sans risque. »"
+   ],
+   "ombre_jungienne": "Se perçoit comme un éternel débutant incapable de maîtriser les sujets complexes, alors qu'il cache une intelligence pratique et une capacité d'apprentissage rapide.",
+   "peurs": [
+    "Peur de ne pas tout comprendre et de faire des erreurs",
+    "Peur de dépenser de l'argent pour quelque chose qui ne tient pas ses promesses",
+    "Peur de rester bloqué dans sa situation actuelle"
+   ],
+   "poids": "70%",
+   "potentiel_non_exprime": "Capacité à enseigner à son tour et à créer du contenu utile pour les autres, une fois sa confiance retrouvée.",
+   "preuve_attendue": "Résultats concrets (études de cas, témoignages vidéo, démos gratuites)",
+   "quete_de_sens": "Devenir compétent et autonome dans un domaine qui lui donnera une légitimité professionnelle et personnelle.",
+   "rapport_argent": "Pragmatique : prêt à payer pour de la valeur tangible, mais méfiant face aux prix élevés sans justification claire. Sensible aux promotions et aux garanties de satisfaction.",
+   "rapport_autorite": "Respecte les experts qui partagent leur savoir de manière désintéressée, mais se méfie des influenceurs trop commerciaux. Cherche des figures qui lui ressemblent (pairs, professionnels en activité).",
+   "signaux_mesures": [
+    "merci",
+    "super",
+    "vidéo",
+    "aide",
+    "contenu",
+    "compliqué",
+    "explique bien"
+   ],
+   "situation_vie": "Vit en ville (banlieue ou centre), en couple ou célibataire sans enfants, revenus moyens à élevés mais sensibles au rapport qualité-prix. Budget serré pour les loisirs mais prêt à investir dans des outils qui accélèrent sa progression professionnelle.",
+   "tension_existentielle": "Tension entre son désir de progresser rapidement et sa peur de ne pas être à la hauteur.",
+   "vision_monde": "Le savoir doit être accessible et applicable, sinon il est inutile."
+  },
+  {
+   "age": 38,
+   "archetype_jungien": "Guerrier",
+   "aspirations": [
+    "Devenir un expert reconnu dans son domaine",
+    "Prendre des décisions éclairées sans dépendre des autres",
+    "Léguer une expertise utile à ses enfants"
+   ],
+   "besoin_d_appartenance": "Une tribu de professionnels pragmatiques qui partagent des outils concrets pour naviguer dans l’incertitude économique.",
+   "biais_cognitifs": [
+    "Effet Dunning-Kruger (sous-estime son besoin d’apprendre)",
+    "Biais de négativité (retient surtout les critiques)",
+    "Ancre mentale (le prix initial fausse sa perception de la valeur)"
+   ],
+   "ce_qui_le_ferait_acheter": "Une formation avec un module 'calcul du ROI' intégré, des études de cas sectorielles, et un accès à une communauté privée d’échanges entre pairs.",
+   "ce_qui_le_ferait_fuir": "Un pitch trop émotionnel ('changez votre vie !'), des témoignages flous ('ça a changé ma vie'), ou un manque de transparence sur les coûts cachés.",
+   "cluster_grounded": true,
+   "cluster_source": "Cluster 1",
+   "confiance": 0.82,
+   "declencheurs_emotionnels": [
+    "Un argument chiffré qui contredit son intuition",
+    "Un témoignage d’un pair dans une situation similaire à la sienne",
+    "Une offre 'sans risque' avec garantie satisfait ou remboursé"
+   ],
+   "desir_de_legacy": "Léguer à ses enfants une méthode pour évaluer les opportunités sans se faire avoir – un 'kit de survie financière'.",
+   "desirs": [
+    "Un mentor qui parle son langage (chiffres, cas concrets)",
+    "Des garanties tangibles (résultats mesurables)",
+    "Rejoindre une communauté de pairs qui partagent ses valeurs"
+   ],
+   "emotion_dominante_mesuree": "méfiance",
+   "etat_esprit": "Cynique mais ouvert à la preuve. Fatigué des discours marketing flous, il exige des faits tangibles. Son scepticisme est une armure contre la déception.",
+   "frustrations": [
+    "Contenus trop théoriques sans applications pratiques",
+    "Promesses marketing non tenues",
+    "Manque de transparence sur les coûts réels"
+   ],
+   "genre": "Homme",
+   "habitudes_digitales": [
+    "Lit les avis vérifiés sur Trustpilot avant d’acheter",
+    "Compare systématiquement les prix sur 3 plateformes",
+    "S’abonne à des newsletters sectorielles (ex: Harvard Business Review)"
+   ],
+   "histoire_interieure": "Je n’ai pas le temps pour les conneries. Si je dépense mon argent, je veux être sûr que ça va me faire gagner du temps ou de l’argent. Sinon, autant garder mes économies pour les études de mes enfants.",
+   "langage_typique": "Je ne suis pas convaincu par l'argument sur le prix / J'attends la suite avec impatience / Trop cher pour ce que c'est honnêtement",
+   "message_a_lui_dire": "Voici comment ce contenu vous fera économiser 3h de travail et 2000€ de pertes par an – voici les chiffres.",
+   "messages_impactants": [
+    "'Vous ne payez pas pour des mots, vous payez pour des résultats. Voici les résultats.'",
+    "'Les experts qui réussissent sont ceux qui savent éviter les pièges que vous allez rencontrer.'"
+   ],
+   "metier": "Responsable logistique dans une PME industrielle",
+   "mission_cachee": "Devenir la personne de référence dans son entreprise pour prendre des décisions stratégiques sans dépendre des consultants extérieurs.",
+   "nom": "Les sceptiques pragmatiques",
+   "objection_principale": "Le prix est disproportionné par rapport à la valeur perçue",
+   "objections_a_lever": [
+    "'Pourquoi ce prix ?' → Réponse : 'Parce que c’est le coût d’une erreur évitée.'",
+    "'Est-ce que ça marche vraiment ?' → Réponse : 'Voici 5 cas clients avec les mêmes enjeux que vous.'"
+   ],
+   "ombre_jungienne": "La peur de se faire avoir – il projette sur les autres sa propre tendance à rationaliser ses échecs par des excuses ('c’était trop cher').",
+   "peurs": [
+    "Peur de gaspiller son argent dans des formations inutiles",
+    "Peur de passer pour un naïf en suivant des conseils inadaptés",
+    "Peur que ses enfants reproduisent ses erreurs financières"
+   ],
+   "poids": "30%",
+   "potentiel_non_exprime": "Sa capacité à systématiser ses apprentissages pour en faire une méthode reproductible – mais il doute de sa légitimité à enseigner.",
+   "preuve_attendue": "Études de cas détaillées avec ROI chiffré / Témoignages de pairs dans son secteur / Accès à une démo gratuite avec résultats immédiats",
+   "quete_de_sens": "Trouver des preuves concrètes que ses efforts (temps, argent) en vaudront la peine – au-delà des apparences.",
+   "rapport_argent": "Rationnel mais émotionnellement tendu : il dépense pour ce qui a une utilité prouvée, mais culpabilise quand il cède à un 'coup de cœur'.",
+   "rapport_autorite": "Respecte les experts qui montrent des preuves (diplômes + résultats), méprise ceux qui jouent sur l’émotion. Aime les 'anti-gurus' qui déconstruisent les mythes.",
+   "signaux_mesures": [
+    "suis",
+    "convaincu",
+    "argument",
+    "prix",
+    "jattends"
+   ],
+   "situation_vie": "Marié, deux enfants scolarisés, propriétaire d’une maison en banlieue. Budget serré mais stable. Sensible aux coûts cachés et aux promesses trop belles.",
+   "tension_existentielle": "Tension entre son désir d’autonomie ('je veux tout comprendre par moi-même') et sa peur de l’échec ('et si je me trompe ?').",
+   "vision_monde": "Dans ce monde, tout a un prix – et souvent plus élevé qu’affiché. La confiance se mérite par des résultats, pas des mots."
+  },
+  {
+   "age": 34,
+   "archetype_jungien": "Sage",
+   "aspirations": [
+    "Devenir un expert reconnu dans son domaine",
+    "Transmettre sa connaissance à d’autres pour créer un impact durable",
+    "Avoir la certitude que son investissement en temps et argent portera ses fruits"
+   ],
+   "besoin_d_appartenance": "Une communauté de pairs qui partagent ses défis professionnels et célèbrent ses victoires sans jugement.",
+   "biais_cognitifs": [
+    "biais de négativité (surpondération des critiques)",
+    "effet Dunning-Kruger (sous-estimation de sa propre ignorance)",
+    "biais de confirmation (recherche de preuves qui valident ses doutes)"
+   ],
+   "ce_qui_le_ferait_acheter": "Une vidéo de démonstration gratuite montrant exactement comment appliquer la méthode dans son contexte professionnel + un témoignage client avec des chiffres précis.",
+   "ce_qui_le_ferait_fuir": "Un discours trop vendeur, des promesses floues, ou un manque de transparence sur les tarifs.",
+   "cluster_grounded": "hybride",
+   "cluster_source": "hybride (Cluster 0 + Cluster 1)",
+   "confiance": 0.82,
+   "declencheurs_emotionnels": [
+    "Un expert qui admet ses échecs passés et explique comment il les a surmontés",
+    "Un cas client identique à sa situation professionnelle",
+    "Une offre avec une garantie « satisfait ou remboursé »"
+   ],
+   "desir_de_legacy": "Laisser derrière lui une méthodologie testée et reproductible, utilisée par d’autres consultants.",
+   "desirs": [
+    "Des études de cas réels et applicables",
+    "Un accès direct à l’expert pour poser ses questions",
+    "Une garantie de résultats mesurables"
+   ],
+   "emotion_dominante_mesuree": "méfiance",
+   "etat_esprit": "Épuisé par la surcharge informationnelle mais déterminé à se former. Oscille entre l’enthousiasme pour les nouvelles méthodes et la lassitude face aux promesses marketing creuses. Cherche des preuves tangibles avant d’agir.",
+   "frustrations": [
+    "Le contenu trop théorique qui ne s’applique pas à son quotidien",
+    "Le prix perçu comme disproportionné par rapport à la valeur réelle",
+    "Le manque de transparence sur les résultats concrets"
+   ],
+   "genre": "Homme",
+   "habitudes_digitales": [
+    "Consomme du contenu éducatif sur YouTube et LinkedIn en 1,5x vitesse",
+    "Recherche systématiquement des avis clients sur Trustpilot avant d’acheter",
+    "Participe à des groupes Facebook privés de professionnels de son secteur"
+   ],
+   "histoire_interieure": "« Encore une formation qui promet monts et merveilles… Combien de fois j’ai déjà payé pour ça ? Mais si cette fois c’est vrai… Si je pouvais enfin maîtriser [compétence] sans perdre des mois à tout comprendre seul ? Et si c’était la bonne ? »",
+   "langage_typique": "« Enfin quelqu’un qui explique bien ce sujet compliqué » / « Trop cher pour ce que c’est honnêtement » / « J’aimerais plus d’exemples concrets stp »",
+   "message_a_lui_dire": "« Vous méritez de savoir exactement comment [résultat concret] fonctionne dans la vraie vie — pas dans un PowerPoint idéalisé. Voici comment [X] a transformé son business en 3 mois. »",
+   "messages_impactants": [
+    "« 90% des formations échouent parce qu’elles ne s’adaptent pas à VOTRE réalité. Celle-ci, elle a été conçue pour des gens comme vous. »",
+    "« Vous n’êtes pas en train d’acheter un cours. Vous investissez dans la certitude que vous pourrez enfin appliquer ce que vous apprenez. »"
+   ],
+   "metier": "Consultant en stratégie digitale / Formateur freelance",
+   "mission_cachee": "Devenir la référence incontournable dans son domaine, pour ne plus jamais douter de sa légitimité.",
+   "nom": "Les Pragmatiques en Quête de Maîtrise",
+   "objection_principale": "Trop cher pour ce que c’est honnêtement",
+   "objections_a_lever": [
+    "« Trop cher ? Regardez le temps que vous allez gagner en évitant les erreurs coûteuses. »",
+    "« Pas convaincu ? Voici les données brutes de nos 24 derniers clients — 87% ont augmenté leur CA de 20% en 3 mois. »"
+   ],
+   "ombre_jungienne": "La peur de ne pas être à la hauteur, camouflée derrière un masque de rationalité et de scepticisme.",
+   "peurs": [
+    "Peur de gaspiller son argent dans une formation inutile",
+    "Peur de ne pas être capable de mettre en pratique ce qu’il apprend",
+    "Peur de se faire avoir par un discours marketing trop beau pour être vrai"
+   ],
+   "poids": "34%",
+   "potentiel_non_exprime": "Sa capacité à synthétiser des connaissances complexes et à les rendre accessibles à d’autres — bloquée par la peur de l’imposture.",
+   "preuve_attendue": "Témoignages vidéo de clients ayant obtenu des résultats concrets + données chiffrées avant/après",
+   "quete_de_sens": "Trouver un savoir qui transforme sa vie professionnelle et lui donne un sentiment de contrôle dans un environnement incertain.",
+   "rapport_argent": "Considère l’argent comme un outil d’investissement, mais a développé une aversion au gaspillage. Prêt à payer pour de la qualité, mais exige des preuves immédiates de cette qualité.",
+   "rapport_autorite": "Respecte les experts qui ont une expérience terrain vérifiable, méprise ceux qui parlent sans preuve. A besoin de sentir que l’expert « a marché le chemin avant lui ».",
+   "signaux_mesures": [
+    "merci",
+    "cest",
+    "video",
+    "suis",
+    "convaincu",
+    "prix",
+    "exemples",
+    "pédagogie"
+   ],
+   "situation_vie": "Vit en banlieue parisienne avec sa compagne et un enfant en bas âge. Revenus moyens-élevés mais pression financière liée à l’immobilier et aux études de son enfant. Travaille à distance, budget serré mais sensible à l’investissement dans des compétences durables.",
+   "tension_existentielle": "Entre son besoin de maîtrise (contrôle) et sa peur de l’échec (perte de contrôle).",
+   "vision_monde": "Dans un monde où tout va trop vite, la compétence est la seule monnaie qui ne se dévalue pas."
+  }
+ ],
+ "psychologie": {
+  "besoin_d_appartenance": "Besoin d’appartenir à une communauté de personnes qui partagent la même quête de connaissance.",
+  "besoin_de_transformation": "Besoin de se transformer en passant de l’ignorance à la compétence, avec des preuves tangibles.",
+  "besoins_identitaires": "Besoin de se sentir compétent et légitime dans un domaine complexe.",
+  "croyances_limitantes": [
+   "le savoir coûte cher",
+   "je ne mérite pas le meilleur",
+   "les experts mentent"
+  ],
+  "croyances_mobilisatrices": [
+   "le savoir libère",
+   "apprendre change tout",
+   "la pédagogie est rare et précieuse"
+  ],
+  "desir_de_legacy": "Désir de laisser une trace par l’apprentissage et le partage de connaissances.",
+  "desirs_caches": [
+   "devenir expert",
+   "être reconnu",
+   "avoir des preuves tangibles",
+   "se sentir en contrôle"
+  ],
+  "frustrations": [
+   "prix trop élevé",
+   "manque d'exemples",
+   "scepticisme",
+   "incompréhension",
+   "attente non comblée"
+  ],
+  "maturite_emotionnelle": "Maturité émotionnelle moyenne : l’audience est ouverte à l’apprentissage, mais reste prudente et sceptique.",
+  "mecanismes_psychologiques": "Biais de rareté et de preuve sociale : l’audience évalue la valeur du contenu par son prix et son originalité perçue.",
+  "motivations_profondes": [
+   "comprendre",
+   "apprendre",
+   "agir",
+   "reconnaissance",
+   "autonomie"
+  ],
+  "peurs_implicites": [
+   "ne pas être à la hauteur",
+   "perdre son argent",
+   "rester dans l'ignorance",
+   "être jugé"
+  ],
+  "potentiel_bloque": "Le potentiel de transformation par l’apprentissage est bloqué par la peur de l’échec et le scepticisme envers les promesses marketing.",
+  "quete_de_signifiance": "La quête de signifiance passe par la maîtrise et la capacité à agir avec confiance.",
+  "rapport_argent": "L’argent est perçu comme un symbole de valeur et de sérieux, mais aussi comme un frein à l’accès.",
+  "rapport_autorite": "L’autorité est respectée, mais doit être prouvée par la pédagogie et des preuves tangibles.",
+  "rapport_famille": "Non détecté dans les commentaires.",
+  "rapport_image": "L’image de soi est liée à la compétence : être perçu comme quelqu’un qui comprend et agit.",
+  "rapport_spiritualite": "Aucun signal spirituel explicite, mais une quête de sens à travers l’apprentissage.",
+  "rapport_succes": "Le succès est associé à la maîtrise et à la capacité d’agir, pas à la richesse matérielle.",
+  "rapport_travail": "Le travail est perçu comme un moyen de progresser et de se dépasser.",
+  "signal_de_purpose": "Un signal de mission émerge : devenir compétent et autonome dans un domaine complexe.",
+  "systeme_de_valeurs": "Valeurs centrées sur l’apprentissage et la croissance personnelle, avec une méfiance envers le marketing agressif.",
+  "tensions_internes": "Tension entre le désir d’apprendre rapidement et la peur de ne pas tout comprendre.",
+  "valeurs_dominantes": [
+   "pédagogie",
+   "autonomie",
+   "transparence",
+   "expertise",
+   "générosité"
+  ]
+ },
+ "recommandations": {
+  "actions_prioritaires": [
+   "Lancer une série de vidéos 'Démystifier [sujet]' montrant des cas réels de transformation (avant/après) avec des données chiffrées (temps gagné, compétences acquises, ROI).",
+   "Créer un 'Laboratoire de Vérité' : un espace où les membres peuvent poser des questions anonymes et recevoir des réponses basées sur des preuves (études, retours d’expérience, données du terrain).",
+   "Proposer un audit gratuit '1 page pour voir où vous en êtes' : un diagnostic personnalisé qui identifie leurs blocages spécifiques et leurs leviers de progression — sans engagement.",
+   "Organiser des 'Live Q&A sans filtre' où vous répondez aux objections les plus courantes (prix, temps, efficacité) avec des exemples concrets et des témoignages vérifiés."
+  ],
+  "angles_narratifs": [
+   "Le récit du 'Pionnier' : 'J’ai tout essayé, j’ai échoué, puis j’ai trouvé une méthode qui marche — et voici pourquoi elle est différente.'",
+   "Le récit du 'Compagnon' : 'Je ne suis pas un guru, je suis comme vous : quelqu’un qui a galéré et qui a enfin compris comment avancer.'",
+   "Le récit de la 'Preuve' : 'Regardez les données : voici ce que 100 personnes ont vraiment accompli en 3 mois — pas des promesses, des faits.'"
+  ],
+  "ce_qu_ils_ne_disent_pas_mais_veulent_entendre": "Nous avons peur de ne pas être à la hauteur. Nous voulons croire que quelqu’un a trouvé la solution, mais nous avons été trahis trop de fois. Dites-nous la vérité : est-ce que ça marche vraiment ? Et si oui, comment ?",
+  "differenciation": "Se distinguer en étant **le seul à montrer les échecs et les limites** de la méthode, tout en prouvant que malgré tout, la progression est possible. Montrer que vous comprenez leur scepticisme parce que vous l’avez vécu vous-même. Utiliser des **preuves sociales authentiques** (pas des témoignages retouchés, mais des données brutes : temps passé, résultats mesurables, feedbacks non filtrés).",
+  "insight_strategique_cle": "Leur frustration ne vient pas du manque de contenu, mais de l'absence de **transparence radicale** sur ce qui fonctionne vraiment — et de la peur de gaspiller leur énergie dans des systèmes qui ne les mènent nulle part.",
+  "message_central": "Arrêtez de chercher la solution miracle. Commencez par comprendre ce qui marche vraiment — et agissez avec des outils qui vous ressemblent.",
+  "positionnement": "Le **Guide Anti-Bullshit** : celui qui ne vous vend pas du rêve, mais vous donne les outils pour avancer, même si c’est lent — parce que la compétence se construit pas à pas, pas en 2 clics.",
+  "prochaines_etapes": [
+   "Cette semaine : Lancer la série 'Démystifier [sujet]' avec 3 vidéos courtes (10-15 min) mettant en avant des cas réels et des données.",
+   "Ce mois : Créer le 'Laboratoire de Vérité' et organiser le premier Live Q&A sans filtre.",
+   "Dans 3 mois : Proposer l’audit gratuit '1 page pour voir où vous en êtes' à 500 personnes cibles (via ciblage hyper-précis sur les réseaux).",
+   "Dans 6 mois : Avoir 1 000 audits complétés et 50 témoignages bruts (avec données) pour alimenter la preuve sociale."
+  ],
+  "promesse_authentique": "Nous ne promettons pas de les rendre experts en 2 semaines. Nous promettons de leur donner **la méthode éprouvée pour maîtriser [sujet] sans bullshit, avec des preuves concrètes et un accompagnement qui s’adapte à leur rythme réel** — même s’ils partent de zéro.",
+  "risques_strategiques": [
+   "Le risque de paraître trop 'négatif' en montrant les échecs (solution : équilibrer avec des preuves de succès tangibles).",
+   "Le risque que le public interprète la transparence comme de la faiblesse (solution : ancrer le discours dans des données et des résultats concrets)."
+  ],
+  "strategie_contenu": "Contenu qui **démystifie** plutôt que qui enseigne : montrer les coulisses des échecs et des succès, les pièges à éviter, et les étapes réelles pour progresser. Utiliser des formats 'anti-marketing' (pas de jargon, pas de promesses miracles, juste des faits) pour gagner leur confiance. Priorité aux formats qui **réduisent l’anxiété** (tutoriels ultra-pratiques, comparatifs honnêtes, retours d’expérience bruts).",
+  "verite_de_l_audience": "Cette audience cherche désespérément à passer de l'impuissance à la maîtrise dans un monde complexe, mais elle doute que cela soit possible sans se faire exploiter (prix, promesses creuses). Elle veut des preuves tangibles qu'elle peut devenir compétente, autonome et reconnue sans sacrifier son temps ou son argent."
+ },
+ "source_label": "Texte libre",
+ "top_comments": [
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Super vidéo merci beaucoup !"
+  },
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Jadore ce contenu, ça maide vraiment"
+  },
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Je ne suis pas convaincu par largument sur le prix"
+  },
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Enfin quelquun qui explique bien ce sujet compliqué"
+  },
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Jattends la suite avec impatience"
+  },
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Trop cher pour ce que cest honnêtement"
+  },
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Merci pour ce partage généreux et clair"
+  },
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Jaimerais plus dexemples concrets stp"
+  },
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Bravo pour la pédagogie, cest rare"
+  },
+  {
+   "author": "inconnu",
+   "likes": 0,
+   "text": "Je reste sceptique mais je vais essayer"
+  }
+ ],
+ "transformation": {
+  "etat_actuel": {
+   "conscience_du_probleme": "partielle",
+   "croyance_bloquante": "Le contenu n’est pas à la hauteur de son coût, ce qui bloque l’engagement.",
+   "frustration_principale": "Le prix perçu comme disproportionné par rapport à la valeur reçue.",
+   "identite_actuelle": "Une personne en quête de connaissance, mais prudente et sceptique.",
+   "situation": "L’audience est en phase d’éveil : elle reconnaît la valeur de la pédagogie, mais reste bloquée par le scepticisme et le prix."
+  },
+  "etat_desire": {
+   "identite_aspiree": "Une personne compétente, autonome et confiante dans son domaine.",
+   "indicateur_de_succes": "La capacité à appliquer les connaissances acquises et à partager son savoir avec d’autres.",
+   "transformation_visee": "Passer d’un état de scepticisme à une confiance totale dans la valeur du contenu.",
+   "vie_revelee": "Une vie où elle maîtrise des sujets complexes et peut agir avec assurance."
+  },
+  "le_pont": {
+   "ce_dont_ils_ont_besoin": "Des preuves tangibles de la valeur du contenu (études de cas, témoignages, démonstrations).",
+   "declencheur_de_transition": "Un exemple concret et probant qui démontre la valeur réelle du contenu.",
+   "message_de_passage": "Je suis une personne en quête de compétence qui cherche à devenir autonome sans me faire arnaquer.",
+   "obstacle_principal": "Le scepticisme envers le prix et la peur de ne pas obtenir ce qui est promis."
+  }
+ },
+ "video_context": "",
+ "video_description": ""
+}

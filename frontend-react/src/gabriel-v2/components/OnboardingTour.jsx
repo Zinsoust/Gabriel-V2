@@ -3,9 +3,9 @@ import { Icon } from '../icons.jsx';
 
 const steps = [
   {
-    eyebrow: 'Gabriel.ai · L’IA 100 % business',
-    title: 'Bienvenue dans votre espace de décision.',
-    body: 'Gabriel réunit vos conversations, vos sources, vos spécialistes et vos décisions au même endroit.',
+    eyebrow: 'Gabriel · Analyse du comportement humain',
+    title: 'Comprenez ce que votre audience exprime vraiment.',
+    body: 'Gabriel analyse les commentaires, avis et réactions de vos audiences, puis transforme cette compréhension en stratégie et en contenu.',
   },
   {
     eyebrow: '01 · Se repérer',
@@ -17,12 +17,12 @@ const steps = [
   {
     eyebrow: '02 · Garder le cap',
     title: 'Les onglets indiquent où vous êtes.',
-    body: 'Conversation, Psychologue, Stratège, Créateur, Activité et Mémoire sont toujours accessibles dans la barre supérieure. Le fil d’Ariane confirme la section ouverte.',
+    body: 'Le Psychologue ouvre la barre supérieure. Ariane et le Créateur prolongent son analyse ; Conversation, Activité et Mémoire restent à portée de clic.',
   },
   {
     eyebrow: '03 · Avancer',
-    title: 'Commencez par la conversation.',
-    body: 'Décrivez votre besoin. Gabriel crée le bon espace de travail, conserve le contexte utile et mobilise les spécialistes quand ils apportent une vraie valeur.',
+    title: 'Commencez par une analyse.',
+    body: 'Collez le lien d’une vidéo, quelques avis ou un fichier. Le résultat s’ouvre sur une synthèse, puis se transmet à Ariane et au Créateur sans perdre le contexte.',
   },
   {
     eyebrow: '04 · Personnaliser',

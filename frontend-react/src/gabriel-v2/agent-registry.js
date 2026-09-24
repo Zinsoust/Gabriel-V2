@@ -36,20 +36,28 @@ export function isAgentTab(id) {
   return Boolean(getAgent(id));
 }
 
-/* Les anciennes adresses (/psychologue, /stratege, /createur) renvoient vers
-   la V2 en indiquant l'agent visé : /orchestrateur?agent=stratege. Sans cette
-   lecture, toutes ces redirections atterriraient sur la Conversation. */
+/* Le Psychologue est la porte d'entrée de Gabriel (repositionnement du
+   13/09/2026) : une adresse sans écran demandé l'ouvre. Les anciennes adresses
+   (/psychologue, /stratege, /createur) renvoient vers
+   /orchestrateur?agent=… et retombent sur le bon écran. La Conversation reste
+   accessible, mais doit désormais être demandée explicitement. */
+export const DEFAULT_TAB = 'psychologue';
+
+function isAddressableTab(id) {
+  return isAgentTab(id) || id === 'conversation';
+}
+
 export function tabFromUrl(href) {
   let demande = null;
-  try { demande = new URL(href).searchParams.get('agent'); } catch { return 'conversation'; }
-  return demande && isAgentTab(demande) ? demande : 'conversation';
+  try { demande = new URL(href).searchParams.get('agent'); } catch { return DEFAULT_TAB; }
+  return demande && isAddressableTab(demande) ? demande : DEFAULT_TAB;
 }
 
 /* L'adresse suit l'onglet ouvert : recharger la page rouvre le même écran et
    le lien reste partageable. Renvoie l'adresse à inscrire dans l'historique. */
 export function urlWithTab(href, tab) {
   const url = new URL(href);
-  if (isAgentTab(tab)) url.searchParams.set('agent', tab);
+  if (tab !== DEFAULT_TAB && isAddressableTab(tab)) url.searchParams.set('agent', tab);
   else url.searchParams.delete('agent');
   return url.toString();
 }

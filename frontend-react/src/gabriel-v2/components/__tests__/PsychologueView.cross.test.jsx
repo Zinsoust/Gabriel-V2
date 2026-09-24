@@ -8,6 +8,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PsychologueView } from '../PsychologueView.jsx';
 
@@ -165,6 +166,8 @@ describe('Rendu du résultat Cross Analyse', () => {
     expect(screen.getByText('92')).toBeInTheDocument();
     expect(screen.getByText(/Points de prudence/)).toBeInTheDocument();
     expect(screen.getByText('Vidéo A')).toBeInTheDocument();
+    // Salle Cross : les personas croisés ont leur onglet, la conclusion reste en tête.
+    fireEvent.click(screen.getByRole('tab', { name: 'Personas' }));
     expect(screen.getByText('Le Gardien')).toBeInTheDocument();
     vi.useRealTimers();
   });

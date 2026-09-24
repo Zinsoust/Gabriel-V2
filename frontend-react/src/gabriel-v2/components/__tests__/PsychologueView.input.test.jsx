@@ -54,7 +54,7 @@ describe('Entrées disponibles', () => {
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
     const menu = await openSourceMenu(user);
-    ['YouTube', 'Instagram', 'TikTok', 'Google'].forEach(label => {
+    ['YouTube', 'Instagram', 'TikTok'].forEach(label => {
       expect(within(menu).getByRole('option', { name: label })).toBeInTheDocument();
     });
   });
@@ -80,15 +80,13 @@ describe('Changement de plateforme', () => {
     expect(screen.getByPlaceholderText(/vidéo TikTok/)).toBeInTheDocument();
   });
 
-  it('désactive la saisie pour Google et dit pourquoi', async () => {
+  it('n’annonce pas Google tant que sa collecte n’est pas connectée', async () => {
+    /* Repositionnement du 13/09/2026 : aucune source affichée sans moteur
+       derrière. Google revient dans ce menu le jour où il collecte vraiment. */
     const user = userEvent.setup();
     render(<PsychologueView workspace={null} />);
-    await chooseSource(user, 'Google');
-
-    // Annoncer une source non connectée sans bloquer la saisie laisserait
-    // l'utilisateur coller un lien qui ne sera jamais traité.
-    expect(screen.getByPlaceholderText(/arrive prochainement/)).toBeDisabled();
-    expect(screen.getByRole('status')).toHaveTextContent(/Google sera connecté/);
+    const menu = await openSourceMenu(user);
+    expect(within(menu).queryByRole('option', { name: 'Google' })).toBeNull();
   });
 
   it('bascule vers la saisie manuelle depuis le sélecteur', async () => {
@@ -182,6 +180,70 @@ describe('Aperçu de la source', () => {
 
     expect(screen.getByText('Vidéo YouTube · ud9o4GHHX6k')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /Vignette de Vidéo YouTube/ })).toHaveAttribute('src', 'https://i.ytimg.com/vi/ud9o4GHHX6k/hqdefault.jpg');
-    expect(global.fetch).not.toHaveBeenCalled();
+    // Seul le chargement des analyses récentes de l'accueil peut partir : aucune
+    // vérification du lien avant que l'utilisateur ne la demande.
+    const appelsHorsHistorique = global.fetch.mock.calls.filter(([adresse]) => !String(adresse).endsWith('/history'));
+    expect(appelsHorsHistorique).toHaveLength(0);
+  });
+});
+
+describe('Accueil : le Psychologue comme porte d’entrée', () => {
+  const HISTORIQUE = [
+    { analysis_id: 'a-1', title: 'Lancement produit', source: 'YouTube', nb_commentaires: 115, created_at: '2026-09-13T01:30:00Z' },
+  ];
+
+  function fetchAvecHistorique() {
+    global.fetch = vi.fn(async (adresse) => ({
+      ok: true, status: 200, redirected: false, url: 'http://x',
+      text: async () => JSON.stringify(String(adresse).endsWith('/history')
+        ? HISTORIQUE
+        : { full_result: { analysis_id: 'a-1', meta: { total_commentaires: 115 }, dashboard: {}, brief: { qui: 'Une audience curieuse mais prudente' } } }),
+    }));
+  }
+
+  it('promet des signaux observables, pas une lecture des pensées', () => {
+    render(<PsychologueView workspace={null} />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Psychologie avancée.');
+    // Les mots-clés sont animés dans des <em> : on lit la phrase entière.
+    expect(document.querySelector('.gv2-psy-landing-subtitle')).toHaveTextContent('Découvrez le marché caché, les peurs et les aspirations de votre audience.');
+    expect(screen.getByText(/Aucune pensée devinée/)).toBeInTheDocument();
+  });
+
+  it('prépare la bonne source quand on choisit ce qu’on veut comprendre', async () => {
+    const user = userEvent.setup();
+    render(<PsychologueView workspace={null} />);
+    const intentions = screen.getByRole('region', { name: 'Que voulez-vous comprendre ?' });
+
+    await user.click(within(intentions).getByRole('button', { name: /Analyser des avis clients/ }));
+    expect(screen.getByPlaceholderText(/Collez vos commentaires ici/)).toBeInTheDocument();
+
+    await user.click(within(intentions).getByRole('button', { name: /Importer une enquête/ }));
+    expect(screen.getByText(/Ajoutez un fichier de commentaires/)).toBeInTheDocument();
+
+    await user.click(within(intentions).getByRole('button', { name: /Comparer plusieurs audiences/ }));
+    expect(screen.getByRole('button', { name: /Cross Analyse — comparer/ })).toHaveAttribute('aria-pressed', 'true');
+
+    await user.click(within(intentions).getByRole('button', { name: /Comprendre une audience/ }));
+    expect(screen.getByRole('button', { name: /Cross Analyse — comparer/ })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByPlaceholderText(/vidéo YouTube/)).toBeInTheDocument();
+  });
+
+  it('rouvre une analyse récente en un clic', async () => {
+    fetchAvecHistorique();
+    const user = userEvent.setup();
+    render(<PsychologueView workspace={null} />);
+    const recents = await screen.findByRole('region', { name: 'Analyses récentes' });
+    expect(within(recents).getByText(/115 commentaires/)).toBeInTheDocument();
+    await user.click(within(recents).getByRole('button', { name: /Lancement produit/ }));
+    expect(await screen.findByText('Une audience curieuse mais prudente')).toBeInTheDocument();
+  });
+
+  it('propose de prolonger vers la stratégie et le contenu', async () => {
+    const onNavigateAgent = vi.fn();
+    const user = userEvent.setup();
+    render(<PsychologueView workspace={null} onNavigateAgent={onNavigateAgent} />);
+    await user.click(screen.getByRole('button', { name: /Transformer en stratégie/ }));
+    await user.click(screen.getByRole('button', { name: /Transformer en contenu/ }));
+    expect(onNavigateAgent.mock.calls).toEqual([['stratege'], ['createur']]);
   });
 });

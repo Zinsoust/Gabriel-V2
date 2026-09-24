@@ -12,7 +12,7 @@ import { TarifsView } from './TarifsView.jsx';
 import { OnboardingTour } from './OnboardingTour.jsx';
 import { Icon } from '../icons.jsx';
 import { missionFromConversationResponse, workspaceInitial } from '../data-adapters.js';
-import { getAgent, isAgentTab, tabFromUrl, urlWithTab } from '../agent-registry.js';
+import { DEFAULT_TAB, getAgent, isAgentTab, tabFromUrl, urlWithTab } from '../agent-registry.js';
 import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
 
 function timeNow() {
@@ -171,7 +171,16 @@ export function AppShell({ bootstrap }) {
   const [discussionWidth, setDiscussionWidth] = useState(() => savedNumber('gabriel-v2:discussion-width', DISCUSSION_DEFAULT, DISCUSSION_MIN, DISCUSSION_MAX));
   const [discussionCollapsed, setDiscussionCollapsed] = useState(() => savedBoolean('gabriel-v2:discussion-collapsed'));
   // Le design blanc reste le thème d'entrée de Gabriel.
-  const [darkMode, setDarkMode] = useState(false);
+  // La version sombre est la version native (13/09/2026) : on ne revient au
+  // clair que sur choix explicite, mémorisé sous une clé neuve — l'ancienne
+  // clé enregistrait « false » par défaut et aurait gardé tout le monde en clair.
+  // Analyse demandée depuis le menu : transmise au Psychologue, qui la charge.
+  const [analysisToOpen, setAnalysisToOpen] = useState(null);
+  // Dernière analyse du Psychologue vue dans cette session : le Créateur s'en sert par défaut.
+  const [lastAnalysis, setLastAnalysis] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return window.localStorage.getItem('gabriel-v2:theme') !== 'light'; } catch (_) { return true; }
+  });
   const [onboardingOpen, setOnboardingOpen] = useState(onboardingIsPending);
   const [creatorSettings, setCreatorSettings] = useState(CREATOR_DEFAULTS);
   const [creatorHasOutput, setCreatorHasOutput] = useState(false);
@@ -263,10 +272,10 @@ export function AppShell({ bootstrap }) {
   }, [leftWidth, rightWidth, leftCollapsed, rightCollapsed, discussionWidth, discussionCollapsed]);
 
   useEffect(() => {
-    try { window.localStorage.setItem('gabriel-v2:dark-mode', String(darkMode)); } catch (_) { /* préférence locale facultative */ }
+    try { window.localStorage.setItem('gabriel-v2:theme', darkMode ? 'dark' : 'light'); } catch (_) { /* préférence locale facultative */ }
     document.documentElement.dataset.gabrielV2Theme = darkMode ? 'dark' : 'light';
     document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', darkMode ? '#101112' : '#f5f5f7');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', darkMode ? '#131313' : '#f5f5f7');
   }, [darkMode]);
 
   useLayoutEffect(() => {
@@ -330,7 +339,7 @@ export function AppShell({ bootstrap }) {
     // au shell avant le chargement de l'iframe.
     if (isAgentTab(nextTab) && !activeWorkspaceId) {
       try {
-        await createWorkspace('Nouvelle conversation', { openTab: nextTab });
+        await createWorkspace(nextTab === 'psychologue' ? 'Nouvelle analyse' : 'Nouvel espace de travail', { openTab: nextTab });
       } catch (error) {
         setBackendError(error.message || 'Impossible de préparer cette session.');
       }
@@ -492,6 +501,14 @@ export function AppShell({ bootstrap }) {
     const location = new URL(window.location.href);
     if (id) location.searchParams.set('folder_id', id); else location.searchParams.delete('folder_id');
     window.history.replaceState({}, '', location);
+  }
+
+  /* Changer d'espace depuis le menu ne doit pas faire quitter l'écran en cours :
+     on reste dans le Psychologue (ou l'agent ouvert) avec le nouvel espace.
+     Seuls les écrans hors espace (tarifs) ramènent à la porte d'entrée. */
+  function openWorkspace(id) {
+    selectWorkspace(id, { openConversation: false });
+    if (!isAgentTab(tab) && tab !== 'conversation' && tab !== 'activity' && tab !== 'memory') selectTab(DEFAULT_TAB);
   }
 
   // Le Hall n'écrit rien à l'avance : le backend créera le workspace seulement
@@ -728,18 +745,17 @@ export function AppShell({ bootstrap }) {
   }
 
   return <main className={`gv2-shell${darkMode ? ' gv2-theme-dark' : ''}${effectiveLeftCollapsed ? ' is-left-collapsed' : ''}${effectiveRightCollapsed ? ' is-right-collapsed' : ''}${isConversationLanding ? ' is-landing' : ''}`} ref={shellRef} style={{ '--gv2-left-width': `${effectiveLeftCollapsed ? 0 : leftWidth}px`, '--gv2-right-width': `${effectiveRightCollapsed ? 0 : rightWidth}px`, '--gv2-discussion-width': `${discussionCollapsed ? 47 : discussionWidth}px` }}>
-    <Sidebar workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} activeWorkspace={activeWorkspace} activeTab={tab} mission={mission} onSelectWorkspace={selectWorkspace} onCreateWorkspace={createWorkspace} onDeleteWorkspace={deleteWorkspace} deletingWorkspaceId={deletingWorkspaceId} onSelectConversation={() => selectTab('conversation')} onStartNewConversation={startNewConversation} onSelectAgent={selectTab} user={bootstrap.user} collapsed={effectiveLeftCollapsed} onToggleCollapsed={toggleNavigation} darkMode={darkMode} onToggleDarkMode={() => setDarkMode(current => !current)} onStartGuide={() => setOnboardingOpen(true)} initialSection={sectionDemandee} />
+    <Sidebar workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} activeWorkspace={activeWorkspace} activeTab={tab} mission={mission} onSelectWorkspace={openWorkspace} onCreateWorkspace={createWorkspace} onDeleteWorkspace={deleteWorkspace} deletingWorkspaceId={deletingWorkspaceId} onSelectConversation={() => selectTab('conversation')} onStartNewConversation={startNewConversation} onStartAnalysis={() => selectTab(DEFAULT_TAB)} onOpenAnalysis={id => { setAnalysisToOpen({ id, at: Date.now() }); selectTab(DEFAULT_TAB); }} onOpenCross={id => { setAnalysisToOpen({ crossId: id, at: Date.now() }); selectTab(DEFAULT_TAB); }} onStartCross={() => { setAnalysisToOpen({ startCross: true, at: Date.now() }); selectTab(DEFAULT_TAB); }} onSelectAgent={selectTab} user={bootstrap.user} collapsed={effectiveLeftCollapsed} onToggleCollapsed={toggleNavigation} darkMode={darkMode} onToggleDarkMode={() => setDarkMode(current => !current)} onStartGuide={() => setOnboardingOpen(true)} initialSection={sectionDemandee} />
     <section className="gv2-main-column">
       <header className="gv2-workspace-header">
         <div className="gv2-topline">
           <div className="gv2-workspace-heading" ref={workspaceSwitcherRef}>
-            <button type="button" className="gv2-workspace-title" onClick={() => setWorkspaceMenuOpen(current => !current)} aria-expanded={workspaceMenuOpen} aria-controls="gv2-workspace-switcher"><span>{activeWorkspace?.title || 'Nouvelle conversation'}</span><Icon name="chevronDown" size={17} /></button>
-            {workspaceMenuOpen && <div className="gv2-workspace-switcher" id="gv2-workspace-switcher" role="menu" aria-label="Choisir un workspace"><button type="button" className="gv2-workspace-switcher-new" role="menuitem" onClick={() => { startNewConversation(); setWorkspaceMenuOpen(false); }}><Icon name="plus" size={15} /><span>Nouvelle conversation</span></button><p>Vos workspaces</p><div>{workspaces.length ? workspaces.map(workspace => <button key={workspace.folder_id} type="button" role="menuitem" className={workspace.folder_id === activeWorkspaceId ? 'is-current' : ''} onClick={() => { selectWorkspace(workspace.folder_id); setWorkspaceMenuOpen(false); }}><span>{workspaceInitial(workspace.title)}</span><strong>{workspace.title || 'Workspace sans titre'}</strong>{workspace.folder_id === activeWorkspaceId && <Icon name="check" size={14} />}</button>) : <small>Aucun workspace enregistré pour le moment.</small>}</div></div>}
-            <p className="gv2-navigation-trail" aria-label={`Vous êtes ici : ${currentTabLabel}`}><span>Workspace</span><Icon name="chevronRight" size={12} /><strong>{currentTabLabel}</strong></p>
+            <button type="button" className="gv2-workspace-title" onClick={() => setWorkspaceMenuOpen(current => !current)} aria-expanded={workspaceMenuOpen} aria-controls="gv2-workspace-switcher"><span>{activeWorkspace?.title || 'Nouvel espace de travail'}</span><Icon name="chevronDown" size={17} /></button>
+            {workspaceMenuOpen && <div className="gv2-workspace-switcher" id="gv2-workspace-switcher" role="menu" aria-label="Choisir un espace de travail"><button type="button" className="gv2-workspace-switcher-new" role="menuitem" onClick={() => { startNewConversation(); setWorkspaceMenuOpen(false); }}><Icon name="plus" size={15} /><span>Nouvelle conversation</span></button><p>Vos espaces de travail</p><div>{workspaces.length ? workspaces.map(workspace => <button key={workspace.folder_id} type="button" role="menuitem" className={workspace.folder_id === activeWorkspaceId ? 'is-current' : ''} onClick={() => { openWorkspace(workspace.folder_id); setWorkspaceMenuOpen(false); }}><span>{workspaceInitial(workspace.title)}</span><strong>{workspace.title || 'Espace sans titre'}</strong>{workspace.folder_id === activeWorkspaceId && <Icon name="check" size={14} />}</button>) : <small>Aucun espace de travail enregistré pour le moment.</small>}</div></div>}
+            <p className="gv2-navigation-trail" aria-label={`Vous êtes ici : ${currentTabLabel}`}><span>Espace de travail</span><Icon name="chevronRight" size={12} /><strong>{currentTabLabel}</strong></p>
           </div>
           <div className="gv2-header-actions">
             <button className={`gv2-header-icon gv2-theme-toggle${darkMode ? ' is-active' : ''}`} type="button" onClick={() => setDarkMode(current => !current)} aria-label={darkMode ? 'Passer au mode clair' : 'Passer au mode sombre'} title={darkMode ? 'Passer au mode clair' : 'Passer au mode sombre'} aria-pressed={darkMode}><Icon name={darkMode ? 'sun' : 'moon'} size={18} /></button>
-            <button className={`gv2-header-icon${tab === 'tarifs' ? ' is-active' : ''}`} type="button" onClick={() => selectTab('tarifs')} title="Voir les tarifs" aria-label="Voir les tarifs" aria-pressed={tab === 'tarifs'}><Icon name="coin" size={18} /></button>
             {hasContextToSurface && <button className={`gv2-header-icon gv2-context-toggle${tab === 'createur' ? ' gv2-context-toggle--atelier' : ''}`} type="button" onClick={toggleContext} aria-label={tab === 'createur' ? (effectiveRightCollapsed ? 'Ouvrir l’Atelier' : 'Fermer l’Atelier') : (effectiveRightCollapsed ? 'Afficher le contexte du workspace' : 'Masquer le contexte du workspace')} title={tab === 'createur' ? (effectiveRightCollapsed ? 'Ouvrir l’Atelier' : 'Fermer l’Atelier') : (effectiveRightCollapsed ? 'Afficher le contexte du workspace' : 'Masquer le contexte du workspace')}>{tab === 'createur' ? <span>Atelier</span> : <Icon name="sparkle" size={18} />}</button>}
             <div className="gv2-account-menu-wrap" ref={accountMenuRef}>
               <button className="gv2-header-credit" type="button" onClick={() => setAccountMenuOpen(current => !current)} aria-label={`Vos crédits : ${displayedCredits}`} title="Voir vos crédits et les offres"><Icon name="sparkle" size={14} /><strong>{displayedCredits}</strong><span>crédits</span></button>
@@ -748,7 +764,7 @@ export function AppShell({ bootstrap }) {
                 <header><span>{workspaceInitial(bootstrap.user?.name || bootstrap.user?.email || 'Nalay')}</span><div><strong>{bootstrap.user?.name || firstName}</strong><small>{bootstrap.user?.email || 'Votre espace Gabriel'}</small></div></header>
                 <div className="gv2-account-credit-balance"><div><span>Crédits disponibles</span><strong>{displayedCredits}</strong></div><button type="button" onClick={refreshCredits} aria-label="Actualiser le solde de crédits" title="Actualiser"><Icon name="refresh" size={15} /></button></div>
                 <p>Utilisez-les pour mobiliser vos spécialistes et faire avancer vos dossiers.</p>
-                <div className="gv2-account-menu-actions"><a href="/tarifs">Voir les tarifs<Icon name="chevronRight" size={15} /></a><a className="is-primary" href="/upgrade">Mettre à niveau</a></div>
+                <div className="gv2-account-menu-actions"><button type="button" onClick={() => { selectTab('tarifs'); setAccountMenuOpen(false); }}>Voir les tarifs<Icon name="chevronRight" size={15} /></button><a className="is-primary" href="/upgrade">Mettre à niveau</a></div>
               </section>}
             </div>
           </div>
@@ -759,9 +775,9 @@ export function AppShell({ bootstrap }) {
       {tab === 'conversation'
         ? <section className={`gv2-conversation-stage${isConversationLanding ? ' is-landing' : ''}`}><ConversationFeed items={items} firstName={firstName} isSubmitting={isSubmitting} landing={isConversationLanding} /><Composer onSend={sendMessage} disabled={isSubmitting} landing={isConversationLanding} /></section>
         : tab === 'createur'
-          ? <CreatorConversation workspace={activeWorkspace} settings={creatorSettings} refinementRequest={creatorRefinementRequest} onHasOutputChange={setCreatorHasOutput} onWorkspaceChange={refreshWorkspace} onSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} contextCollapsed={effectiveRightCollapsed} onShowContext={() => setRightCollapsed(false)} />
+          ? <CreatorConversation workspace={activeWorkspace} lastAnalysis={lastAnalysis} settings={creatorSettings} refinementRequest={creatorRefinementRequest} onHasOutputChange={setCreatorHasOutput} onWorkspaceChange={refreshWorkspace} onSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} contextCollapsed={effectiveRightCollapsed} onShowContext={() => setRightCollapsed(false)} />
           : tab === 'psychologue'
-          ? <PsychologueView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} />
+          ? <PsychologueView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} openAnalysisRequest={analysisToOpen} onAnalysisReady={setLastAnalysis} />
           : tab === 'stratege'
           ? <StrategeView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} />
           : tab === 'tarifs'

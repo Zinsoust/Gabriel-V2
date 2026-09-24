@@ -68,19 +68,28 @@ function pause(ms) {
   return new Promise(resolve => window.setTimeout(resolve, ms));
 }
 
+/* Texte affiché tel quel : les marqueurs markdown (* et **) que le modèle
+   laisse dans ses phrases n'ont aucun sens à l'écran, on les retire. Une liste
+   arrivée là où une phrase était attendue est lue en entier. */
 function esc(value) {
-  return String(value ?? '');
+  if (Array.isArray(value)) return value.map(esc).filter(Boolean).join(' · ');
+  return String(value ?? '').replace(/\*+/g, '');
 }
 
 // Le texte long généré par le LLM (executive_summary, noyau psychologique,
 // descriptions de persona) utilise du markdown gras/italique léger.
 function formatInline(value) {
-  const text = esc(value);
+  const text = (Array.isArray(value) ? value.map(v => String(v ?? '')).join(' · ') : String(value ?? ''))
+    // Identifiants internes de signaux (« (cross:emotions:frustration) ») : du
+    // bruit technique pour le lecteur, jamais une information.
+    .replace(/\s*\((?:cross|signal|psy):[\w:.-]+\)/g, '');
   const chunks = text.split(/(\*\*[^*\n]+?\*\*|\*[^*\n]+?\*)/g);
   return chunks.map((chunk, index) => {
     if (/^\*\*[^*]+\*\*$/.test(chunk)) return <strong key={index}>{chunk.slice(2, -2)}</strong>;
     if (/^\*[^*]+\*$/.test(chunk)) return <em key={index}>{chunk.slice(1, -1)}</em>;
-    return chunk;
+    // Un astérisque orphelin (marqueur jamais refermé par le modèle) n'a
+    // aucun sens pour le lecteur : on le retire plutôt que de l'afficher.
+    return chunk.replace(/\*+/g, '');
   });
 }
 
@@ -131,6 +140,7 @@ function PsychoInput({
   onLaunch,
   crossMode, crossSources, onToggleCross, onAddCrossSource,
   onRemoveCrossSource, onMoveCrossSource, onClearCrossSources, onLaunchCross,
+  recentAnalyses = [], onOpenAnalysis, onSuggest, onNavigateAgent,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const linkReady = Boolean(LINK_SOURCES[platform]) && previewCount > 0;
@@ -180,10 +190,16 @@ function PsychoInput({
   }
 
   return <section className="gv2-psy-input gv2-psy-landing">
+    {/* Scène d'entrée : fond sombre qui se fond vers la page, titre sur deux
+        lignes au plus, une phrase, une barre compacte centrée. */}
+    <div className="gv2-psy-stage">
     <div className="gv2-psy-landing-copy">
-      <span className="gv2-psy-eyebrow">Le Psychologue</span>
-      <h1>Découvrez la psychologie de votre marché.</h1>
-      <p>Comprenez ce qui pousse vos clients à acheter, hésiter ou partir. Décidez avec une longueur d’avance.</p>
+      {/* Animation d'entrée : les mots du titre se révèlent un à un (flou →
+          net), puis les trois objets de l'analyse s'allument tour à tour. */}
+      <h1 className="gv2-psy-title-reveal">
+        <span style={{ '--i': 0 }}>Psychologie</span> <span style={{ '--i': 1 }}>avancée.</span>
+      </h1>
+      <p className="gv2-psy-landing-subtitle">Découvrez <em style={{ '--k': 0 }}>le marché caché</em>, <em style={{ '--k': 1 }}>les peurs</em> et <em style={{ '--k': 2 }}>les aspirations</em> de votre audience.</p>
     </div>
 
     <div className={`gv2-psy-workspace${crossMode ? ' is-cross' : ''}${sourcePreview ? ' has-preview' : ''}${crossSources.length ? ' has-sources' : ''}`}>
@@ -213,7 +229,6 @@ function PsychoInput({
               <span className="gv2-psy-source-mark" aria-hidden="true">{meta.mark}</span>{meta.label}
               {tab === 'link' && platform === key && <Icon name="check" size={14} />}
             </button>)}
-            <button type="button" role="option" aria-selected={tab === 'link' && platform === 'google'} onClick={() => selectSource('google')}><span className="gv2-psy-source-mark" aria-hidden="true">G</span>Google</button>
             <div className="gv2-psy-source-menu-separator" />
             <button type="button" role="option" aria-selected={tab === 'manual'} onClick={() => selectSource('manual')}><span className="gv2-psy-source-mark" aria-hidden="true">≡</span>Commentaires</button>
             <button type="button" role="option" aria-selected={tab === 'file'} onClick={() => selectSource('file')}><span className="gv2-psy-source-mark" aria-hidden="true">↥</span>Fichier</button>
@@ -265,7 +280,67 @@ function PsychoInput({
       <span className={statusTone ? `is-${statusTone}` : ''}>{tab === 'link' ? statusMsg : (statusMsg || 'Prêt à analyser votre audience.')}</span>
       {!crossMode && <button type="button" onClick={onToggleCross}><Icon name="activity" size={16} />Comparer plusieurs audiences <span aria-hidden="true">→</span></button>}
     </div>
+
+    <p className="gv2-psy-trust"><Icon name="check" size={14} />Aucune pensée devinée. Chaque lecture part de signaux observables.</p>
+    </div>
+
+    {onSuggest && <section className="gv2-psy-intents" aria-labelledby="gv2-psy-intents-title">
+      <h2 id="gv2-psy-intents-title" className="gv2-psy-mono-label">Que voulez-vous comprendre ?</h2>
+      <div className="gv2-psy-intents-grid">
+        {INTENTIONS.map(intent => <button key={intent.id} type="button" className="gv2-psy-intent"
+          onClick={() => onSuggest(intent.mode)}>
+          <strong>{intent.titre}</strong>
+          <span>{intent.detail}</span>
+          <em>{intent.action} <span aria-hidden="true">→</span></em>
+        </button>)}
+      </div>
+    </section>}
+
+    {recentAnalyses.length > 0 && <section className="gv2-psy-recents" aria-labelledby="gv2-psy-recents-title">
+      <h2 id="gv2-psy-recents-title" className="gv2-psy-mono-label">Analyses récentes</h2>
+      <ul>
+        {recentAnalyses.slice(0, 4).map(item => <li key={item.analysis_id}>
+          <button type="button" onClick={() => onOpenAnalysis(item.analysis_id)}>
+            <strong>{item.title || item.source || 'Analyse'}</strong>
+            <span>{[item.source && item.source !== item.title ? item.source : '',
+              item.nb_commentaires ? `${item.nb_commentaires} commentaires` : '',
+              dateCourte(item.created_at)].filter(Boolean).join(' · ')}</span>
+            <em>Rouvrir <span aria-hidden="true">→</span></em>
+          </button>
+        </li>)}
+      </ul>
+    </section>}
+
+    {onNavigateAgent && <section className="gv2-psy-extensions" aria-label="Prolonger l’analyse">
+      <span className="gv2-psy-mono-label">Après la lecture</span>
+      <button type="button" onClick={() => onNavigateAgent('stratege')}><strong>Transformer en stratégie</strong><span>Ariane, stratège</span><span aria-hidden="true">→</span></button>
+      <button type="button" onClick={() => onNavigateAgent('createur')}><strong>Transformer en contenu</strong><span>Le Créateur</span><span aria-hidden="true">→</span></button>
+    </section>}
   </section>;
+}
+
+/* « Que voulez-vous comprendre ? » — chaque entrée correspond à une capacité
+   réellement exécutée par le backend, et prépare la bonne source. Aucune
+   promesse sans moteur derrière. */
+const INTENTIONS = [
+  { id: 'audience', mode: 'link', titre: 'Comprendre une audience',
+    detail: 'Émotions et motivations derrière les commentaires d’une vidéo YouTube, Instagram ou TikTok.', action: 'Coller un lien' },
+  { id: 'cross', mode: 'cross', titre: 'Comparer plusieurs audiences',
+    detail: 'Ce que 2 à 5 communautés partagent, et ce qui les sépare.', action: 'Ajouter des audiences' },
+  { id: 'freins', mode: 'link', titre: 'Identifier peurs et objections',
+    detail: 'Ce qui freine l’adhésion, avec les verbatims qui le montrent.', action: 'Coller un lien' },
+  { id: 'avis', mode: 'manual', titre: 'Analyser des avis clients',
+    detail: 'Collez au moins 3 avis, réponses ou messages, un par ligne.', action: 'Coller des commentaires' },
+  { id: 'enquete', mode: 'file', titre: 'Importer une enquête ou un export',
+    detail: 'Tableur, JSON ou texte brut, jusqu’à 5 Mo.', action: 'Choisir un fichier' },
+  { id: 'personas', mode: 'link', titre: 'Construire des personas',
+    detail: 'Des profils issus des groupes réellement observés, avec leur fiabilité.', action: 'Coller un lien' },
+];
+
+function dateCourte(iso) {
+  const d = iso ? new Date(iso) : null;
+  if (!d || Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
 /* ── Chargement / Erreur ─────────────────────────────────────────────── */
@@ -324,6 +399,65 @@ function Bar({ label, pct, count, tone }) {
   </div>;
 }
 
+/** Répartition homme/femme — deux segments sur une seule piste. */
+function GenderSplitBar({ hommes, femmes }) {
+  const h = Math.max(0, Number(hommes) || 0);
+  const f = Math.max(0, Number(femmes) || 0);
+  const total = h + f;
+  if (!total) return null;
+  return <div className="gv2-psy-gender-bar">
+    <div className="gv2-psy-gender-track">
+      <div style={{ width: `${(h / total) * 100}%`, background: 'var(--psy-pos)' }} />
+      <div style={{ width: `${(f / total) * 100}%`, background: 'var(--champagne)' }} />
+    </div>
+    <div className="gv2-psy-gender-legend">
+      <span><i style={{ background: 'var(--psy-pos)' }} />{h}% hommes</span>
+      <span><i style={{ background: 'var(--champagne)' }} />{f}% femmes</span>
+    </div>
+  </div>;
+}
+
+// Palette réservée aux visualisations de données — mêmes teintes de marque
+// que le reste de Gabriel (champagne, sauge, ardoise, terracotta), jamais de
+// couleur inventée. Pas de surface pleine : réservé aux graphiques.
+const DONUT_COLORS = [
+  'var(--champagne)', 'var(--psychologist-sage)', 'var(--strategist-slate)',
+  'var(--creator-terracotta)', 'var(--champagne-deep)', 'var(--rose)',
+  'var(--core-champagne)', 'var(--muted)',
+];
+
+/** Camembert évidé — jusqu'à 8 tranches, légende chiffrée en dessous. */
+function Donut({ slices, size = 128 }) {
+  const clean = (Array.isArray(slices) ? slices : [])
+    .filter(s => s && typeof s.value === 'number' && s.value > 0);
+  const total = clean.reduce((sum, s) => sum + s.value, 0);
+  if (!total) return null;
+  const r = 42;
+  const c = 2 * Math.PI * r;
+  let offset = 0;
+  return <div className="gv2-psy-donut">
+    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r={r} fill="none" stroke="var(--line)" strokeWidth="14" />
+      {clean.map((s, i) => {
+        const length = (s.value / total) * c;
+        const el = <circle key={i} cx="50" cy="50" r={r} fill="none"
+          stroke={DONUT_COLORS[i % DONUT_COLORS.length]} strokeWidth="14"
+          strokeDasharray={`${length} ${c - length}`} strokeDashoffset={-offset}
+          transform="rotate(-90 50 50)" />;
+        offset += length;
+        return el;
+      })}
+    </svg>
+    <ul className="gv2-psy-donut-legend">
+      {clean.map((s, i) => <li key={i}>
+        <i style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+        <span>{esc(s.label)}</span>
+        <span className="gv2-psy-donut-pct">{Math.round(s.value)}%</span>
+      </li>)}
+    </ul>
+  </div>;
+}
+
 /* ── Blocs de restitution ─────────────────────────────────────────────
  *
  * Le backend produit bien plus que ce que l'écran montrait : interprétations
@@ -358,7 +492,7 @@ function TraitList({ items, tone }) {
   const clean = (Array.isArray(items) ? items : []).filter(Boolean);
   if (!clean.length) return null;
   return <ul className={`gv2-psy-traits${tone ? ` is-${tone}` : ''}`}>
-    {clean.map((item, i) => <li key={i}>{esc(itemText(item))}</li>)}
+    {clean.map((item, i) => <li key={i}>{formatInline(itemText(item))}</li>)}
   </ul>;
 }
 
@@ -378,7 +512,7 @@ function Statement({ label, text }) {
   if (!value) return null;
   return <div className="gv2-psy-statement">
     <div className="gv2-psy-statement-label">{label}</div>
-    <p>{esc(value)}</p>
+    <p>{formatInline(value)}</p>
   </div>;
 }
 
@@ -389,7 +523,10 @@ function Interpretation({ title, data }) {
   const mecanismes = Array.isArray(d.detected_mechanisms) ? d.detected_mechanisms : [];
   const rien = !insight && !mecanismes.length && !(d.fears || []).length
     && !(d.desires || []).length && !(d.beliefs || []).length
-    && !(d.decision_drivers || []).length;
+    && !(d.decision_drivers || []).length
+    && !(d.group_dynamics || []).length && !(d.cultural_codes || []).length
+    && !(d.social_tensions || []).length && !(d.collective_beliefs || []).length
+    && !(d.community_markers || []).length;
   if (rien) return null;
 
   return <div className="gv2-psy-card gv2-psy-interp">
@@ -401,7 +538,7 @@ function Interpretation({ title, data }) {
         </span>
       )}
     </div>
-    {insight && <p className="gv2-psy-interp-insight">{esc(insight)}</p>}
+    {insight && <p className="gv2-psy-interp-insight">{formatInline(insight)}</p>}
 
     {mecanismes.length > 0 && <div className="gv2-psy-mechanisms">
       {mecanismes.filter(m => m && m.mechanism).map((m, i) => <div className="gv2-psy-mechanism" key={i}>
@@ -409,7 +546,7 @@ function Interpretation({ title, data }) {
           <strong>{esc(m.mechanism)}</strong>
           {typeof m.confidence === 'number' && <span>{Math.round(m.confidence * 100)}%</span>}
         </div>
-        {m.evidence && <p>{esc(m.evidence)}</p>}
+        {m.evidence && <p>{formatInline(m.evidence)}</p>}
       </div>)}
     </div>}
 
@@ -419,6 +556,11 @@ function Interpretation({ title, data }) {
       <TraitGroup label="Frustrations" items={d.frustrations} tone="neg" />
       <TraitGroup label="Croyances actives" items={d.beliefs} />
       <TraitGroup label="Facteurs de décision" items={d.decision_drivers} tone="pos" />
+      <TraitGroup label="Dynamiques de groupe" items={d.group_dynamics} />
+      <TraitGroup label="Codes culturels" items={d.cultural_codes} />
+      <TraitGroup label="Tensions sociales" items={d.social_tensions} tone="neg" />
+      <TraitGroup label="Croyances collectives" items={d.collective_beliefs} />
+      <TraitGroup label="Marqueurs communautaires" items={d.community_markers} />
     </div>
   </div>;
 }
@@ -469,6 +611,96 @@ function ton(label) {
   return 'neu';
 }
 
+/* Le backend renvoie des clés techniques (« oppose », « mefiance »,
+   « positive », « preuve_demandée ») : un expert lit « Opposé », « Méfiance »,
+   « Positif ». Un mot inconnu garde sa forme, simplement capitalisé. */
+const LIBELLES = {
+  favorable: 'Favorable', oppose: 'Opposé', 'opposé': 'Opposé', neutre: 'Neutre',
+  nuance: 'Nuancé', hors_sujet: 'Hors sujet', ironique: 'Ironique',
+  positive: 'Positif', neutral: 'Neutre', negative: 'Négatif',
+  colere: 'Colère', mefiance: 'Méfiance', curiosite: 'Curiosité', fierte: 'Fierté',
+  deception: 'Déception', anxiete: 'Anxiété', mepris: 'Mépris', gratitude: 'Gratitude',
+  alignement: 'Alignement', authenticite: 'Authenticité', engagement: 'Engagement',
+  opportunite: 'Opportunité', persistance: 'Persistance', polarisation: 'Polarisation',
+  preuve_demandee: 'Preuve demandée', 'preuve_demandée': 'Preuve demandée',
+  desir: 'Désir', besoin: 'Besoin',
+};
+
+function libelle(raw) {
+  const texte = String(raw == null ? '' : raw).trim();
+  const connu = LIBELLES[texte.toLowerCase()];
+  if (connu) return connu;
+  const lisible = texte.replace(/_/g, ' ');
+  return lisible.charAt(0).toUpperCase() + lisible.slice(1);
+}
+
+/* Le lexique arrive sous plusieurs formes selon l'étape qui l'a produit :
+   ['merci', 3.2], { mot: 'merci' }, { token: 'merci' } ou simplement 'merci'.
+   Sans ce tri, l'écran affichait « merci,3.219 ». */
+/* Le LLM met parfois lui-même des guillemets autour d'une citation :
+   sans ce nettoyage, l'écran affichait « « … » ». */
+function citation(texte) {
+  const brut = esc(texte).trim().replace(/^[«"“\s]+|[»"”\s]+$/g, '');
+  return brut ? `« ${brut} »` : '';
+}
+
+function motLexical(entree) {
+  if (Array.isArray(entree)) return String(entree[0] ?? '');
+  if (entree && typeof entree === 'object') return String(entree.mot || entree.token || entree.bigram || '');
+  return String(entree ?? '');
+}
+
+/* Copier dans le presse-papiers, avec un retour visible. Le navigateur peut
+   refuser (contexte non sécurisé, permission) : on le dit plutôt que de
+   laisser croire que c'est fait. */
+function CopyButton({ getText, label = 'Copier', className = 'gv2-psy-ghost-btn' }) {
+  const [etat, setEtat] = useState('');
+  async function copier() {
+    try {
+      await navigator.clipboard.writeText(getText());
+      setEtat('ok');
+    } catch (_) {
+      setEtat('echec');
+    }
+    window.setTimeout(() => setEtat(''), 2400);
+  }
+  return <button type="button" className={className} onClick={copier} aria-live="polite">
+    {etat === 'ok' ? 'Copié ✓' : etat === 'echec' ? 'Copie impossible' : label}
+  </button>;
+}
+
+/** Un indicateur : score, verdict, lecture en clair, et la méthode de calcul
+ *  pour qui veut vérifier — un expert ne signe pas un chiffre opaque. */
+function KpiCard({ nom, valeur }) {
+  const v = valeur && typeof valeur === 'object' ? valeur : { score: valeur };
+  if (typeof v.score !== 'number') return null;
+  const variables = v.variables && typeof v.variables === 'object'
+    ? Object.entries(v.variables).map(([k, val]) => `${k} = ${val}`).join(' · ') : '';
+  return <div className="gv2-psy-kpi">
+    <div className="gv2-psy-kpi-top">
+      <div className="gv2-psy-kpi-score">{Math.round(v.score)}</div>
+      {v.label && <span className="gv2-psy-kpi-verdict">{esc(String(v.label))}</span>}
+    </div>
+    <div className="gv2-psy-kpi-name">{libelle(nom)}</div>
+    {(v.description || v.lecture) && <p>{esc(String(v.description || v.lecture))}</p>}
+    {(v.formule || v.interpretation) && <details className="gv2-psy-kpi-method">
+      <summary>Méthode de calcul</summary>
+      {v.interpretation && <p>{esc(String(v.interpretation))}</p>}
+      {v.formule && <code>{String(v.formule)}</code>}
+      {variables && <small>{esc(variables)}</small>}
+    </details>}
+  </div>;
+}
+
+/** Fin d'onglet : la suite logique du parcours, pour ne jamais laisser
+ *  le lecteur en bout de page sans direction. */
+function NextStep({ label, hint, onClick, primary }) {
+  return <div className="gv2-psy-next">
+    {hint && <span className="gv2-psy-next-hint">{hint}</span>}
+    <button type="button" className={primary ? 'gv2-psy-primary-btn' : 'gv2-psy-ghost-btn'} onClick={onClick}>{label}</button>
+  </div>;
+}
+
 /* Un persona sans visage reste une fiche. La teinte vient du nom (toujours
    la même pour le même persona), l'anneau vient de son émotion dominante. */
 function PersonaAvatar({ nom, emotion, large }) {
@@ -509,7 +741,7 @@ function Stat({ label, value }) {
   if (!value) return null;
   return <div className="gv2-psy-stat">
     <div className="gv2-psy-stat-lbl">{label}</div>
-    <div className="gv2-psy-stat-val">{esc(String(value))}</div>
+    <div className="gv2-psy-stat-val">{formatInline(value)}</div>
   </div>;
 }
 
@@ -518,8 +750,62 @@ function PersonaListe({ titre, items }) {
   if (liste.length === 0) return null;
   return <div className="gv2-psy-pc-block">
     <div className="gv2-psy-pc-ttl">{titre}</div>
-    {liste.map((item, i) => <div className="gv2-psy-pc-li" key={i}>{esc(itemText(item))}</div>)}
+    {liste.map((item, i) => <div className="gv2-psy-pc-li" key={i}>{formatInline(itemText(item))}</div>)}
   </div>;
+}
+
+/* Texte brut prêt à coller dans un brief, un deck ou un message à l'équipe. */
+function lignesListe(titre, items) {
+  const liste = (Array.isArray(items) ? items : []).map(itemText).filter(Boolean);
+  return liste.length ? [`${titre} :`, ...liste.map((x) => `- ${x}`)] : [];
+}
+
+function personaEnTexte(p, nom) {
+  const ligne = (label, val) => (val ? [`${label} : ${itemText(val)}`] : []);
+  return [
+    `PERSONA — ${nom}`,
+    [p.age ? `${p.age} ans` : '', p.genre, p.metier].filter(Boolean).join(' · '),
+    ...ligne('Poids dans l\'audience', p.poids),
+    ...ligne('Émotion dominante', p.emotion_dominante_mesuree),
+    ...ligne('Archétype', p.archetype_jungien),
+    ...ligne('Vision du monde', p.vision_monde),
+    ...ligne('Situation de vie', p.situation_vie),
+    ...ligne('État d\'esprit', p.etat_esprit),
+    ...ligne('Ce qu\'il écrirait', p.langage_typique),
+    ...lignesListe('Frustrations', p.frustrations),
+    ...lignesListe('Aspirations', p.aspirations),
+    ...lignesListe('Peurs', p.peurs),
+    ...lignesListe('Désirs cachés', p.desirs),
+    ...lignesListe('Déclencheurs émotionnels', p.declencheurs_emotionnels),
+    ...lignesListe('Messages qui le toucheraient', p.messages_impactants),
+    ...lignesListe('Objections à lever', p.objections_a_lever),
+    ...ligne('Objection principale', p.objection_principale),
+    ...ligne('Preuve attendue', p.preuve_attendue),
+    ...ligne('Ce qui le ferait acheter', p.ce_qui_le_ferait_acheter || p.ce_qui_la_ferait_acheter),
+    ...ligne('Ce qui le ferait fuir', p.ce_qui_le_ferait_fuir || p.ce_qui_la_ferait_fuir),
+    ...ligne('Message à lui adresser', p.message_a_lui_dire),
+  ].filter(Boolean).join('\n');
+}
+
+function syntheseEnTexte(data) {
+  const brief = data.brief || {};
+  const recos = data.recommandations || {};
+  const emo = data.emotions || {};
+  const ligne = (label, val) => (val ? [`${label} : ${itemText(val)}`] : []);
+  return [
+    'GABRIEL — SYNTHÈSE DU PSYCHOLOGUE',
+    ...ligne('Qui', brief.qui || brief.synthese),
+    ...ligne('Insight clé', brief.insight || brief.insight_cle),
+    ...ligne('Action prioritaire', brief.action || brief.action_prioritaire),
+    ...ligne('Vérité de l\'audience', recos.verite_de_l_audience),
+    ...ligne('Message central', recos.message_central),
+    ...ligne('Promesse authentique', recos.promesse_authentique),
+    ...ligne('Émotion dominante', emo.dominante),
+    ...ligne('Espoir déçu', emo.espoir_decu),
+    ...ligne('Aspiration nourrie', emo.aspiration_nourrie),
+    ...lignesListe('Actions prioritaires', recos.actions_prioritaires),
+    ...lignesListe('Prochaines étapes', recos.prochaines_etapes),
+  ].join('\n');
 }
 
 /* La fiche persona : portrait et identité à gauche, ce qu'il vit au
@@ -527,11 +813,11 @@ function PersonaListe({ titre, items }) {
    backend produisait et que l'écran n'avait jamais montrés. */
 function PersonaCard({ persona: p, index }) {
   const nom = p.nom || `Persona ${index + 1}`;
-  const signaux = (Array.isArray(p.signaux_mesures) ? p.signaux_mesures : []).slice(0, 5);
+  const signaux = (Array.isArray(p.signaux_mesures) ? p.signaux_mesures : []);
   const conf = typeof p.confiance === 'number' ? Math.round(p.confiance * 100) : null;
   const achat = p.ce_qui_le_ferait_acheter || p.ce_qui_la_ferait_acheter;
   const fuite = p.ce_qui_le_ferait_fuir || p.ce_qui_la_ferait_fuir;
-  const meta = [p.age ? `${p.age} ans` : '', p.genre, p.metier].filter(Boolean).join(' · ');
+  const meta = esc([p.age ? `${p.age} ans` : '', p.genre, p.metier].filter(Boolean).join(' · '));
   return <article className="gv2-psy-pc">
     <div className="gv2-psy-pc-left">
       <PersonaPortrait nom={nom} index={index} genre={p.genre}
@@ -542,7 +828,7 @@ function PersonaCard({ persona: p, index }) {
         {signaux.map((sig, i) => <span key={i}>{esc(itemText(sig))}</span>)}
       </div>}
       {p.histoire_interieure && <blockquote className="gv2-psy-pc-quote">
-        {esc(String(p.histoire_interieure))}
+        {formatInline(String(p.histoire_interieure))}
       </blockquote>}
     </div>
 
@@ -554,8 +840,13 @@ function PersonaCard({ persona: p, index }) {
         {p.emotion_dominante_mesuree && <span className={`is-${ton(p.emotion_dominante_mesuree)}`}>{esc(p.emotion_dominante_mesuree)}</span>}
         {p.poids && <span>{esc(String(p.poids))}</span>}
       </div>
-      {p.vision_monde && <p className="gv2-psy-pc-vision">« {esc(String(p.vision_monde))} »</p>}
+      {p.vision_monde && <p className="gv2-psy-pc-vision">{citation(p.vision_monde)}</p>}
       {p.etat_esprit && <Statement label="État d'esprit" text={p.etat_esprit} />}
+      {p.situation_vie && <Statement label="Situation de vie" text={p.situation_vie} />}
+      {p.langage_typique && <div className="gv2-psy-pc-lang">
+        <div className="gv2-psy-pc-ttl">Ce qu'il écrirait en commentaire</div>
+        <p>{citation(p.langage_typique)}</p>
+      </div>}
       <div className="gv2-psy-pc-2col">
         <PersonaListe titre="Frustrations" items={p.frustrations} />
         <PersonaListe titre="Aspirations" items={p.aspirations} />
@@ -563,12 +854,17 @@ function PersonaCard({ persona: p, index }) {
         <PersonaListe titre="Désirs cachés" items={p.desirs} />
         <PersonaListe titre="Déclencheurs émotionnels" items={p.declencheurs_emotionnels} />
         <PersonaListe titre="Habitudes digitales" items={p.habitudes_digitales} />
+        <PersonaListe titre="Messages qui le toucheraient" items={p.messages_impactants} />
+        <PersonaListe titre="Objections à lever" items={p.objections_a_lever} />
       </div>
       {p.rapport_autorite && <Statement label="Rapport à l'autorité" text={p.rapport_autorite} />}
       {p.message_a_lui_dire && <div className="gv2-psy-pc-msg">
         <div className="gv2-psy-pc-msg-lbl">Message à lui adresser</div>
-        <p>« {esc(String(p.message_a_lui_dire))} »</p>
+        <p>{citation(p.message_a_lui_dire)}</p>
       </div>}
+      <div className="gv2-psy-pc-actions">
+        <CopyButton label="Copier la fiche" getText={() => personaEnTexte(p, nom)} />
+      </div>
     </div>
 
     <div className="gv2-psy-pc-right">
@@ -578,11 +874,13 @@ function PersonaCard({ persona: p, index }) {
         <div className="gv2-psy-conf-track"><div className="gv2-psy-conf-fill" style={{ width: `${conf}%` }} /></div>
       </div>}
       <Stat label="Cluster source" value={p.cluster_source} />
+      <Stat label="Ancrage dans les données" value={p.cluster_grounding_reason} />
       <Stat label="Tension existentielle" value={p.tension_existentielle} />
       <Stat label="Quête · Frankl" value={p.quete_de_sens} />
       <Stat label="Biais · Kahneman" value={p.biais_cognitifs} />
       <Stat label="Ombre · Jung" value={p.ombre_jungienne} />
       <Stat label="Objection principale" value={p.objection_principale} />
+      <Stat label="Preuve attendue" value={p.preuve_attendue} />
       <Stat label="Déclencheur d'achat" value={achat} />
       <Stat label="Mission cachée · Munroe" value={p.mission_cachee} />
       <Stat label="Potentiel bloqué · Munroe" value={p.potentiel_non_exprime} />
@@ -595,16 +893,23 @@ function PersonaCard({ persona: p, index }) {
 }
 
 function AudienceGroup({ groupe }) {
-  const tokens = Array.isArray(groupe.top_tokens) ? groupe.top_tokens : [];
-  const samples = Array.isArray(groupe.samples) ? groupe.samples : [];
-  return <div className={`gv2-psy-group is-${ton(groupe.stance)}`}>
+  // Clés réelles de audience.compute_dashboard (mots_cles, exemples, taille,
+  // stance_dominante, emotion_dominante) ; les anciennes restent lues en repli.
+  const tokens = Array.isArray(groupe.mots_cles) ? groupe.mots_cles
+    : Array.isArray(groupe.top_tokens) ? groupe.top_tokens : [];
+  const samples = Array.isArray(groupe.exemples) ? groupe.exemples
+    : Array.isArray(groupe.samples) ? groupe.samples : [];
+  const taille = groupe.taille ?? groupe.size;
+  const stance = groupe.stance_dominante || groupe.stance;
+  const emotion = groupe.emotion_dominante || groupe.emotion;
+  return <div className={`gv2-psy-group is-${ton(stance)}`}>
     <div className="gv2-psy-group-head">
       <span className="gv2-psy-group-pct">{groupe.pct != null ? `${groupe.pct}%` : ''}</span>
-      <span className="gv2-psy-group-count">{groupe.size != null ? `${groupe.size} commentaires` : ''}</span>
+      <span className="gv2-psy-group-count">{taille != null ? `${taille} commentaires` : ''}</span>
       <div className="gv2-psy-group-tags">
-        {groupe.likes_pct != null && <span>♥ {groupe.likes_pct}%</span>}
-        {groupe.stance && <span className="is-stance">{esc(String(groupe.stance))}</span>}
-        {groupe.emotion && <span>{esc(String(groupe.emotion))}</span>}
+        {groupe.likes_pct > 0 && <span>♥ {groupe.likes_pct}%</span>}
+        {stance && <span className="is-stance">{libelle(stance)}</span>}
+        {emotion && <span>{libelle(emotion)}</span>}
       </div>
     </div>
     {tokens.length > 0 && <div className="gv2-psy-group-tokens">
@@ -624,7 +929,7 @@ function DataInsight({ title, data }) {
 
   return <div className="gv2-psy-card gv2-psy-insight">
     <div className="gv2-psy-insight-title">{title}</div>
-    <p className="gv2-psy-insight-conclusion">{esc(conclusion)}</p>
+    <p className="gv2-psy-insight-conclusion">{formatInline(conclusion)}</p>
     {d.indicateur_statistique && <div className="gv2-psy-insight-row">
       <span className="gv2-psy-insight-key">Données</span>
       <span>{esc(String(d.indicateur_statistique))}</span>
@@ -637,7 +942,7 @@ function DataInsight({ title, data }) {
     </div>}
     {d.interpretation && <div className="gv2-psy-insight-row">
       <span className="gv2-psy-insight-key">Sens</span>
-      <span>{esc(String(d.interpretation))}</span>
+      <span>{formatInline(String(d.interpretation))}</span>
     </div>}
     {conf != null && <div className="gv2-psy-conf">
       <span>Confiance</span>
@@ -654,14 +959,26 @@ function GridEntry({ label, data }) {
   return <div className="gv2-psy-card gv2-psy-grid-entry">
     <div className="gv2-psy-grid-title">{label}</div>
     {d.observation && <div className="gv2-psy-grid-row">
-      <span className="gv2-psy-grid-key">Obs.</span><span>{esc(String(d.observation))}</span>
+      <span className="gv2-psy-grid-key">Obs.</span><span>{formatInline(String(d.observation))}</span>
     </div>}
     {d.interpretation && <div className="gv2-psy-grid-row">
-      <span className="gv2-psy-grid-key">Sens</span><span>{esc(String(d.interpretation))}</span>
+      <span className="gv2-psy-grid-key">Sens</span><span>{formatInline(String(d.interpretation))}</span>
     </div>}
     {d.implication && <div className="gv2-psy-grid-row">
-      <span className="gv2-psy-grid-key">Action</span><span>{esc(String(d.implication))}</span>
+      <span className="gv2-psy-grid-key">Action</span><span>{formatInline(String(d.implication))}</span>
     </div>}
+  </div>;
+}
+
+/** Une phase de la trajectoire de transformation (état actuel / pont / désiré).
+ *  Les champs sont des phrases, pas des faits courts : Statement (label au-dessus,
+ *  texte en dessous) leur va mieux que la grille Obs./Sens/Action de GridEntry. */
+function TransformationPhase({ title, fields, data }) {
+  const d = data || {};
+  if (!fields.some(([cle]) => d[cle])) return null;
+  return <div className="gv2-psy-card gv2-psy-grid-entry">
+    <div className="gv2-psy-grid-title">{title}</div>
+    {fields.map(([cle, label]) => <Statement key={cle} label={label} text={d[cle]} />)}
   </div>;
 }
 
@@ -687,6 +1004,29 @@ const GRILLE = [
   ['quelle_opportunite_emerge', 'Opportunité émergente'],
 ];
 
+/** État actuel → le pont → état désiré : ordre de lecture, pas ordre du JSON. */
+const TRANSFORMATION_PHASES = [
+  ['etat_actuel', 'État actuel', [
+    ['situation', 'Situation'],
+    ['frustration_principale', 'Frustration principale'],
+    ['croyance_bloquante', 'Croyance bloquante'],
+    ['identite_actuelle', 'Identité actuelle'],
+    ['conscience_du_probleme', 'Conscience du problème'],
+  ]],
+  ['le_pont', 'Le pont', [
+    ['ce_dont_ils_ont_besoin', 'Ce dont ils ont besoin'],
+    ['obstacle_principal', 'Obstacle principal'],
+    ['declencheur_de_transition', 'Déclencheur de transition'],
+    ['message_de_passage', 'Message de passage'],
+  ]],
+  ['etat_desire', 'État désiré', [
+    ['transformation_visee', 'Transformation visée'],
+    ['identite_aspiree', 'Identité aspirée'],
+    ['vie_revelee', 'Vie révélée'],
+    ['indicateur_de_succes', "Indicateur de succès"],
+  ]],
+];
+
 /** Onglets de résultat — même découpage que le livrable d'origine. */
 function ResultTabs({ active, onChange, tabs }) {
   return <div className="gv2-psy-result-tabs" role="tablist">
@@ -701,12 +1041,43 @@ function ResultTabs({ active, onChange, tabs }) {
   </div>;
 }
 
-function PsychoResult({ data, onReset, onGoToStratege }) {
-  const [tab, setTab] = useState('dashboard');
+/** La couche la plus profonde de la lecture psychologique : sens et potentiel. */
+const PSY_SENS = [
+  ['potentiel_bloque', 'Potentiel bloqué'],
+  ['signal_de_purpose', 'Signal de purpose'],
+  ['quete_de_signifiance', 'Quête de signifiance'],
+  ['besoin_d_appartenance', "Besoin d'appartenance"],
+  ['desir_de_legacy', 'Désir de legacy'],
+  ['besoin_de_transformation', 'Besoin de transformation'],
+];
+
+const PSY_RAPPORTS = [
+  ['rapport_argent', "Rapport à l'argent"],
+  ['rapport_succes', 'Rapport au succès'],
+  ['rapport_autorite', "Rapport à l'autorité"],
+  ['rapport_image', "Rapport à l'image"],
+  ['rapport_travail', 'Rapport au travail'],
+  ['rapport_famille', 'Rapport à la famille'],
+  ['rapport_spiritualite', 'Rapport à la spiritualité'],
+];
+
+/** Livrables calculés sans LLM : la preuve chiffrée derrière la lecture. */
+const PREUVES_STATISTIQUES = [
+  ['repartition_camps', 'Répartition des camps'],
+  ['positionnement_audience', "Positionnement de l'audience"],
+  ['carte_emotionnelle', 'Carte émotionnelle'],
+  ['clusters_comportementaux', 'Clusters comportementaux'],
+  ['signaux_lexicaux_dominants', 'Signaux lexicaux dominants'],
+  ['distribution_relevance', 'Pertinence des commentaires'],
+];
+
+function PsychoResult({ data, onReset, onGoToStratege, onGoToCreateur }) {
+  const [tab, setTab] = useState('');
 
   const db = data.dashboard || {};
   const meta = data.meta || {};
   const brief = data.brief || {};
+  const emo = data.emotions || {};
   const psy = data.psychologie || {};
   const asp = data.aspirations || {};
   const mkt = data.marketing || {};
@@ -715,6 +1086,11 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
   const livr = data.livrables_statistiques || {};
   const grille = data.grille_psychologique || {};
   const recos = data.recommandations || {};
+  const demo = data.demographique || {};
+  const cult = data.culturel || {};
+  const ident = data.identitaire || {};
+  const transfo = data.transformation || {};
+  const caches = data.marches_caches || {};
 
   // Blocs mesurés du dashboard — tous produits par le backend, aucun inventé.
   const sf = db.signaux_frequents || {};
@@ -727,143 +1103,286 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
   const ws = db.weighted_sentiment || {};
   const wp = db.weighted_polarization || {};
   const res = db.resonance_by_stance || {};
+  // Sans aucun like, des barres à 0 % ne disent rien : on ne garde que la densité.
+  const likesResonance = Object.values(res).reduce((t, v) => t + ((v && v.likes) || 0), 0);
   const ard = db.argument_density || {};
   const mok = db.mockery_signals || {};
   const iry = db.irony_signals || {};
+  // resume_tendances porte la tension et la tendance ; l'écran les cherchait
+  // à la racine du dashboard, où elles n'existent pas.
   const rt = db.resume_tendances || {};
+  const tension = rt.tension_principale || db.tension_principale;
+  const tendance = rt.tendance_dominante || db.tendance_dominante;
+  const signalDominant = rt.signal_dominant || db.signal_dominant;
 
-  // Les commentaires les plus amplifiés : reconstitués depuis les exemples
-  // déjà présents dans les signaux, faute d'un bloc dédié côté backend.
-  const topComments = Array.isArray(db.top_comments) ? db.top_comments : [];
+  // Les commentaires les plus likés sont à la racine du résultat, pas dans le
+  // dashboard : c'est pour ça que ce bloc n'apparaissait jamais.
+  const topComments = Array.isArray(data.top_comments) ? data.top_comments
+    : Array.isArray(db.top_comments) ? db.top_comments : [];
 
-  const pos = db.positions || {};
+  // Les catégories vides (hors sujet, ironique à 0) n'apportent rien au lecteur.
+  const pos = Object.fromEntries(Object.entries(db.positions || {})
+    .filter(([, v]) => v && (v.count > 0 || v.pct > 0)));
   const emotions = Array.isArray(db.emotion_distribution)
     ? db.emotion_distribution
     : Object.entries(db.emotion_distribution || {}).map(([emotion, pct]) => ({ emotion, pourcentage: pct }));
+  const sentimentDist = db.sentiment_distribution || {};
   const personas = Array.isArray(data.personas) ? data.personas : [];
-  const synthese = brief.qui || brief.synthese || '';
+
+  const qui = brief.qui || brief.synthese || '';
   const insight = brief.insight || brief.insight_cle || '';
   const action = brief.action || brief.action_prioritaire || '';
 
-  // Un onglet vide ne doit pas être proposé : mieux vaut deux onglets pleins
-  // que trois dont un déçoit.
-  const aInterpretation = Boolean(
-    interp.psychologique || interp.socio_culturelle ||
-    Object.keys(psy).length || Object.keys(asp).length || Object.keys(mkt).length);
+  const verbatims = (Array.isArray(emo.commentaires_revelateurs) ? emo.commentaires_revelateurs : []).filter(Boolean);
+  const actionsPrio = (Array.isArray(recos.actions_prioritaires) ? recos.actions_prioritaires : []).filter(Boolean);
+  const etapes = (Array.isArray(recos.prochaines_etapes) ? recos.prochaines_etapes : []).filter(Boolean);
+  const livrablesPurs = PREUVES_STATISTIQUES.filter(([cle]) => (livr[cle] || {}).conclusion);
+
+  const aPsychologie = Boolean(
+    interp.psychologique || interp.socio_culturelle || Object.keys(psy).length ||
+    Object.keys(asp).length || Object.keys(transfo).length || Object.keys(cult).length ||
+    GRILLE.some(([cle]) => grille[cle]) || LIVRABLES.some(([cle]) => (livr[cle] || {}).conclusion));
+  const aSynthese = Boolean(
+    recos.verite_de_l_audience || recos.message_central || recos.promesse_authentique ||
+    recos.insight_strategique_cle || recos.ce_qu_ils_ne_disent_pas_mais_veulent_entendre ||
+    emo.dominante || emo.espoir_decu || emo.aspiration_nourrie ||
+    actionsPrio.length || etapes.length);
+  const aStrategie = Boolean(
+    Object.keys(recos).length || Object.keys(mkt).length ||
+    Object.keys(caches).length || Object.keys(ident).length);
+
+  // Un onglet vide ne doit pas être proposé : mieux vaut quatre onglets pleins
+  // que cinq dont un déçoit.
   const tabs = [
+    ...(aSynthese ? [{ id: 'synthese', label: 'Synthèse' }] : []),
     { id: 'dashboard', label: 'Tableau de bord' },
-    ...(aInterpretation ? [{ id: 'interpretation', label: 'Interprétation' }] : []),
+    ...(aPsychologie ? [{ id: 'psychologie', label: 'Psychologie' }] : []),
+    ...(aStrategie ? [{ id: 'strategie', label: 'Stratégie' }] : []),
     ...(personas.length ? [{ id: 'personas', label: `Personas (${personas.length})` }] : []),
   ];
-  const actif = tabs.some(t => t.id === tab) ? tab : 'dashboard';
+  const actif = tabs.some(t => t.id === tab) ? tab : tabs[0].id;
+  const rang = tabs.findIndex(t => t.id === actif);
+  const suivant = tabs[rang + 1];
+
+  function ouvrir(id) {
+    setTab(id);
+    // Changer d'onglet en bas de page doit ramener au début du nouvel onglet.
+    try { document.querySelector('.gv2-psy-result-tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) { /* jsdom */ }
+  }
+
+  const source = [
+    data.source_label,
+    meta.total_commentaires != null ? `${meta.total_commentaires} commentaires collectés` : '',
+    meta.commentaires_analyses != null ? `${meta.commentaires_analyses} analysés` : '',
+    fib.label_confiance ? `fiabilité : ${String(fib.label_confiance).toLowerCase()}` : '',
+  ].filter(Boolean).join(' · ');
+
+  const finOnglet = suivant
+    ? <NextStep label={`Suite : ${suivant.label} →`} hint="Continuer la lecture" onClick={() => ouvrir(suivant.id)} />
+    : <div className="gv2-psy-next is-final">
+        <span className="gv2-psy-next-hint">Lecture terminée — passez à l'action.</span>
+        <div className="gv2-psy-next-actions">
+          {onGoToCreateur && <button type="button" className="gv2-psy-ghost-btn" onClick={() => onGoToCreateur(data)}>Passer au Créateur →</button>}
+          {data.analysis_id && <button type="button" className="gv2-psy-primary-btn" onClick={() => onGoToStratege(data)}>Construire la stratégie →</button>}
+        </div>
+      </div>;
 
   return <section className="gv2-psy-result">
     <div className="gv2-psy-result-head">
       <div>
         <span className="gv2-psy-eyebrow">Le Psychologue</span>
         <h1>Résultats</h1>
+        {source && <p className="gv2-psy-source">{esc(source)}</p>}
+        {data.video_context && <p className="gv2-psy-source is-context">{esc(String(data.video_context))}</p>}
       </div>
       <div className="gv2-psy-result-actions">
         <button type="button" className="gv2-psy-ghost-btn" onClick={onReset}>← Nouvelle analyse</button>
-        {data.analysis_id && <button type="button" className="gv2-psy-primary-btn" onClick={() => onGoToStratege(data)}>Stratège →</button>}
+        <CopyButton label="Copier la synthèse" getText={() => syntheseEnTexte(data)} />
+        {data.analysis_id && <a className="gv2-psy-ghost-btn" href={`/export/pdf/${encodeURIComponent(data.analysis_id)}`}
+                               download>Exporter en PDF</a>}
+        {data.analysis_id && <button type="button" className="gv2-psy-primary-btn" onClick={() => onGoToStratege(data)}>Construire la stratégie →</button>}
       </div>
     </div>
 
-    {synthese && <div className="gv2-psy-hero">
+    {qui && <div className="gv2-psy-hero">
       <div className="gv2-psy-hero-label">Ce que dit cette audience</div>
-      <p className="gv2-psy-hero-text">{synthese}</p>
+      <p className="gv2-psy-hero-text">{formatInline(qui)}</p>
       <div className="gv2-psy-hero-pills">
-        {insight && <span><strong>Insight ·</strong> {insight}</span>}
-        {action && <span><strong>Action ·</strong> {action}</span>}
+        {insight && <span><strong>Insight ·</strong> {formatInline(insight)}</span>}
+        {action && <span><strong>Action ·</strong> {formatInline(action)}</span>}
       </div>
     </div>}
 
-    {tabs.length > 1 && <ResultTabs active={actif} onChange={setTab} tabs={tabs} />}
+    {/* Les quatre chiffres clés restent visibles quel que soit l'onglet. */}
+    <div className="gv2-psy-stats-grid">
+      <StatChip value={meta.total_commentaires || 0} count={`${meta.commentaires_analyses || 0} qualifiés`} label="Collectés" />
+      <StatChip value={`${(pos.favorable || {}).pct || 0}%`} count={`${(pos.favorable || {}).count || 0} cmnt`} label="Favorables" tone="pos" />
+      <StatChip value={`${(pos.oppose || {}).pct || 0}%`} count={`${(pos.oppose || {}).count || 0} cmnt`} label="Opposés" tone="neg" />
+      <StatChip value={`${(pos.neutre || {}).pct || 0}%`} count={`${(pos.neutre || {}).count || 0} cmnt`} label="Neutres" />
+    </div>
 
+    {tabs.length > 1 && <ResultTabs active={actif} onChange={ouvrir} tabs={tabs} />}
+
+    {/* ── Synthèse : ce qu'un décideur doit retenir en deux minutes ─────── */}
+    {actif === 'synthese' && <>
+      {(recos.verite_de_l_audience || recos.message_central || recos.promesse_authentique || recos.insight_strategique_cle) && (
+        <Section title="Ce qu'il faut retenir" hint="La lecture stratégique en quatre phrases.">
+          <div className="gv2-psy-card gv2-psy-card--plain gv2-psy-keypoints">
+            <Statement label="Vérité de l'audience" text={recos.verite_de_l_audience} />
+            {recos.message_central && <div className="gv2-psy-reco-message">
+              <div className="gv2-psy-statement-label">Message central</div>
+              <blockquote>{formatInline(recos.message_central)}</blockquote>
+            </div>}
+            <Statement label="Promesse authentique" text={recos.promesse_authentique} />
+            <Statement label="Insight stratégique" text={recos.insight_strategique_cle} />
+          </div>
+        </Section>
+      )}
+
+      {(emo.dominante || emo.intensite || emo.espoir_decu || emo.aspiration_nourrie || emo.besoins_sous_jacents) && (
+        <Section title="Lecture émotionnelle" hint="Ce que l'audience ressent vraiment, derrière ce qu'elle écrit.">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            {emo.dominante && <div className="gv2-psy-emo-head">
+              <span className={`gv2-psy-emo-dominante is-${ton(emo.dominante)}`}>{libelle(emo.dominante)}</span>
+              {emo.intensite && <p>{formatInline(emo.intensite)}</p>}
+            </div>}
+            <div className="gv2-psy-reco-cols">
+              <Statement label="Espoir déçu — derrière les critiques" text={emo.espoir_decu} />
+              <Statement label="Aspiration nourrie — derrière l'enthousiasme" text={emo.aspiration_nourrie} />
+            </div>
+            <Statement label="Besoin sous-jacent" text={emo.besoins_sous_jacents} />
+          </div>
+        </Section>
+      )}
+
+      {actionsPrio.length > 0 && (
+        <Section title="Actions prioritaires" hint="Dans l'ordre où les engager.">
+          <ol className="gv2-psy-actions-list">
+            {actionsPrio.map((a, i) => <li key={i}><span className="gv2-psy-actions-num">{i + 1}</span><p>{formatInline(itemText(a))}</p></li>)}
+          </ol>
+        </Section>
+      )}
+
+      {etapes.length > 0 && (
+        <Section title="Feuille de route">
+          <div className="gv2-psy-timeline">
+            {etapes.map((etape, i) => {
+              const texte = typeof etape === 'string' ? etape : [etape.horizon, etape.action].filter(Boolean).join(' : ');
+              const [horizon, ...reste] = texte.split(' : ');
+              return <div className="gv2-psy-timeline-step" key={i}>
+                {reste.length > 0 ? <>
+                  <span className="gv2-psy-timeline-when">{esc(horizon)}</span>
+                  <p>{formatInline(reste.join(' : '))}</p>
+                </> : <p>{formatInline(texte)}</p>}
+              </div>;
+            })}
+          </div>
+        </Section>
+      )}
+
+      {recos.ce_qu_ils_ne_disent_pas_mais_veulent_entendre && (
+        <Section title="Ce qu'ils ne disent pas, mais veulent entendre">
+          <blockquote className="gv2-psy-quote is-accent"><p>{formatInline(recos.ce_qu_ils_ne_disent_pas_mais_veulent_entendre)}</p></blockquote>
+        </Section>
+      )}
+
+      {finOnglet}
+    </>}
+
+    {/* ── Tableau de bord : ce qui a été mesuré ───────────────────────────── */}
     {actif === 'dashboard' && <>
-      <div className="gv2-psy-stats-grid">
-        <StatChip value={meta.total_commentaires || 0} count={`${meta.commentaires_analyses || 0} qualifiés`} label="Collectés" />
-        <StatChip value={`${(pos.favorable || {}).pct || 0}%`} count={`${(pos.favorable || {}).count || 0} cmnt`} label="Favorables" tone="pos" />
-        <StatChip value={`${(pos.oppose || {}).pct || 0}%`} count={`${(pos.oppose || {}).count || 0} cmnt`} label="Négatifs" tone="neg" />
-        <StatChip value={`${(pos.neutre || {}).pct || 0}%`} count={`${(pos.neutre || {}).count || 0} cmnt`} label="Neutres" />
-      </div>
-
-      {Object.keys(kpis).length > 0 && <Section title="Indicateurs">
+      {Object.keys(kpis).length > 0 && <Section title="Indicateurs"
+               hint="Scores calculés sur les commentaires, sans IA. Ouvrez « Méthode de calcul » pour vérifier chaque chiffre.">
         <div className="gv2-psy-kpis">
-          {Object.entries(kpis).map(([nom, valeur]) => {
-            const score = valeur && typeof valeur === 'object' ? valeur.score : valeur;
-            if (typeof score !== 'number') return null;
-            return <div className="gv2-psy-kpi" key={nom}>
-              <div className="gv2-psy-kpi-score">{Math.round(score)}</div>
-              <div className="gv2-psy-kpi-name">{esc(nom)}</div>
-              {valeur && valeur.lecture && <p>{esc(valeur.lecture)}</p>}
-            </div>;
-          })}
+          {Object.entries(kpis).map(([nom, valeur]) => <KpiCard key={nom} nom={nom} valeur={valeur} />)}
         </div>
       </Section>}
+
+      {Object.keys(demo).length > 0 && (
+        <Section title="Données démographiques" hint="Estimées à partir du vocabulaire, des références et du ton des commentaires.">
+          <div className="gv2-psy-lex-cols">
+            {demo.genre && (demo.genre.hommes != null || demo.genre.femmes != null) && (
+              <div className="gv2-psy-card gv2-psy-card--plain">
+                <div className="gv2-psy-trait-label">Genre estimé</div>
+                <GenderSplitBar hommes={demo.genre.hommes} femmes={demo.genre.femmes} />
+              </div>
+            )}
+            {Array.isArray(demo.tranches_age) && demo.tranches_age.length > 0 && (
+              <div className="gv2-psy-card gv2-psy-card--plain">
+                <div className="gv2-psy-trait-label">Âge estimé</div>
+                {demo.tranches_age.map((t, i) => (
+                  <Bar key={i} label={t.tranche} pct={Math.round(t.pourcentage || 0)} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="gv2-psy-trait-cols">
+            <TraitGroup label="Métiers probables" items={demo.metiers_probables} />
+            <TraitGroup label="Centres d'intérêt" items={demo.centres_interet} />
+            <TraitGroup label="Comportements digitaux" items={demo.comportements_digitaux} />
+            {demo.localisation && (
+              <TraitGroup label="Pays" items={demo.localisation.pays} />
+            )}
+            {demo.localisation && (
+              <TraitGroup label="Villes / régions" items={demo.localisation.villes_regions} />
+            )}
+          </div>
+
+          <Statement label="Niveau social probable" text={demo.niveau_social_probable} />
+          {demo.localisation && <Statement label="Note (inférence)" text={demo.localisation.note} />}
+        </Section>
+      )}
 
       {emotions.length > 0 && <Section title="Émotions détectées">
         <div className="gv2-psy-card gv2-psy-card--plain">
-          {emotions.slice(0, 8).map((item, index) => <Bar key={index} label={item.emotion} tone={ton(item.emotion)} pct={Math.round(item.pourcentage || item.pct || 0)} />)}
+          <Donut slices={emotions.slice(0, 8).map(item => ({
+            label: libelle(item.emotion), value: Math.round(item.pourcentage || item.pct || 0),
+          }))} />
+        </div>
+        {(emo.signaux_authenticite || emo.signaux_artificialite) && <div className="gv2-psy-reco-cols gv2-psy-mt">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <Statement label="Signaux d'authenticité" text={emo.signaux_authenticite} />
+          </div>
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <Statement label="Signaux d'artificialité" text={emo.signaux_artificialite} />
+          </div>
+        </div>}
+        {verbatims.length > 0 && <div className="gv2-psy-mt">
+          <div className="gv2-psy-trait-label">Commentaires révélateurs</div>
+          <div className="gv2-psy-quotes">
+            {verbatims.map((v, i) => <blockquote className="gv2-psy-quote" key={i}><p>{citation(itemText(v))}</p></blockquote>)}
+          </div>
+        </div>}
+      </Section>}
+
+      {(Object.keys(pos).length > 0 || Object.keys(sentimentDist).length > 0) && <Section title="Positions & sentiments">
+        {Object.keys(pos).length > 0 && <div className="gv2-psy-card gv2-psy-card--plain">
+          {Object.entries(pos).map(([key, value]) => <Bar key={key} label={libelle(key)} tone={ton(key)} pct={Math.round(value.pct || 0)} count={value.count} />)}
+        </div>}
+        <div className="gv2-psy-donuts-row">
+          {Object.keys(sentimentDist).length > 0 && (
+            <div className="gv2-psy-card gv2-psy-card--plain">
+              <div className="gv2-psy-trait-label">Sentiments</div>
+              <Donut slices={Object.entries(sentimentDist).map(([label, value]) => ({ label: libelle(label), value }))} />
+            </div>
+          )}
+          {Object.keys(pos).length > 0 && (
+            <div className="gv2-psy-card gv2-psy-card--plain">
+              <div className="gv2-psy-trait-label">Positions</div>
+              <Donut slices={Object.entries(pos).map(([label, v]) => ({ label: libelle(label), value: v && v.pct }))} />
+            </div>
+          )}
         </div>
       </Section>}
 
-      {Object.keys(pos).length > 0 && <Section title="Répartition des positions">
-        <div className="gv2-psy-card gv2-psy-card--plain">
-          {Object.entries(pos).map(([key, value]) => <Bar key={key} label={key} tone={ton(key)} pct={Math.round(value.pct || 0)} count={value.count} />)}
-        </div>
-      </Section>}
-
-      {(db.tension_principale || db.tendance_dominante || db.dominant_desire) && (
+      {(tension || tendance || db.dominant_desire || signalDominant) && (
         <Section title="Lecture d'ensemble">
           <div className="gv2-psy-card gv2-psy-card--plain">
-            <Statement label="Tension principale" text={db.tension_principale} />
-            <Statement label="Tendance dominante" text={db.tendance_dominante} />
+            <Statement label="Tension principale" text={tension} />
+            <Statement label="Tendance dominante" text={tendance && libelle(tendance)} />
             <Statement label="Désir dominant" text={db.dominant_desire} />
-            <Statement label="Signal dominant" text={db.signal_dominant} />
-          </div>
-        </Section>
-      )}
-
-      {topComments.length > 0 && (
-        <Section title="Commentaires les plus likés"
-                 hint="Les plus amplifiés par l'audience elle-même.">
-          <div className="gv2-psy-quotes">
-            {topComments.slice(0, 10).map((c, i) => <blockquote className="gv2-psy-quote" key={i}>
-              <p>{esc(typeof c === 'string' ? c : (c.text || ''))}</p>
-              {c && c.likes != null && <cite>♥ {c.likes}{c.author ? ` · ${esc(c.author)}` : ''}</cite>}
-            </blockquote>)}
-          </div>
-        </Section>
-      )}
-
-      {(Object.keys(ws).length > 0 || Object.keys(wp).length > 0 || Object.keys(fib).length > 0) && (
-        <Section title="Métriques pondérées par engagement"
-                 hint="Un commentaire très liké pèse plus qu'un commentaire isolé.">
-          <div className="gv2-psy-metrics">
-            <Metric label="Sentiment pondéré" value={ws.score} hint={ws.interpretation} tone="pos" />
-            <Metric label="Sentiment brut" value={ws.score_raw} hint="non pondéré (moyenne)" />
-            <Metric label="Polarisation pondérée" value={wp.score} hint={wp.label} />
-            <Metric label="Likes analysés" value={ws.total_likes} hint="engagement total mesuré" />
-            <Metric label="Confiance" value={fib.label_confiance} hint={fib.commentaires_analyses != null ? `${fib.commentaires_analyses} commentaires retenus` : ''} />
-            <Metric label="Hors sujet" value={fib.pct_hors_sujet != null ? `${fib.pct_hors_sujet}%` : null} hint={`${fib.commentaires_hors_sujet || 0} écartés`} />
-          </div>
-        </Section>
-      )}
-
-      {Object.keys(res).length > 0 && (
-        <Section title="Résonance par camp & densité argumentative"
-                 hint="Qui fait réagir, et qui argumente.">
-          <div className="gv2-psy-card gv2-psy-card--plain">
-            {Object.entries(res).map(([camp, v]) => <div className="gv2-psy-resonance" key={camp}>
-              <span className="gv2-psy-resonance-camp">{esc(camp)}</span>
-              <div className="gv2-psy-bar-track"><div className="gv2-psy-bar-fill" style={{ width: `${Math.min(100, v.pct || 0)}%` }} /></div>
-              <span className="gv2-psy-resonance-pct">{v.pct}%</span>
-              <span className="gv2-psy-resonance-likes">{v.likes} ♥</span>
-              <span className="gv2-psy-resonance-words">
-                {(ard[camp] || {}).avg_words != null ? `${ard[camp].avg_words} mots · ${ard[camp].label || ''}` : ''}
-              </span>
-            </div>)}
+            <Statement label="Signal dominant" text={signalDominant && libelle(signalDominant)} />
           </div>
         </Section>
       )}
@@ -873,6 +1392,17 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
                  hint="Des sous-ensembles qui parlent de la même chose, avec les mêmes mots.">
           <div className="gv2-psy-groups">
             {groupes.map((g, i) => <AudienceGroup groupe={g} key={i} />)}
+          </div>
+        </Section>
+      )}
+
+      {(sf.frustrations || sf.attentes || sf.objections) && (
+        <Section title="Frustrations · Attentes · Objections"
+                 hint="Ce que l'audience exprime le plus souvent, avec ses mots.">
+          <div className="gv2-psy-signal-cols">
+            <SignalColumn title="Frustrations" items={sf.frustrations} tone="neg" />
+            <SignalColumn title="Attentes & désirs" items={sf.attentes} tone="pos" />
+            <SignalColumn title="Objections" items={sf.objections} tone="neg" />
           </div>
         </Section>
       )}
@@ -891,23 +1421,55 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
         </Section>
       )}
 
-      {(sf.frustrations || sf.attentes || sf.objections) && (
-        <Section title="Frustrations · Attentes · Objections"
-                 hint="Ce que l'audience exprime le plus souvent, avec ses mots.">
-          <div className="gv2-psy-signal-cols">
-            <SignalColumn title="Frustrations" items={sf.frustrations} tone="neg" />
-            <SignalColumn title="Attentes & désirs" items={sf.attentes} tone="pos" />
-            <SignalColumn title="Objections" items={sf.objections} tone="neg" />
+      {topComments.length > 0 && (
+        <Section title="Commentaires les plus amplifiés"
+                 hint="Classés par nombre de likes — ce que l'audience a elle-même mis en avant.">
+          <div className="gv2-psy-quotes">
+            {topComments.slice(0, 10).map((c, i) => <blockquote className="gv2-psy-quote" key={i}>
+              <p>{esc(typeof c === 'string' ? c : (c.text || ''))}</p>
+              {c && (c.likes > 0 || (c.author && c.author !== 'inconnu')) && <cite>
+                {c.likes > 0 ? `♥ ${c.likes}` : ''}{c.likes > 0 && c.author && c.author !== 'inconnu' ? ' · ' : ''}{c.author && c.author !== 'inconnu' ? esc(c.author) : ''}
+              </cite>}
+            </blockquote>)}
           </div>
         </Section>
       )}
 
-      {(Object.keys(mok).length > 0 || Object.keys(iry).length > 0) && (
-        <Section title="Signaux de moquerie & ironie"
-                 hint="Un enthousiasme ironique n'est pas de l'adhésion.">
+      {(Object.keys(ws).length > 0 || Object.keys(wp).length > 0 || Object.keys(fib).length > 0) && (
+        <Section title="Métriques pondérées par engagement"
+                 hint="Un commentaire très liké pèse plus qu'un commentaire isolé.">
           <div className="gv2-psy-metrics">
-            <Metric label="Moquerie" value={`${mok.count || 0} (${mok.pct || 0}%)`} hint={mok.level} />
-            <Metric label="Ironie" value={`${iry.count || 0} (${iry.pct || 0}%)`} hint={iry.level} />
+            <Metric label="Sentiment pondéré" value={ws.score} hint={ws.interpretation} tone="pos" />
+            <Metric label="Sentiment brut" value={ws.score_raw} hint="non pondéré (moyenne)" />
+            <Metric label="Polarisation pondérée" value={wp.score} hint={wp.label} />
+            <Metric label="Likes analysés" value={ws.total_likes} hint="engagement total mesuré" />
+            <Metric label="Confiance" value={fib.label_confiance} hint={fib.commentaires_analyses != null ? `${fib.commentaires_analyses} commentaires retenus` : ''} />
+            <Metric label="Hors sujet" value={fib.pct_hors_sujet != null ? `${fib.pct_hors_sujet}%` : null} hint={`${fib.commentaires_hors_sujet || 0} écartés`} />
+            <Metric label="Scepticisme" value={db.skepticism_score} hint="part de doute exprimé" />
+            <Metric label="Opportunité" value={db.opportunity_score} hint="potentiel de conversion mesuré" />
+          </div>
+        </Section>
+      )}
+
+      {Object.keys(res).length > 0 && (
+        <Section title={likesResonance > 0 ? 'Résonance par camp & densité argumentative' : 'Densité argumentative par camp'}
+                 hint={likesResonance > 0 ? 'Qui fait réagir, et qui argumente.'
+                   : "Ces commentaires n'ont pas de likes : seule la manière d'argumenter est mesurable."}>
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            {Object.entries(res).map(([camp, v]) => likesResonance > 0 ? <div className="gv2-psy-resonance" key={camp}>
+              <span className="gv2-psy-resonance-camp">{libelle(camp)}</span>
+              <div className="gv2-psy-bar-track"><div className="gv2-psy-bar-fill" style={{ width: `${Math.min(100, v.pct || 0)}%` }} /></div>
+              <span className="gv2-psy-resonance-pct">{v.pct}%</span>
+              <span className="gv2-psy-resonance-likes">{v.likes} ♥</span>
+              <span className="gv2-psy-resonance-words">
+                {(ard[camp] || {}).avg_words != null ? `${ard[camp].avg_words} mots · ${ard[camp].label || ''}` : ''}
+              </span>
+            </div> : <div className="gv2-psy-resonance is-sans-likes" key={camp}>
+              <span className="gv2-psy-resonance-camp">{libelle(camp)}</span>
+              <span className="gv2-psy-resonance-words">
+                {(ard[camp] || {}).avg_words != null ? `${ard[camp].avg_words} mots · ${ard[camp].label || ''}` : ''}
+              </span>
+            </div>)}
           </div>
         </Section>
       )}
@@ -918,16 +1480,17 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
             <div className="gv2-psy-card gv2-psy-card--plain">
               <div className="gv2-psy-trait-label">Mots les plus significatifs</div>
               <div className="gv2-psy-tokens">
-                {lexique.top_mots.slice(0, 14).map((m, i) => <span key={i}>{esc(String(m.mot || m))}</span>)}
+                {lexique.top_mots.slice(0, 14).map((m, i) => <span key={i}>{esc(motLexical(m))}</span>)}
               </div>
             </div>
             {Array.isArray(lexique.top_bigrams) && lexique.top_bigrams.length > 0 && (
               <div className="gv2-psy-card gv2-psy-card--plain">
                 <div className="gv2-psy-trait-label">Expressions fréquentes</div>
                 <div className="gv2-psy-tokens">
-                  {lexique.top_bigrams.slice(0, 12).map((b, i) => <span key={i}>
-                    {esc(String(b.bigram || b.mot || b))}{b.count != null ? ` · ${b.count}` : ''}
-                  </span>)}
+                  {lexique.top_bigrams.slice(0, 12).map((b, i) => {
+                    const n = b && (b.count ?? b.freq);
+                    return <span key={i}>{esc(motLexical(b))}{n > 1 ? ` · ${n}` : ''}</span>;
+                  })}
                 </div>
               </div>
             )}
@@ -938,70 +1501,59 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
       {champs.length > 0 && (
         <Section title="Champs lexicaux détectés">
           <div className="gv2-psy-fields">
-            {champs.map((champ, i) => <div className="gv2-psy-card gv2-psy-field" key={i}>
-              <strong>{esc(String(champ.field || champ.nom || ''))}</strong>
-              <div className="gv2-psy-field-meta">
-                {champ.pct != null ? `${champ.pct}% des commentaires` : ''}
-                {champ.count != null ? ` · ${champ.count} occurrences` : ''}
-              </div>
-              {Array.isArray(champ.tokens) && <div className="gv2-psy-tokens">
-                {champ.tokens.slice(0, 5).map((t, j) => <span key={j}>{esc(String(t))}</span>)}
-              </div>}
-              {champ.exemple && <p>{esc(String(champ.exemple))}</p>}
-            </div>)}
+            {champs.map((champ, i) => {
+              const mots = Array.isArray(champ.words) ? champ.words : Array.isArray(champ.tokens) ? champ.tokens : [];
+              const exemple = champ.exemple || (Array.isArray(champ.examples) ? champ.examples[0] : '');
+              return <div className="gv2-psy-card gv2-psy-field" key={i}>
+                <strong>{esc(String(champ.field || champ.nom || ''))}</strong>
+                <div className="gv2-psy-field-meta">
+                  {champ.pct != null ? `${champ.pct}% des commentaires` : ''}
+                  {champ.count != null ? ` · ${champ.count} occurrences` : ''}
+                </div>
+                {mots.length > 0 && <div className="gv2-psy-tokens">
+                  {mots.slice(0, 5).map((t, j) => <span key={j}>{esc(String(t))}</span>)}
+                </div>}
+                {exemple && <p>{esc(String(exemple))}</p>}
+              </div>;
+            })}
           </div>
+        </Section>
+      )}
+
+      {(Object.keys(mok).length > 0 || Object.keys(iry).length > 0) && (
+        <Section title="Signaux de moquerie & ironie"
+                 hint="Un enthousiasme ironique n'est pas de l'adhésion.">
+          <div className="gv2-psy-metrics">
+            <Metric label="Moquerie" value={`${mok.count || 0} (${mok.pct || 0}%)`} hint={mok.level} />
+            <Metric label="Ironie" value={`${iry.count || 0} (${iry.pct || 0}%)`} hint={iry.level || (iry.count ? 'détectée' : 'absente')} />
+          </div>
+          {[...(mok.examples || []), ...(iry.examples || [])].filter(Boolean).length > 0 && <div className="gv2-psy-quotes gv2-psy-mt">
+            {[...(mok.examples || []), ...(iry.examples || [])].filter(Boolean).slice(0, 6).map((ex, i) => <blockquote className="gv2-psy-quote" key={i}><p>{citation(itemText(ex))}</p></blockquote>)}
+          </div>}
         </Section>
       )}
 
       {pol.phrase && (
         <Section title="Polarisation de l'audience">
           <div className="gv2-psy-card gv2-psy-card--plain">
-            <p className="gv2-psy-polar-phrase">{esc(String(pol.phrase))}</p>
+            <p className="gv2-psy-polar-phrase">{formatInline(String(pol.phrase))}</p>
             {pol.label && <div className="gv2-psy-metric-hint">{esc(String(pol.label))}{pol.score != null ? ` · score ${pol.score}` : ''}</div>}
           </div>
         </Section>
       )}
+
+      {livrablesPurs.length > 0 && (
+        <Section title="Preuves statistiques"
+                 hint="Six lectures calculées sans IA, avec leur niveau de confiance.">
+          {livrablesPurs.map(([cle, titre]) => <DataInsight key={cle} title={titre} data={livr[cle]} />)}
+        </Section>
+      )}
+
+      {finOnglet}
     </>}
 
-    {actif === 'interpretation' && <>
-      {(recos.verite_de_l_audience || recos.message_central || recos.prochaines_etapes) && (
-        <Section title="Recommandations stratégiques">
-          <div className="gv2-psy-reco-cols">
-            <div className="gv2-psy-card gv2-psy-card--plain">
-              <Statement label="Vérité de l'audience" text={recos.verite_de_l_audience} />
-              {recos.message_central && <div className="gv2-psy-reco-message">
-                <div className="gv2-psy-statement-label">Message central</div>
-                <blockquote>{esc(String(recos.message_central))}</blockquote>
-              </div>}
-              <Statement label="Insight stratégique" text={recos.insight_strategique_cle} />
-            </div>
-            {Array.isArray(recos.prochaines_etapes) && recos.prochaines_etapes.length > 0 && (
-              <div className="gv2-psy-card gv2-psy-card--plain">
-                <div className="gv2-psy-statement-label">Prochaines étapes</div>
-                <ul className="gv2-psy-steps">
-                  {recos.prochaines_etapes.map((etape, i) => <li key={i}>
-                    {esc(typeof etape === 'string' ? etape
-                        : [etape.horizon, etape.action].filter(Boolean).join(' : '))}
-                  </li>)}
-                </ul>
-              </div>
-            )}
-          </div>
-        </Section>
-      )}
-
-      {(brief.qui || brief.insight || brief.action) && (
-        <Section title="Lecture instantanée">
-          <div className="gv2-psy-card gv2-psy-card--plain">
-            <Statement label="Qui" text={brief.qui || brief.synthese} />
-            <div className="gv2-psy-reco-cols">
-              <Statement label="Insight clé" text={brief.insight || brief.insight_cle} />
-              <Statement label="Action prioritaire" text={brief.action || brief.action_prioritaire} />
-            </div>
-          </div>
-        </Section>
-      )}
-
+    {/* ── Psychologie : pourquoi ils agissent comme ils agissent ────────────── */}
+    {actif === 'psychologie' && <>
       {LIVRABLES.some(([cle]) => (livr[cle] || {}).conclusion) && (
         <Section title="Insights fondés sur données"
                  hint="Chaque lecture s'appuie sur un chiffre mesuré, pas sur une impression.">
@@ -1011,15 +1563,6 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
 
       <Interpretation title="Lecture psychologique" data={interp.psychologique} />
       <Interpretation title="Lecture socio-culturelle" data={interp.socio_culturelle} />
-
-      {GRILLE.some(([cle]) => grille[cle]) && (
-        <Section title="Grille psychologique"
-                 hint="Dix angles, chacun de l'observation mesurée jusqu'à l'action qu'elle appelle.">
-          <div className="gv2-psy-grid">
-            {GRILLE.map(([cle, label]) => <GridEntry key={cle} label={label} data={grille[cle]} />)}
-          </div>
-        </Section>
-      )}
 
       {Object.keys(psy).length > 0 && <Section
         title="La réalité intérieure"
@@ -1037,11 +1580,52 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
           <Statement label="Mécanismes psychologiques" text={psy.mecanismes_psychologiques} />
           <Statement label="Tensions internes" text={psy.tensions_internes} />
           <Statement label="Besoins identitaires" text={psy.besoins_identitaires} />
-          <Statement label="Rapport à l'argent" text={psy.rapport_argent} />
-          <Statement label="Rapport au succès" text={psy.rapport_succes} />
-          <Statement label="Rapport à l'autorité" text={psy.rapport_autorite} />
+          <Statement label="Système de valeurs" text={psy.systeme_de_valeurs} />
+          <Statement label="Maturité émotionnelle" text={psy.maturite_emotionnelle} />
         </div>
       </Section>}
+
+      {PSY_SENS.some(([cle]) => psy[cle]) && (
+        <Section title="Sens & potentiel"
+                 hint="La couche la plus profonde : ce qui est retenu, ce qui cherche à émerger (Munroe, Frankl).">
+          <div className="gv2-psy-grid">
+            {PSY_SENS.map(([cle, label]) => psy[cle] ? <div className="gv2-psy-card gv2-psy-grid-entry" key={cle}>
+              <div className="gv2-psy-grid-title">{label}</div>
+              <p className="gv2-psy-sens-text">{formatInline(psy[cle])}</p>
+            </div> : null)}
+          </div>
+        </Section>
+      )}
+
+      {PSY_RAPPORTS.some(([cle]) => psy[cle]) && (
+        <Section title="Rapports au monde" hint="Comment cette audience se situe face à ce qui structure une décision.">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <div className="gv2-psy-reco-cols">
+              {PSY_RAPPORTS.map(([cle, label]) => <Statement key={cle} label={label} text={psy[cle]} />)}
+            </div>
+          </div>
+        </Section>
+      )}
+
+      {GRILLE.some(([cle]) => grille[cle]) && (
+        <Section title="Grille psychologique"
+                 hint="Dix angles, chacun de l'observation mesurée jusqu'à l'action qu'elle appelle.">
+          <div className="gv2-psy-grid">
+            {GRILLE.map(([cle, label]) => <GridEntry key={cle} label={label} data={grille[cle]} />)}
+          </div>
+        </Section>
+      )}
+
+      {Object.keys(transfo).length > 0 && (
+        <Section title="Trajectoire de transformation"
+                 hint="D'où part cette audience, ce qui doit se passer, où elle veut arriver.">
+          <div className="gv2-psy-grid">
+            {TRANSFORMATION_PHASES.map(([cle, titre, phaseChamps]) => (
+              <TransformationPhase key={cle} title={titre} fields={phaseChamps} data={transfo[cle]} />
+            ))}
+          </div>
+        </Section>
+      )}
 
       {Object.keys(asp).length > 0 && <Section
         title="Aspirations"
@@ -1061,11 +1645,56 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
         </div>
       </Section>}
 
+      {Object.keys(cult).length > 0 && (
+        <Section title="Codes & dynamiques culturelles"
+                 hint="Les visions du monde, croyances et tensions qui traversent cette audience.">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <div className="gv2-psy-reco-cols">
+              <Statement label="Visions du monde" text={cult.visions_du_monde} />
+              <Statement label="Tensions culturelles" text={cult.tensions_culturelles} />
+              <Statement label="Récits émergents" text={cult.recits_emergents} />
+              <Statement label="Dynamique communautaire" text={cult.dynamique_communautaire} />
+            </div>
+            <div className="gv2-psy-trait-cols">
+              <TraitGroup label="Croyances dominantes" items={cult.croyances_dominantes} />
+              <TraitGroup label="Références culturelles" items={cult.references_culturelles} />
+              <TraitGroup label="Signaux faibles" items={cult.signaux_faibles} />
+            </div>
+          </div>
+        </Section>
+      )}
+
+      {finOnglet}
+    </>}
+
+    {/* ── Stratégie : quoi faire de cette lecture ─────────────────────────── */}
+    {actif === 'strategie' && <>
+      {(recos.positionnement || recos.differenciation || recos.strategie_contenu) && (
+        <Section title="Positionnement & différenciation">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <Statement label="Positionnement recommandé" text={recos.positionnement} />
+            <Statement label="Différenciation" text={recos.differenciation} />
+            <Statement label="Stratégie de contenu" text={recos.strategie_contenu} />
+          </div>
+        </Section>
+      )}
+
+      {((recos.angles_narratifs || []).length > 0 || (recos.risques_strategiques || []).length > 0) && (
+        <Section title="Récits à porter & risques à éviter">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <div className="gv2-psy-trait-cols">
+              <TraitGroup label="Angles narratifs" items={recos.angles_narratifs} tone="pos" />
+              <TraitGroup label="Risques stratégiques" items={recos.risques_strategiques} tone="neg" />
+            </div>
+          </div>
+        </Section>
+      )}
+
       {Object.keys(mkt).length > 0 && <Section
         title="Signaux exploitables"
         hint="Ce que cette lecture ouvre comme prises concrètes.">
         <div className="gv2-psy-card gv2-psy-card--plain">
-          <Statement label="Positionnement recommandé" text={mkt.positionnement_recommande} />
+          <Statement label="Positionnement marketing" text={mkt.positionnement_recommande} />
           <div className="gv2-psy-trait-cols">
             <TraitGroup label="Objections visibles" items={mkt.objections_visibles} tone="neg" />
             <TraitGroup label="Objections invisibles" items={mkt.objections_invisibles} tone="neg" />
@@ -1073,200 +1702,452 @@ function PsychoResult({ data, onReset, onGoToStratege }) {
             <TraitGroup label="Leviers de conversion" items={mkt.leviers_de_conversion} tone="pos" />
             <TraitGroup label="Opportunités d'offre" items={mkt.opportunites_offre} tone="pos" />
             <TraitGroup label="Opportunités de contenu" items={mkt.opportunites_contenu} tone="pos" />
+            <TraitGroup label="Angles de contenu" items={mkt.angles_de_contenu} tone="pos" />
             <TraitGroup label="Sujets qui attirent" items={mkt.sujets_qui_attirent} />
             <TraitGroup label="Sujets qui divisent" items={mkt.sujets_qui_divisent} tone="neg" />
             <TraitGroup label="Risques de communication" items={mkt.risques_communication} tone="neg" />
           </div>
           <TraitGroup label="Accroches performantes" items={mkt.hooks_performants} tone="pos" />
+          {(mkt.mots_cles || []).length > 0 && <div className="gv2-psy-statement">
+            <div className="gv2-psy-statement-label">Mots-clés de l'audience</div>
+            <div className="gv2-psy-tokens">
+              {mkt.mots_cles.map((m, i) => <span key={i}>{esc(itemText(m))}</span>)}
+            </div>
+          </div>}
         </div>
       </Section>}
+
+      {Object.keys(caches).length > 0 && (
+        <Section title="Marchés cachés & opportunités"
+                 hint="Des segments et opportunités que les données rendent visibles, pas encore exploités.">
+          {Array.isArray(caches.segments_detectes) && caches.segments_detectes.length > 0 && (
+            <div className="gv2-psy-fields">
+              {caches.segments_detectes.map((seg, i) => <div className="gv2-psy-card gv2-psy-field" key={i}>
+                <strong>{esc(String(seg.segment || ''))}</strong>
+                {seg.taille_estimee && <div className="gv2-psy-field-meta">Taille estimée : {esc(seg.taille_estimee)}</div>}
+                {seg.valeur_potentielle && <Statement label="Valeur potentielle" text={seg.valeur_potentielle} />}
+                {seg.description && <p>{formatInline(String(seg.description))}</p>}
+                {seg.signaux && <p>{formatInline(itemText(seg.signaux))}</p>}
+              </div>)}
+            </div>
+          )}
+          <div className="gv2-psy-trait-cols">
+            <TraitGroup label="Besoins sous-exprimés" items={caches.besoins_sous_exprimes} />
+            <TraitGroup label="Opportunités de niche" items={caches.opportunites_niche} tone="pos" />
+            <TraitGroup label="Audiences adjacentes" items={caches.audiences_adjacentes} />
+          </div>
+          {caches.angle_differentiant && <div className="gv2-psy-reco-message">
+            <div className="gv2-psy-statement-label">Angle différentiant</div>
+            <blockquote>{formatInline(caches.angle_differentiant)}</blockquote>
+          </div>}
+        </Section>
+      )}
+
+      {Object.keys(ident).length > 0 && (
+        <Section title="Cohérence & identité perçues"
+                 hint="Ce que ce contenu projette, et ce qui pourrait fragiliser sa crédibilité.">
+          <div className="gv2-psy-card gv2-psy-card--plain">
+            <div className="gv2-psy-reco-cols">
+              <Statement label="Cohérence perçue" text={ident.coherence_percue} />
+              <Statement label="Authenticité perçue" text={ident.authenticite_percue} />
+              <Statement label="Singularité" text={ident.singularite} />
+              <Statement label="Crédibilité" text={ident.credibilite} />
+              <Statement label="Confiance générée" text={ident.confiance_generee} />
+              <Statement label="Incohérences détectées" text={ident.incaherences_detectees} />
+            </div>
+            <div className="gv2-psy-trait-cols">
+              <TraitGroup label="Points de différenciation" items={ident.points_de_differenciation} tone="pos" />
+              <TraitGroup label="Faiblesses narratives" items={ident.faiblesses_narratives} tone="neg" />
+            </div>
+            <Statement label="Récit dominant" text={ident.recit_dominant} />
+          </div>
+        </Section>
+      )}
+
+      {finOnglet}
     </>}
 
-    {actif === 'personas' && <div className="gv2-psy-pc-grid">
-      {personas.map((persona, index) => <PersonaCard persona={persona} index={index} key={index} />)}
-    </div>}
+    {actif === 'personas' && <>
+      <div className="gv2-psy-pc-grid">
+        {personas.map((persona, index) => <PersonaCard persona={persona} index={index} key={index} />)}
+      </div>
+      {finOnglet}
+    </>}
   </section>;
 }
 
-/* ── Résultat — Cross Analyse ─────────────────────────────────────────── */
+/* ── Résultat — Cross Analyse : la Salle Cross ─────────────────────────────
+   Doctrine : on ne fusionne jamais les audiences. Chaque affirmation dit à qui
+   elle s'applique (Commun, propre à une audience, opposé), avec l'intensité
+   mesurée dans chacune. La conclusion vient d'abord ; chaque audience garde
+   son analyse complète, consultable sans quitter la Salle. */
 
-function groupByCategory(items) {
-  const map = {};
-  items.forEach(item => { const cat = item.category || 'autre'; (map[cat] = map[cat] || []).push(item); });
-  return map;
-}
+const CROSS_DIM_LABELS = {
+  emotions: 'Émotions', fears: 'Peurs', aspirations: 'Aspirations', frustrations: 'Frustrations',
+  beliefs: 'Croyances', motivations: 'Motivations', objections: 'Objections', themes: 'Centres d’intérêt',
+  behavioral_signals: 'Comportements',
+};
+const CROSS_MAP_DIMS = ['emotions', 'aspirations', 'fears', 'frustrations', 'motivations', 'beliefs', 'objections', 'themes'];
+const CROSS_CONF = { strong: 'solide', moderate: 'modérée', exploratory: 'exploratoire', insufficient: 'insuffisante', high: 'élevée', medium: 'moyenne', low: 'faible' };
+const CROSS_KIND = { specifique: 'Propre à', oppose: 'Opposé', intensite: 'Intensité différente' };
 
-function CrossSignalList({ items, emptyText }) {
-  if (!items.length) return <p className="gv2-psy-cross-empty">{emptyText}</p>;
-  const grouped = groupByCategory(items);
-  return Object.keys(grouped).sort().map(cat => <div className="gv2-psy-cross-cat" key={cat}>
-    <div className="gv2-psy-cross-cat-title">{categoryLabel(cat)}</div>
-    {grouped[cat].map((item, index) => <div className="gv2-psy-cross-signal-row" key={index}>
-      <span>{esc(item.label)}</span>
-      <div className="gv2-psy-cross-tags">{(item.sources || []).map((source, i) => <span key={i} className="gv2-psy-cross-tag">{esc(source.label || source.source_id)}</span>)}</div>
-    </div>)}
-  </div>);
-}
+// Mêmes mots vides que core/cross_synthesis.py : un « thème » comme merci ou
+// vidéo ne dit rien d'une audience et n'est jamais présenté comme un signal.
+const CROSS_NOISE = new Set(['merci', 'video', 'videos', 'super', 'bravo', 'top', 'cool', 'bien', 'tres', 'trop', 'chaine',
+  'contenu', 'contenus', 'salut', 'bonjour', 'genial', 'excellent', 'moi', 'toi', 'comme', 'tout', 'fait', 'faire',
+  'vraiment', 'encore', 'question', 'questions', 'possible', 'serait', 'peut', 'suis', 'tes', 'mes', 'ton', 'mon']);
+const crossKey = label => String(label || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const crossIsNoise = label => !crossKey(label).split(' ').some(word => word.length >= 3 && !CROSS_NOISE.has(word));
 
-function PsychoCrossResult({ data, onReset }) {
-  const result = data.result || {};
-  const crossId = data.cross_analysis_id || '';
-  const status = data.status || '';
+function crossAudiences(result) {
+  const profiles = Array.isArray(result.source_profiles) ? result.source_profiles : [];
   const sources = Array.isArray(result.sources) ? result.sources : [];
-  const failedSources = Array.isArray(result.failed_sources) ? result.failed_sources : [];
-  const confidence = result.confidence || {};
-  const dataQuality = result.data_quality || {};
-  const execSummary = result.executive_summary || {};
-  const psychoCore = result.common_psychological_core || {};
-  const coreText = psychoCore.interpretation && typeof psychoCore.interpretation === 'object'
-    ? psychoCore.interpretation.interpretation
-    : (typeof psychoCore.interpretation === 'string' ? psychoCore.interpretation : null);
-  const personas = Array.isArray(result.cross_personas) ? result.cross_personas : [];
-  const scoreVal = Math.round(Number(confidence.score) || 0);
-  const convergences = Array.isArray(result.convergences) ? result.convergences : [];
-  const divergences = Array.isArray(result.divergences) ? result.divergences : [];
-  const oppositions = Array.isArray(result.oppositions) ? result.oppositions : [];
-  const specific = Array.isArray(result.source_specific_signals) ? result.source_specific_signals : [];
-  const specificSorted = specific.slice().sort((a, b) => {
-    const wa = (a.sources && a.sources[0] && a.sources[0].weight) || 0;
-    const wb = (b.sources && b.sources[0] && b.sources[0].weight) || 0;
-    return wb - wa;
-  });
-  const SPECIFIC_CAP = 12;
-  const specificShown = specificSorted.slice(0, SPECIFIC_CAP);
-  const specificMore = specificSorted.length - specificShown.length;
+  const base = profiles.length ? profiles : sources.map((source, index) => ({
+    source_id: source.source_id, position: index, letter: String.fromCharCode(65 + index),
+    title: (source.metadata || {}).title || `Audience ${index + 1}`, channel: (source.metadata || {}).channel || '',
+    url: (source.metadata || {}).canonical_url || '', analysis_id: source.analysis_id || '',
+    comments: (source.dataset || {}).comments_retained || 0, data_quality: (source.data_quality || {}).level || '', dimensions: {},
+  }));
+  return base.map((aud, index) => ({ ...aud, index, letter: aud.letter || String.fromCharCode(65 + index) }));
+}
 
-  return <section className="gv2-psy-result gv2-psy-cross-result">
-    <div className="gv2-psy-result-head">
-      <div>
-        <span className="gv2-psy-eyebrow">Le Psychologue</span>
-        <h1>Cross Analyse — {sources.length} audience{sources.length === 1 ? '' : 's'} comparée{sources.length === 1 ? '' : 's'}</h1>
+function AudienceBadge({ aud, suffix }) {
+  if (!aud) return null;
+  return <span className="gv2-cross-badge" style={{ '--aud': `var(--gv2-aud-${aud.index % 5})` }}>{aud.letter}{suffix ? ` · ${suffix}` : ''}</span>;
+}
+
+function CrossMeter({ audiences, values }) {
+  const max = Math.max(1, ...Object.values(values).map(v => Number(v) || 0));
+  return <div className="gv2-cross-meter">
+    {audiences.map(aud => {
+      const raw = values[aud.source_id];
+      const present = raw !== undefined && raw !== null;
+      return <div key={aud.source_id} style={{ '--aud': `var(--gv2-aud-${aud.index % 5})` }} className={present ? '' : 'is-absent'}>
+        <span>{aud.letter}</span>
+        <i><b style={{ width: present ? `${Math.max(4, Math.round((Number(raw) || 0) / max * 100))}%` : '0%' }} /></i>
+        <em>{present ? (Number(raw) > 1.5 ? `${Math.round(Number(raw))} %` : 'présent') : '—'}</em>
+      </div>;
+    })}
+  </div>;
+}
+
+function CrossRow({ dimension, label, badge, children, meter }) {
+  return <div className="gv2-cross-row">
+    <span className="gv2-cross-row-dim">{CROSS_DIM_LABELS[dimension] || dimension || ''}</span>
+    <div className="gv2-cross-row-body"><p>{formatInline(label)}{badge}</p>{children}</div>
+    {meter}
+  </div>;
+}
+
+function CrossEmpty({ children }) {
+  return <p className="gv2-cross-empty">{children}</p>;
+}
+
+function PlaceInComparison({ aud, synthesis, specific }) {
+  const communs = (synthesis.rassemble || []).filter(item => item.per_source.some(p => p.source_id === aud.source_id));
+  const propres = (synthesis.separe || []).filter(item => item.per_source.some(p => p.source_id === aud.source_id));
+  const mesures = specific.filter(item => (item.sources || []).some(s => s.source_id === aud.source_id)).slice(0, 4);
+  if (!communs.length && !propres.length && !mesures.length) return null;
+  return <div className="gv2-cross-place">
+    <span className="gv2-psy-mono-label">Place dans la comparaison</span>
+    <ul>
+      {communs.slice(0, 4).map((item, i) => <li key={`c${i}`}><span className="gv2-cross-tag is-common">Commun</span>{formatInline(item.label)}</li>)}
+      {propres.slice(0, 4).map((item, i) => <li key={`p${i}`}><span className={`gv2-cross-tag ${item.kind === 'oppose' ? 'is-opposed' : 'is-own'}`}>{item.kind === 'oppose' ? 'Opposé' : 'Propre'}</span>{formatInline(item.label)}</li>)}
+      {mesures.map((item, i) => <li key={`m${i}`}><span className="gv2-cross-tag is-own">Propre</span>{formatInline(item.label)}</li>)}
+    </ul>
+  </div>;
+}
+
+function CrossAudienceView({ aud, audiences, onSwitch, onBack, synthesis, specific, onNavigateAgent }) {
+  const [state, setState] = useState({ loading: true, data: null, error: '' });
+  useEffect(() => {
+    let live = true;
+    setState({ loading: true, data: null, error: '' });
+    if (!aud.analysis_id) { setState({ loading: false, data: null, error: 'Cette audience n’a pas d’analyse enregistrée.' }); return undefined; }
+    fetchV2(`/history/${encodeURIComponent(aud.analysis_id)}/load`).then(async response => {
+      const payload = JSON.parse(await response.text());
+      if (!response.ok || !payload?.full_result) throw new Error(payload?.error || 'introuvable');
+      if (live) setState({ loading: false, data: { ...payload.full_result, analysis_id: payload.full_result.analysis_id || aud.analysis_id }, error: '' });
+    }).catch(() => { if (live) setState({ loading: false, data: null, error: 'L’analyse complète de cette audience n’a pas pu être chargée.' }); });
+    return () => { live = false; };
+  }, [aud.analysis_id]);
+
+  return <div className="gv2-cross-audience" style={{ '--aud': `var(--gv2-aud-${aud.index % 5})` }}>
+    <nav className="gv2-cross-crumb" aria-label="Fil d’Ariane">
+      <button type="button" onClick={onBack}>← Synthèse croisée</button>
+      <span aria-hidden="true">/</span>
+      <span>Audience {aud.letter} · {aud.title}</span>
+      <span className="gv2-cross-switch" role="group" aria-label="Changer d’audience">
+        {audiences.map(other => <button key={other.source_id} type="button" aria-pressed={other.source_id === aud.source_id}
+          style={{ '--aud': `var(--gv2-aud-${other.index % 5})` }} onClick={() => onSwitch(other.source_id)}
+          aria-label={`Audience ${other.letter} · ${other.title}`}><i />{other.letter}</button>)}
+      </span>
+    </nav>
+    <PlaceInComparison aud={aud} synthesis={synthesis} specific={specific} />
+    {state.loading && <p className="gv2-cross-empty">Chargement de l’analyse complète…</p>}
+    {state.error && <p className="gv2-cross-empty">{state.error}</p>}
+    {state.data && <PsychoResult data={state.data} onReset={onBack} onGoToStratege={() => onNavigateAgent?.('stratege')}
+      onGoToCreateur={onNavigateAgent ? () => onNavigateAgent('createur') : undefined} />}
+  </div>;
+}
+
+function PsychoCrossResult({ data, onReset, onNavigateAgent }) {
+  const result = data.result || {};
+  const status = data.status || '';
+  const audiences = crossAudiences(result);
+  const byId = Object.fromEntries(audiences.map(aud => [aud.source_id, aud]));
+  const synthesis = result.cross_synthesis && result.cross_synthesis.status === 'completed' ? result.cross_synthesis : { rassemble: [], separe: [] };
+  const execSummary = result.executive_summary || {};
+  const confidence = result.confidence || {};
+  const core = result.common_psychological_core || {};
+  const coreText = core.interpretation && typeof core.interpretation === 'object' ? core.interpretation.interpretation
+    : (typeof core.interpretation === 'string' ? core.interpretation : '');
+  const synthKeys = new Set([
+    ...(synthesis.rassemble || []).flatMap(item => [item.label, ...item.per_source.map(p => p.signal)]),
+    ...(synthesis.separe || []).flatMap(item => [item.label, ...item.per_source.map(p => p.signal)]),
+  ].map(crossKey));
+  // Signaux mesurés par libellé exact : on retire les mots vides et ce que la
+  // synthèse montre déjà, pour ne jamais afficher deux fois la même chose.
+  const convergences = (Array.isArray(result.convergences) ? result.convergences : [])
+    .filter(item => !crossIsNoise(item.label) && !synthKeys.has(crossKey(item.label)));
+  const divergences = (Array.isArray(result.divergences) ? result.divergences : [])
+    .filter(item => !crossIsNoise(item.label) && !synthKeys.has(crossKey(item.label)));
+  const oppositions = Array.isArray(result.oppositions) ? result.oppositions : [];
+  const specific = (Array.isArray(result.source_specific_signals) ? result.source_specific_signals : [])
+    .filter(item => !crossIsNoise(item.label));
+  const failedSources = Array.isArray(result.failed_sources) ? result.failed_sources : [];
+  const personas = Array.isArray(result.cross_personas) ? result.cross_personas : [];
+  const interp = result.cross_interpretation || {};
+  const review = interp.dialectic_review || {};
+  const totalComments = confidence.total_comments || audiences.reduce((sum, aud) => sum + (Number(aud.comments) || 0), 0);
+  const verdict = synthesis.verdict || {};
+  const sujets = synthesis.sujets_qui_resolvent || [];
+  const interets = synthesis.centres_interet || [];
+  const aEviter = synthesis.a_eviter || [];
+  const message = synthesis.message_commun || {};
+
+  const [tab, setTab] = useState('synthese');
+  const [openSource, setOpenSource] = useState('');
+
+  const tabs = [
+    { id: 'synthese', label: 'Synthèse croisée' },
+    { id: 'rassemble', label: 'Ce qui les rassemble' },
+    { id: 'separe', label: 'Ce qui les sépare' },
+    { id: 'carte', label: 'Carte des audiences' },
+    ...(personas.length ? [{ id: 'personas', label: 'Personas' }] : []),
+    ...(sujets.length || interets.length || aEviter.length || message.message ? [{ id: 'sujets', label: 'Sujets & angles' }] : []),
+    { id: 'audiences', label: 'Chaque audience' },
+  ];
+  const actif = tabs.some(t => t.id === tab) ? tab : 'synthese';
+  const opened = openSource && byId[openSource];
+
+  const header = <div className="gv2-cross-head">
+    <div>
+      <span className="gv2-psy-eyebrow">Le Psychologue · Cross Analyse</span>
+      <h1>Salle Cross</h1>
+      <div className="gv2-cross-auds">
+        {audiences.map(aud => <button key={aud.source_id} type="button" className={`gv2-cross-aud${openSource === aud.source_id ? ' is-open' : ''}`}
+          style={{ '--aud': `var(--gv2-aud-${aud.index % 5})` }} onClick={() => setOpenSource(aud.source_id)}
+          aria-label={`Ouvrir l’audience ${aud.letter} · ${aud.title}`}>
+          <i aria-hidden="true" /><strong>{aud.letter}</strong><span>{aud.title}</span>
+          {aud.comments ? <small>{aud.comments} comm.</small> : null}<em aria-hidden="true">→</em>
+        </button>)}
       </div>
-      <button type="button" className="gv2-psy-ghost-btn" onClick={onReset}>← Nouvelle analyse</button>
     </div>
+    <button type="button" className="gv2-psy-ghost-btn" onClick={onReset}>← Nouvelle analyse</button>
+  </div>;
+
+  if (opened) {
+    return <section className="gv2-psy-result gv2-cross-room">
+      {header}
+      <CrossAudienceView aud={opened} audiences={audiences} onSwitch={setOpenSource} onBack={() => setOpenSource('')}
+        synthesis={synthesis} specific={specific} onNavigateAgent={onNavigateAgent} />
+    </section>;
+  }
+
+  const sharedRows = synthesis.rassemble || [];
+  const separeRows = synthesis.separe || [];
+  const specificByAud = audiences.map(aud => ({ aud, items: specific.filter(item => (item.sources || []).some(s => s.source_id === aud.source_id)).slice(0, 6) }));
+
+  return <section className="gv2-psy-result gv2-cross-room">
+    {header}
 
     {(status === 'partial_success' || failedSources.length > 0) && <div className="gv2-psy-cross-warn">
-      <strong>Analyse partielle.</strong> {failedSources.length} source{failedSources.length === 1 ? '' : 's'} n'{failedSources.length === 1 ? 'a' : 'ont'} pas pu être analysée{failedSources.length === 1 ? '' : 's'}. Les résultats portent sur {sources.length} source{sources.length === 1 ? '' : 's'} exploitable{sources.length === 1 ? '' : 's'}.
+      <strong>Analyse partielle.</strong> {failedSources.length} source{failedSources.length === 1 ? '' : 's'} n'{failedSources.length === 1 ? 'a' : 'ont'} pas pu être analysée{failedSources.length === 1 ? '' : 's'}. Les résultats portent sur {audiences.length} audience{audiences.length === 1 ? '' : 's'} exploitable{audiences.length === 1 ? '' : 's'}.
     </div>}
 
-    <div className="gv2-psy-cross-hero">
-      <div className="gv2-psy-cross-hero-score">
-        <div className="gv2-psy-cross-hero-num">{scoreVal}<span>/100</span></div>
-        <div className="gv2-psy-cross-hero-level">{CONFIDENCE_LABELS[confidence.level] || confidence.level || ''}</div>
-      </div>
-      <div className="gv2-psy-cross-hero-body">
-        <div className="gv2-psy-hero-label">Conclusion générale</div>
-        <p className="gv2-psy-hero-text">{formatInline(execSummary.text || 'Analyse terminée.')}</p>
-        {Array.isArray(execSummary.caveats) && execSummary.caveats.length > 0 && <div className="gv2-psy-cross-caveats">
-          <div className="gv2-psy-cross-caveats-lbl">Points de prudence</div>
-          {execSummary.caveats.map((caveat, index) => <div key={index} className="gv2-psy-cross-caveat">— {formatInline(caveat)}</div>)}
+    <ResultTabs active={actif} onChange={setTab} tabs={tabs} />
+
+    {actif === 'synthese' && <div className="gv2-cross-pane">
+      <div className="gv2-cross-verdict">
+        <div>
+          <span className="gv2-psy-mono-label">Ce que ces audiences ont en commun</span>
+          <p className="gv2-cross-verdict-text">{formatInline(verdict.rassemble || execSummary.text || coreText || 'Analyse terminée.')}</p>
+          <div className="gv2-cross-conf">
+            {confidence.score != null && <span>Confiance <strong>{Math.round(Number(confidence.score) || 0)}</strong>/100</span>}
+            {(confidence.level || execSummary.confidence_level) && <span className="gv2-cross-pill">{CROSS_CONF[execSummary.confidence_level || confidence.level] || confidence.level}</span>}
+            {totalComments ? <span>{totalComments} commentaires</span> : null}
+            <span>{audiences.length} audiences</span>
+          </div>
+        </div>
+        {audiences.length === 2 && <div className="gv2-cross-venn" role="img" aria-label={`Noyau commun entre ${audiences[0].title} et ${audiences[1].title}`}>
+          <span className="is-a" style={{ '--aud': 'var(--gv2-aud-0)' }}>{audiences[0].letter}</span>
+          <span className="is-b" style={{ '--aud': 'var(--gv2-aud-1)' }}>{audiences[1].letter}</span>
+          <strong>{sharedRows[0] ? sharedRows[0].label : (convergences[0] ? convergences[0].label : 'Noyau commun')}</strong>
         </div>}
       </div>
-    </div>
-
-    <div className="gv2-psy-cross-meta">
-      <span><strong>{sources.length}</strong> audience{sources.length === 1 ? '' : 's'} comparée{sources.length === 1 ? '' : 's'}</span>
-      {confidence.total_comments ? <span><strong>{confidence.total_comments}</strong> commentaires analysés</span> : null}
-      {dataQuality.level ? <span>Qualité des données : <strong>{qualityMeta(dataQuality.level).label}</strong></span> : null}
-    </div>
-
-    {coreText && <div className="gv2-psy-section">
-      <div className="gv2-psy-section-title">Noyau psychologique commun</div>
-      <div className="gv2-psy-cross-quote">{formatInline(coreText)}</div>
+      <div className="gv2-cross-trio">
+        <div><span className="gv2-psy-mono-label">Les rassemble</span><p>{formatInline(verdict.rassemble || coreText || `${convergences.length} signal${convergences.length > 1 ? 'aux' : ''} partagé${convergences.length > 1 ? 's' : ''}.`)}</p></div>
+        <div><span className="gv2-psy-mono-label">Les sépare</span><p>{formatInline(verdict.separe || `${divergences.length + oppositions.length} différence${divergences.length + oppositions.length > 1 ? 's' : ''} mesurée${divergences.length + oppositions.length > 1 ? 's' : ''}.`)}</p></div>
+        <div><span className="gv2-psy-mono-label">À leur dire à toutes</span><p>{formatInline(verdict.a_leur_dire || message.message || 'Disponible après la synthèse croisée.')}</p></div>
+      </div>
+      {Array.isArray(execSummary.caveats) && execSummary.caveats.length > 0 && <div className="gv2-cross-caveats">
+        <span className="gv2-psy-mono-label">Points de prudence</span>
+        <ul>{execSummary.caveats.map((caveat, i) => <li key={i}>{formatInline(caveat)}</li>)}</ul>
+      </div>}
+      {review.status === 'completed' && ((review.challenges || []).length > 0 || (review.alternative_hypotheses || []).length > 0 || review.retained_conclusion) && <details className="gv2-cross-review">
+        <summary>Ce qui pourrait contredire cette lecture</summary>
+        {(review.challenges || []).length > 0 && <ul>{review.challenges.map((c, i) => <li key={i}><strong>{formatInline(c.claim)}</strong> — {formatInline(c.counter_evidence)}</li>)}</ul>}
+        {(review.alternative_hypotheses || []).length > 0 && <><span className="gv2-psy-mono-label">Autres lectures possibles</span><ul>{review.alternative_hypotheses.map((h, i) => <li key={i}>{formatInline(h)}</li>)}</ul></>}
+        {review.retained_conclusion && <p><strong>Conclusion retenue après critique :</strong> {formatInline(review.retained_conclusion)}</p>}
+      </details>}
     </div>}
 
-    <div className="gv2-psy-section">
-      <div className="gv2-psy-section-title">Vidéos comparées</div>
-      <div className="gv2-psy-cross-video-grid">
-        {sources.map((source, index) => {
-          const metaInfo = source.metadata || {};
-          const initial = (metaInfo.channel || metaInfo.title || '?').trim().charAt(0).toUpperCase() || '?';
-          const views = fmtCount(metaInfo.view_count), likes = fmtCount(metaInfo.like_count), comments = fmtCount(metaInfo.comment_count), duration = fmtDuration(metaInfo.duration);
-          const quality = source.data_quality && source.data_quality.level ? qualityMeta(source.data_quality.level) : null;
-          return <div className="gv2-psy-cross-video-card" key={source.source_id || index}>
-            <div className="gv2-psy-cross-video-head">
-              <div className="gv2-psy-cross-video-mark">{initial}</div>
-              <div className="gv2-psy-cross-video-info">
-                <div className="gv2-psy-cross-video-title">{metaInfo.title || `Vidéo ${index + 1}`}</div>
-                <div className="gv2-psy-cross-video-channel">{metaInfo.channel || ''}</div>
-              </div>
-              {quality && <span className={`gv2-psy-cross-quality ${quality.cls}`}>{quality.label}</span>}
-            </div>
-            <div className="gv2-psy-cross-video-stats">
-              {views !== null && <span><strong>{views}</strong> vues</span>}
-              {likes !== null && <span><strong>{likes}</strong> likes</span>}
-              {comments !== null && <span><strong>{comments}</strong> commentaires</span>}
-              {duration && <span>{duration}</span>}
-            </div>
-            {metaInfo.canonical_url && <a className="gv2-psy-cross-video-link" href={metaInfo.canonical_url} target="_blank" rel="noopener noreferrer">Voir la vidéo ↗</a>}
-          </div>;
+    {actif === 'rassemble' && <div className="gv2-cross-pane">
+      {sharedRows.length === 0 && convergences.length === 0 && <CrossEmpty>Aucun point commun suffisamment étayé entre ces audiences.</CrossEmpty>}
+      <div className="gv2-cross-rows">
+        {sharedRows.map((item, i) => <CrossRow key={`s${i}`} dimension={item.dimension} label={item.label}
+          badge={<span className="gv2-cross-tag is-common">Commun</span>}
+          meter={<CrossMeter audiences={audiences} values={Object.fromEntries(item.per_source.map(p => [p.source_id, p.weight]))} />}>
+          {item.interpretation && <p className="gv2-cross-interp">{formatInline(item.interpretation)}</p>}
+          {item.per_source.map((p, j) => <blockquote key={j} style={{ '--aud': `var(--gv2-aud-${(byId[p.source_id] || {}).index % 5})` }}>
+            <AudienceBadge aud={byId[p.source_id]} /> {formatInline(p.signal)}</blockquote>)}
+        </CrossRow>)}
+        {convergences.map((item, i) => {
+          const lecture = (interp.convergence_interpretations || []).find(c => c.insight_id === item.insight_id);
+          return <CrossRow key={`m${i}`} dimension={item.category} label={item.category === 'behavioral_signals' ? libelle(item.label) : item.label}
+            badge={<span className="gv2-cross-tag is-common">Mesuré dans {item.sources_count} audiences</span>}
+            meter={<CrossMeter audiences={audiences} values={Object.fromEntries((item.sources || []).map(s => [s.source_id, s.weight]))} />}>
+            {lecture && <p className="gv2-cross-interp">{formatInline(lecture.interpretation)}</p>}
+          </CrossRow>;
         })}
       </div>
-    </div>
+    </div>}
 
-    <div className="gv2-psy-section">
-      <div className="gv2-psy-section-title">Analyse croisée</div>
-      <div className="gv2-psy-cross-snap-grid">
-        <div className="gv2-psy-cross-snap"><div className="gv2-psy-cross-snap-lbl">Convergences</div><div className="gv2-psy-cross-snap-val">{convergences.length}</div><div className="gv2-psy-cross-snap-sub">signaux partagés</div></div>
-        <div className="gv2-psy-cross-snap"><div className="gv2-psy-cross-snap-lbl">Divergences</div><div className="gv2-psy-cross-snap-val">{divergences.length}</div><div className="gv2-psy-cross-snap-sub">signaux qui varient</div></div>
-        <div className="gv2-psy-cross-snap"><div className="gv2-psy-cross-snap-lbl">Oppositions</div><div className="gv2-psy-cross-snap-val">{oppositions.length}</div><div className="gv2-psy-cross-snap-sub">positions contraires</div></div>
+    {actif === 'separe' && <div className="gv2-cross-pane">
+      <div className="gv2-cross-rows">
+        {separeRows.map((item, i) => {
+          const aud = item.per_source.length === 1 ? byId[item.per_source[0].source_id] : null;
+          return <CrossRow key={`s${i}`} dimension={item.dimension} label={item.label}
+            badge={item.kind === 'oppose' ? <span className="gv2-cross-tag is-opposed">Opposé</span>
+              : aud ? <AudienceBadge aud={aud} suffix={CROSS_KIND.specifique} /> : <span className="gv2-cross-tag is-own">{CROSS_KIND[item.kind]}</span>}
+            meter={<CrossMeter audiences={audiences} values={Object.fromEntries(item.per_source.map(p => [p.source_id, p.weight]))} />}>
+            {item.interpretation && <p className="gv2-cross-interp">{formatInline(item.interpretation)}</p>}
+            {item.per_source.map((p, j) => <blockquote key={j} style={{ '--aud': `var(--gv2-aud-${(byId[p.source_id] || {}).index % 5})` }}>
+              <AudienceBadge aud={byId[p.source_id]} /> {formatInline(p.note || p.signal)}</blockquote>)}
+          </CrossRow>;
+        })}
+        {divergences.map((item, i) => {
+          const lecture = (interp.divergence_interpretations || []).find(c => c.insight_id === item.insight_id);
+          return <CrossRow key={`d${i}`} dimension={item.category} label={item.label}
+            badge={<span className="gv2-cross-tag is-own">Intensité différente</span>}
+            meter={<CrossMeter audiences={audiences} values={Object.fromEntries((item.sources || []).map(s => [s.source_id, s.weight]))} />}>
+            {lecture && <p className="gv2-cross-interp">{formatInline(lecture.interpretation)}</p>}
+          </CrossRow>;
+        })}
+        {oppositions.map((item, i) => <CrossRow key={`o${i}`} dimension="beliefs" label={item.observation || 'Positions opposées'}
+          badge={<span className="gv2-cross-tag is-opposed">Opposé</span>}
+          meter={<div className="gv2-cross-meter">{(item.source_positions || []).map((pos, j) => { const aud = byId[pos.source_id]; return aud ? <div key={j} style={{ '--aud': `var(--gv2-aud-${aud.index % 5})` }}><span>{aud.letter}</span><em>{libelle(pos.position)} {Math.round(pos.pct)} %</em></div> : null; })}</div>} />)}
       </div>
-      <div className="gv2-psy-card gv2-psy-card--plain gv2-psy-cross-block">
-        <div className="gv2-psy-cross-block-title">Convergences — signaux partagés par plusieurs audiences</div>
-        <CrossSignalList items={convergences} emptyText="Aucune convergence détectée entre ces audiences." />
-      </div>
-      <div className="gv2-psy-card gv2-psy-card--plain gv2-psy-cross-block">
-        <div className="gv2-psy-cross-block-title">Divergences — signaux qui varient d'une audience à l'autre</div>
-        <CrossSignalList items={divergences} emptyText="Aucune divergence détectée : les audiences se recoupent fortement." />
-      </div>
-      <div className="gv2-psy-card gv2-psy-card--plain gv2-psy-cross-block">
-        <div className="gv2-psy-cross-block-title">Oppositions — positions contraires entre audiences</div>
-        <CrossSignalList items={oppositions} emptyText="Aucune opposition détectée." />
-      </div>
-      <div className="gv2-psy-card gv2-psy-card--plain gv2-psy-cross-block">
-        <div className="gv2-psy-cross-block-title">Signaux propres à une seule audience</div>
-        <CrossSignalList items={specificShown} emptyText="Aucun signal isolé détecté." />
-        {specificMore > 0 && <p className="gv2-psy-cross-more">+ {specificMore} autre{specificMore === 1 ? '' : 's'} signal{specificMore === 1 ? '' : 'aux'} spécifique{specificMore === 1 ? '' : 's'} non affiché{specificMore === 1 ? '' : 's'}.</p>}
-      </div>
-    </div>
+      {specificByAud.some(group => group.items.length) && <div className="gv2-cross-own">
+        <span className="gv2-psy-mono-label">Signaux propres à une seule audience</span>
+        <div className="gv2-cross-own-grid">
+          {specificByAud.filter(group => group.items.length).map(group => <div key={group.aud.source_id} style={{ '--aud': `var(--gv2-aud-${group.aud.index % 5})` }}>
+            <AudienceBadge aud={group.aud} /><strong className="gv2-cross-own-title">{group.aud.title}</strong>
+            <ul>{group.items.map((item, j) => <li key={j}><em>{CROSS_DIM_LABELS[item.category] || item.category}</em>{formatInline(item.category === 'behavioral_signals' ? libelle(item.label) : item.label)}</li>)}</ul>
+          </div>)}
+        </div>
+      </div>}
+      {separeRows.length === 0 && divergences.length === 0 && oppositions.length === 0 && specific.length === 0 && <CrossEmpty>Aucune différence mesurée : ces audiences se ressemblent fortement.</CrossEmpty>}
+    </div>}
 
-    {personas.length > 0 && <div className="gv2-psy-section">
-      <div className="gv2-psy-section-title">Personas croisés</div>
-      <div className="gv2-psy-persona-grid">
-        {personas.map((persona, index) => <div className="gv2-psy-persona-card" key={index}>
-          <div className="gv2-psy-cross-persona-head">
-            <PersonaAvatar nom={persona.name || 'Persona'} />
-            <div className="gv2-psy-persona-name">{persona.name || 'Persona'}</div>
-            {persona.confidence_level && <span className="gv2-psy-cross-persona-conf">{persona.confidence_level}</span>}
-          </div>
-          {persona.description && <p className="gv2-psy-persona-quote">{formatInline(persona.description)}</p>}
-          <div className="gv2-psy-cross-tags">
-            {(Array.isArray(persona.signals) ? persona.signals : []).map((signal, i) => <span key={i} className="gv2-psy-cross-tag">{typeof signal === 'string' ? signal : signal.label || ''}</span>)}
-          </div>
-        </div>)}
+    {actif === 'carte' && <div className="gv2-cross-pane">
+      <p className="gv2-cross-lede">La vue de l’analyste : pour chaque dimension, ce que chaque audience exprime le plus.</p>
+      <div className="gv2-cross-map-scroll">
+        <table className="gv2-cross-map">
+          <thead><tr><th scope="col">Dimension</th>{audiences.map(aud => <th scope="col" key={aud.source_id} style={{ '--aud': `var(--gv2-aud-${aud.index % 5})` }}><AudienceBadge aud={aud} /> {aud.title}</th>)}</tr></thead>
+          <tbody>
+            {CROSS_MAP_DIMS.filter(dim => audiences.some(aud => ((aud.dimensions || {})[dim] || []).length)).map(dim => <tr key={dim}>
+              <th scope="row">{CROSS_DIM_LABELS[dim]}</th>
+              {audiences.map(aud => <td key={aud.source_id}>
+                {((aud.dimensions || {})[dim] || []).slice(0, 3).map((signal, i) => <div key={i} className="gv2-cross-map-cell">
+                  <span>{formatInline(signal.label)}</span>{signal.weight > 1.5 && <small>{Math.round(signal.weight)} %</small>}
+                </div>)}
+                {!((aud.dimensions || {})[dim] || []).length && <span className="gv2-cross-map-none">—</span>}
+              </td>)}
+            </tr>)}
+          </tbody>
+        </table>
       </div>
     </div>}
 
-    <details className="gv2-psy-cross-tech">
-      <summary>Détails techniques</summary>
-      <div className="gv2-psy-cross-tech-body">
-        {[
-          ['cross_analysis_id', crossId],
-          ['job_id', result.job_id],
-          ['schema_version', result.schema_version],
-          ['pipeline_version', result.pipeline_version],
-          ['model_version', result.model_version],
-          ['embedding_version', result.embedding_version],
-          ['analysis_mode', result.analysis_mode],
-        ].filter(([, value]) => value !== undefined && value !== null && value !== '').map(([key, value]) => `${key} : ${value}`).join('\n')}
+    {actif === 'personas' && <div className="gv2-cross-pane">
+      <div className="gv2-cross-personas">
+        {personas.map((persona, index) => <article className="gv2-cross-persona" key={index}>
+          <span className="gv2-psy-mono-label">{(persona.source_ids || []).length > 1 ? 'Persona croisé' : 'Persona propre'}</span>
+          <h3>{persona.name || 'Persona'}</h3>
+          <div className="gv2-cross-persona-auds">{(persona.source_ids || []).map(id => <AudienceBadge key={id} aud={byId[id]} />)}
+            {persona.confidence_level && <span className="gv2-cross-pill">{CROSS_CONF[persona.confidence_level] || persona.confidence_level}</span>}</div>
+          {persona.description && <p>{formatInline(persona.description)}</p>}
+          {Array.isArray(persona.signals) && persona.signals.length > 0 && <div className="gv2-psy-tokens">{persona.signals.map((s, i) => <span key={i}>{typeof s === 'string' ? s : s.label || ''}</span>)}</div>}
+        </article>)}
       </div>
-    </details>
+      <p className="gv2-cross-lede">Les personas détaillés de chaque audience sont dans l’onglet « Chaque audience ».</p>
+    </div>}
+
+    {actif === 'sujets' && <div className="gv2-cross-pane">
+      {message.message && <div className="gv2-cross-message">
+        <span className="gv2-psy-mono-label">Un message pour toutes ces audiences</span>
+        <p>{formatInline(message.message)}</p>
+        {(message.nuances || []).length > 0 && <ul>{message.nuances.map((n, i) => <li key={i}><AudienceBadge aud={byId[n.source_id]} /> {formatInline(n.nuance)}</li>)}</ul>}
+      </div>}
+      <div className="gv2-cross-topics">
+        {sujets.length > 0 && <div><span className="gv2-psy-mono-label">Sujets qui résolvent un problème commun</span><ol>
+          {sujets.map((t, i) => <li key={i}><strong>{formatInline(t.title)}</strong><small>{formatInline(t.why)}</small><span>{t.source_ids.map(id => <AudienceBadge key={id} aud={byId[id]} />)}</span></li>)}
+        </ol></div>}
+        {interets.length > 0 && <div><span className="gv2-psy-mono-label">Centres d’intérêt</span><ul>
+          {interets.map((t, i) => <li key={i}><strong>{formatInline(t.label)}</strong><small>{formatInline(t.why)}</small><span>{t.source_ids.map(id => <AudienceBadge key={id} aud={byId[id]} />)}</span></li>)}
+        </ul></div>}
+        {aEviter.length > 0 && <div><span className="gv2-psy-mono-label">À éviter</span><ul>
+          {aEviter.map((t, i) => <li key={i}><strong>{formatInline(t.label)}</strong><small>{formatInline(t.why)}</small><span>{t.source_ids.map(id => <AudienceBadge key={id} aud={byId[id]} />)}</span></li>)}
+        </ul></div>}
+      </div>
+      {onNavigateAgent && <div className="gv2-psy-next is-final">
+        <span className="gv2-psy-next-hint">Transformer cette lecture croisée</span>
+        <div className="gv2-psy-next-actions">
+          <button type="button" className="gv2-psy-ghost-btn" onClick={() => onNavigateAgent('createur')}>Un message commun · Créateur →</button>
+          <button type="button" className="gv2-psy-primary-btn" onClick={() => onNavigateAgent('stratege')}>Construire la stratégie · Ariane →</button>
+        </div>
+      </div>}
+    </div>}
+
+    {actif === 'audiences' && <div className="gv2-cross-pane">
+      <p className="gv2-cross-lede">Chaque audience garde son analyse complète — synthèse, tableau de bord, psychologie, stratégie, personas — comme une analyse classique.</p>
+      <div className="gv2-cross-solo">
+        {audiences.map(aud => <button type="button" key={aud.source_id} style={{ '--aud': `var(--gv2-aud-${aud.index % 5})` }} onClick={() => setOpenSource(aud.source_id)}>
+          <AudienceBadge aud={aud} suffix="Audience" />
+          <strong>{aud.title}</strong>
+          <span>{[aud.channel, aud.comments ? `${aud.comments} commentaires` : '', aud.data_quality ? `qualité ${qualityMeta(aud.data_quality).label.toLowerCase()}` : ''].filter(Boolean).join(' · ')}</span>
+          <em>Ouvrir l’analyse complète →</em>
+        </button>)}
+      </div>
+    </div>}
   </section>;
 }
 
 /* ── Racine ──────────────────────────────────────────────────────────── */
 
-export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent }) {
+export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent, openAnalysisRequest, onAnalysisReady }) {
   const [tab, setTab] = useState('link');
   const [platform, setPlatform] = useState('youtube');
   const [url, setUrl] = useState('');
@@ -1335,9 +2216,17 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
     const psycho = data.psychologie || {};
     const marketing = data.marketing || {};
     const lines = [];
-    if (brief.synthese) lines.push('Audience : ' + brief.synthese);
-    if (brief.insight_cle) lines.push('Insight clé : ' + brief.insight_cle);
-    if (brief.action_prioritaire) lines.push('Action : ' + brief.action_prioritaire);
+    // Le backend écrit qui/insight/action ; synthese/insight_cle/action_prioritaire
+    // sont les anciens noms, gardés pour les analyses sauvegardées avant.
+    const qui = brief.qui || brief.synthese;
+    const insight = brief.insight || brief.insight_cle;
+    const action = brief.action || brief.action_prioritaire;
+    const recos = data.recommandations || {};
+    if (qui) lines.push('Audience : ' + qui);
+    if (insight) lines.push('Insight clé : ' + insight);
+    if (action) lines.push('Action : ' + action);
+    if (recos.verite_de_l_audience) lines.push("Vérité de l'audience : " + recos.verite_de_l_audience);
+    if (recos.message_central) lines.push('Message central : ' + recos.message_central);
     const motiv = (psycho.motivations_profondes || []).slice(0, 2).map(m => typeof m === 'string' ? m : JSON.stringify(m));
     if (motiv.length) lines.push('Motivations : ' + motiv.join(', '));
     const frustr = (psycho.frustrations || []).slice(0, 2).map(f => typeof f === 'string' ? f : JSON.stringify(f));
@@ -1353,6 +2242,7 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
           brief, psychologie: psycho, emotions: data.emotions || {}, marketing,
           kpis: data.kpis || {}, aspirations: data.aspirations || {},
           personas: data.personas || [], distribution: data.distribution || {},
+          recommandations: recos, demographique: data.demographique || {},
         },
       }));
     } catch (_) { /* sessionStorage peut être indisponible (navigation privée) */ }
@@ -1636,6 +2526,81 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
     setCrossMode(false); setCrossSources([]);
   }
 
+  const [recentAnalyses, setRecentAnalyses] = useState([]);
+  useEffect(() => {
+    let live = true;
+    const requete = fetchV2('/history');
+    if (!requete || typeof requete.then !== 'function') return undefined;
+    requete.then(async response => {
+      if (!response || !response.ok) return;
+      const payload = JSON.parse(await response.text());
+      const liste = Array.isArray(payload) ? payload : Array.isArray(payload?.history) ? payload.history : [];
+      if (live) setRecentAnalyses(liste.filter(item => item && item.analysis_id));
+    }).catch(() => { /* l'accueil reste utilisable sans historique */ });
+    return () => { live = false; };
+  }, []);
+
+  function openSavedAnalysis(analysisId) {
+    fetchV2(`/history/${encodeURIComponent(analysisId)}/load`).then(async response => {
+      const payload = JSON.parse(await response.text());
+      if (!response.ok || !payload?.full_result) throw new Error(payload?.error || 'introuvable');
+      setResult({ ...payload.full_result, analysis_id: payload.full_result.analysis_id || analysisId });
+      setResultKind('single'); setStage('result');
+    }).catch(() => {
+      setStatusMsg('Cette analyse n’a pas pu être rouverte. Réessayez dans un instant.'); setStatusTone('error');
+    });
+  }
+
+  // L'analyse affichée devient le contexte par défaut des autres agents (Créateur).
+  useEffect(() => {
+    if (result?.analysis_id && onAnalysisReady) {
+      onAnalysisReady({ id: result.analysis_id, title: String(result.video_context || result.source_label || 'Dernière analyse').slice(0, 90) });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result?.analysis_id]);
+
+  // Une Cross Analyse ouverte devient aussi ce contexte : le Créateur écrit
+  // alors depuis la synthèse croisée, audiences distinguées.
+  useEffect(() => {
+    const id = crossResult?.cross_analysis_id;
+    if (!id || !onAnalysisReady || !['completed', 'partial_success'].includes(crossResult?.status)) return;
+    const titres = crossAudiences(crossResult.result || {}).map(aud => aud.title).filter(Boolean);
+    onAnalysisReady({ id, cross: true, title: `Cross Analyse · ${titres.join(' × ') || id}`.slice(0, 90) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [crossResult?.cross_analysis_id, crossResult?.status]);
+
+  // Une analyse choisie dans le menu s'ouvre ici, même si l'écran était déjà affiché.
+  useEffect(() => {
+    if (openAnalysisRequest?.id) openSavedAnalysis(openAnalysisRequest.id);
+    if (openAnalysisRequest?.crossId) openSavedCross(openAnalysisRequest.crossId);
+    if (openAnalysisRequest?.startCross) { reset(); if (!crossMode) toggleCrossMode(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openAnalysisRequest?.at]);
+
+  function openSavedCross(crossId) {
+    fetchV2(`/api/v2/agents/psychologue/cross-analyses/${encodeURIComponent(crossId)}`).then(async response => {
+      const payload = JSON.parse(await response.text());
+      if (!response.ok || !payload?.success || !payload.result) throw new Error(payload?.error || 'introuvable');
+      setCrossResult(payload); setResultKind('cross'); setStage('result');
+    }).catch(() => {
+      setStatusMsg('Cette Cross Analyse n’a pas pu être rouverte. Réessayez dans un instant.'); setStatusTone('error');
+    });
+  }
+
+  function suggest(mode) {
+    if (mode === 'cross') { if (!crossMode) toggleCrossMode(); changeTab('link'); }
+    else {
+      if (crossMode) toggleCrossMode();
+      changeTab(mode);
+    }
+    // Le champ qui correspond à l'intention prend le focus : on peut coller tout de suite.
+    window.setTimeout(() => {
+      const champ = document.querySelector('.gv2-psy-composer-field');
+      if (champ && typeof champ.focus === 'function') champ.focus();
+      if (champ && typeof champ.scrollIntoView === 'function') champ.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 0);
+  }
+
   let content = <PsychoInput
       tab={tab} onTabChange={changeTab}
       platform={platform} onPlatformChange={changePlatform}
@@ -1655,12 +2620,15 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent 
       onMoveCrossSource={moveCrossSource}
       onClearCrossSources={clearCrossSources}
       onLaunchCross={launchCrossAnalysis}
+      recentAnalyses={recentAnalyses} onOpenAnalysis={openSavedAnalysis}
+      onSuggest={suggest} onNavigateAgent={onNavigateAgent}
     />;
 
   if (stage === 'loading') content = <PsychoLoading progress={progress} step={step} isCross={resultKind === 'cross'} crossSources={crossSources} />;
   if (stage === 'error') content = <PsychoError message={errorMsg} onRetry={reset} />;
-  if (stage === 'result' && resultKind === 'cross' && crossResult) content = <PsychoCrossResult data={crossResult} onReset={reset} />;
-  if (stage === 'result' && result) content = <PsychoResult data={result} onReset={reset} onGoToStratege={goToStratege} />;
+  if (stage === 'result' && resultKind === 'cross' && crossResult) content = <PsychoCrossResult data={crossResult} onReset={reset} onNavigateAgent={onNavigateAgent} />;
+  if (stage === 'result' && result) content = <PsychoResult data={result} onReset={reset} onGoToStratege={goToStratege}
+                                   onGoToCreateur={onNavigateAgent ? () => onNavigateAgent('createur') : undefined} />;
 
   return <div className="gv2-psy-view">{content}</div>;
 }

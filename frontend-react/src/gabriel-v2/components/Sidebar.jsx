@@ -4,21 +4,26 @@ import { workspaceInitial } from '../data-adapters.js';
 import { agents } from '../agent-registry.js';
 import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
 
+/* Le rail range ce que l'on possède (espaces, sources, agents, stratégies).
+   Là où l'on travaille — Psychologue, Ariane, Créateur, Conversation,
+   Activité, Mémoire — reste dans les onglets du haut : aucun doublon. */
 const railItems = [
   { id: 'home', icon: 'home', label: 'Accueil' },
-  { id: 'workspaces', icon: 'grid', label: 'Workspaces' },
-  { id: 'library', icon: 'library', label: 'Bibliothèque' },
-  { id: 'team', icon: 'team', label: 'Équipe' },
-  { id: 'activity', icon: 'activity', label: 'Activité' },
+  { id: 'analyses', icon: 'activity', label: 'Analyses' },
+  { id: 'cross', icon: 'split', label: 'Cross Analyses' },
   { id: 'strategies', icon: 'archive', label: 'Stratégies' },
+  { id: 'workspaces', icon: 'grid', label: 'Espaces de travail' },
+  { id: 'library', icon: 'library', label: 'Bibliothèque' },
+  { id: 'team', icon: 'team', label: 'Agents' },
 ];
 
 const sectionCopy = {
-  home: { eyebrow: 'Gabriel.ai', title: 'Votre espace', search: 'Rechercher dans Gabriel' },
-  workspaces: { eyebrow: 'Organisation', title: 'Workspaces', search: 'Rechercher un workspace' },
+  home: { eyebrow: 'Gabriel.ai · Système multi-agents', title: 'Accueil', search: 'Rechercher dans Gabriel' },
+  analyses: { eyebrow: 'Le Psychologue', title: 'Analyses', search: 'Rechercher une analyse' },
+  cross: { eyebrow: 'Le Psychologue', title: 'Cross Analyses', search: 'Rechercher une comparaison' },
+  workspaces: { eyebrow: 'Organisation', title: 'Espaces', search: 'Rechercher un espace' },
   library: { eyebrow: 'Contexte', title: 'Bibliothèque', search: 'Rechercher une source' },
-  team: { eyebrow: 'Spécialistes', title: 'Équipe', search: 'Rechercher un agent' },
-  activity: { eyebrow: 'Suivi', title: 'Activité', search: 'Rechercher une activité' },
+  team: { eyebrow: 'Spécialistes', title: 'Agents', search: 'Rechercher un agent' },
   strategies: { eyebrow: 'Décisions', title: 'Stratégies', search: 'Rechercher une stratégie' },
   settings: { eyebrow: 'Préférences', title: 'Paramètres', search: 'Rechercher un réglage' },
 };
@@ -29,10 +34,10 @@ function RailButton({ item, active, onClick }) {
   </button>;
 }
 
-function AgentRow({ agent, active, onClick }) {
+function AgentRow({ agent, active, onClick, badge }) {
   return <button type="button" className={`gv2-agent-nav-row${active ? ' is-active' : ''}`} onClick={onClick}>
     <img src={agent.portrait} alt="" />
-    <span><strong>{agent.shortName}</strong><small>{agent.contextLabel}</small></span>
+    <span><strong>{agent.shortName}{badge && <em className="gv2-agent-badge">{badge}</em>}</strong><small>{agent.contextLabel}</small></span>
     <Icon name="chevronRight" size={15} />
   </button>;
 }
@@ -48,16 +53,27 @@ function WorkspaceList({ workspaces, activeWorkspaceId, query, onSelectWorkspace
       </button>
       <button type="button" className="gv2-workspace-delete" disabled={deletingWorkspaceId === workspace.folder_id} onClick={() => onDeleteWorkspace(workspace)} aria-label={`Supprimer ${workspace.title || 'ce workspace'}`} title="Supprimer ce workspace"><Icon name="close" size={13} /></button>
     </div>)}
-    {!filtered.length && <p className="gv2-nav-empty">Aucun workspace ne correspond à cette recherche.</p>}
+    {!filtered.length && <p className="gv2-nav-empty">Aucun espace ne correspond à cette recherche.</p>}
   </div>;
 }
 
-function HomePanel({ activeWorkspace, onStartNewConversation }) {
+function HomePanel({ activeWorkspace, activeTab, onStartNewConversation, onStartAnalysis, onSelectAgent, onOpenAnalysis }) {
+  const recentes = useAnalyses().slice(0, 3);
   return <div className="gv2-nav-content">
-    <button type="button" className="gv2-nav-primary-action" onClick={onStartNewConversation}><Icon name="message" size={17} /><span>Nouvelle conversation</span></button>
+    <button type="button" className="gv2-nav-primary-action" onClick={onStartAnalysis}><Icon name="activity" size={17} /><span>Nouvelle analyse</span></button>
+    <button type="button" className="gv2-nav-text-action" onClick={onStartNewConversation}><Icon name="message" size={15} /> Nouvelle conversation</button>
+    <p className="gv2-nav-section-label">VOS AGENTS</p>
+    <div className="gv2-agent-nav-list">
+      {['psychologue', 'stratege', 'createur'].map(id => agents[id] && <AgentRow key={id} agent={agents[id]} active={activeTab === id}
+        badge={id === 'psychologue' ? 'Principal' : ''} onClick={() => onSelectAgent(id)} />)}
+    </div>
+    {recentes.length > 0 && onOpenAnalysis && <>
+      <p className="gv2-nav-section-label">ANALYSES RÉCENTES</p>
+      <AnalysisList items={recentes} onOpen={onOpenAnalysis} />
+    </>}
     <section className="gv2-nav-note">
       <span className="gv2-nav-note-mark">G</span>
-      <div><strong>{activeWorkspace?.title || 'Choisissez un workspace'}</strong><p>{activeWorkspace?.objective || 'Gabriel organise les sources, les spécialistes et les livrables autour de votre objectif.'}</p></div>
+      <div><strong>{activeWorkspace?.title || 'Aucun espace ouvert'}</strong><p>{activeWorkspace?.objective || 'Commencez par analyser une audience : la stratégie et le contenu s’appuieront ensuite sur cette compréhension.'}</p></div>
     </section>
   </div>;
 }
@@ -77,12 +93,103 @@ function LibraryPanel({ activeWorkspace }) {
   </div>;
 }
 
+/* Analyses enregistrées : partagées par l'accueil du menu et le panneau Analyses. */
+function useAnalyses() {
+  const [items, setItems] = useState([]);
+  useEffect(() => {
+    let vivant = true;
+    const requete = fetchV2('/history');
+    if (!requete || typeof requete.then !== 'function') return undefined;
+    requete.then(async response => {
+      if (!response || !response.ok || isLoginResponse(response)) return;
+      const payload = JSON.parse(await response.text());
+      const liste = Array.isArray(payload) ? payload : Array.isArray(payload?.history) ? payload.history : [];
+      if (vivant) setItems(liste.filter(item => item && item.analysis_id));
+    }).catch(() => { /* le menu reste utilisable sans historique */ });
+    return () => { vivant = false; };
+  }, []);
+  return items;
+}
+
+function dateCourte(iso) {
+  const d = iso ? new Date(iso) : null;
+  if (!d || Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+function AnalysisList({ items, onOpen }) {
+  return <div className="gv2-analysis-list">
+    {items.map(item => <button type="button" key={item.analysis_id} className="gv2-analysis-row" onClick={() => onOpen(item.analysis_id)}>
+      <strong>{item.title || item.source || 'Analyse'}</strong>
+      <small>{[item.source && item.source !== item.title ? item.source : '', item.nb_commentaires ? `${item.nb_commentaires} commentaires` : '', dateCourte(item.created_at)].filter(Boolean).join(' · ')}</small>
+    </button>)}
+  </div>;
+}
+
+function AnalysesPanel({ query, onOpenAnalysis, onStartAnalysis }) {
+  const items = useAnalyses();
+  const q = query.toLocaleLowerCase('fr');
+  const filtres = items.filter(item => `${item.title || ''} ${item.source || ''}`.toLocaleLowerCase('fr').includes(q));
+  return <div className="gv2-nav-content">
+    <button type="button" className="gv2-nav-primary-action" onClick={onStartAnalysis}><Icon name="plus" size={16} /><span>Nouvelle analyse</span></button>
+    <p className="gv2-nav-section-label">VOS ANALYSES</p>
+    {filtres.length ? <AnalysisList items={filtres} onOpen={onOpenAnalysis} />
+      : <p className="gv2-nav-empty">{items.length ? 'Aucune analyse ne correspond à cette recherche.' : 'Vos analyses apparaîtront ici après votre première lecture d’audience.'}</p>}
+  </div>;
+}
+
+/* Comparaisons d'audiences enregistrées : chacune s'ouvre dans la Salle Cross. */
+function CrossPanel({ query, onOpenCross, onStartCross }) {
+  const [items, setItems] = useState(null);
+  useEffect(() => {
+    let vivant = true;
+    const requete = fetchV2('/api/v2/agents/psychologue/cross-analyses');
+    if (!requete || typeof requete.then !== 'function') return undefined;
+    requete.then(async response => {
+      if (!response || isLoginResponse(response)) return;
+      const payload = response.ok ? JSON.parse(await response.text()) : {};
+      if (vivant) setItems(Array.isArray(payload?.cross_analyses) ? payload.cross_analyses : []);
+    }).catch(() => { if (vivant) setItems([]); });
+    return () => { vivant = false; };
+  }, []);
+  const q = query.toLocaleLowerCase('fr');
+  const liste = (items || []).filter(item => (item.sources || []).map(s => s.title).join(' ').toLocaleLowerCase('fr').includes(q));
+  const statut = { completed: '', partial_success: 'Partielle', running: 'En cours', failed: 'Échec', error: 'Échec', interrupted: 'Interrompue', prepared: 'En préparation' };
+  return <div className="gv2-nav-content">
+    <button type="button" className="gv2-nav-primary-action" onClick={onStartCross}><Icon name="plus" size={16} /><span>Nouvelle Cross Analyse</span></button>
+    <p className="gv2-nav-section-label">VOS COMPARAISONS</p>
+    {items === null ? <p className="gv2-nav-empty">Chargement…</p>
+      : liste.length ? <div className="gv2-analysis-list">{liste.map(item => {
+        const titres = (item.sources || []).map(s => s.title).filter(Boolean);
+        const disponible = ['completed', 'partial_success'].includes(item.status);
+        return <button type="button" key={item.cross_analysis_id} className="gv2-analysis-row" disabled={!disponible}
+          onClick={() => onOpenCross(item.cross_analysis_id)}>
+          <strong>{titres.length ? titres.join(' × ') : 'Cross Analyse'}</strong>
+          <small>{[`${(item.sources || []).length} audiences`, dateCourte(item.created_at), statut[item.status]].filter(Boolean).join(' · ')}</small>
+        </button>;
+      })}</div>
+      : <p className="gv2-nav-empty">{items.length ? 'Aucune comparaison ne correspond à cette recherche.' : 'Comparez 2 à 5 audiences pour voir ce qui les rassemble et ce qui les sépare.'}</p>}
+  </div>;
+}
+
+/* Même hiérarchie que les onglets : le Psychologue d'abord, ses prolongements ensuite. */
+const AGENT_GROUPS = [
+  { label: 'PORTE D’ENTRÉE', ids: ['psychologue'] },
+  { label: 'PROLONGEMENTS', ids: ['stratege', 'createur'] },
+];
+
 function TeamPanel({ activeTab, query, onSelectAgent }) {
-  const filtered = Object.values(agents).filter(agent => `${agent.name} ${agent.contextLabel}`.toLocaleLowerCase('fr').includes(query.toLocaleLowerCase('fr')));
-  return <div className="gv2-nav-content"><p className="gv2-nav-section-label">LES SPÉCIALISTES</p><div className="gv2-agent-nav-list">
-    {filtered.map(agent => <AgentRow key={agent.id} agent={agent} active={activeTab === agent.id} onClick={() => onSelectAgent(agent.id)} />)}
-    {!filtered.length && <p className="gv2-nav-empty">Aucun agent ne correspond à cette recherche.</p>}
-  </div></div>;
+  const correspond = agent => `${agent.name} ${agent.contextLabel}`.toLocaleLowerCase('fr').includes(query.toLocaleLowerCase('fr'));
+  const groupes = AGENT_GROUPS.map(groupe => ({ ...groupe, agents: groupe.ids.map(id => agents[id]).filter(Boolean).filter(correspond) })).filter(groupe => groupe.agents.length);
+  return <div className="gv2-nav-content">
+    {groupes.map(groupe => <React.Fragment key={groupe.label}>
+      <p className="gv2-nav-section-label">{groupe.label}</p>
+      <div className="gv2-agent-nav-list">
+        {groupe.agents.map(agent => <AgentRow key={agent.id} agent={agent} active={activeTab === agent.id} onClick={() => onSelectAgent(agent.id)} />)}
+      </div>
+    </React.Fragment>)}
+    {!groupes.length && <p className="gv2-nav-empty">Aucun agent ne correspond à cette recherche.</p>}
+  </div>;
 }
 
 const RESULTAT_LABEL = {
@@ -191,14 +298,6 @@ function StrategiesPanel() {
       {strategies.map(strategie => <StrategyCard key={strategie.strategy_id} strategie={strategie}
         onMarquer={marquer} onSupprimer={supprimer} suppression={suppression === strategie.strategy_id} />)}
     </div>
-  </div>;
-}
-
-function ActivityPanel({ mission, onSelectConversation }) {
-  const status = mission?.status === 'running' ? 'En cours' : mission?.status === 'completed' ? 'Terminée' : mission ? 'À préparer' : 'Aucune mission active';
-  return <div className="gv2-nav-content">
-    <section className="gv2-nav-note"><span className="gv2-nav-note-mark"><Icon name="activity" size={16} /></span><div><strong>{status}</strong><p>{mission?.title || 'Les missions et les étapes pilotées par Gabriel seront regroupées ici.'}</p></div></section>
-    {mission && <button type="button" className="gv2-nav-text-action" onClick={onSelectConversation}>Voir la conversation <Icon name="chevronRight" size={15} /></button>}
   </div>;
 }
 
@@ -438,11 +537,13 @@ function SettingsPanel({ user, workspaces, darkMode, onToggleDarkMode, onStartGu
   </div>;
 }
 
-export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, activeTab, mission, onSelectWorkspace, onCreateWorkspace, onDeleteWorkspace, deletingWorkspaceId, onSelectConversation, onStartNewConversation, onSelectAgent, user, collapsed, onToggleCollapsed, darkMode, onToggleDarkMode, onStartGuide, initialSection }) {
+export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, activeTab, mission, onSelectWorkspace, onCreateWorkspace, onDeleteWorkspace, deletingWorkspaceId, onSelectConversation, onStartNewConversation, onStartAnalysis, onOpenAnalysis, onOpenCross, onStartCross, onSelectAgent, user, collapsed, onToggleCollapsed, darkMode, onToggleDarkMode, onStartGuide, initialSection }) {
   const [creating, setCreating] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');
   const [creatingPending, setCreatingPending] = useState(false);
-  const [activeSection, setActiveSection] = useState(initialSection || 'workspaces');
+  // « activity » a quitté le rail (doublon de l'onglet Activité) : un ancien
+  // lien ?section=activity ouvre les espaces plutôt qu'un panneau vide.
+  const [activeSection, setActiveSection] = useState(initialSection && sectionCopy[initialSection] ? initialSection : 'workspaces');
   const [query, setQuery] = useState('');
   const content = sectionCopy[activeSection] || sectionCopy.workspaces;
 
@@ -450,7 +551,8 @@ export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, active
     setActiveSection(section);
     setQuery('');
     if (collapsed) onToggleCollapsed();
-    if (section === 'home') onStartNewConversation();
+    // L'accueil de Gabriel est le Psychologue, pas une conversation vide.
+    if (section === 'home') (onStartAnalysis || onStartNewConversation)();
   }
 
   function expandNavigation() {
@@ -488,11 +590,12 @@ export function Sidebar({ workspaces, activeWorkspaceId, activeWorkspace, active
       <header className="gv2-nav-detail-header"><div><p>{content.eyebrow}</p><h2>{content.title}</h2></div><div className="gv2-nav-shortcuts" aria-label="Sections du menu">{railItems.map(item => <RailButton key={item.id} item={item} active={activeSection === item.id} onClick={() => selectSection(item.id)} />)}</div></header>
       <label className="gv2-nav-search"><Icon name="search" size={15} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder={content.search} aria-label={content.search} /></label>
 
-      {activeSection === 'home' && <HomePanel activeWorkspace={activeWorkspace} onStartNewConversation={onStartNewConversation} />}
-      {activeSection === 'workspaces' && <div className="gv2-nav-content gv2-nav-content--workspaces"><div className="gv2-create-wrap"><button className="gv2-new-workspace" type="button" onClick={() => setCreating(value => !value)} aria-expanded={creating}><Icon name="plus" size={17} /><span>Nouveau workspace</span><kbd>⌘ K</kbd></button>{creating && <form className="gv2-workspace-form" onSubmit={submit}><label htmlFor="workspace-name">Nom du workspace</label><div><input id="workspace-name" autoFocus value={workspaceName} onChange={event => setWorkspaceName(event.target.value)} placeholder="Ex. Golden Dove" maxLength="200" /><button type="submit" disabled={!workspaceName.trim() || creatingPending}>{creatingPending ? '…' : 'Créer'}</button></div></form>}</div><p className="gv2-nav-section-label">VOS WORKSPACES</p><WorkspaceList workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} query={query} onSelectWorkspace={onSelectWorkspace} onDeleteWorkspace={onDeleteWorkspace} deletingWorkspaceId={deletingWorkspaceId} /></div>}
+      {activeSection === 'home' && <HomePanel activeWorkspace={activeWorkspace} activeTab={activeTab} onStartNewConversation={onStartNewConversation} onStartAnalysis={onStartAnalysis || onStartNewConversation} onSelectAgent={onSelectAgent} onOpenAnalysis={onOpenAnalysis} />}
+      {activeSection === 'cross' && <CrossPanel query={query} onOpenCross={onOpenCross || (() => {})} onStartCross={onStartCross || onStartAnalysis || onStartNewConversation} />}
+      {activeSection === 'analyses' && <AnalysesPanel query={query} onOpenAnalysis={onOpenAnalysis || (() => {})} onStartAnalysis={onStartAnalysis || onStartNewConversation} />}
+      {activeSection === 'workspaces' && <div className="gv2-nav-content gv2-nav-content--workspaces"><div className="gv2-create-wrap"><button className="gv2-new-workspace" type="button" onClick={() => setCreating(value => !value)} aria-expanded={creating}><Icon name="plus" size={17} /><span>Nouvel espace</span><kbd>⌘ K</kbd></button>{creating && <form className="gv2-workspace-form" onSubmit={submit}><label htmlFor="workspace-name">Nom de l’espace</label><div><input id="workspace-name" autoFocus value={workspaceName} onChange={event => setWorkspaceName(event.target.value)} placeholder="Ex. Golden Dove" maxLength="200" /><button type="submit" disabled={!workspaceName.trim() || creatingPending}>{creatingPending ? '…' : 'Créer'}</button></div></form>}</div><p className="gv2-nav-section-label">VOS ESPACES</p><WorkspaceList workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} query={query} onSelectWorkspace={onSelectWorkspace} onDeleteWorkspace={onDeleteWorkspace} deletingWorkspaceId={deletingWorkspaceId} /></div>}
       {activeSection === 'library' && <LibraryPanel activeWorkspace={activeWorkspace} />}
       {activeSection === 'team' && <TeamPanel activeTab={activeTab} query={query} onSelectAgent={onSelectAgent} />}
-      {activeSection === 'activity' && <ActivityPanel mission={mission} onSelectConversation={onSelectConversation} />}
       {activeSection === 'strategies' && <StrategiesPanel />}
       {activeSection === 'settings' && <SettingsPanel user={user} workspaces={workspaces} darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} onStartGuide={onStartGuide} />}
     </section>}

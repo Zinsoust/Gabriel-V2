@@ -1,0 +1,2820 @@
+{
+ "cross_analysis_id": "cross_290be78025464751",
+ "result": {
+  "analysis_mode": "cross",
+  "common_psychological_core": {
+   "dominant_emotion": {
+    "interpretation_status": "pending_llm",
+    "label": "Admiration",
+    "sources_count": 2
+   },
+   "dominant_fear": {
+    "interpretation_status": "pending_llm",
+    "label": "Ne pas être à la hauteur",
+    "sources_count": 2
+   },
+   "dominant_motivation": {
+    "interpretation_status": "pending_llm",
+    "label": "Créer sans limites",
+    "sources_count": 2
+   },
+   "evidence_based_signals": [
+    {
+     "category": "emotions",
+     "insight_id": "cross:emotions:admiration",
+     "intensity_range": 0.0,
+     "label": "Admiration",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "Admiration",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "Admiration",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "emotions",
+     "insight_id": "cross:emotions:curiosit",
+     "intensity_range": 0.0,
+     "label": "Curiosité",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "Curiosité",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "Curiosité",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "emotions",
+     "insight_id": "cross:emotions:espoir",
+     "intensity_range": 0.0,
+     "label": "Espoir",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "Espoir",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "Espoir",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "emotions",
+     "insight_id": "cross:emotions:frustration",
+     "intensity_range": 0.0,
+     "label": "Frustration",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "Frustration",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "Frustration",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "emotions",
+     "insight_id": "cross:emotions:scepticisme",
+     "intensity_range": 0.0,
+     "label": "Scepticisme",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "Scepticisme",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "Scepticisme",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "fears",
+     "insight_id": "cross:fears:ne-pas-tre-la-hauteur",
+     "intensity_range": 0.0,
+     "label": "Ne pas être à la hauteur",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "Ne pas être à la hauteur",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "Ne pas être à la hauteur",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "motivations",
+     "insight_id": "cross:motivations:cr-er-sans-limites",
+     "intensity_range": 0.0,
+     "label": "Créer sans limites",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "Créer sans limites",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "Créer sans limites",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "themes",
+     "insight_id": "cross:themes:merci",
+     "intensity_range": 0.0,
+     "label": "merci",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "merci",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "merci",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "themes",
+     "insight_id": "cross:themes:vid-o",
+     "intensity_range": 0.0,
+     "label": "vidéo",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "vidéo",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "vidéo",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "themes",
+     "insight_id": "cross:themes:vid-os",
+     "intensity_range": 0.0,
+     "label": "vidéos",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "vidéos",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "vidéos",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "behavioral_signals",
+     "insight_id": "cross:behavioral_signals:aspiration",
+     "intensity_range": 0.0,
+     "label": "aspiration",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "aspiration",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "aspiration",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "behavioral_signals",
+     "insight_id": "cross:behavioral_signals:besoin",
+     "intensity_range": 0.0,
+     "label": "besoin",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "besoin",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "besoin",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "behavioral_signals",
+     "insight_id": "cross:behavioral_signals:d-sir",
+     "intensity_range": 0.0,
+     "label": "désir",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "désir",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "désir",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "behavioral_signals",
+     "insight_id": "cross:behavioral_signals:objection",
+     "intensity_range": 0.0,
+     "label": "objection",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "objection",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "objection",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "behavioral_signals",
+     "insight_id": "cross:behavioral_signals:preuve_demand-e",
+     "intensity_range": 0.0,
+     "label": "preuve_demandée",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "preuve_demandée",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "preuve_demandée",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    },
+    {
+     "category": "behavioral_signals",
+     "insight_id": "cross:behavioral_signals:question",
+     "intensity_range": 0.0,
+     "label": "question",
+     "source_coverage": 1.0,
+     "sources": [
+      {
+       "label": "question",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "label": "question",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ],
+     "sources_count": 2
+    }
+   ],
+   "interpretation": {
+    "confidence_level": "strong",
+    "interpretation": "Les audiences oscillent entre **une posture d’idéalisation** (l’IA comme outil de libération créative) et **une posture de victimisation** (peur de l’exclusion technique ou sociale). Cette dualité suggère un **besoin de médiation** : soit pour **démystifier les prérequis** (matériel, compétences), soit pour **créer des rituels d’initiation** (communautés, roadmaps) qui transforment la peur en confiance progressive. Le scepticisme (cross:emotions:scepticisme) agit comme un **frein cognitif** à l’action, mais son intensité varie selon que l’audience perçoit l’IA comme un **objet de désir** (source 1) ou un **défi technique** (source 2).",
+    "observation": [
+     "Présence **convergente** des émotions *admiration*, *espoir*, *curiosité*, et *frustration* dans les deux sources, avec des poids similaires pour *admiration* (28% vs 38%) et *espoir* (22% dans les deux).",
+     "Peur dominante de *ne pas être à la hauteur* (cross:fears:ne-pas-tre-la-hauteur) partagée, mais **exprimée différemment** : via des croyances (*‘L’IA est réservée aux pros’*) ou des objections pratiques (*‘manque de tutoriels pour novices’*).",
+     "Aspiration récurrente à *créer sans limites* (cross:aspirations) couplée à une **peur de gaspiller du temps/argent** (cross:fears:gaspiller-du-temps-money) ou de *rater une opportunité unique* (cross:fears:rater-une-opportunit-unique).",
+     "Thèmes récurrents : *vidéo*, *créer*, et *merci* (remerciements comme signal d’**engagement émotionnel** post-apprentissage)."
+    ],
+    "source_ids": [
+     "src_8a09d70b882b445d",
+     "src_76d7ff891b29409e"
+    ]
+   },
+   "interpretation_status": "pending_llm"
+  },
+  "confidence": {
+   "level": "high",
+   "method": "source_balanced_deterministic",
+   "score": 92.2,
+   "sources_count": 2,
+   "sources_with_data": 2,
+   "total_comments": 203
+  },
+  "convergences": [
+   {
+    "category": "emotions",
+    "insight_id": "cross:emotions:admiration",
+    "intensity_range": 0.0,
+    "label": "Admiration",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Admiration",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Admiration",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "emotions",
+    "insight_id": "cross:emotions:curiosit",
+    "intensity_range": 0.0,
+    "label": "Curiosité",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Curiosité",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Curiosité",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "emotions",
+    "insight_id": "cross:emotions:espoir",
+    "intensity_range": 0.0,
+    "label": "Espoir",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Espoir",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Espoir",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "emotions",
+    "insight_id": "cross:emotions:frustration",
+    "intensity_range": 0.0,
+    "label": "Frustration",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Frustration",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Frustration",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "emotions",
+    "insight_id": "cross:emotions:scepticisme",
+    "intensity_range": 0.0,
+    "label": "Scepticisme",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Scepticisme",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Scepticisme",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "fears",
+    "insight_id": "cross:fears:ne-pas-tre-la-hauteur",
+    "intensity_range": 0.0,
+    "label": "Ne pas être à la hauteur",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Ne pas être à la hauteur",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Ne pas être à la hauteur",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "motivations",
+    "insight_id": "cross:motivations:cr-er-sans-limites",
+    "intensity_range": 0.0,
+    "label": "Créer sans limites",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Créer sans limites",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Créer sans limites",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:merci",
+    "intensity_range": 0.0,
+    "label": "merci",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "merci",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "merci",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:vid-o",
+    "intensity_range": 0.0,
+    "label": "vidéo",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "vidéo",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "vidéo",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:vid-os",
+    "intensity_range": 0.0,
+    "label": "vidéos",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "vidéos",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "vidéos",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "behavioral_signals",
+    "insight_id": "cross:behavioral_signals:aspiration",
+    "intensity_range": 0.0,
+    "label": "aspiration",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "aspiration",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "aspiration",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "behavioral_signals",
+    "insight_id": "cross:behavioral_signals:besoin",
+    "intensity_range": 0.0,
+    "label": "besoin",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "besoin",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "besoin",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "behavioral_signals",
+    "insight_id": "cross:behavioral_signals:d-sir",
+    "intensity_range": 0.0,
+    "label": "désir",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "désir",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "désir",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "behavioral_signals",
+    "insight_id": "cross:behavioral_signals:objection",
+    "intensity_range": 0.0,
+    "label": "objection",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "objection",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "objection",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "behavioral_signals",
+    "insight_id": "cross:behavioral_signals:preuve_demand-e",
+    "intensity_range": 0.0,
+    "label": "preuve_demandée",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "preuve_demandée",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "preuve_demandée",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "category": "behavioral_signals",
+    "insight_id": "cross:behavioral_signals:question",
+    "intensity_range": 0.0,
+    "label": "question",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "question",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "question",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   }
+  ],
+  "cross_analysis_id": "cross_290be78025464751",
+  "cross_interpretation": {
+   "convergence_interpretations": [
+    {
+     "confidence_level": "strong",
+     "insight_id": "cross:emotions:admiration",
+     "interpretation": "L’*admiration* (28-38% des émotions exprimées) cible spécifiquement **les résultats visuels ou la promesse de liberté créative**, mais se heurte à un **écart perception/réalité** : les audiences admirent *ce que l’IA peut faire* sans nécessairement croire en leur capacité à *l’utiliser*. Ce décalage explique pourquoi l’admiration coexiste avec la frustration (cross:emotions:frustration). **Hypothèse** : L’admiration est un **signal d’attraction initiale**, mais son maintien dépend de la réduction des freins perçus (ex : démonstrations concrètes, témoignages de pairs).",
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ]
+    },
+    {
+     "confidence_level": "strong",
+     "insight_id": "cross:emotions:frustration",
+     "interpretation": "La frustration émerge de **trois vecteurs** : (1) *Humiliation technique* (source 1) ou *manque de clarté pratique* (source 2) → **échec perçu comme une faute personnelle** ; (2) *Peur de l’investissement* (temps/matériel) → **crainte d’un engagement irréversible** ; (3) *Isolement face à la complexité* → **besoin de validation sociale**. La frustration n’est pas seulement technique, mais aussi **existielle** : elle touche à l’**image de soi** (*‘Je ne suis pas à la hauteur’*).",
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ]
+    },
+    {
+     "confidence_level": "strong",
+     "insight_id": "cross:fears:ne-pas-tre-la-hauteur",
+     "interpretation": "Cette peur agit comme un **filtre sélectif** : elle exclut les audiences avant même qu’elles n’agissent. Elle se manifeste par des **croyances limitantes** (*‘Je n’ai pas le matériel’*, *‘Je vais échouer’*) et des **objections comportementales** (*‘C’est trop technique’*). **Nuance** : Dans la source 1, cette peur est liée à des **contraintes matérielles** ; dans la source 2, elle est couplée à un **manque de diplôme perçu comme un handicap**. **Risque** : Cette peur peut devenir une **prophétie auto-réalisatrice** si aucune porte d’entrée progressive n’est offerte.",
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ]
+    }
+   ],
+   "dialectic_review": {
+    "alternative_hypotheses": [
+     "La divergence entre les sources pourrait refléter **deux segments distincts** : un public **technophile mais frustré par les contraintes matérielles** (source 1) et un public **en quête de validation sociale** (source 2), plutôt qu’une opposition entre désir et défi technique.",
+     "Les peurs liées au diplôme (source 2) pourraient être **surchargées par le contexte éducatif** de la source, tandis que les peurs matérielles (source 1) seraient **amplifiées par un discours centré sur la performance**.",
+     "Le scepticisme n’est pas un frein universel, mais un **marqueur de maturité** : les audiences les plus sceptiques (source 1) pourraient être celles qui ont déjà tenté (et échoué) avec l’IA, tandis que les autres (source 2) seraient en phase d’exploration.",
+     "L’absence de mention de communauté dans la source 1 pourrait indiquer que ce besoin est **moins prioritaire pour un public déjà engagé dans des pratiques solitaires** (ex : créateurs indépendants), tandis que dans la source 2, il refléterait un **besoin de sécurité psychologique** plus marqué.",
+     "Les croyances comme *‘L’IA est réservée aux pros’* pourraient être **auto-entretenues** : dans la source 1, elles sont liées à des **contraintes techniques objectives** ; dans la source 2, elles pourraient être **renforcées par un manque de démonstrations accessibles**."
+    ],
+    "challenges": [
+     {
+      "claim": "La peur de *gaspiller du temps/money* (cross:fears:gaspiller-du-temps-money) est un frein majeur et exclusif à la source 1 (*Parlons Cyber*), reflétant une sensibilité au coût opportuniste lié aux ressources matérielles (ex : 80 GB nécessaires).",
+      "counter_evidence": "Aucune mention explicite de cette peur dans la source 2 (*Jon Gregor*), où les frustrations portent davantage sur le manque de clarté pratique et l’isolement technique. De plus, les objections dans la source 2 évoquent des contraintes temporelles (*‘Je n’ai pas le temps’*) plutôt que financières, suggérant que cette peur pourrait être **contextuelle** (liée à un public plus sensibilisé aux coûts matériels dans la source 1).",
+      "source_ids": [
+       "src_8a09d70b882b445d",
+       "src_76d7ff891b29409e"
+      ]
+     },
+     {
+      "claim": "L’aspiration à *appartenir à une communauté d’apprenants* (cross:aspirations:appartenir-une-communaut-d-apprenants) est un levier universel pour réduire la peur de l’échec.",
+      "counter_evidence": "Cette aspiration n’apparaît **que dans la source 2** et est couplée à un besoin de guidage pas à pas et de cadre rassurant. Dans la source 1, bien que des objections évoquent un isolement technique (*‘Je vais échouer’*), aucune mention explicite de communauté n’est faite. Cela suggère que cette aspiration est **spécifique à un public plus vulnérable au jugement social** (source 2) et non généralisable.",
+      "source_ids": [
+       "src_76d7ff891b29409e"
+      ]
+     },
+     {
+      "claim": "La peur d’*être exclu par son manque de diplôme* (cross:fears:tre-exclu-par-son-manque-de-diplôme) est un frein systémique majeur, intériorisé par les audiences.",
+      "counter_evidence": "Cette peur est **exclusive à la source 2** et pourrait refléter une **bias de cadre** : la source 2 aborde explicitement les bases de l’IA pour débutants, ce qui pourrait amplifier la perception des diplômes comme barrière. Dans la source 1, les objections portent sur le matériel ou la complexité technique, pas sur le diplôme. **Hypothèse alternative** : Cette peur pourrait être surestimée dans ce contexte spécifique.",
+      "source_ids": [
+       "src_76d7ff891b29409e"
+      ]
+     },
+     {
+      "claim": "Le scepticisme (cross:emotions:scepticisme) agit comme un frein cognitif universel à l’action, avec une intensité similaire dans les deux sources (8-18%).",
+      "counter_evidence": "Le poids du scepticisme est **beaucoup plus élevé dans la source 1 (18%) que dans la source 2 (8%)**, suggérant que le contexte (vidéos incroyables vs bases incontournables) influence fortement cette émotion. De plus, le scepticisme dans la source 1 semble lié à des **doutes sur la faisabilité technique**, tandis que dans la source 2, il est plus diffus. **Nuance** : Le scepticisme n’est pas un frein universel, mais **contextuel et amplifié par le discours ambiant**.",
+      "source_ids": [
+       "src_8a09d70b882b445d",
+       "src_76d7ff891b29409e"
+      ]
+     },
+     {
+      "claim": "Les audiences perçoivent l’IA locale comme un **objet de désir** (source 1) ou un **défi technique** (source 2), avec une divergence claire entre ces deux postures.",
+      "counter_evidence": "Les deux sources partagent des **aspirations communes** (*créer sans limites*, *maîtriser la technologie*), ce qui suggère que la divergence perçue pourrait être **plus une question de formulation que de fond**. La source 1 met l’accent sur les **résultats visuels**, tandis que la source 2 insiste sur l’**apprentissage progressif** — deux facettes d’une même motivation sous-jacente (créativité). **Risque de surinterprétation** : La divergence pourrait être un artefact de **cadrage différent** plutôt qu’une opposition réelle.",
+      "source_ids": [
+       "src_8a09d70b882b445d",
+       "src_76d7ff891b29409e"
+      ]
+     },
+     {
+      "claim": "Le persona *‘Le Sceptique Pragmatique’* est une superposition valide des deux sources, avec un scepticisme modéré (8-18%) comme trait dominant.",
+      "counter_evidence": "Ce persona repose sur une **extrapolation faible** : le scepticisme varie fortement entre les sources (8% vs 18%), et les objections associées diffèrent (*‘Les résultats ne valent pas l’effort’* dans la source 1 vs *‘Je ne sais pas par où commencer’* dans la source 2). **Preuve insuffisante** pour le distinguer clairement des autres personas. Une analyse plus fine des sous-groupes serait nécessaire.",
+      "source_ids": [
+       "src_8a09d70b882b445d",
+       "src_76d7ff891b29409e"
+      ]
+     }
+    ],
+    "confidence_level": "exploratory",
+    "coverage": {
+     "challenges_raised": 6,
+     "counter_evidence_available": 6,
+     "engaged_available_counter_evidence": true
+    },
+    "retained_conclusion": "{'core_validity': {'text': 'La tension entre **admiration pour les possibilités créatives de l’IA locale** et **frustration face aux barrières perçues** (techniques, matérielles, sociales) reste un **signal robuste**, confirmé par les deux sources. Cette dualité suggère un besoin de **médiation adaptée** : des démonstrations concrètes pour la source 1 et des cadres rassurants (communautés, roadmaps) pour la source 2.', 'confidence_level': 'strong'}, 'nuances_critiques': {'text': 'Les divergences observées (peurs spécifiques au diplôme, sensibilité au coût opportuniste, rôle des communautés) sont **liées au cadre contextuel des sources** plutôt qu’à des oppositions fondamentales. Elles révèlent deux **segments distincts** plutôt qu’une seule audience homogène :\\n      1. Un public **autonome mais matériellement limité** (source 1), où les freins sont **techniques et financiers**. \\n      2. Un public **en quête de légitimité** (source 2), où les peurs sont **sociales et institutionnelles** (diplômes, jugement).\\n      \\n      **Risque de généralisation** : Les insights comme *‘appartenir à une communauté’* ou *‘peur de l’exclusion par le diplôme’* ne sont pas universels et pourraien",
+    "status": "completed",
+    "validation": {
+     "challenges_rejected": 0
+    }
+   },
+   "divergence_interpretations": [
+    {
+     "confidence_level": "moderate",
+     "insight_id": "cross:fears:gaspiller-du-temps-money",
+     "interpretation": "Cette peur est **exclusive à la source 1** (*Parlons Cyber*) et semble liée à **l’ampleur perçue des ressources nécessaires** (ex : *‘80 GB sur mon ordinateur’*). Elle révèle une **sensibilité au coût opportuniste** : le temps et l’argent sont perçus comme des **ressources limitées**, et l’IA locale comme un **engagement à long terme**. **Contraste** : Dans la source 2, cette peur n’apparaît pas explicitement, suggérant que les audiences y perçoivent l’IA comme un **outil plus accessible** ou moins gourmand. **Hypothèse** : La divergence reflète une **différence de cadre** : la source 1 aborde l’IA comme un **projet ambitieux** (vidéos incroyables), tandis que la source 2 la présente comme un **apprentissage progressif** (bases incontournables).",
+     "source_ids": [
+      "src_8a09d70b882b445d"
+     ]
+    },
+    {
+     "confidence_level": "moderate",
+     "insight_id": "cross:aspirations:appartenir-une-communaut-d-apprenants",
+     "interpretation": "Cette aspiration n’apparaît que dans la **source 2** (*Jon Gregor*), où elle est couplée à un besoin de **guidage pas à pas** et de **communauté safe**. Elle suggère que pour cette audience, **l’apprentissage est un processus social** : la peur de l’échec est atténuée par la présence d’un **groupe pair**. **Contraste** : Dans la source 1, aucune mention explicite de communauté, mais des **objections liées à l’isolement technique** (*‘Je vais échouer’*). **Interprétation** : La source 2 semble cibler une audience **plus vulnérable au jugement social**, tandis que la source 1 attire des profils **plus autonomes mais frustrés par le manque de ressources**.",
+     "source_ids": [
+      "src_76d7ff891b29409e"
+     ]
+    },
+    {
+     "confidence_level": "exploratory",
+     "insight_id": "cross:fears:tre-exclu-par-son-manque-de-dipl-me",
+     "interpretation": "Cette peur, **exclusive à la source 2**, révèle une **sensibilité accrue aux normes institutionnelles** (diplômes = légitimité). Elle contraste avec la source 1, où les objections portent sur le **matériel** plutôt que sur la **reconnaissance formelle**. **Nuance** : Dans la source 2, cette peur est liée à des **croyances comme *‘Sans diplôme, je ne peux pas réussir’***, ce qui suggère une **intériorisation des barrières systémiques**. **Risque** : Cette peur peut **renforcer l’autocensure** chez les audiences peu diplômées, même si elles sont motivées. **Opportunité** : Une **reconnaissance des compétences informelles** (ex : *‘Votre pratique compte aussi’*) pourrait atténuer ce frein.",
+     "source_ids": [
+      "src_76d7ff891b29409e"
+     ]
+    }
+   ],
+   "status": "completed",
+   "validation": {
+    "convergence_rejected": 0,
+    "cross_personas_rejected": 0,
+    "divergence_rejected": 0
+   }
+  },
+  "cross_personas": [
+   {
+    "confidence_level": "strong",
+    "description": "Audience **admirative des résultats de l’IA locale** mais **paralysée par les prérequis techniques ou matériels**. Elle oscille entre *‘Je veux créer des œuvres uniques’* et *‘Je n’ai pas les moyens/le temps/les compétences’*. **Signaux clés** : Objections sur la complexité (*‘80 GB, c’est trop’*), peur de gaspiller des ressources, et croyances comme *‘L’IA locale est réservée aux pros’*. **Contraste** : Moins sensible au diplôme, mais très réactive aux **démonstrations concrètes** (ex : vidéos de résultats obtenus avec du matériel modeste).",
+    "name": "L’Idéaliste Frustré",
+    "signals": [
+     "cross:emotions:admiration (28%)",
+     "cross:fears:gaspiller-du-temps-money",
+     "cross:fears:ne-pas-tre-la-hauteur",
+     "objection: ‘C’est trop technique pour moi’",
+     "belief: ‘Je vais échouer’"
+    ],
+    "source_ids": [
+     "src_8a09d70b882b445d"
+    ]
+   },
+   {
+    "confidence_level": "strong",
+    "description": "Audience **motivée par l’apprentissage** mais **hantée par la peur du jugement** (manque de diplôme, échec en public). Elle cherche un **cadre rassurant** (communautés, guidage pas à pas) et valorise les **témoignages de pairs**. **Signaux clés** : Besoin de *roadmaps claires*, peur de *rater une opportunité unique*, et croyances comme *‘Je dois tout savoir avant de commencer’*. **Contraste** : Moins obsédée par le matériel que par la **validation sociale** de ses compétences. **Risque** : Peut abandonner si elle perçoit l’IA comme un **club fermé**.",
+    "name": "L’Auto-Exclu Social",
+    "signals": [
+     "cross:emotions:espoir (22%)",
+     "cross:fears:ne-pas-tre-la-hauteur",
+     "cross:fears:tre-exclu-par-son-manque-de-dipl-me",
+     "aspiration: appartenir à une communauté d’apprenants",
+     "objection: ‘Je ne sais pas par où commencer’"
+    ],
+    "source_ids": [
+     "src_76d7ff891b29409e"
+    ]
+   },
+   {
+    "confidence_level": "insufficient",
+    "description": "Audience **curieuse mais méfiante**, qui exige des **preuves tangibles** avant de s’engager. Elle exprime un **scepticisme modéré** (8-18% des émotions) et des objections comme *‘Les résultats ne valent pas l’effort’*. **Signaux clés** : Recherche de **démos visuelles**, sensibilité au *coût opportuniste* (temps/argent), et croyance en *‘l’apprentissage comme chemin’*. **Nuance** : Ce persona pourrait émerger d’une **superposition des deux sources**, mais les données actuelles ne permettent pas de le distinguer clairement. **Preuve insuffisante** pour le valider.",
+    "name": "Le Sceptique Pragmatique",
+    "signals": [
+     "cross:emotions:scepticisme (8-18%)",
+     "objection: ‘Les résultats ne valent pas l’effort’",
+     "belief: ‘Avec les bons outils, tout est possible’ (mais sous condition)"
+    ],
+    "source_ids": [
+     "src_8a09d70b882b445d",
+     "src_76d7ff891b29409e"
+    ]
+   }
+  ],
+  "cross_summary": {
+   "comments_count": 203,
+   "message": "Les signaux ont été comparés par source. La conclusion psychologique sera formulée à partir de ces preuves.",
+   "sources_count": 2,
+   "status": "measured_pending_interpretation"
+  },
+  "cross_synthesis": {
+   "a_eviter": [
+    {
+     "label": "Un discours trop technique ou jargonisé",
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ],
+     "why": "Les deux audiences fuient le **langage élitiste** (A : 'Humiliation technique', B : 'Peur de se tromper en public'). Éviter les termes non expliqués ('80 GB', 'GPU', 'nodes') sans contexte."
+    },
+    {
+     "label": "Ignorer les contraintes matérielles ou temporelles",
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ],
+     "why": "A et B mentionnent explicitement des **barrières concrètes** (temps, argent, matériel). Un contenu qui les minimise ('C’est facile !') sera perçu comme déconnecté."
+    },
+    {
+     "label": "Négliger la dimension communautaire",
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ],
+     "why": "Les deux audiences cherchent un **cadre rassurant** (A via des pairs experts, B via des groupes bienveillants). Un contenu isolé (tutoriel solo) sera moins engageant."
+    }
+   ],
+   "centres_interet": [
+    {
+     "label": "L’autonomie créative via la technologie",
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ],
+     "why": "Les deux audiences veulent **maîtriser un outil** pour créer, mais avec des finalités différentes : **A** vise l’indépendance (vs. cloud), **B** vise l’appropriation personnelle (art, santé, éducation)."
+    },
+    {
+     "label": "La communauté comme levier de confiance",
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ],
+     "why": "Les deux cherchent un **cadre rassurant** : **A** via des pairs DIY, **B** via des groupes 'safe' pour débutants. La peur du jugement est un point commun fort."
+    },
+    {
+     "label": "La simplification des processus complexes",
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ],
+     "why": "Les deux audiences mentionnent explicitement le besoin de **démos visuelles**, de **templates prêts à l’emploi**, ou de **tutoriels adaptés** pour réduire la frustration liée à la complexité."
+    }
+   ],
+   "message_commun": {
+    "message": "Vous rêvez de créer avec l’IA, mais la technique vous semble un mur infranchissable ? **On va vous guider étape par étape**, sans jargon, avec des outils adaptés à vos moyens – et une communauté pour partager vos progrès (et vos doutes). Parce que votre créativité mérite une chance, **même si vous débutez**.",
+    "nuances": [
+     {
+      "nuance": "Insister sur la **souveraineté technique** et les **avantages concrets** de l’IA locale ('Pas de censure, pas de dépendance aux GAFA') pour parler à leur engagement idéologique. Exemple : *'Libérez votre art des algorithmes qui décident à votre place.'*",
+      "source_id": "src_8a09d70b882b445d"
+     },
+     {
+      "nuance": "Mettre en avant la **bienveillance** et la **progressivité** ('On avance à votre rythme'). Exemple : *'Votre première création IA sera peut-être simple… mais elle sera à vous.'*",
+      "source_id": "src_76d7ff891b29409e"
+     }
+    ]
+   },
+   "rassemble": [
+    {
+     "dimension": "motivations",
+     "interpretation": "Besoin de **libération créative** (artistique, technique ou professionnelle), mais aussi de **reconnaissance** (devenir expert ou référent). La peur de rester spectateur ou exclu agit comme un moteur commun.",
+     "kind": "specifique",
+     "label": "Créer sans limites",
+     "per_source": [
+      {
+       "note": "",
+       "signal": "Créer sans limites",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "note": "",
+       "signal": "Créer sans limites",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ]
+    },
+    {
+     "dimension": "fears",
+     "interpretation": "Crainte partagée d’être **laissé pour compte** (soit par manque de compétences techniques, soit par manque de ressources matérielles ou sociales). Cette peur alimente une **motivation à agir malgré tout**.",
+     "kind": "specifique",
+     "label": "Peur de l’exclusion ou de l’échec",
+     "per_source": [
+      {
+       "note": "",
+       "signal": "Ne pas être à la hauteur",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "note": "",
+       "signal": "Ne pas être à la hauteur",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ]
+    },
+    {
+     "dimension": "frustrations",
+     "interpretation": "Frustration liée à la **complexité perçue** des outils (installation, matériel, apprentissage) et à un **sentiment d’humiliation technique** ou sociale. Les deux audiences expriment un besoin de **démystification**.",
+     "kind": "specifique",
+     "label": "Décalage entre rêve et réalité",
+     "per_source": [
+      {
+       "note": "",
+       "signal": "Décalage rêve/réalité",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "note": "",
+       "signal": "Manque de clarté pratique",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ]
+    }
+   ],
+   "separe": [
+    {
+     "dimension": "aspirations",
+     "interpretation": "L’audience **A** est animée par une **vision politique/technologique** (décentralisation, souveraineté), tandis que **B** cherche avant tout un **cadre rassurant** (communauté, roadmaps, validation sociale).",
+     "kind": "specifique",
+     "label": "Mouvement idéologique vs. apprentissage guidé",
+     "per_source": [
+      {
+       "note": "Aspiration collective et militante, liée à une critique des algorithmes centraux.",
+       "signal": "Contribuer à un mouvement de *décentralisation créative*",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "note": "Besoin individuel de sécurité et d’accompagnement, sans dimension idéologique.",
+       "signal": "Être guidé pas à pas",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ]
+    },
+    {
+     "dimension": "fears",
+     "interpretation": "La peur de l’échec est **plus anxiogène pour B** (liée à l’isolement, au jugement, ou au manque de diplôme), alors qu’elle est **plus pragmatique pour A** (risque matériel, investissement temps/argent).",
+     "kind": "intensite",
+     "label": "Peur de l’échec technique vs. peur de l’échec social",
+     "per_source": [
+      {
+       "note": "Crainte de la marginalisation sociale ou professionnelle.",
+       "signal": "Être exclu par son manque de diplôme",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ]
+    },
+    {
+     "dimension": "objections",
+     "interpretation": "Les objections de **A** portent sur des **barrières matérielles ou techniques** ('80 GB à installer', 'risque de briser son PC'), tandis que **B** exprime des **freins psychologiques ou organisationnels** ('peur de se tromper en public', 'manque de temps').",
+     "kind": "oppose",
+     "label": "Technique vs. pédagogique",
+     "per_source": [
+      {
+       "note": "Objection liée à un risque physique/concret.",
+       "signal": "‘Et si je brise mon PC en essayant ?’ → Anxiété liée à l’investissement matériel.",
+       "source_id": "src_8a09d70b882b445d",
+       "weight": 1.0
+      },
+      {
+       "note": "Objection liée à une peur sociale et identitaire.",
+       "signal": "‘Et si je me trompe en public ?’ (peur de l’échec social) → Désamorcer via des **communautés safe** (ex : groupe privé pour partager ses essais).",
+       "source_id": "src_76d7ff891b29409e",
+       "weight": 1.0
+      }
+     ]
+    }
+   ],
+   "status": "completed",
+   "sujets_qui_resolvent": [
+    {
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ],
+     "title": "Ateliers 'Débuter sans peur' : Roadmaps + Communautés",
+     "why": "Résout le **manque de clarté pratique** (B) et la **peur de l’humiliation technique** (A) en proposant des étapes ultra-concrètes (ex. : '3 étapes pour installer ComfyUI sans risque') + un espace pour partager ses essais."
+    },
+    {
+     "source_ids": [
+      "src_8a09d70b882b445d",
+      "src_76d7ff891b29409e"
+     ],
+     "title": "Comparatifs 'IA locale vs. Cloud' : Mythe vs. Réalité",
+     "why": "Démêle les **objections techniques** (A : 'Est-ce que je vais vraiment pouvoir faire mieux ?') et les **doutes sur la valeur perçue** (B : 'Les outils sont trop complexes')."
+    },
+    {
+     "source_ids": [
+      "src_8a09d70b882b445d"
+     ],
+     "title": "Kits 'Prêt à Créer' : Matériel + Logiciels Optimisés",
+     "why": "Atténue les **peurs matérielles** (A : 'Je n’ai pas le matériel') et les **freins logistiques** (B : 'Je n’ai pas le temps') en proposant des bundles clés en main (ex. : PC reconditionné + ComfyUI pré-installé)."
+    }
+   ],
+   "validation": {
+    "rejected": 0
+   },
+   "verdict": {
+    "a_leur_dire": "Vous voulez **créer sans limites**, mais la technologie vous semble trop complexe, trop chère, ou trop intimidante – et vous n’êtes pas seul(e) dans cette frustration.",
+    "rassemble": "Ces audiences partagent un **besoin de maîtrise et d'autonomie créative**, mais aussi une **peur de l'exclusion technique ou sociale**, malgré des profils différents (débutants vs. passionnés DIY). Leur frustration commune : le **décalage entre aspiration et réalité pratique** (complexité, investissement, jugement).",
+    "separe": "L’audience **A** est motivée par un **mouvement idéologique** (décentralisation, souveraineté technique), tandis que **B** cherche avant tout un **accompagnement pédagogique et social**. L’intensité de la peur de l’échec est aussi plus forte chez **B** (liée à l’isolement et au manque de diplôme), alors que **A** craint surtout un **échec matériel ou technique** (ex. : briser son PC)."
+   }
+  },
+  "data_quality": {
+   "level": "strong",
+   "method": "minimum_source_quality",
+   "per_source": [
+    {
+     "level": "strong",
+     "source_id": "src_8a09d70b882b445d"
+    },
+    {
+     "level": "strong",
+     "source_id": "src_76d7ff891b29409e"
+    }
+   ]
+  },
+  "divergences": [],
+  "embedding_version": "not_used_in_cross_v1",
+  "executive_summary": {
+   "caveats": [
+    "Les données proviennent uniquement de deux sources thématiquement proches (IA créative pour débutants), limitant la généralisation.",
+    "Les poids émotionnels ne reflètent pas des vérités absolues mais des **intensités relatives** dans un contexte spécifique.",
+    "Aucune donnée sur les audiences *déjà expertes* ou *détachées* du sujet."
+   ],
+   "confidence_level": "moderate",
+   "text": "Les audiences montrent une tension forte entre **admiration pour les possibilités créatives de l’IA locale** et **frustration face aux barrières techniques ou matérielles**, créant un paradoxe entre aspiration et peur de l’échec. Le scepticisme persiste sur la faisabilité pour les non-experts, tandis qu’un espoir latent émerge d’une **communauté d’apprenants** comme levier de motivation. Les dynamiques divergent selon que l’audience perçoit l’IA comme un outil accessible ou comme un domaine réservé aux initiés. **Preuves insuffisantes** pour généraliser ces tendances à des segments non représentés dans les sources analysées."
+  },
+  "failed_sources": [],
+  "job_id": "61d3bb32-697",
+  "model_version": "ministral-14b-latest+ministral-14b-latest",
+  "oppositions": [],
+  "pipeline_version": "cross-v1",
+  "schema_version": "1.0",
+  "shared_aspirations": [],
+  "shared_beliefs": [],
+  "shared_emotions": [
+   {
+    "intensity_range": 0.0,
+    "label": "Admiration",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Admiration",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Admiration",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "intensity_range": 0.0,
+    "label": "Curiosité",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Curiosité",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Curiosité",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "intensity_range": 0.0,
+    "label": "Espoir",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Espoir",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Espoir",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "intensity_range": 0.0,
+    "label": "Frustration",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Frustration",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Frustration",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "intensity_range": 0.0,
+    "label": "Scepticisme",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Scepticisme",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Scepticisme",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   }
+  ],
+  "shared_fears": [
+   {
+    "intensity_range": 0.0,
+    "label": "Ne pas être à la hauteur",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Ne pas être à la hauteur",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Ne pas être à la hauteur",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   }
+  ],
+  "shared_frustrations": [],
+  "shared_motivations": [
+   {
+    "intensity_range": 0.0,
+    "label": "Créer sans limites",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "Créer sans limites",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "Créer sans limites",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   }
+  ],
+  "shared_objections": [],
+  "shared_themes": [
+   {
+    "intensity_range": 0.0,
+    "label": "merci",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "merci",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "merci",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "intensity_range": 0.0,
+    "label": "vidéo",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "vidéo",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "vidéo",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   },
+   {
+    "intensity_range": 0.0,
+    "label": "vidéos",
+    "source_coverage": 1.0,
+    "sources": [
+     {
+      "label": "vidéos",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     },
+     {
+      "label": "vidéos",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 2
+   }
+  ],
+  "source_ids": [
+   "src_8a09d70b882b445d",
+   "src_76d7ff891b29409e"
+  ],
+  "source_profiles": [
+   {
+    "analysis_id": "b4b0ccc7-ed6",
+    "channel": "Parlons Cyber",
+    "comments": 116,
+    "confidence": 0.68,
+    "data_quality": "strong",
+    "dimensions": {
+     "aspirations": [
+      {
+       "label": "Devenir un expert reconnu",
+       "weight": 1.0
+      },
+      {
+       "label": "Créer des œuvres uniques",
+       "weight": 1.0
+      },
+      {
+       "label": "Être libre des algorithmes centraux",
+       "weight": 1.0
+      },
+      {
+       "label": "Créer des œuvres uniques sans censure",
+       "weight": 1.0
+      },
+      {
+       "label": "Devenir des références dans leur communauté DIY",
+       "weight": 1.0
+      }
+     ],
+     "beliefs": [
+      {
+       "label": "L’IA locale est réservée aux pros",
+       "weight": 1.0
+      },
+      {
+       "label": "Je n’ai pas le matériel",
+       "weight": 1.0
+      },
+      {
+       "label": "Je vais échouer",
+       "weight": 1.0
+      },
+      {
+       "label": "Avec les bons outils, tout est possible",
+       "weight": 1.0
+      },
+      {
+       "label": "La persévérance paie",
+       "weight": 1.0
+      }
+     ],
+     "emotions": [
+      {
+       "label": "Admiration",
+       "weight": 28.0
+      },
+      {
+       "label": "Espoir",
+       "weight": 22.0
+      },
+      {
+       "label": "Frustration",
+       "weight": 18.0
+      },
+      {
+       "label": "Curiosité",
+       "weight": 14.0
+      },
+      {
+       "label": "Scepticisme",
+       "weight": 18.0
+      }
+     ],
+     "fears": [
+      {
+       "label": "Ne pas être à la hauteur",
+       "weight": 1.0
+      },
+      {
+       "label": "Gaspiller du temps/money",
+       "weight": 1.0
+      },
+      {
+       "label": "Rester spectateur",
+       "weight": 1.0
+      }
+     ],
+     "frustrations": [
+      {
+       "label": "Décalage rêve/réalité",
+       "weight": 1.0
+      },
+      {
+       "label": "Humiliation technique",
+       "weight": 1.0
+      },
+      {
+       "label": "Peur de l’investissement",
+       "weight": 1.0
+      }
+     ],
+     "motivations": [
+      {
+       "label": "Créer sans limites",
+       "weight": 1.0
+      },
+      {
+       "label": "Maîtriser la technologie",
+       "weight": 1.0
+      },
+      {
+       "label": "S’affranchir des contraintes",
+       "weight": 1.0
+      }
+     ],
+     "objections": [
+      {
+       "label": "‘C’est trop technique pour moi’ → Manque de tutoriels adaptés aux novices.",
+       "weight": 1.0
+      },
+      {
+       "label": "‘Je n’ai pas le matériel nécessaire’ → Peur de l’exclusion technique.",
+       "weight": 1.0
+      },
+      {
+       "label": "‘Ça prend trop de temps à installer’ → Frustration face à la complexité initiale.",
+       "weight": 1.0
+      },
+      {
+       "label": "‘Les résultats ne valent pas l’effort’ → Méfiance envers la qualité des outputs locaux.",
+       "weight": 1.0
+      },
+      {
+       "label": "‘Je crains de me sentir ridicule en posant des questions basiques’ → Peur du jugement dans une communauté perçue comme experte.",
+       "weight": 1.0
+      }
+     ],
+     "themes": [
+      {
+       "label": "comfyui",
+       "weight": 9.5
+      },
+      {
+       "label": "possible",
+       "weight": 8.6
+      },
+      {
+       "label": "installer",
+       "weight": 6.9
+      },
+      {
+       "label": "serait",
+       "weight": 6.0
+      }
+     ]
+    },
+    "letter": "A",
+    "position": 0,
+    "source_id": "src_8a09d70b882b445d",
+    "stance_distribution": {
+     "favorable": 24.1,
+     "ironique": 0.9,
+     "neutre": 48.3,
+     "nuance": 16.4,
+     "oppose": 10.3
+    },
+    "title": "Comment Générer des Images et Vidéos INCROYABLES avec une IA LOCALE et ILLIMITÉE sur ton PC",
+    "url": "https://www.youtube.com/watch?v=dAdkGfsZXMg"
+   },
+   {
+    "analysis_id": "4068d181-104",
+    "channel": "Jon Gregor",
+    "comments": 87,
+    "confidence": 0.7,
+    "data_quality": "strong",
+    "dimensions": {
+     "aspirations": [
+      {
+       "label": "Être guidé pas à pas",
+       "weight": 1.0
+      },
+      {
+       "label": "Appartenir à une communauté d’apprenants",
+       "weight": 1.0
+      },
+      {
+       "label": "Transformer sa douleur en création",
+       "weight": 1.0
+      },
+      {
+       "label": "Créer une œuvre artistique unique avec l’IA",
+       "weight": 1.0
+      },
+      {
+       "label": "Devenir un référent dans leur domaine (santé, art, éducation)",
+       "weight": 1.0
+      }
+     ],
+     "beliefs": [
+      {
+       "label": "L’IA est réservée aux experts",
+       "weight": 1.0
+      },
+      {
+       "label": "Sans diplôme, je ne peux pas réussir",
+       "weight": 1.0
+      },
+      {
+       "label": "Je dois tout savoir avant de commencer",
+       "weight": 1.0
+      },
+      {
+       "label": "L’apprentissage est un chemin, pas une ligne d’arrivée",
+       "weight": 1.0
+      },
+      {
+       "label": "Mes limites sont des opportunités de créativité",
+       "weight": 1.0
+      }
+     ],
+     "emotions": [
+      {
+       "label": "Admiration",
+       "weight": 38.0
+      },
+      {
+       "label": "Espoir",
+       "weight": 22.0
+      },
+      {
+       "label": "Frustration",
+       "weight": 18.0
+      },
+      {
+       "label": "Curiosité",
+       "weight": 14.0
+      },
+      {
+       "label": "Scepticisme",
+       "weight": 8.0
+      }
+     ],
+     "fears": [
+      {
+       "label": "Ne pas être à la hauteur",
+       "weight": 1.0
+      },
+      {
+       "label": "Être exclu par son manque de diplôme",
+       "weight": 1.0
+      },
+      {
+       "label": "Rater une opportunité unique",
+       "weight": 1.0
+      }
+     ],
+     "frustrations": [
+      {
+       "label": "Manque de clarté pratique",
+       "weight": 1.0
+      },
+      {
+       "label": "Peur de l’échec technique",
+       "weight": 1.0
+      },
+      {
+       "label": "Isolement face à la complexité",
+       "weight": 1.0
+      }
+     ],
+     "motivations": [
+      {
+       "label": "Créer sans limites",
+       "weight": 1.0
+      },
+      {
+       "label": "Se réinventer professionnellement",
+       "weight": 1.0
+      },
+      {
+       "label": "Donner du sens à son handicap",
+       "weight": 1.0
+      }
+     ],
+     "objections": [
+      {
+       "label": "‘Je ne sais pas par où commencer’ → Besoin de **roadmaps claires** (ex : '3 étapes pour débuter').",
+       "weight": 1.0
+      },
+      {
+       "label": "‘Les outils sont trop complexes’ → Offrir des **démos visuelles** ou des templates prêts à l’emploi.",
+       "weight": 1.0
+      },
+      {
+       "label": "‘Et si je me trompe en public ?’ (peur de l’échec social) → Désamorcer via des **communautés safe** (ex : groupe privé pour partager ses essais).",
+       "weight": 1.0
+      },
+      {
+       "label": "‘Je n’ai pas le temps’ → Proposer des **formats ultra-courts** (ex : '5 minutes pour un résultat').",
+       "weight": 1.0
+      }
+     ],
+     "themes": [
+      {
+       "label": "ans",
+       "weight": 20.9
+      },
+      {
+       "label": "créer",
+       "weight": 11.6
+      },
+      {
+       "label": "musique",
+       "weight": 8.1
+      },
+      {
+       "label": "suis",
+       "weight": 8.1
+      },
+      {
+       "label": "comment",
+       "weight": 7.0
+      }
+     ]
+    },
+    "letter": "B",
+    "position": 1,
+    "source_id": "src_76d7ff891b29409e",
+    "stance_distribution": {
+     "favorable": 34.9,
+     "neutre": 55.8,
+     "nuance": 8.1,
+     "oppose": 1.2
+    },
+    "title": "L’IA pour débutants : Les bases incontournables",
+    "url": "https://www.youtube.com/watch?v=6VTZyuswGQk"
+   }
+  ],
+  "source_specific_signals": [
+   {
+    "category": "fears",
+    "insight_id": "cross:fears:gaspiller-du-temps-money",
+    "intensity_range": 1.0,
+    "label": "Gaspiller du temps/money",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Gaspiller du temps/money",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "fears",
+    "insight_id": "cross:fears:rater-une-opportunit-unique",
+    "intensity_range": 1.0,
+    "label": "Rater une opportunité unique",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Rater une opportunité unique",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "fears",
+    "insight_id": "cross:fears:rester-spectateur",
+    "intensity_range": 1.0,
+    "label": "Rester spectateur",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Rester spectateur",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "fears",
+    "insight_id": "cross:fears:tre-exclu-par-son-manque-de-dipl-me",
+    "intensity_range": 1.0,
+    "label": "Être exclu par son manque de diplôme",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Être exclu par son manque de diplôme",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:appartenir-une-communaut-d-apprenants",
+    "intensity_range": 1.0,
+    "label": "Appartenir à une communauté d’apprenants",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Appartenir à une communauté d’apprenants",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:contribuer-un-mouvement-de-d-centralisation-cr-ative",
+    "intensity_range": 1.0,
+    "label": "Contribuer à un mouvement de *décentralisation créative*",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Contribuer à un mouvement de *décentralisation créative*",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:cr-er-des-uvres-uniques",
+    "intensity_range": 1.0,
+    "label": "Créer des œuvres uniques",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Créer des œuvres uniques",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:cr-er-des-uvres-uniques-sans-censure",
+    "intensity_range": 1.0,
+    "label": "Créer des œuvres uniques sans censure",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Créer des œuvres uniques sans censure",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:cr-er-une-uvre-artistique-unique-avec-l-ia",
+    "intensity_range": 1.0,
+    "label": "Créer une œuvre artistique unique avec l’IA",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Créer une œuvre artistique unique avec l’IA",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:devenir-des-r-f-rences-dans-leur-communaut-diy",
+    "intensity_range": 1.0,
+    "label": "Devenir des références dans leur communauté DIY",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Devenir des références dans leur communauté DIY",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:devenir-un-expert-reconnu",
+    "intensity_range": 1.0,
+    "label": "Devenir un expert reconnu",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Devenir un expert reconnu",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:devenir-un-r-f-rent-dans-leur-domaine-sant-art-ducation",
+    "intensity_range": 1.0,
+    "label": "Devenir un référent dans leur domaine (santé, art, éducation)",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Devenir un référent dans leur domaine (santé, art, éducation)",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:d-mocratiser-l-acc-s-l-ia-pour-les-non-techniciens",
+    "intensity_range": 1.0,
+    "label": "Démocratiser l’accès à l’IA pour les non-techniciens",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Démocratiser l’accès à l’IA pour les non-techniciens",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:transformer-sa-douleur-en-cr-ation",
+    "intensity_range": 1.0,
+    "label": "Transformer sa douleur en création",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Transformer sa douleur en création",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:tre-guid-pas-pas",
+    "intensity_range": 1.0,
+    "label": "Être guidé pas à pas",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Être guidé pas à pas",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "aspirations",
+    "insight_id": "cross:aspirations:tre-libre-des-algorithmes-centraux",
+    "intensity_range": 1.0,
+    "label": "Être libre des algorithmes centraux",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Être libre des algorithmes centraux",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "frustrations",
+    "insight_id": "cross:frustrations:d-calage-r-ve-r-alit",
+    "intensity_range": 1.0,
+    "label": "Décalage rêve/réalité",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Décalage rêve/réalité",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "frustrations",
+    "insight_id": "cross:frustrations:humiliation-technique",
+    "intensity_range": 1.0,
+    "label": "Humiliation technique",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Humiliation technique",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "frustrations",
+    "insight_id": "cross:frustrations:isolement-face-la-complexit",
+    "intensity_range": 1.0,
+    "label": "Isolement face à la complexité",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Isolement face à la complexité",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "frustrations",
+    "insight_id": "cross:frustrations:manque-de-clart-pratique",
+    "intensity_range": 1.0,
+    "label": "Manque de clarté pratique",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Manque de clarté pratique",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "frustrations",
+    "insight_id": "cross:frustrations:peur-de-l-investissement",
+    "intensity_range": 1.0,
+    "label": "Peur de l’investissement",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Peur de l’investissement",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "frustrations",
+    "insight_id": "cross:frustrations:peur-de-l-chec-technique",
+    "intensity_range": 1.0,
+    "label": "Peur de l’échec technique",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Peur de l’échec technique",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:avec-les-bons-outils-tout-est-possible",
+    "intensity_range": 1.0,
+    "label": "Avec les bons outils, tout est possible",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Avec les bons outils, tout est possible",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:chaque-petit-pas-compte",
+    "intensity_range": 1.0,
+    "label": "Chaque petit pas compte",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Chaque petit pas compte",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:je-dois-tout-savoir-avant-de-commencer",
+    "intensity_range": 1.0,
+    "label": "Je dois tout savoir avant de commencer",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Je dois tout savoir avant de commencer",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:je-n-ai-pas-le-mat-riel",
+    "intensity_range": 1.0,
+    "label": "Je n’ai pas le matériel",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Je n’ai pas le matériel",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:je-peux-apprendre-n-importe-quoi",
+    "intensity_range": 1.0,
+    "label": "Je peux apprendre n’importe quoi",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Je peux apprendre n’importe quoi",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:je-vais-chouer",
+    "intensity_range": 1.0,
+    "label": "Je vais échouer",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Je vais échouer",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:la-pers-v-rance-paie",
+    "intensity_range": 1.0,
+    "label": "La persévérance paie",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "La persévérance paie",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:l-apprentissage-est-un-chemin-pas-une-ligne-d-arriv-e",
+    "intensity_range": 1.0,
+    "label": "L’apprentissage est un chemin, pas une ligne d’arrivée",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "L’apprentissage est un chemin, pas une ligne d’arrivée",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:l-ia-est-r-serv-e-aux-experts",
+    "intensity_range": 1.0,
+    "label": "L’IA est réservée aux experts",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "L’IA est réservée aux experts",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:l-ia-locale-est-r-serv-e-aux-pros",
+    "intensity_range": 1.0,
+    "label": "L’IA locale est réservée aux pros",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "L’IA locale est réservée aux pros",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:mes-limites-sont-des-opportunit-s-de-cr-ativit",
+    "intensity_range": 1.0,
+    "label": "Mes limites sont des opportunités de créativité",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Mes limites sont des opportunités de créativité",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "beliefs",
+    "insight_id": "cross:beliefs:sans-dipl-me-je-ne-peux-pas-r-ussir",
+    "intensity_range": 1.0,
+    "label": "Sans diplôme, je ne peux pas réussir",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Sans diplôme, je ne peux pas réussir",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "motivations",
+    "insight_id": "cross:motivations:donner-du-sens-son-handicap",
+    "intensity_range": 1.0,
+    "label": "Donner du sens à son handicap",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Donner du sens à son handicap",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "motivations",
+    "insight_id": "cross:motivations:ma-triser-la-technologie",
+    "intensity_range": 1.0,
+    "label": "Maîtriser la technologie",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Maîtriser la technologie",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "motivations",
+    "insight_id": "cross:motivations:se-r-inventer-professionnellement",
+    "intensity_range": 1.0,
+    "label": "Se réinventer professionnellement",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "Se réinventer professionnellement",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "motivations",
+    "insight_id": "cross:motivations:s-affranchir-des-contraintes",
+    "intensity_range": 1.0,
+    "label": "S’affranchir des contraintes",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "S’affranchir des contraintes",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:c-est-trop-technique-pour-moi-manque-de-tutoriels-adapt-s-aux-novices",
+    "intensity_range": 1.0,
+    "label": "‘C’est trop technique pour moi’ → Manque de tutoriels adaptés aux novices.",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘C’est trop technique pour moi’ → Manque de tutoriels adaptés aux novices.",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:est-ce-que-je-vais-vraiment-pouvoir-faire-mieux-qu-avec-les-outils-cloud-doute-sur-la-valeur-per-ue-de-l-ia-locale",
+    "intensity_range": 1.0,
+    "label": "‘Est-ce que je vais vraiment pouvoir faire mieux qu’avec les outils cloud ?’ → Doute sur la valeur perçue de l’IA locale.",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Est-ce que je vais vraiment pouvoir faire mieux qu’avec les outils cloud ?’ → Doute sur la valeur perçue de l’IA locale.",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:et-si-je-brise-mon-pc-en-essayant-anxi-t-li-e-l-investissement-mat-riel",
+    "intensity_range": 1.0,
+    "label": "‘Et si je brise mon PC en essayant ?’ → Anxiété liée à l’investissement matériel.",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Et si je brise mon PC en essayant ?’ → Anxiété liée à l’investissement matériel.",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:et-si-je-me-trompe-en-public-peur-de-l-chec-social-d-samorcer-via-des-communaut-s-safe-ex-groupe-priv-pour-partager-ses-essais",
+    "intensity_range": 1.0,
+    "label": "‘Et si je me trompe en public ?’ (peur de l’échec social) → Désamorcer via des **communautés safe** (ex : groupe privé pour partager ses essais).",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Et si je me trompe en public ?’ (peur de l’échec social) → Désamorcer via des **communautés safe** (ex : groupe privé pour partager ses essais).",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:je-crains-de-me-sentir-ridicule-en-posant-des-questions-basiques-peur-du-jugement-dans-une-communaut-per-ue-comme-experte",
+    "intensity_range": 1.0,
+    "label": "‘Je crains de me sentir ridicule en posant des questions basiques’ → Peur du jugement dans une communauté perçue comme experte.",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Je crains de me sentir ridicule en posant des questions basiques’ → Peur du jugement dans une communauté perçue comme experte.",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:je-ne-sais-pas-par-o-commencer-besoin-de-roadmaps-claires-ex-3-tapes-pour-d-buter",
+    "intensity_range": 1.0,
+    "label": "‘Je ne sais pas par où commencer’ → Besoin de **roadmaps claires** (ex : '3 étapes pour débuter').",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Je ne sais pas par où commencer’ → Besoin de **roadmaps claires** (ex : '3 étapes pour débuter').",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:je-ne-veux-pas-d-pendre-d-une-seule-personne-pour-apprendre-m-fiance-envers-les-contenus-trop-centr-s-sur-un-cr-ateur",
+    "intensity_range": 1.0,
+    "label": "‘Je ne veux pas dépendre d’une seule personne pour apprendre’ → Méfiance envers les contenus trop centrés sur un créateur.",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Je ne veux pas dépendre d’une seule personne pour apprendre’ → Méfiance envers les contenus trop centrés sur un créateur.",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:je-n-ai-pas-le-mat-riel-n-cessaire-peur-de-l-exclusion-technique",
+    "intensity_range": 1.0,
+    "label": "‘Je n’ai pas le matériel nécessaire’ → Peur de l’exclusion technique.",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Je n’ai pas le matériel nécessaire’ → Peur de l’exclusion technique.",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:je-n-ai-pas-le-temps-proposer-des-formats-ultra-courts-ex-5-minutes-pour-un-r-sultat",
+    "intensity_range": 1.0,
+    "label": "‘Je n’ai pas le temps’ → Proposer des **formats ultra-courts** (ex : '5 minutes pour un résultat').",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Je n’ai pas le temps’ → Proposer des **formats ultra-courts** (ex : '5 minutes pour un résultat').",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:les-outils-sont-trop-complexes-offrir-des-d-mos-visuelles-ou-des-templates-pr-ts-l-emploi",
+    "intensity_range": 1.0,
+    "label": "‘Les outils sont trop complexes’ → Offrir des **démos visuelles** ou des templates prêts à l’emploi.",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Les outils sont trop complexes’ → Offrir des **démos visuelles** ou des templates prêts à l’emploi.",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:les-r-sultats-ne-valent-pas-l-effort-m-fiance-envers-la-qualit-des-outputs-locaux",
+    "intensity_range": 1.0,
+    "label": "‘Les résultats ne valent pas l’effort’ → Méfiance envers la qualité des outputs locaux.",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Les résultats ne valent pas l’effort’ → Méfiance envers la qualité des outputs locaux.",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "objections",
+    "insight_id": "cross:objections:a-prend-trop-de-temps-installer-frustration-face-la-complexit-initiale",
+    "intensity_range": 1.0,
+    "label": "‘Ça prend trop de temps à installer’ → Frustration face à la complexité initiale.",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "‘Ça prend trop de temps à installer’ → Frustration face à la complexité initiale.",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:aimerais",
+    "intensity_range": 1.0,
+    "label": "aimerais",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "aimerais",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:ans",
+    "intensity_range": 1.0,
+    "label": "ans",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "ans",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:bonjour",
+    "intensity_range": 1.0,
+    "label": "bonjour",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "bonjour",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:comfyui",
+    "intensity_range": 1.0,
+    "label": "comfyui",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "comfyui",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:comment",
+    "intensity_range": 1.0,
+    "label": "comment",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "comment",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:cr-er",
+    "intensity_range": 1.0,
+    "label": "créer",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "créer",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:installer",
+    "intensity_range": 1.0,
+    "label": "installer",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "installer",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:moi",
+    "intensity_range": 1.0,
+    "label": "moi",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "moi",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:musique",
+    "intensity_range": 1.0,
+    "label": "musique",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "musique",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:possible",
+    "intensity_range": 1.0,
+    "label": "possible",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "possible",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:serait",
+    "intensity_range": 1.0,
+    "label": "serait",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "serait",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:suis",
+    "intensity_range": 1.0,
+    "label": "suis",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "suis",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:tes",
+    "intensity_range": 1.0,
+    "label": "tes",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "tes",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "themes",
+    "insight_id": "cross:themes:video",
+    "intensity_range": 1.0,
+    "label": "video",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "video",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "behavioral_signals",
+    "insight_id": "cross:behavioral_signals:confiance",
+    "intensity_range": 1.0,
+    "label": "confiance",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "confiance",
+      "source_id": "src_76d7ff891b29409e",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "behavioral_signals",
+    "insight_id": "cross:behavioral_signals:frustration",
+    "intensity_range": 1.0,
+    "label": "frustration",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "frustration",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   },
+   {
+    "category": "behavioral_signals",
+    "insight_id": "cross:behavioral_signals:m-fiance",
+    "intensity_range": 1.0,
+    "label": "méfiance",
+    "source_coverage": 0.5,
+    "sources": [
+     {
+      "label": "méfiance",
+      "source_id": "src_8a09d70b882b445d",
+      "weight": 1.0
+     }
+    ],
+    "sources_count": 1
+   }
+  ],
+  "sources": [
+   {
+    "analysis_id": "b4b0ccc7-ed6",
+    "data_quality": {
+     "comment_count": 116,
+     "confidence_score": 0.68,
+     "level": "strong",
+     "method": "volume_plus_signaux_existants",
+     "noise_ratio": 0.0,
+     "warnings": []
+    },
+    "dataset": {
+     "comments_collected": 116,
+     "comments_qualified": 116,
+     "comments_retained": 116,
+     "comments_sent_to_llm": 25,
+     "deduplication_status": "exact_text_normalized",
+     "duplicates_removed": 0
+    },
+    "metadata": {
+     "canonical_url": "https://www.youtube.com/watch?v=dAdkGfsZXMg",
+     "channel": "Parlons Cyber",
+     "comment_count": 225,
+     "description": "Si la modélisation 3D vous intéresse, profitez de -50% sur Meshy : http://www.meshy.ai/s/cyber le meilleur outil de modélisation IA en 2026.\n\nEt si vous pouviez créer des images et vidéos bluffantes… sur votre PC, sans internet et totalement gratuitement ?\nDans cette vidéo, je vous montre comment installer ComfyUI, avec des modèles d’IA locales qui transforment vos idées en visuels et vidéos incroyables, avec un contrôle total sur chaque détail.\n\nJ’espère que tu apprécieras 🙂\n🫶🏻 Pour me soutenir : \nhttps://www.youtube.com/channel/UCGjKwjEvPA0ms2wOyBwdMPQ/join\n👌🏻 Abonne-toi : https://www.youtub",
+     "duration": "PT11M2S",
+     "like_count": 2505,
+     "published_at": "2026-04-11T16:30:12Z",
+     "title": "Comment Générer des Images et Vidéos INCROYABLES avec une IA LOCALE et ILLIMITÉE sur ton PC",
+     "video_id": "dAdkGfsZXMg",
+     "view_count": 58062
+    },
+    "personas_count": 3,
+    "source_id": "src_8a09d70b882b445d"
+   },
+   {
+    "analysis_id": "4068d181-104",
+    "data_quality": {
+     "comment_count": 87,
+     "confidence_score": 0.7,
+     "level": "strong",
+     "method": "volume_plus_signaux_existants",
+     "noise_ratio": 8.0,
+     "warnings": []
+    },
+    "dataset": {
+     "comments_collected": 87,
+     "comments_qualified": 86,
+     "comments_retained": 87,
+     "comments_sent_to_llm": 11,
+     "deduplication_status": "exact_text_normalized",
+     "duplicates_removed": 0
+    },
+    "metadata": {
+     "canonical_url": "https://www.youtube.com/watch?v=6VTZyuswGQk",
+     "channel": "Jon Gregor",
+     "comment_count": 150,
+     "description": "🚀 Construis ton actif digital avec l’IA : https://jongregor.com/freedom-business-academy\n📩 Reçois mes stratégies IA & business chaque semaine : https://pages.jongregor.com/newsletter\n\nCe contenu t’a été utile ? Tu peux m’offrir un café pour soutenir mon travail ici : https://coff.ee/jongregor 🙏\n\n🔍 Du Machine Learning à ChatGPT : comprendre enfin l'IA !\nDécouvre comment l'intelligence artificielle (IA), Google Gemini, Claude et GPT transforment notre quotidien. Dans cette vidéo accessible aux débutants, je t'explique :\n- Comment fonctionne le Deep Learning\n- Pourquoi les LLMs révolutionnent le",
+     "duration": "PT8M27S",
+     "like_count": 2150,
+     "published_at": "2025-01-19T14:05:46Z",
+     "title": "L’IA pour débutants : Les bases incontournables",
+     "video_id": "6VTZyuswGQk",
+     "view_count": 80896
+    },
+    "personas_count": 3,
+    "source_id": "src_76d7ff891b29409e"
+   }
+  ],
+  "status": "completed"
+ },
+ "state": {
+  "cross_analysis_id": "cross_290be78025464751",
+  "cross_summary": {
+   "comments_count": 203,
+   "message": "Les signaux ont été comparés par source. La conclusion psychologique sera formulée à partir de ces preuves.",
+   "sources_count": 2,
+   "status": "measured_pending_interpretation"
+  },
+  "data_quality": {
+   "level": "strong",
+   "method": "minimum_source_quality",
+   "per_source": [
+    {
+     "level": "strong",
+     "source_id": "src_8a09d70b882b445d"
+    },
+    {
+     "level": "strong",
+     "source_id": "src_76d7ff891b29409e"
+    }
+   ]
+  },
+  "error": "",
+  "failed_sources": [],
+  "job_id": "61d3bb32-697",
+  "progress": 0,
+  "sources": [
+   {
+    "analysis_id": "b4b0ccc7-ed6",
+    "data_quality": {
+     "comment_count": 116,
+     "confidence_score": 0.68,
+     "level": "strong",
+     "method": "volume_plus_signaux_existants",
+     "noise_ratio": 0.0,
+     "warnings": []
+    },
+    "label": "Vidéo 1",
+    "metadata": {
+     "channel": "Parlons Cyber",
+     "comment_count": 225,
+     "description": "Si la modélisation 3D vous intéresse, profitez de -50% sur Meshy : http://www.meshy.ai/s/cyber le meilleur outil de modélisation IA en 2026.\n\nEt si vous pouviez créer des images et vidéos bluffantes… sur votre PC, sans internet et totalement gratuitement ?\nDans cette vidéo, je vous montre comment installer ComfyUI, avec des modèles d’IA locales qui transforment vos idées en visuels et vidéos incroyables, avec un contrôle total sur chaque détail.\n\nJ’espère que tu apprécieras 🙂\n🫶🏻 Pour me soutenir : \nhttps://www.youtube.com/channel/UCGjKwjEvPA0ms2wOyBwdMPQ/join\n👌🏻 Abonne-toi : https://www.youtub",
+     "duration": "PT11M2S",
+     "like_count": 2505,
+     "published_at": "2026-04-11T16:30:12Z",
+     "title": "Comment Générer des Images et Vidéos INCROYABLES avec une IA LOCALE et ILLIMITÉE sur ton PC",
+     "view_count": 58062
+    },
+    "platform": "youtube",
+    "position": 0,
+    "source_id": "src_8a09d70b882b445d",
+    "status": "completed"
+   },
+   {
+    "analysis_id": "4068d181-104",
+    "data_quality": {
+     "comment_count": 87,
+     "confidence_score": 0.7,
+     "level": "strong",
+     "method": "volume_plus_signaux_existants",
+     "noise_ratio": 8.0,
+     "warnings": []
+    },
+    "label": "Vidéo 2",
+    "metadata": {
+     "channel": "Jon Gregor",
+     "comment_count": 150,
+     "description": "🚀 Construis ton actif digital avec l’IA : https://jongregor.com/freedom-business-academy\n📩 Reçois mes stratégies IA & business chaque semaine : https://pages.jongregor.com/newsletter\n\nCe contenu t’a été utile ? Tu peux m’offrir un café pour soutenir mon travail ici : https://coff.ee/jongregor 🙏\n\n🔍 Du Machine Learning à ChatGPT : comprendre enfin l'IA !\nDécouvre comment l'intelligence artificielle (IA), Google Gemini, Claude et GPT transforment notre quotidien. Dans cette vidéo accessible aux débutants, je t'explique :\n- Comment fonctionne le Deep Learning\n- Pourquoi les LLMs révolutionnent le",
+     "duration": "PT8M27S",
+     "like_count": 2150,
+     "published_at": "2025-01-19T14:05:46Z",
+     "title": "L’IA pour débutants : Les bases incontournables",
+     "view_count": 80896
+    },
+    "platform": "youtube",
+    "position": 1,
+    "source_id": "src_76d7ff891b29409e",
+    "status": "completed"
+   }
+  ],
+  "status": "completed",
+  "step": ""
+ },
+ "status": "completed",
+ "success": true
+}

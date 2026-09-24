@@ -67,6 +67,7 @@ const RESULTAT = {
       neutre: { pct: 25, count: 38 },
     },
     emotion_distribution: { Espoir: 38, Frustration: 22 },
+    sentiment_distribution: { positive: 23, neutral: 70, negative: 7 },
     tension_principale: "Vouloir avancer sans savoir par où commencer",
     tendance_dominante: "Recherche de méthode",
     top_comments: [
@@ -89,7 +90,15 @@ const RESULTAT = {
     socio_culturelle: {
       main_insight: "Une génération qui valorise l'autonomie mais craint l'isolement",
       confidence_score: 0.71,
-      fears: ["être jugé par ses pairs"],
+      detected_mechanisms: [
+        { mechanism: "Norme de scepticisme professionnel", confidence: 0.82,
+          evidence: "Douter publiquement protège, c'est le rite d'entrée du milieu" },
+      ],
+      group_dynamics: ["communauté de pratique technologique"],
+      cultural_codes: ["lexique technique comme marqueur d'appartenance"],
+      social_tensions: ["peur de l'échec vs désir de maîtrise"],
+      collective_beliefs: ["la technologie est un levier d'émancipation individuelle"],
+      community_markers: ["partage de tutoriels comme rituel communautaire"],
     },
   },
   psychologie: {
@@ -117,6 +126,78 @@ const RESULTAT = {
     declencheurs_emotionnels: ["preuve par les pairs"],
     opportunites_offre: ["offre intermédiaire à 490 €"],
     hooks_performants: ["Le vrai frein n'est pas le prix"],
+  },
+  demographique: {
+    genre: { hommes: 62, femmes: 38 },
+    tranches_age: [
+      { tranche: '25-34', pourcentage: 45 },
+      { tranche: '35-44', pourcentage: 30 },
+    ],
+    metiers_probables: ['Développeuse full-stack', 'Cheffe de projet digital'],
+    niveau_social_probable: 'Classe moyenne supérieure, revenus stables',
+    centres_interet: ['productivité', 'outils IA'],
+    comportements_digitaux: ['veille technique quotidienne'],
+    localisation: {
+      pays: ['France', 'Belgique'],
+      villes_regions: ['Paris et Île-de-France'],
+      note: 'Inféré des expressions francophones et des références locales',
+    },
+  },
+  culturel: {
+    visions_du_monde: "Le travail bien fait vaut mieux que le travail rapide",
+    croyances_dominantes: ["la compétence se prouve, ne se déclare pas"],
+    references_culturelles: ["memes de développeurs", "culture du code ouvert"],
+    tensions_culturelles: "Entre l'envie d'aller vite et l'exigence de qualité",
+    recits_emergents: "Le retour à l'artisanat numérique",
+    dynamique_communautaire: "Entraide horizontale, méfiance envers les figures d'autorité",
+    signaux_faibles: ["curiosité croissante pour les outils low-code"],
+  },
+  identitaire: {
+    coherence_percue: "Le discours reste stable d'un contenu à l'autre",
+    authenticite_percue: "Perçu comme sincère, peu de posture marketing",
+    singularite: "Se distingue par le refus du superflu",
+    credibilite: "Renforcée par des exemples vérifiables",
+    confiance_generee: "Confiance progressive, pas immédiate",
+    incaherences_detectees: "Aucune incohérence majeure relevée",
+    points_de_differenciation: ["transparence sur les limites de l'outil"],
+    faiblesses_narratives: ["peu de preuves chiffrées à ce stade"],
+    recit_dominant: "Le praticien qui montre son travail plutôt que de le vendre",
+  },
+  transformation: {
+    etat_actuel: {
+      situation: "Ils accumulent des tutoriels sans passer à l'exécution",
+      frustration_principale: "Comprendre sans avancer",
+      croyance_bloquante: "Il me manque encore une information avant de commencer",
+      identite_actuelle: "Spectateur compétent mais non producteur",
+      conscience_du_probleme: "partielle",
+    },
+    le_pont: {
+      ce_dont_ils_ont_besoin: "Un cadre reproductible et une première preuve",
+      obstacle_principal: "La peur de se tromper publiquement",
+      declencheur_de_transition: "Voir un cas réel documenté du début à la fin",
+      message_de_passage: "Vous n'avez pas un problème de connaissance, un problème de preuve",
+    },
+    etat_desire: {
+      transformation_visee: "Passer de l'accumulation à l'exécution autonome",
+      identite_aspiree: "Praticien reconnu pour ses résultats vérifiables",
+      vie_revelee: "Décider vite, sans que la peur de l'erreur ne coûte des mois",
+      indicateur_de_succes: "Un premier résultat publié et assumé",
+    },
+  },
+  marches_caches: {
+    segments_detectes: [
+      {
+        segment: "Les vérificateurs exigeants",
+        description: "Un noyau qui lit tout avant de s'engager, très argumentatif",
+        signaux: "commentaires longs, citations précises, demandes de preuve",
+        taille_estimee: "moyenne",
+        valeur_potentielle: "forte — payent ce qu'ils ont pu vérifier",
+      },
+    ],
+    besoins_sous_exprimes: ["une garantie de méthode, pas de résultat"],
+    opportunites_niche: ["accompagnement individuel pour ce segment exigeant"],
+    audiences_adjacentes: ["formateurs indépendants cherchant un cadre à enseigner"],
+    angle_differentiant: "Le seul praticien qui documente aussi ses échecs, pas seulement ses succès",
   },
   livrables_statistiques: {
     lecture_sujet: {
@@ -185,7 +266,7 @@ const RESULTAT = {
 
 /** Lance une vraie analyse manuelle et attend le résultat — même chemin que
  *  l'utilisateur, plutôt qu'un montage artificiel du composant. */
-async function analyser(resultat = RESULTAT) {
+async function analyser(resultat = RESULTAT, onglet = 'Tableau de bord') {
   global.fetch = vi.fn(async (url) => ({
     ok: true, status: 200, redirected: false, url: 'http://x',
     text: async () => JSON.stringify(
@@ -205,6 +286,10 @@ async function analyser(resultat = RESULTAT) {
   await user.click(screen.getByRole('button', { name: /Lancer l'analyse/ }));
   await vi.advanceTimersByTimeAsync(3500);
   await waitFor(() => expect(screen.getByText('Résultats')).toBeInTheDocument());
+  // L'écran s'ouvre sur la Synthèse ; la plupart des blocs mesurés vivent
+  // dans le Tableau de bord. Un onglet absent (rapport pauvre) est ignoré.
+  const cible = onglet && screen.queryByRole('tab', { name: new RegExp(onglet) });
+  if (cible) await user.click(cible);
   return user;
 }
 
@@ -217,20 +302,29 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); cleanup(); });
 
 describe('Onglets de résultat', () => {
-  it('propose les trois onglets du livrable d’origine', async () => {
-    await analyser();
-    expect(screen.getByRole('tab', { name: /Tableau de bord/ })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Interprétation/ })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /Personas/ })).toBeInTheDocument();
+  it('propose les cinq onglets, dans l’ordre de lecture d’un expert', async () => {
+    await analyser(RESULTAT, null);
+    const noms = screen.getAllByRole('tab').map((t) => t.textContent);
+    expect(noms).toEqual(['Synthèse', 'Tableau de bord', 'Psychologie', 'Stratégie', 'Personas (1)']);
+  });
+
+  it('s’ouvre sur la synthèse, pas sur les chiffres bruts', async () => {
+    await analyser(RESULTAT, null);
+    expect(screen.getByRole('tab', { name: 'Synthèse' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText("Ce qu'il faut retenir")).toBeInTheDocument();
   });
 
   it('n’affiche pas un onglet qui serait vide', async () => {
     /* Mieux vaut deux onglets pleins que trois dont un déçoit. */
     await analyser({ ...RESULTAT, personas: [], interpretation: {},
-             psychologie: {}, aspirations: {}, marketing: {} });
+             psychologie: {}, aspirations: {}, marketing: {}, culturel: {},
+             identitaire: {}, transformation: {}, marches_caches: {},
+             livrables_statistiques: {}, grille_psychologique: {}, recommandations: {} });
     screen.getByText(/Audience compétente/);
     expect(screen.queryByRole('tab', { name: /Personas/ })).toBeNull();
-    expect(screen.queryByRole('tab', { name: /Interprétation/ })).toBeNull();
+    expect(screen.queryByRole('tab', { name: /Psychologie/ })).toBeNull();
+    expect(screen.queryByRole('tab', { name: /Stratégie/ })).toBeNull();
+    expect(screen.queryByRole('tab', { name: /Synthèse/ })).toBeNull();
   });
 });
 
@@ -251,14 +345,28 @@ describe('Tableau de bord', () => {
     expect(screen.getByText(/Le prix me freine/)).toBeInTheDocument();
     expect(screen.getByText(/♥ 42/)).toBeInTheDocument();
   });
+
+  it('montre les émotions détectées en camembert, avec leur pourcentage', async () => {
+    await analyser();
+    expect(screen.getByText('Espoir')).toBeInTheDocument();
+    expect(screen.getByText('38%')).toBeInTheDocument();
+    expect(screen.getByText('Frustration')).toBeInTheDocument();
+    expect(screen.getByText('22%')).toBeInTheDocument();
+  });
+
+  it('montre les camemberts sentiments et positions dans les métriques pondérées', async () => {
+    await analyser();
+    expect(screen.getByText('Sentiments')).toBeInTheDocument();
+    expect(screen.getByText('Positif')).toBeInTheDocument();
+    expect(screen.getByText('23%')).toBeInTheDocument();
+    const carte = screen.getByText('Positions').closest('.gv2-psy-card');
+    expect(within(carte).getByText('Favorable')).toBeInTheDocument();
+  });
 });
 
-describe('Interprétation', () => {
-  async function ouvrir() {
-    const user = await analyser();
-    await user.click(screen.getByRole('tab', { name: /Interprétation/ }));
-    return user;
-  }
+describe('Psychologie et stratégie', () => {
+  const ouvrir = () => analyser(RESULTAT, 'Psychologie');
+  const ouvrirStrategie = () => analyser(RESULTAT, 'Stratégie');
 
   it('montre les deux lectures, psychologique et socio-culturelle', async () => {
     await ouvrir();
@@ -280,6 +388,18 @@ describe('Interprétation', () => {
     expect(screen.getByText('confiance 82%')).toBeInTheDocument();
   });
 
+  it('montre les dynamiques de groupe et les tensions sociales de la lecture socio-culturelle', async () => {
+    /* group_dynamics/cultural_codes/social_tensions/collective_beliefs/community_markers
+       sont propres à la lecture socio-culturelle — la lecture psychologique ne les
+       peuple jamais. Vérifié dans la bonne carte pour ne pas se satisfaire d'un
+       match ambigu entre les deux lectures. */
+    await ouvrir();
+    const carte = screen.getByText('Lecture socio-culturelle').closest('.gv2-psy-interp');
+    expect(within(carte).getByText('communauté de pratique technologique')).toBeInTheDocument();
+    expect(within(carte).getByText('peur de l\'échec vs désir de maîtrise')).toBeInTheDocument();
+    expect(within(carte).getByText('la technologie est un levier d\'émancipation individuelle')).toBeInTheDocument();
+  });
+
   it('montre la réalité intérieure de l’audience', async () => {
     await ouvrir();
     expect(screen.getByText('manque de temps')).toBeInTheDocument();
@@ -294,9 +414,40 @@ describe('Interprétation', () => {
   });
 
   it('montre les signaux exploitables', async () => {
-    await ouvrir();
+    await ouvrirStrategie();
     expect(screen.getByText(/Accompagnement premium/)).toBeInTheDocument();
     expect(screen.getByText('je n’y arriverai pas'.replace('’', "'"))).toBeInTheDocument();
+  });
+
+  it('montre la cohérence et l’identité perçues', async () => {
+    await ouvrirStrategie();
+    expect(screen.getByText('Cohérence & identité perçues')).toBeInTheDocument();
+    expect(screen.getByText(/Le discours reste stable/)).toBeInTheDocument();
+    expect(screen.getByText('transparence sur les limites de l\'outil')).toBeInTheDocument();
+  });
+
+  it('montre les codes et dynamiques culturelles', async () => {
+    await ouvrir();
+    expect(screen.getByText('Codes & dynamiques culturelles')).toBeInTheDocument();
+    expect(screen.getByText(/Le travail bien fait vaut mieux/)).toBeInTheDocument();
+    expect(screen.getByText('la compétence se prouve, ne se déclare pas')).toBeInTheDocument();
+  });
+
+  it('montre la trajectoire de transformation, du présent vers le désiré', async () => {
+    await ouvrir();
+    expect(screen.getByText('Trajectoire de transformation')).toBeInTheDocument();
+    expect(screen.getByText('État actuel')).toBeInTheDocument();
+    expect(screen.getByText('Le pont')).toBeInTheDocument();
+    expect(screen.getByText('État désiré')).toBeInTheDocument();
+    expect(screen.getByText(/Comprendre sans avancer/)).toBeInTheDocument();
+    expect(screen.getByText(/problème de preuve/)).toBeInTheDocument();
+  });
+
+  it('montre les marchés cachés et l’angle différentiant', async () => {
+    await ouvrirStrategie();
+    expect(screen.getByText('Marchés cachés & opportunités')).toBeInTheDocument();
+    expect(screen.getByText('Les vérificateurs exigeants')).toBeInTheDocument();
+    expect(screen.getByText(/documente aussi ses échecs/)).toBeInTheDocument();
   });
 });
 
@@ -318,9 +469,46 @@ describe('Rapport incomplet', () => {
   it('reste lisible quand des blocs manquent', async () => {
     /* Un rapport pauvre doit produire un écran pauvre mais propre — jamais
        une section à trous ni un plantage. */
-    await analyser({ meta: { total_commentaires: 3 }, dashboard: {}, brief: {} });
+    await analyser({ meta: { total_commentaires: 3 }, dashboard: {}, brief: {} }, null);
     expect(screen.getByText('Résultats')).toBeInTheDocument();
     expect(screen.queryByRole('tab')).toBeNull();
+  });
+
+  it('n’affiche pas la section démographique quand elle est vide', async () => {
+    await analyser({ ...RESULTAT, demographique: {} });
+    expect(screen.queryByText('Données démographiques')).toBeNull();
+  });
+
+  it('n’affiche pas les nouveaux blocs d’interprétation quand ils sont vides', async () => {
+    const vide = { ...RESULTAT, culturel: {}, identitaire: {}, transformation: {}, marches_caches: {} };
+    await analyser(vide, 'Psychologie');
+    expect(screen.queryByText('Codes & dynamiques culturelles')).toBeNull();
+    expect(screen.queryByText('Trajectoire de transformation')).toBeNull();
+    cleanup();
+    await analyser(vide, 'Stratégie');
+    expect(screen.queryByText('Cohérence & identité perçues')).toBeNull();
+    expect(screen.queryByText('Marchés cachés & opportunités')).toBeNull();
+  });
+});
+
+describe('Données démographiques', () => {
+  /* Champ calculé par le backend (core/analyzer.py) mais jamais affiché
+     jusqu'ici : âge, genre, métiers, localisation inférés des commentaires. */
+
+  it('montre la répartition homme/femme et les tranches d’âge', async () => {
+    await analyser();
+    expect(screen.getByText('Données démographiques')).toBeInTheDocument();
+    expect(screen.getByText('62% hommes')).toBeInTheDocument();
+    expect(screen.getByText('38% femmes')).toBeInTheDocument();
+    expect(screen.getByText('25-34')).toBeInTheDocument();
+    expect(screen.getByText('45%')).toBeInTheDocument();
+  });
+
+  it('montre les métiers, la localisation et la note d’inférence', async () => {
+    await analyser();
+    expect(screen.getByText('Développeuse full-stack')).toBeInTheDocument();
+    expect(screen.getByText('Paris et Île-de-France')).toBeInTheDocument();
+    expect(screen.getByText(/expressions francophones/)).toBeInTheDocument();
   });
 });
 
@@ -406,11 +594,7 @@ describe('Blocs mesurés du tableau de bord', () => {
 });
 
 describe('Insights fondés sur données', () => {
-  async function ouvrirInterpretation() {
-    const user = await analyser();
-    await user.click(screen.getByRole('tab', { name: /Interprétation/ }));
-    return user;
-  }
+  const ouvrirInterpretation = () => analyser(RESULTAT, 'Psychologie');
 
   it('montre chaque livrable avec sa donnée, ses signaux et son sens', async () => {
     /* La forme qui distingue une analyse d'une opinion : chaque conclusion
@@ -429,7 +613,7 @@ describe('Insights fondés sur données', () => {
   });
 
   it('montre les recommandations stratégiques et les prochaines étapes', async () => {
-    await ouvrirInterpretation();
+    await analyser(RESULTAT, null);
     expect(screen.getByText(/créateurs autonomes et respectés/)).toBeInTheDocument();
     expect(screen.getByText(/Devenez le créateur/)).toBeInTheDocument();
     expect(screen.getByText(/Lancer le défi/)).toBeInTheDocument();
@@ -492,9 +676,9 @@ describe('Lecture visuelle : couleur porteuse de sens et visage des personas', (
       const label = row.querySelector('.gv2-psy-bar-label');
       if (label) tons[label.textContent.trim()] = row.className;
     });
-    expect(tons.favorable).toMatch(/is-pos/);
-    expect(tons.oppose || tons['opposé']).toMatch(/is-neg/);
-    expect(tons.neutre).toMatch(/is-neu/);
+    expect(tons.Favorable).toMatch(/is-pos/);
+    expect(tons['Opposé']).toMatch(/is-neg/);
+    expect(tons.Neutre).toMatch(/is-neu/);
   });
 
   it('marque le camp du groupe sur la carte elle-même', async () => {
@@ -503,14 +687,14 @@ describe('Lecture visuelle : couleur porteuse de sens et visage des personas', (
     expect(groupe.className).toMatch(/is-neu/);      // stance « neutre »
   });
 
-  it('ne colore pas un mot qu’il ne comprend pas', async () => {
-    /* Mieux vaut rester neutre que colorer faux : une émotion inconnue ne
-       doit pas être présentée comme positive. */
+  it('affiche une émotion inconnue sans planter', async () => {
+    /* Les émotions sont désormais un camembert : chaque tranche a une
+       couleur de rang dans une palette fixe, plus un code sémantique par
+       mot (positif/négatif) comme l'étaient les anciennes barres — un mot
+       inconnu doit simplement s'afficher, sans erreur. */
     await analyser({ ...RESULTAT, dashboard: { ...RESULTAT.dashboard,
       emotion_distribution: [{ emotion: 'xyzzy', pourcentage: 30 }] } });
-    const row = [...document.querySelectorAll('.gv2-psy-bar-row')].find(
-      (r) => r.textContent.includes('xyzzy'));
-    expect(row.className).toMatch(/is-neu/);
+    expect(screen.getByText('Xyzzy')).toBeInTheDocument();
   });
 });
 
