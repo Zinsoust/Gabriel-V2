@@ -1,6 +1,6 @@
 import React from 'react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CreatorConversation } from '../CreatorConversation.jsx';
 
@@ -213,5 +213,110 @@ describe('Garde anti-invention à l’écran', () => {
     const marques = [...document.querySelectorAll('.gv2-cdoc-placeholder')].map(n => n.textContent);
     expect(marques).toEqual(['chiffre à vérifier', 'chiffre à vérifier']);
     expect(document.body.textContent).toContain('[pause]');
+  });
+});
+
+
+describe('Générations longues : attente, reprise et relance', () => {
+  const RESULTAT = { content: { texte: 'Script prêt.' }, full_text: 'Script prêt.', success: true };
+  const reponse = (corps, ok = true) => ({ ok, status: ok ? 200 : 500, redirected: false, url: 'http://x', text: async () => JSON.stringify(corps) });
+
+  // Simule le serveur : chaque suivi répond selon `etat(n)` (n = numéro du suivi).
+  function serveur(etat) {
+    const envois = [];
+    let suivis = 0;
+    global.fetch = vi.fn(async (adresse, options = {}) => {
+      const url = String(adresse);
+      if (url.includes('/createur/generate')) { envois.push(JSON.parse(options.body)); return reponse({ job_id: `cr_test_${envois.length}`, status: 'running' }); }
+      if (url.includes('/api/v2/jobs/')) { suivis += 1; return etat(suivis, url); }
+      return reponse([]);
+    });
+    return { envois, suivis: () => suivis };
+  }
+
+  async function avancer(secondes) {
+    for (let i = 0; i < secondes / 2; i += 1) await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
+  }
+
+  async function demander(user, texte = 'Un script vidéo sur la reconversion') {
+    await user.type(screen.getByRole('textbox', { name: 'Demande de création' }), texte);
+    await user.click(screen.getByRole('button', { name: /Lancer|Créer|Générer/ }));
+  }
+
+  beforeEach(() => {
+    window.localStorage.clear();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+  afterEach(() => { vi.useRealTimers(); window.localStorage.clear(); });
+
+  it('attend une génération de plus de quatre minutes au lieu d’abandonner', async () => {
+    serveur(n => n < 140 ? reponse({ status: 'running', step: 'Rédaction', progress: 40 }) : reponse({ status: 'done', data: RESULTAT }));
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderCreator();
+    await demander(user);
+    await avancer(285);                                   // 142 suivis = 4 min 45 : l'ancien plafond (120 suivis) est dépassé
+    expect(await screen.findByText('Script prêt.')).toBeInTheDocument();
+    expect(screen.queryByText(/temps de création est dépassé|prend plus de temps/)).not.toBeInTheDocument();
+  });
+
+  it('retrouve une création en cours après un rechargement de page', async () => {
+    window.localStorage.setItem('gabriel_pending_creation', JSON.stringify({ id: 'cr_avant_rechargement', request: 'Un script sur la reconversion', t0: Date.now() - 60000 }));
+    const { envois } = serveur(() => reponse({ status: 'done', data: RESULTAT }));
+    renderCreator();
+    expect(await screen.findByText('Le Créateur retrouve votre création en cours…')).toBeInTheDocument();
+    await avancer(4);
+    expect(await screen.findByText('Script prêt.')).toBeInTheDocument();
+    expect(screen.getByText('Un script sur la reconversion')).toBeInTheDocument();
+    expect(envois).toHaveLength(0);                                  // aucune nouvelle génération payante
+    expect(window.localStorage.getItem('gabriel_pending_creation')).toBeNull();
+  });
+
+  it('n’essaie pas de reprendre une création trop ancienne', () => {
+    window.localStorage.setItem('gabriel_pending_creation', JSON.stringify({ id: 'cr_vieux', request: 'Ancienne demande', t0: Date.now() - 20 * 60 * 1000 }));
+    const { suivis } = serveur(() => reponse({ status: 'done', data: RESULTAT }));
+    renderCreator();
+    expect(screen.queryByText('Le Créateur retrouve votre création en cours…')).not.toBeInTheDocument();
+    expect(suivis()).toBe(0);
+  });
+
+  it('propose de relancer la même demande après une interruption du serveur', async () => {
+    let interrompu = true;
+    const { envois } = serveur(() => interrompu
+      ? reponse({ status: 'interrupted', error: 'La génération a été interrompue par un redémarrage du serveur. Relancez-la : votre demande et votre contexte sont conservés.' })
+      : reponse({ status: 'done', data: RESULTAT }));
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderCreator();
+    await demander(user, 'Un script pour les débutants');
+    await avancer(4);
+    expect(await screen.findByText(/La génération a été interrompue par un redémarrage/)).toBeInTheDocument();
+    expect(window.localStorage.getItem('gabriel_pending_creation')).toBeNull();
+    expect(document.querySelector('.gv2-creator-message--status')).toBeNull();   // plus de message d'attente à côté de l'erreur
+
+    interrompu = false;
+    await user.click(screen.getByRole('button', { name: /Relancer la création/ }));
+    await avancer(4);
+    expect(await screen.findByText('Script prêt.')).toBeInTheDocument();
+    expect(envois).toHaveLength(2);
+    expect(envois[1].user_request).toBe('Un script pour les débutants');   // la même demande, sans la retaper
+    expect(screen.queryByRole('button', { name: /Relancer la création/ })).not.toBeInTheDocument();
+  });
+
+  it('supporte quelques coupures réseau pendant le suivi', async () => {
+    serveur(n => { if (n <= 3) throw new TypeError('Failed to fetch'); return reponse({ status: 'done', data: RESULTAT }); });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderCreator();
+    await demander(user);
+    await avancer(12);
+    expect(await screen.findByText('Script prêt.')).toBeInTheDocument();
+  });
+
+  it('abandonne avec un message clair quand la connexion est vraiment perdue', async () => {
+    serveur(() => { throw new TypeError('Failed to fetch'); });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderCreator();
+    await demander(user);
+    await avancer(24);
+    expect(await screen.findByText(/connexion au serveur est perdue/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Relancer la création/ })).toBeInTheDocument();
   });
 });

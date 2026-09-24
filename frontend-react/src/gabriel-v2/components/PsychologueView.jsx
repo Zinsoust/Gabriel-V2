@@ -20,6 +20,14 @@ import { fetchV2, isLoginResponse, readApiPayload } from '../api-client.js';
    vérifiable de bout en bout plutôt que de tout faire à moitié. */
 
 const PENDING_JOB_KEY = 'gabriel_pending_job';
+// Durées mesurées le 24/09/2026 : une Cross Analyse de deux vidéos a pris plus de
+// 9 minutes, alors que l'écran abandonnait à 8. On attend au temps, pas au nombre d'essais.
+const ANALYSIS_MAX_WAIT_MS = 20 * 60 * 1000;
+const CROSS_MAX_WAIT_MS = 40 * 60 * 1000;
+const ANALYSIS_EXPECTED_MS = 4 * 60 * 1000;
+const CROSS_EXPECTED_MS = 10 * 60 * 1000;
+const POLL_MS = 3000;
+const MAX_NETWORK_FAILURES = 8;
 
 // Contrat repris de la page historique : ces trois plateformes ont une vraie
 // collecte de commentaires. Google est annoncé mais pas encore connecté ;
@@ -1858,7 +1866,7 @@ function PlaceInComparison({ aud, synthesis, specific }) {
   </div>;
 }
 
-function CrossAudienceView({ aud, audiences, onSwitch, onBack, synthesis, specific, onNavigateAgent }) {
+function CrossAudienceView({ aud, audiences, onSwitch, onBack, synthesis, specific, onNavigateAgent, onStratege, onCreateur }) {
   const [state, setState] = useState({ loading: true, data: null, error: '' });
   useEffect(() => {
     let live = true;
@@ -1886,12 +1894,14 @@ function CrossAudienceView({ aud, audiences, onSwitch, onBack, synthesis, specif
     <PlaceInComparison aud={aud} synthesis={synthesis} specific={specific} />
     {state.loading && <p className="gv2-cross-empty">Chargement de l’analyse complète…</p>}
     {state.error && <p className="gv2-cross-empty">{state.error}</p>}
-    {state.data && <PsychoResult data={state.data} onReset={onBack} onGoToStratege={() => onNavigateAgent?.('stratege')}
-      onGoToCreateur={onNavigateAgent ? () => onNavigateAgent('createur') : undefined} />}
+    {/* Depuis le détail d'une audience, Ariane et le Créateur reçoivent l'analyse de CETTE audience. */}
+    {state.data && <PsychoResult data={state.data} onReset={onBack}
+      onGoToStratege={onStratege ? d => onStratege(d || state.data) : () => onNavigateAgent?.('stratege')}
+      onGoToCreateur={onCreateur ? () => onCreateur({ id: aud.analysis_id, title: aud.title }) : (onNavigateAgent ? () => onNavigateAgent('createur') : undefined)} />}
   </div>;
 }
 
-function PsychoCrossResult({ data, onReset, onNavigateAgent }) {
+function PsychoCrossResult({ data, onReset, onNavigateAgent, onStrategeCross, onStrategeAudience, onCreateurAudience }) {
   const result = data.result || {};
   const status = data.status || '';
   const audiences = crossAudiences(result);
@@ -1961,7 +1971,8 @@ function PsychoCrossResult({ data, onReset, onNavigateAgent }) {
     return <section className="gv2-psy-result gv2-cross-room">
       {header}
       <CrossAudienceView aud={opened} audiences={audiences} onSwitch={setOpenSource} onBack={() => setOpenSource('')}
-        synthesis={synthesis} specific={specific} onNavigateAgent={onNavigateAgent} />
+        synthesis={synthesis} specific={specific} onNavigateAgent={onNavigateAgent}
+        onStratege={onStrategeAudience} onCreateur={onCreateurAudience} />
     </section>;
   }
 
@@ -2126,7 +2137,7 @@ function PsychoCrossResult({ data, onReset, onNavigateAgent }) {
         <span className="gv2-psy-next-hint">Transformer cette lecture croisée</span>
         <div className="gv2-psy-next-actions">
           <button type="button" className="gv2-psy-ghost-btn" onClick={() => onNavigateAgent('createur')}>Un message commun · Créateur →</button>
-          <button type="button" className="gv2-psy-primary-btn" onClick={() => onNavigateAgent('stratege')}>Construire la stratégie · Ariane →</button>
+          <button type="button" className="gv2-psy-primary-btn" onClick={() => onStrategeCross ? onStrategeCross(data) : onNavigateAgent('stratege')}>Construire la stratégie · Ariane →</button>
         </div>
       </div>}
     </div>}
@@ -2249,6 +2260,36 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent,
     onNavigateAgent?.('stratege');
   }
 
+  // Cross Analyse → Ariane : le handoff porte l'identifiant de la Cross (le serveur la
+  // résout en synthèse croisée vérifiée) et un résumé lisible pour l'écran d'Ariane.
+  function goToStrategeFromCross(crossData) {
+    const res = crossData?.result || {};
+    const verdict = (res.cross_synthesis || {}).verdict || {};
+    const message = ((res.cross_synthesis || {}).message_commun || {}).message;
+    const audiences = crossAudiences(res);
+    const clean = t => String(t || '').replace(/\*+/g, '').trim();
+    const lines = [];
+    if (audiences.length) lines.push('Audiences comparées : ' + audiences.map(a => `${a.letter} = ${a.title}`).join(' ; '));
+    if (verdict.rassemble) lines.push('Ce qui les rassemble : ' + clean(verdict.rassemble));
+    if (verdict.separe) lines.push('Ce qui les sépare : ' + clean(verdict.separe));
+    if (verdict.a_leur_dire) lines.push('À leur dire : ' + clean(verdict.a_leur_dire));
+    if (message) lines.push('Message commun : ' + clean(message));
+    try {
+      window.sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({
+        analysis_id: res.cross_analysis_id || crossData?.cross_analysis_id,
+        folder_id: workspace?.folder_id || '',
+        psycho_brief: lines.join('\n'),
+      }));
+    } catch (_) { /* sessionStorage peut être indisponible (navigation privée) */ }
+    onNavigateAgent?.('stratege');
+  }
+
+  // Depuis le détail d'une audience de la Salle Cross, le Créateur écrit pour cette audience.
+  function goToCreateurFor(analysis) {
+    if (analysis?.id) onAnalysisReady?.(analysis);
+    onNavigateAgent?.('createur');
+  }
+
   async function checkLink() {
     const config = LINK_SOURCES[platform];
     if (!config) return;
@@ -2285,12 +2326,23 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent,
     if (pollingRef.current) return;
     pollingRef.current = true;
     try {
-      for (let attempt = 0; attempt < 160; attempt += 1) {
-        await pause(3000);
+      const startedAt = Date.now();
+      let networkFailures = 0;
+      while (Date.now() - startedAt < ANALYSIS_MAX_WAIT_MS) {
+        await pause(POLL_MS);
         if (!aliveRef.current) return;
-        const response = await fetchV2(`/status/${encodeURIComponent(jobId)}`);
-        if (isLoginResponse(response)) { window.location.assign('/login'); return; }
-        const payload = await readApiPayload(response, 'Le suivi de l’analyse');
+        let payload;
+        try {
+          const response = await fetchV2(`/status/${encodeURIComponent(jobId)}`);
+          if (isLoginResponse(response)) { window.location.assign('/login'); return; }
+          payload = await readApiPayload(response, 'Le suivi de l’analyse');
+          networkFailures = 0;
+        } catch (error) {
+          // Serveur qui redémarre ou réseau qui saute : on réessaie avant d'abandonner.
+          networkFailures += 1;
+          if (networkFailures >= MAX_NETWORK_FAILURES) throw new Error('La connexion au serveur est perdue. Relancez l’analyse.');
+          continue;
+        }
         if (payload.status === 'done') {
           setResult(payload.data); setResultKind('single'); setStage('result');
           try { window.localStorage.removeItem(PENDING_JOB_KEY); } catch (_) {}
@@ -2300,10 +2352,10 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent,
         if (['error', 'interrupted', 'not_found'].includes(payload.status)) {
           throw new Error(payload.error || 'L’analyse a été interrompue.');
         }
-        setProgress(Math.min(95, Math.round(((attempt + 1) / 160) * 100)));
+        setProgress(Math.min(95, Math.round(((Date.now() - startedAt) / ANALYSIS_EXPECTED_MS) * 100)));
         if (payload.step) setStep(payload.step);
       }
-      throw new Error('L’analyse prend plus de temps que prévu.');
+      throw new Error('L’analyse prend plus de temps que prévu et continue en arrière-plan. Retrouvez-la dans le menu Analyses dans quelques minutes.');
     } catch (error) {
       try { window.localStorage.removeItem(PENDING_JOB_KEY); } catch (_) {}
       if (!aliveRef.current) return;
@@ -2465,12 +2517,22 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent,
     if (crossPollingRef.current) return;
     crossPollingRef.current = true;
     try {
-      for (let attempt = 0; attempt < 160; attempt += 1) {
-        await pause(3000);
+      const startedAt = Date.now();
+      let networkFailures = 0;
+      while (Date.now() - startedAt < CROSS_MAX_WAIT_MS) {
+        await pause(POLL_MS);
         if (!aliveRef.current) return;
-        const response = await fetchV2(`/api/v2/agents/psychologue/cross-analyses/${encodeURIComponent(crossId)}/status`);
-        if (isLoginResponse(response)) { window.location.assign('/login'); return; }
-        const payload = await readApiPayload(response, 'Le suivi de la Cross Analyse');
+        let payload;
+        try {
+          const response = await fetchV2(`/api/v2/agents/psychologue/cross-analyses/${encodeURIComponent(crossId)}/status`);
+          if (isLoginResponse(response)) { window.location.assign('/login'); return; }
+          payload = await readApiPayload(response, 'Le suivi de la Cross Analyse');
+          networkFailures = 0;
+        } catch (error) {
+          networkFailures += 1;
+          if (networkFailures >= MAX_NETWORK_FAILURES) throw new Error('La connexion au serveur est perdue. Relancez la Cross Analyse.');
+          continue;
+        }
         if (payload.status === 'completed' || payload.status === 'partial_success') {
           const fullResponse = await fetchV2(`/api/v2/agents/psychologue/cross-analyses/${encodeURIComponent(crossId)}`);
           if (isLoginResponse(fullResponse)) { window.location.assign('/login'); return; }
@@ -2484,10 +2546,10 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent,
         if (['error', 'failed', 'interrupted'].includes(payload.status)) {
           throw new Error(payload.error || 'La Cross Analyse a été interrompue.');
         }
-        setProgress(Math.min(95, Math.round(((attempt + 1) / 160) * 100)));
+        setProgress(Math.min(95, Math.round(((Date.now() - startedAt) / CROSS_EXPECTED_MS) * 100)));
         if (payload.step) setStep(payload.step);
       }
-      throw new Error('La Cross Analyse prend plus de temps que prévu.');
+      throw new Error('La Cross Analyse prend plus de temps que prévu et continue en arrière-plan. Retrouvez-la dans le menu Cross Analyses dans quelques minutes.');
     } catch (error) {
       try { window.localStorage.removeItem(PENDING_JOB_KEY); } catch (_) {}
       if (!aliveRef.current) return;
@@ -2626,7 +2688,8 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent,
 
   if (stage === 'loading') content = <PsychoLoading progress={progress} step={step} isCross={resultKind === 'cross'} crossSources={crossSources} />;
   if (stage === 'error') content = <PsychoError message={errorMsg} onRetry={reset} />;
-  if (stage === 'result' && resultKind === 'cross' && crossResult) content = <PsychoCrossResult data={crossResult} onReset={reset} onNavigateAgent={onNavigateAgent} />;
+  if (stage === 'result' && resultKind === 'cross' && crossResult) content = <PsychoCrossResult data={crossResult} onReset={reset} onNavigateAgent={onNavigateAgent}
+    onStrategeCross={goToStrategeFromCross} onStrategeAudience={goToStratege} onCreateurAudience={goToCreateurFor} />;
   if (stage === 'result' && result) content = <PsychoResult data={result} onReset={reset} onGoToStratege={goToStratege}
                                    onGoToCreateur={onNavigateAgent ? () => onNavigateAgent('createur') : undefined} />;
 

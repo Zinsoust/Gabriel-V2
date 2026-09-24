@@ -186,6 +186,8 @@ export function AppShell({ bootstrap }) {
   const [creatorHasOutput, setCreatorHasOutput] = useState(false);
   const [creatorRefinementRequest, setCreatorRefinementRequest] = useState(null);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  // Sur téléphone, le menu latéral s'ouvre en tiroir (il est masqué sinon : rien d'autre ne permet d'y accéder).
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [creditBalance, setCreditBalance] = useState(() => creditBalanceFrom(bootstrap.user));
   const [landingContextOpen, setLandingContextOpen] = useState(false);
@@ -744,11 +746,22 @@ export function AppShell({ bootstrap }) {
     setRightCollapsed(current => !current);
   }
 
-  return <main className={`gv2-shell${darkMode ? ' gv2-theme-dark' : ''}${effectiveLeftCollapsed ? ' is-left-collapsed' : ''}${effectiveRightCollapsed ? ' is-right-collapsed' : ''}${isConversationLanding ? ' is-landing' : ''}`} ref={shellRef} style={{ '--gv2-left-width': `${effectiveLeftCollapsed ? 0 : leftWidth}px`, '--gv2-right-width': `${effectiveRightCollapsed ? 0 : rightWidth}px`, '--gv2-discussion-width': `${discussionCollapsed ? 47 : discussionWidth}px` }}>
-    <Sidebar workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} activeWorkspace={activeWorkspace} activeTab={tab} mission={mission} onSelectWorkspace={openWorkspace} onCreateWorkspace={createWorkspace} onDeleteWorkspace={deleteWorkspace} deletingWorkspaceId={deletingWorkspaceId} onSelectConversation={() => selectTab('conversation')} onStartNewConversation={startNewConversation} onStartAnalysis={() => selectTab(DEFAULT_TAB)} onOpenAnalysis={id => { setAnalysisToOpen({ id, at: Date.now() }); selectTab(DEFAULT_TAB); }} onOpenCross={id => { setAnalysisToOpen({ crossId: id, at: Date.now() }); selectTab(DEFAULT_TAB); }} onStartCross={() => { setAnalysisToOpen({ startCross: true, at: Date.now() }); selectTab(DEFAULT_TAB); }} onSelectAgent={selectTab} user={bootstrap.user} collapsed={effectiveLeftCollapsed} onToggleCollapsed={toggleNavigation} darkMode={darkMode} onToggleDarkMode={() => setDarkMode(current => !current)} onStartGuide={() => setOnboardingOpen(true)} initialSection={sectionDemandee} />
+  // Le tiroir se referme dès qu'on a choisi quelque part où aller, ou avec Échap.
+  useEffect(() => { setMobileMenuOpen(false); }, [tab, analysisToOpen, activeWorkspaceId]);
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+    const onKey = event => { if (event.key === 'Escape') setMobileMenuOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileMenuOpen]);
+
+  return <main className={`gv2-shell${mobileMenuOpen ? ' is-mobile-menu-open' : ''}${darkMode ? ' gv2-theme-dark' : ''}${effectiveLeftCollapsed ? ' is-left-collapsed' : ''}${effectiveRightCollapsed ? ' is-right-collapsed' : ''}${isConversationLanding ? ' is-landing' : ''}`} ref={shellRef} style={{ '--gv2-left-width': `${effectiveLeftCollapsed ? 0 : leftWidth}px`, '--gv2-right-width': `${effectiveRightCollapsed ? 0 : rightWidth}px`, '--gv2-discussion-width': `${discussionCollapsed ? 47 : discussionWidth}px` }}>
+    <Sidebar workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} activeWorkspace={activeWorkspace} activeTab={tab} mission={mission} onSelectWorkspace={openWorkspace} onCreateWorkspace={createWorkspace} onDeleteWorkspace={deleteWorkspace} deletingWorkspaceId={deletingWorkspaceId} onSelectConversation={() => selectTab('conversation')} onStartNewConversation={startNewConversation} onStartAnalysis={() => selectTab(DEFAULT_TAB)} onOpenAnalysis={id => { setAnalysisToOpen({ id, at: Date.now() }); selectTab(DEFAULT_TAB); }} onOpenCross={id => { setAnalysisToOpen({ crossId: id, at: Date.now() }); selectTab(DEFAULT_TAB); }} onStartCross={() => { setAnalysisToOpen({ startCross: true, at: Date.now() }); selectTab(DEFAULT_TAB); }} onSelectAgent={selectTab} user={bootstrap.user} collapsed={effectiveLeftCollapsed && !mobileMenuOpen} onToggleCollapsed={toggleNavigation} darkMode={darkMode} onToggleDarkMode={() => setDarkMode(current => !current)} onStartGuide={() => setOnboardingOpen(true)} initialSection={sectionDemandee} />
+    {mobileMenuOpen && <button type="button" className="gv2-mobile-backdrop" onClick={() => setMobileMenuOpen(false)} aria-label="Fermer le menu de navigation" />}
     <section className="gv2-main-column">
       <header className="gv2-workspace-header">
         <div className="gv2-topline">
+          <button type="button" className="gv2-mobile-menu-button" onClick={() => setMobileMenuOpen(true)} aria-label="Ouvrir le menu de navigation" aria-expanded={mobileMenuOpen}><Icon name="menu" size={18} /></button>
           <div className="gv2-workspace-heading" ref={workspaceSwitcherRef}>
             <button type="button" className="gv2-workspace-title" onClick={() => setWorkspaceMenuOpen(current => !current)} aria-expanded={workspaceMenuOpen} aria-controls="gv2-workspace-switcher"><span>{activeWorkspace?.title || 'Nouvel espace de travail'}</span><Icon name="chevronDown" size={17} /></button>
             {workspaceMenuOpen && <div className="gv2-workspace-switcher" id="gv2-workspace-switcher" role="menu" aria-label="Choisir un espace de travail"><button type="button" className="gv2-workspace-switcher-new" role="menuitem" onClick={() => { startNewConversation(); setWorkspaceMenuOpen(false); }}><Icon name="plus" size={15} /><span>Nouvelle conversation</span></button><p>Vos espaces de travail</p><div>{workspaces.length ? workspaces.map(workspace => <button key={workspace.folder_id} type="button" role="menuitem" className={workspace.folder_id === activeWorkspaceId ? 'is-current' : ''} onClick={() => { openWorkspace(workspace.folder_id); setWorkspaceMenuOpen(false); }}><span>{workspaceInitial(workspace.title)}</span><strong>{workspace.title || 'Espace sans titre'}</strong>{workspace.folder_id === activeWorkspaceId && <Icon name="check" size={14} />}</button>) : <small>Aucun espace de travail enregistré pour le moment.</small>}</div></div>}

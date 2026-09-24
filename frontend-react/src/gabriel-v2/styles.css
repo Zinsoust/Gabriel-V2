@@ -3970,3 +3970,36 @@ a.gv2-psy-ghost-btn { display: inline-flex; align-items: center; text-decoration
 .gv2-cross-venn span { top: 50%; width: 62%; height: auto; aspect-ratio: 1; transform: translateY(-50%); }
 .gv2-cross-venn strong { width: 24%; }
 .gv2-cross-own-title { display: block; margin-top: 8px; color: var(--ink); font-size: 13px; font-weight: 500; line-height: 1.35; }
+
+/* Créateur : relancer une création interrompue (24/09/2026). */
+.gv2-creator-message--error > div { display: grid; gap: 8px; }
+.gv2-creator-retry { justify-self: start; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border: 1px solid currentColor; border-radius: 999px; background: transparent; color: inherit; font: 600 11px var(--gv2-font-ui); cursor: pointer; }
+.gv2-creator-retry:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+html[data-gabriel-v2-theme="dark"] .gv2-creator-message--error { border-color: #5a2f2b; background: #221716; color: #e3a49c; }
+html[data-gabriel-v2-theme="dark"] .gv2-creator-message--error span { background: #4a2724; color: #f0bcb5; }
+
+/* ── Téléphone : navigation entre les agents et menu en tiroir (24/09/2026) ──
+   Avant, le menu latéral ET la barre des agents étaient masqués sous 640 px, sans
+   aucun autre moyen de naviguer : on ne pouvait pas quitter le premier écran. */
+.gv2-mobile-menu-button, .gv2-mobile-backdrop { display: none; }
+@media (max-width: 640px) {
+  .gv2-workspace-header { flex-direction: column; align-items: stretch; height: auto; min-height: 60px; }
+  .gv2-main-column { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+  .gv2-workspace-header, .gv2-topline, .gv2-workspace-heading, .gv2-tabs { min-width: 0; max-width: 100%; }
+  .gv2-navigation-trail { display: none; }
+  .gv2-workspace-heading { flex: 1 1 0; overflow: hidden; }
+  .gv2-workspace-title { display: flex; align-items: center; gap: 4px; max-width: 100%; }
+  .gv2-workspace-title span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gv2-header-actions { flex: 0 0 auto; }
+  .gv2-tabs { display: flex; width: 100%; height: 44px; padding: 0 8px; border-top: 1px solid var(--line); }
+  .gv2-tabs .gv2-tabs-divider { display: none; }
+  .gv2-mobile-menu-button { display: grid; flex: 0 0 auto; width: 36px; height: 36px; margin-right: 8px; place-items: center; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; }
+  .gv2-workspace-title { min-width: 0; max-width: 100%; }
+  .gv2-shell.is-mobile-menu-open .gv2-sidebar { position: fixed; z-index: 70; top: 0; bottom: 0; left: 0; display: flex; width: min(340px, 88vw); height: 100dvh; max-height: none; border-radius: 0 18px 18px 0; background: var(--surface, #fff); box-shadow: 0 0 60px rgba(0, 0, 0, .45); }
+  .gv2-shell.is-mobile-menu-open .gv2-nav-detail { display: grid; flex: 1 1 auto; width: 100%; min-width: 0; height: 100%; overflow: hidden; }
+  .gv2-shell.is-mobile-menu-open .gv2-sidebar-toggle { display: none; }
+  .gv2-cross-head > div, .gv2-cross-auds { min-width: 0; max-width: 100%; }
+  .gv2-cross-auds { width: 100%; }
+  .gv2-cross-aud span { flex: 1 1 auto; min-width: 0; max-width: none; }
+  .gv2-mobile-backdrop { position: fixed; z-index: 65; inset: 0; display: block; width: 100%; padding: 0; border: 0; background: rgba(0, 0, 0, .5); cursor: pointer; }
+}

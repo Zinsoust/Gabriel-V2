@@ -16,7 +16,7 @@ const R = CROSS.result;
 const S = R.cross_synthesis;
 const [A, B] = R.source_profiles;
 
-function ouvrir() {
+function ouvrir(extra = {}) {
   global.fetch = vi.fn(async (adresse) => {
     const url = String(adresse);
     let corps = [];
@@ -26,11 +26,12 @@ function ouvrir() {
     return { ok: true, status: 200, redirected: false, url: 'http://x', text: async () => JSON.stringify(corps) };
   });
   const user = userEvent.setup();
-  render(<PsychologueView workspace={null} openAnalysisRequest={{ crossId: CROSS.cross_analysis_id, at: 1 }} onNavigateAgent={vi.fn()} />);
+  const onNavigateAgent = extra.onNavigateAgent || vi.fn();
+  render(<PsychologueView workspace={{ folder_id: 'dossier-7' }} openAnalysisRequest={{ crossId: CROSS.cross_analysis_id, at: 1 }} onNavigateAgent={onNavigateAgent} {...extra} />);
   return user;
 }
 
-afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+afterEach(() => { cleanup(); vi.restoreAllMocks(); window.sessionStorage.clear(); });
 
 describe('Salle Cross', () => {
   it('ouvre sur la synthèse croisée avec les deux audiences identifiées', async () => {
@@ -115,5 +116,40 @@ describe('Salle Cross', () => {
 
     await user.click(screen.getByRole('button', { name: '← Synthèse croisée' }));
     expect(screen.getByRole('tab', { name: 'Synthèse croisée' })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('transmet la Cross Analyse à Ariane : identifiant de la Cross et résumé des audiences', async () => {
+    const onNavigateAgent = vi.fn();
+    const user = ouvrir({ onNavigateAgent });
+    await user.click(await screen.findByRole('tab', { name: 'Sujets & angles' }));
+    await user.click(screen.getByRole('button', { name: /Construire la stratégie · Ariane/ }));
+
+    const passage = JSON.parse(window.sessionStorage.getItem('gabriel_for_stratege'));
+    expect(passage.analysis_id).toBe(CROSS.cross_analysis_id);       // pas l'analyse d'une seule audience
+    expect(passage.folder_id).toBe('dossier-7');
+    expect(passage.psycho_brief).toContain(`Audiences comparées : A = ${A.title}`);
+    expect(passage.psycho_brief).toContain(`B = ${B.title}`);
+    expect(passage.psycho_brief).toContain('Ce qui les rassemble');
+    expect(passage.psycho_brief).toContain('Ce qui les sépare');
+    expect(passage.psycho_brief).not.toContain('**');
+    expect(onNavigateAgent).toHaveBeenCalledWith('stratege');
+  });
+
+  it('depuis le détail d’une audience, Ariane et le Créateur reçoivent l’analyse de cette audience', async () => {
+    const onNavigateAgent = vi.fn();
+    const onAnalysisReady = vi.fn();
+    const user = ouvrir({ onNavigateAgent, onAnalysisReady });
+    await user.click(await screen.findByRole('button', { name: /Ouvrir l’audience A/ }));
+    await screen.findByText('Place dans la comparaison');
+
+    await user.click(screen.getAllByRole('button', { name: /Construire la stratégie →/ })[0]);
+    expect(JSON.parse(window.sessionStorage.getItem('gabriel_for_stratege')).analysis_id).toBe(A.analysis_id);
+    expect(onNavigateAgent).toHaveBeenCalledWith('stratege');
+
+    onAnalysisReady.mockClear();
+    await user.click(screen.getAllByRole('tab').at(-1));                    // « Passer au Créateur » ferme la lecture, sur le dernier onglet
+    await user.click(screen.getByRole('button', { name: /Passer au Créateur →/ }));
+    expect(onAnalysisReady).toHaveBeenCalledWith({ id: A.analysis_id, title: A.title });
+    expect(onNavigateAgent).toHaveBeenCalledWith('createur');
   });
 });

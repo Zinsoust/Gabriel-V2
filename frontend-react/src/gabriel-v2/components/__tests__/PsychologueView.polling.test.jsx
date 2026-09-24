@@ -11,6 +11,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PsychologueView } from '../PsychologueView.jsx';
+import CROSS from './fixtures/cross-salle-reelle.json';
 
 const PENDING_JOB_KEY = 'gabriel_pending_job';
 
@@ -177,5 +178,67 @@ describe('Arrêt du suivi', () => {
     // Une boucle de suivi qui survit au démontage continue d'appeler le
     // serveur en arrière-plan à chaque changement d'onglet.
     expect(fetchMock.mock.calls.length).toBe(callsBeforeUnmount);
+  });
+});
+
+
+describe('Analyses longues : attente au temps réel', () => {
+  async function avancer(secondes) {
+    for (let i = 0; i < secondes / 3; i += 1) await vi.advanceTimersByTimeAsync(3000);
+  }
+
+  it('attend une Cross Analyse de plus de huit minutes (mesurée : plus de neuf)', async () => {
+    window.localStorage.setItem(PENDING_JOB_KEY, JSON.stringify({ id: 'job-cross', crossId: CROSS.cross_analysis_id, t0: Date.now() }));
+    let suivis = 0;
+    global.fetch = vi.fn(async (url) => {
+      if (String(url).endsWith('/status')) { suivis += 1; return jsonResponse({ status: suivis < 190 ? 'running' : 'completed', progress: 50 }); }
+      return jsonResponse(CROSS);
+    });
+    render(<PsychologueView workspace={null} />);
+    await avancer(190 * 3 + 6);                    // 9 min 30 : l'ancien plafond (160 suivis = 8 min) est dépassé
+    expect(await screen.findByRole('heading', { name: 'Salle Cross' })).toBeInTheDocument();
+    expect(screen.queryByText(/prend plus de temps que prévu/)).not.toBeInTheDocument();
+  });
+
+  it('attend une analyse simple de plus de huit minutes', async () => {
+    window.localStorage.setItem(PENDING_JOB_KEY, JSON.stringify({ id: 'job-long', t0: Date.now() }));
+    let suivis = 0;
+    global.fetch = vi.fn(async () => { suivis += 1; return jsonResponse(suivis < 170 ? { status: 'running' } : { status: 'done', data: RESULT }); });
+    render(<PsychologueView workspace={null} />);
+    await avancer(170 * 3 + 6);
+    expect(await screen.findByText(/Une audience en quête de reconnaissance/)).toBeInTheDocument();
+  });
+
+  it('supporte quelques coupures réseau pendant le suivi d’une analyse', async () => {
+    window.localStorage.setItem(PENDING_JOB_KEY, JSON.stringify({ id: 'job-coupure', t0: Date.now() }));
+    let suivis = 0;
+    global.fetch = vi.fn(async () => { suivis += 1; if (suivis <= 3) throw new TypeError('Failed to fetch'); return jsonResponse({ status: 'done', data: RESULT }); });
+    render(<PsychologueView workspace={null} />);
+    await avancer(20);
+    expect(await screen.findByText(/Une audience en quête de reconnaissance/)).toBeInTheDocument();
+  });
+
+  it('supporte quelques coupures réseau pendant le suivi d’une Cross Analyse', async () => {
+    window.localStorage.setItem(PENDING_JOB_KEY, JSON.stringify({ id: 'job-cross-coupure', crossId: CROSS.cross_analysis_id, t0: Date.now() }));
+    let suivis = 0;
+    global.fetch = vi.fn(async (url) => {
+      if (String(url).endsWith('/status')) { suivis += 1; if (suivis <= 3) throw new TypeError('Failed to fetch'); return jsonResponse({ status: 'completed' }); }
+      return jsonResponse(CROSS);
+    });
+    render(<PsychologueView workspace={null} />);
+    await avancer(24);
+    expect(await screen.findByRole('heading', { name: 'Salle Cross' })).toBeInTheDocument();
+  });
+
+  it('annonce une connexion perdue au bout de plusieurs échecs, sans boucler indéfiniment', async () => {
+    window.localStorage.setItem(PENDING_JOB_KEY, JSON.stringify({ id: 'job-perdu', t0: Date.now() }));
+    const appels = vi.fn(async () => { throw new TypeError('Failed to fetch'); });
+    global.fetch = appels;
+    render(<PsychologueView workspace={null} />);
+    await avancer(40);
+    expect(await screen.findByText(/connexion au serveur est perdue/)).toBeInTheDocument();
+    const avant = appels.mock.calls.length;
+    await avancer(30);
+    expect(appels.mock.calls.length).toBe(avant);
   });
 });

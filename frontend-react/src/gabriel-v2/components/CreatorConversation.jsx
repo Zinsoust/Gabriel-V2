@@ -242,16 +242,37 @@ function CreationMessage({ messageId, result, sources, label = 'Création termin
   </article>;
 }
 
-function Message({ message, contentType, onCopy, onSave, onDownload, onPrepareRefinement, onRegenerate, saving, saved, copied }) {
+function Message({ message, contentType, onCopy, onSave, onDownload, onPrepareRefinement, onRegenerate, onRetry, saving, saved, copied }) {
   if (message.kind === 'intro') return <article className="gv2-creator-message gv2-creator-message--intro"><div className="gv2-creator-message-meta"><img src={agents.createur.portrait} alt="" /><strong>Le Créateur</strong></div><p>{message.content}</p></article>;
   if (message.kind === 'status') return <article className="gv2-creator-message gv2-creator-message--status"><span className="gv2-creator-pulse" /><p>{message.content}</p></article>;
   if (message.kind === 'result') return <CreationMessage messageId={message.id} result={message.result} sources={message.sources} label={message.label} contentType={contentType} onCopy={onCopy} onSave={onSave} onDownload={onDownload} onPrepareRefinement={onPrepareRefinement} onRegenerate={onRegenerate} saving={saving} saved={saved} copied={copied} />;
-  if (message.kind === 'error') return <article className="gv2-creator-message gv2-creator-message--error"><span>!</span><p>{message.content}</p></article>;
+  if (message.kind === 'error') return <article className="gv2-creator-message gv2-creator-message--error"><span>!</span><div><p>{message.content}</p>{message.retryRequest && onRetry && <button type="button" className="gv2-creator-retry" onClick={() => onRetry(message.retryRequest, message.id)}><Icon name="refresh" size={14} />Relancer la création</button>}</div></article>;
   return <article className="gv2-creator-message gv2-creator-message--user"><div className="gv2-creator-message-meta"><span className="gv2-creator-user-mark">Vous</span></div><p>{message.content}</p></article>;
 }
 
 function pause(duration) {
   return new Promise(resolve => window.setTimeout(resolve, duration));
+}
+
+// Une génération complète dure 4 à 6 minutes (mesuré le 24/09/2026) : on attend
+// jusqu'à 15 minutes, et la création en cours survit à un rechargement de page.
+const PENDING_CREATION_KEY = 'gabriel_pending_creation';
+const CREATION_MAX_WAIT_MS = 15 * 60 * 1000;
+const CREATION_POLL_MS = 2000;
+const MAX_NETWORK_FAILURES = 8;
+
+function readPendingCreation() {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(PENDING_CREATION_KEY) || 'null');
+    if (stored?.id && Date.now() - Number(stored.t0 || 0) < CREATION_MAX_WAIT_MS) return stored;
+  } catch (_) { /* stockage indisponible : on repart d'un écran vide */ }
+  return null;
+}
+function savePendingCreation(value) {
+  try { window.localStorage.setItem(PENDING_CREATION_KEY, JSON.stringify(value)); } catch (_) { /* facultatif */ }
+}
+function clearPendingCreation() {
+  try { window.localStorage.removeItem(PENDING_CREATION_KEY); } catch (_) { /* facultatif */ }
 }
 
 export function CreatorConversation({ workspace, lastAnalysis, settings, refinementRequest, onHasOutputChange, onWorkspaceChange, onSettingsChange, contextCollapsed, onShowContext }) {
@@ -353,18 +374,48 @@ export function CreatorConversation({ workspace, lastAnalysis, settings, refinem
     setMessages(current => current.map(message => message.id === id ? next : message));
   }
 
-  function appendError(content) {
-    setMessages(current => [...current, makeMessage('assistant', 'error', { content })]);
+  // Une création lancée avant un rechargement de page reprend là où elle en était.
+  const resumedRef = useRef(false);
+  useEffect(() => {
+    if (resumedRef.current) return;
+    const pending = readPendingCreation();
+    if (!pending) return;
+    resumedRef.current = true;
+    const status = makeMessage('assistant', 'status', { content: 'Le Créateur retrouve votre création en cours…' });
+    setMessages(current => [...current, makeMessage('user', 'request', { content: pending.request }), status]);
+    setIsGenerating(true);
+    sourcesRef.current = pending.sources || sourcesRef.current;
+    pollGeneration(pending.id, status.id, pending.request, pending.t0)
+      .catch(error => appendError(error.message || 'Une erreur est survenue. Réessayez dans un instant.', pending.request))
+      .finally(() => setIsGenerating(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function appendError(content, retryRequest) {
+    // Le message d'attente n'a plus lieu d'être : l'erreur prend sa place.
+    setMessages(current => [...current.filter(message => message.kind !== 'status'), makeMessage('assistant', 'error', { content, retryRequest })]);
   }
 
-  async function pollGeneration(jobId, statusMessageId, originalRequest) {
-    for (let attempt = 0; attempt < 120; attempt += 1) {
-      await pause(2000);
-      const response = await fetchV2(`/api/v2/jobs/${encodeURIComponent(jobId)}`);
-      if (isLoginResponse(response)) { window.location.assign('/login'); return; }
-      const payload = await readApiPayload(response, 'Le suivi de la création');
-      if (!response.ok || !payload) throw new Error(payload?.error || 'Le suivi de la création est indisponible.');
+  async function pollGeneration(jobId, statusMessageId, originalRequest, startedAt = Date.now()) {
+    let networkFailures = 0;
+    while (Date.now() - startedAt < CREATION_MAX_WAIT_MS) {
+      await pause(CREATION_POLL_MS);
+      let response;
+      let payload;
+      try {
+        response = await fetchV2(`/api/v2/jobs/${encodeURIComponent(jobId)}`);
+        if (isLoginResponse(response)) { window.location.assign('/login'); return; }
+        payload = await readApiPayload(response, 'Le suivi de la création');
+        networkFailures = 0;
+      } catch (error) {
+        // Serveur qui redémarre, réseau qui saute : on réessaie avant d'abandonner.
+        networkFailures += 1;
+        if (networkFailures >= MAX_NETWORK_FAILURES) { clearPendingCreation(); throw new Error('La connexion au serveur est perdue. Relancez la création.'); }
+        continue;
+      }
+      if (!response.ok || !payload) { clearPendingCreation(); throw new Error(payload?.error || 'Le suivi de la création est indisponible.'); }
       if (payload.status === 'done') {
+        clearPendingCreation();
         const nextResult = payload.data || {};
         if (!textOf(nextResult)) throw new Error('La création ne contient aucun texte exploitable.');
         setResult(nextResult);
@@ -374,10 +425,14 @@ export function CreatorConversation({ workspace, lastAnalysis, settings, refinem
         await onWorkspaceChange?.();
         return;
       }
-      if (['error', 'interrupted', 'not_found'].includes(payload.status)) throw new Error(payload.error || 'La création a été interrompue.');
+      if (['error', 'interrupted', 'not_found'].includes(payload.status)) {
+        clearPendingCreation();
+        throw new Error(payload.error || 'La création a été interrompue.');
+      }
       replaceMessage(statusMessageId, { id: statusMessageId, role: 'assistant', kind: 'status', content: payload.step || 'Le Créateur prépare votre contenu…' });
     }
-    throw new Error('Le temps de création est dépassé. Réessayez dans un instant.');
+    // Le travail continue côté serveur : on garde de quoi le retrouver au prochain affichage.
+    throw new Error('La création prend plus de temps que prévu et continue en arrière-plan. Rouvrez le Créateur dans quelques minutes pour la retrouver.');
   }
 
   async function create(request) {
@@ -400,7 +455,11 @@ export function CreatorConversation({ workspace, lastAnalysis, settings, refinem
     if (isLoginResponse(response)) { window.location.assign('/login'); return; }
     const data = await readApiPayload(response, 'Le Créateur');
     if (!response.ok || data?.error) throw new Error(data?.error || 'La création n’a pas pu démarrer.');
-    if (data.job_id) await pollGeneration(data.job_id, status.id, request);
+    if (data.job_id) {
+      const startedAt = Date.now();
+      savePendingCreation({ id: data.job_id, request, t0: startedAt, sources: sourcesRef.current });
+      await pollGeneration(data.job_id, status.id, request, startedAt);
+    }
     else {
       const nextResult = data.data || data;
       if (!textOf(nextResult)) throw new Error('La création ne contient aucun texte exploitable.');
@@ -441,7 +500,21 @@ export function CreatorConversation({ workspace, lastAnalysis, settings, refinem
     try {
       if (result) await refine(request); else await create(request);
     } catch (error) {
-      appendError(error.message || 'Une erreur est survenue. Réessayez dans un instant.');
+      appendError(error.message || 'Une erreur est survenue. Réessayez dans un instant.', result ? undefined : request);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  // Relance la même demande après une interruption, sans la retaper.
+  async function retryCreation(request, errorMessageId) {
+    if (!request || isGenerating) return;
+    setMessages(current => current.filter(message => message.id !== errorMessageId));
+    setIsGenerating(true);
+    try {
+      await create(request);
+    } catch (error) {
+      appendError(error.message || 'Une erreur est survenue. Réessayez dans un instant.', request);
     } finally {
       setIsGenerating(false);
     }
@@ -525,7 +598,7 @@ export function CreatorConversation({ workspace, lastAnalysis, settings, refinem
     <header className="gv2-creator-header"><img src={agents.createur.portrait} alt="" /><div><h1>Le Créateur</h1><p>Rédaction et formats de conversion</p></div><div className="gv2-creator-header-actions"><button type="button" className={!contextCollapsed ? 'is-active' : ''} onClick={onShowContext}><Icon name="settings" size={14} />Atelier</button>{result && <button type="button" onClick={startFresh}><Icon name="plus" size={14} />Nouvelle création</button>}</div></header>
     <div className="gv2-creator-stream" ref={scrollRef}>
       <div className="gv2-creator-thread">
-        {messages.map(message => <Message key={message.id} message={message} contentType={settings.contentType} onCopy={copy} onSave={save} onDownload={download} onPrepareRefinement={prepareRefinement} onRegenerate={() => prepareRefinement('Génère une nouvelle version avec un angle différent, en conservant l’objectif initial.')} saving={saving} saved={saved} copied={copiedResultId === message.id} />)}
+        {messages.map(message => <Message key={message.id} message={message} contentType={settings.contentType} onCopy={copy} onSave={save} onDownload={download} onPrepareRefinement={prepareRefinement} onRetry={retryCreation} onRegenerate={() => prepareRefinement('Génère une nouvelle version avec un angle différent, en conservant l’objectif initial.')} saving={saving} saved={saved} copied={copiedResultId === message.id} />)}
         {!result && suggestionsVisible && <section className="gv2-creator-suggestions"><div><span>Points de départ</span><button type="button" onClick={() => setSuggestionsVisible(false)}>Masquer</button></div><p>Choisissez un format ou décrivez directement le résultat attendu.</p><div className="gv2-creator-suggestion-list">{prompts.map(prompt => <button key={prompt.label} type="button" onClick={() => { setInput(prompt.text); inputRef.current?.focus(); }}><strong>{prompt.label}</strong><Icon name="chevronRight" size={15} /></button>)}</div></section>}
       </div>
     </div>
