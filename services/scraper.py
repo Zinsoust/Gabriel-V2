@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import socket
 import time
 import httplib2
 import requests
@@ -94,7 +95,13 @@ _YOUTUBE_ERROR_MESSAGES = {
     'quotaExceeded': "Le quota YouTube quotidien est dépassé. Réessayez plus tard.",
     'dailyLimitExceeded': "Le quota YouTube quotidien est dépassé. Réessayez plus tard.",
     'forbidden': "Accès refusé à cette vidéo (privée ou restreinte).",
+    'network': "YouTube ne répond pas pour le moment (connexion expirée). Réessayez dans une minute.",
 }
+
+# Coupure réseau côté serveur (délai de connexion dépassé, connexion refusée
+# ou réinitialisée) : jamais un HttpError, donc jusqu'ici ni rejouée ni
+# expliquée — l'utilisateur recevait « Erreur lors de l'analyse ».
+_YOUTUBE_NETWORK_ERRORS = (socket.timeout, TimeoutError, ConnectionError, httplib2.HttpLib2Error)
 
 
 def _youtube_error_reason(http_error):
@@ -128,6 +135,12 @@ def _call_youtube_with_retry(fn, *, max_attempts=3):
                 continue
             message = _YOUTUBE_ERROR_MESSAGES.get(reason, f"Erreur YouTube ({reason or status or 'inconnue'}).")
             raise YouTubeCollectionError(reason or str(status or ''), message) from exc
+        except _YOUTUBE_NETWORK_ERRORS as exc:
+            last_exc = exc
+            if attempt < max_attempts - 1:
+                time.sleep(min(2 ** attempt, 8))
+                continue
+            raise YouTubeCollectionError('network', _YOUTUBE_ERROR_MESSAGES['network']) from exc
     raise YouTubeCollectionError('unknown', "Erreur YouTube inconnue.") from last_exc
 
 

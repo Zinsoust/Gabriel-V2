@@ -821,5 +821,6 @@ def test_orchestrator_uses_mistral_when_openai_is_not_configured(monkeypatch):
     assert result['reply'] == 'Réponse Mistral de Gabriel.'
     assert result['provider'] == 'mistral_fallback'
     assert result['usage']['total_tokens'] == 20
-    assert captured['model'] == 'mistral-large-latest'
+    from core.llm_client import model_for_tier
+    assert captured['model'] == model_for_tier('deep')
     assert any('recherche web n\'est pas disponible' in item['content'] for item in captured['messages'])

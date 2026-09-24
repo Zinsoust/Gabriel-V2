@@ -217,3 +217,70 @@ def test_scrape_youtube_surfaces_a_typed_error_when_comments_are_disabled(monkey
         assert False, "aurait dû lever YouTubeCollectionError"
     except scraper.YouTubeCollectionError as exc:
         assert exc.reason == 'commentsDisabled'
+
+
+class TestYouTubeNetworkFailure:
+    """Le 13/09/2026, une connexion à l'API YouTube a expiré (socket.timeout) :
+    ce n'est pas un HttpError, donc ni rejoué ni expliqué — l'écran affichait
+    « Erreur lors de l'analyse. Réessayez dans quelques instants. »"""
+
+    def test_retries_a_network_timeout_and_succeeds(self, monkeypatch):
+        import socket
+        monkeypatch.setattr(scraper.time, 'sleep', lambda _seconds: None)
+        calls = []
+
+        def flaky():
+            calls.append(1)
+            if len(calls) < 2:
+                raise socket.timeout('timed out')
+            return 'ok'
+
+        assert scraper._call_youtube_with_retry(flaky, max_attempts=3) == 'ok'
+        assert len(calls) == 2
+
+    def test_persistent_network_failure_becomes_an_explained_error(self, monkeypatch):
+        import socket
+        monkeypatch.setattr(scraper.time, 'sleep', lambda _seconds: None)
+        calls = []
+
+        def always_timeout():
+            calls.append(1)
+            raise socket.timeout('timed out')
+
+        try:
+            scraper._call_youtube_with_retry(always_timeout, max_attempts=3)
+            assert False, "aurait dû lever YouTubeCollectionError"
+        except scraper.YouTubeCollectionError as exc:
+            assert exc.reason == 'network'
+            assert 'ne répond pas' in str(exc)
+        assert len(calls) == 3
+
+
+def test_analyze_route_explains_a_youtube_failure_instead_of_a_generic_500(monkeypatch):
+    """La route /analyze doit transmettre la cause YouTube (désactivés, réseau…)."""
+    import app as _app
+    import api.db as _db
+    monkeypatch.setattr(_db, 'check_usage_limit', lambda uid, email=None: {'allowed': True})
+
+    def client():
+        c = _app.app.test_client()
+        with c.session_transaction() as sess:
+            sess['user_id'] = 'youtube-tester'
+            sess['user_email'] = 'youtube@example.com'
+        return c
+
+    def desactives(_url, *a, **k):
+        raise scraper.YouTubeCollectionError('commentsDisabled', "Les commentaires sont désactivés sur cette vidéo.")
+    monkeypatch.setattr(_app, 'scrape_youtube', desactives)
+    r = client().post('/analyze', json={
+        'source': 'youtube', 'content': 'https://www.youtube.com/watch?v=dAdkGfsZXMg'})
+    assert r.status_code == 400
+    assert 'désactivés' in r.get_json()['error']
+
+    def reseau(_url, *a, **k):
+        raise scraper.YouTubeCollectionError('network', scraper._YOUTUBE_ERROR_MESSAGES['network'])
+    monkeypatch.setattr(_app, 'scrape_youtube', reseau)
+    r = client().post('/analyze', json={
+        'source': 'youtube', 'content': 'https://www.youtube.com/watch?v=dAdkGfsZXMg'})
+    assert r.status_code == 503
+    assert 'ne répond pas' in r.get_json()['error']

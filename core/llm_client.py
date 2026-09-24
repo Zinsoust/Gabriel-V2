@@ -49,10 +49,18 @@ from typing import Optional
 # Source de vérité unique des modèles réellement appelés. Tout ``model_version``
 # persisté ailleurs doit lire CES constantes, jamais une variable
 # d'environnement séparée qui pourrait diverger de ce qui part vraiment.
-MODEL_TIERS = {
-    "fast": "mistral-small-latest",   # classification, extraction, reformulation
-    "deep": "mistral-large-latest",   # analyse, arbitrage, stratégie, critique
-}
+# Surchargeables par l'environnement : l'abonnement Mistral peut retirer un
+# modèle du jour au lendemain (13/09/2026 : mistral-small passé à 0 requête/min,
+# toute analyse échouait en 429). On bascule alors sans toucher au code.
+def _tiers_from_env(env=None) -> dict:
+    env = os.environ if env is None else env
+    return {
+        "fast": env.get("MISTRAL_MODEL_FAST") or "mistral-small-latest",   # classification, extraction, reformulation
+        "deep": env.get("MISTRAL_MODEL_DEEP") or "mistral-large-latest",   # analyse, arbitrage, stratégie, critique
+    }
+
+
+MODEL_TIERS = _tiers_from_env()
 
 
 def model_for_tier(tier: str) -> str:
@@ -178,13 +186,18 @@ class LLMProvider(ABC):
     def complete(self, prompt: str, *, model: str, max_tokens: int,
                  temperature: Optional[float] = None,
                  timeout_ms: int = 300_000,
-                 system: Optional[str] = None) -> LLMResponse:
+                 system: Optional[str] = None,
+                 json_mode: bool = False) -> LLMResponse:
         """Un aller-retour avec le modèle. Lève en cas d'échec — la politique de
         réessai est appliquée par ``complete()`` au niveau du module, pas ici.
 
         ``system`` porte les instructions de rôle, séparées de la demande. Les
         mélanger au prompt utilisateur affaiblit la frontière que la couche de
-        sécurité pose entre consigne et contenu non fiable."""
+        sécurité pose entre consigne et contenu non fiable.
+
+        ``json_mode`` demande au fournisseur une sortie JSON syntaxiquement
+        valide (mode natif ``json_object``). Sans lui, un petit modèle glisse du
+        markdown dans le JSON et la réparation tolérante avale des champs entiers."""
         raise NotImplementedError
 
 
@@ -196,7 +209,8 @@ class MistralProvider(LLMProvider):
     def complete(self, prompt: str, *, model: str, max_tokens: int,
                  temperature: Optional[float] = None,
                  timeout_ms: int = 300_000,
-                 system: Optional[str] = None) -> LLMResponse:
+                 system: Optional[str] = None,
+                 json_mode: bool = False) -> LLMResponse:
         try:
             from mistralai import Mistral
         except ImportError as err:  # pragma: no cover - dépend de l'installation
@@ -220,6 +234,8 @@ class MistralProvider(LLMProvider):
         if system:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
+        if json_mode:
+            extra["response_format"] = {"type": "json_object"}
         response = client.chat.complete(
             model=model,
             max_tokens=max_tokens,
@@ -262,7 +278,8 @@ class OpenAIProvider(LLMProvider):
     def complete(self, prompt: str, *, model: str, max_tokens: int,
                  temperature: Optional[float] = None,
                  timeout_ms: int = 300_000,
-                 system: Optional[str] = None) -> LLMResponse:
+                 system: Optional[str] = None,
+                 json_mode: bool = False) -> LLMResponse:
         import requests
 
         key = os.environ.get("OPENAI_API_KEY")
@@ -283,6 +300,8 @@ class OpenAIProvider(LLMProvider):
         payload = {"model": target, "messages": messages, "max_tokens": max_tokens}
         if temperature is not None:
             payload["temperature"] = max(0.0, min(1.0, float(temperature)))
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
 
         try:
             response = requests.post(
@@ -353,11 +372,34 @@ def set_provider(provider: LLMProvider) -> None:
 
 # ── Point d'entrée unique ────────────────────────────────────────────────────
 
+_NETWORK_ERROR_NAMES = ("ConnectError", "ConnectTimeout", "ReadTimeout", "WriteTimeout", "PoolTimeout",
+                        "RemoteProtocolError", "ReadError", "NetworkError", "TimeoutException")
+
+
+def _is_network_error(exc: BaseException) -> bool:
+    """Vrai pour une coupure réseau, y compris enveloppée par le SDK du fournisseur."""
+    courant, vus = exc, 0
+    while courant is not None and vus < 5:
+        if isinstance(courant, (ConnectionError, TimeoutError)) or type(courant).__name__ in _NETWORK_ERROR_NAMES:
+            return True
+        courant, vus = courant.__cause__ or courant.__context__, vus + 1
+    return False
+
+
+def _accepts_json_mode(engine) -> bool:
+    import inspect
+    try:
+        params = inspect.signature(engine.complete).parameters
+    except (TypeError, ValueError):
+        return False
+    return "json_mode" in params or any(p.kind is p.VAR_KEYWORD for p in params.values())
+
+
 def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
              temperature: Optional[float] = None, timeout_ms: int = 300_000,
              retry: RetryPolicy = RETRY_SIMPLE, label: str = "",
              throttled: bool = True, provider: Optional[LLMProvider] = None,
-             system: Optional[str] = None) -> LLMResponse:
+             system: Optional[str] = None, json_mode: bool = False) -> LLMResponse:
     """Appelle un LLM avec réessais, garde-fous de débit et journalisation.
 
     ``throttled=False`` désactive l'espacement/plafond de concurrence pour un
@@ -378,10 +420,14 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
                     print(f"[LLM] label={label or '?'} attente_file={waited:.2f}s "
                           f"({_MAX_CONCURRENCY} créneaux partagés par toute l'app)")
             try:
+                # json_mode n'est transmis qu'aux fournisseurs qui le connaissent :
+                # un fournisseur tiers continue de fonctionner à l'identique (la
+                # réparation JSON tolérante reste alors le filet de sécurité).
+                extra = {"json_mode": True} if json_mode and _accepts_json_mode(engine) else {}
                 response = engine.complete(
                     prompt, model=model, max_tokens=max_tokens,
                     temperature=temperature, timeout_ms=timeout_ms,
-                    system=system,
+                    system=system, **extra,
                 )
             finally:
                 if throttled:
@@ -405,6 +451,16 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
         except Exception as exc:
             status = getattr(exc, "status_code", None) or getattr(exc, "http_status", None)
             is_last = attempt >= retry.max_attempts - 1
+            if status is None and _is_network_error(exc) and not is_last:
+                # Coupure réseau (DNS, connexion refusée, délai) : le serveur du
+                # modèle n'a rien reçu, réessayer ne coûte rien. Constaté le
+                # 13/09/2026 sur une connexion partagée : deux créations
+                # perdues sur un « nodename nor servname provided » passager.
+                delay = retry.delay_for(attempt)
+                print(f"[LLM_RETRY] label={label or '?'} réseau={type(exc).__name__} "
+                      f"tentative={attempt + 1}/{retry.max_attempts} → nouvel essai dans {delay:.1f}s")
+                time.sleep(delay)
+                continue
             if status in retry.retry_on_status and not is_last:
                 delay = retry.delay_for(attempt)
                 print(f"[LLM_RETRY] label={label or '?'} status={status} "

@@ -55,7 +55,14 @@ class StatusError(Exception):
 def test_model_tiers_map_to_real_model_names():
     assert model_for_tier("fast") == MODEL_TIERS["fast"]
     assert model_for_tier("deep") == MODEL_TIERS["deep"]
-    assert model_for_tier("fast") != model_for_tier("deep")
+
+
+def test_model_tiers_default_to_distinct_models_and_follow_the_environment():
+    """Sans configuration, deux modèles distincts ; avec MISTRAL_MODEL_FAST/DEEP,
+    on bascule quand l'abonnement retire un modèle (13/09/2026)."""
+    from core.llm_client import _tiers_from_env
+    assert _tiers_from_env({}) == {"fast": "mistral-small-latest", "deep": "mistral-large-latest"}
+    assert _tiers_from_env({"MISTRAL_MODEL_FAST": "ministral-14b-latest"})["fast"] == "ministral-14b-latest"
 
 
 def test_unknown_tier_fails_loudly_rather_than_silently_defaulting():
@@ -288,3 +295,106 @@ def test_le_journal_annonce_le_modele_reellement_appele(monkeypatch, capsys):
     sortie = capsys.readouterr().out
     assert "model=gpt-4o-mini" in sortie
     assert MODEL_TIERS["deep"] not in sortie
+
+
+def test_json_mode_is_forwarded_only_when_requested():
+    """Le mode JSON natif protège l'analyse des sorties markdown des petits
+    modèles ; un fournisseur qui ne le connaît pas ne doit rien voir changer."""
+    captured = []
+
+    class Legacy:
+        name = "legacy"
+        def complete(self, prompt, *, model, max_tokens, temperature=None, timeout_ms=300_000, system=None):
+            captured.append("sans json_mode")
+            return LLMResponse(text="{}", model=model)
+
+    class Moderne:
+        name = "moderne"
+        def complete(self, prompt, *, model, max_tokens, temperature=None, timeout_ms=300_000, system=None, json_mode=False):
+            captured.append(json_mode)
+            return LLMResponse(text="{}", model=model)
+
+    complete("d", provider=Legacy(), throttled=False, json_mode=True)
+    complete("d", provider=Moderne(), throttled=False, json_mode=True)
+    assert captured == ["sans json_mode", True]
+
+
+def test_mistral_provider_requests_a_json_object(monkeypatch):
+    import sys
+    import types
+    sent = {}
+
+    class _Chat:
+        def complete(self, **kwargs):
+            sent.update(kwargs)
+            choice = types.SimpleNamespace(message=types.SimpleNamespace(content='{"ok": 1}'), finish_reason="stop")
+            return types.SimpleNamespace(choices=[choice], usage=None)
+
+    class _Mistral:
+        def __init__(self, **kwargs):
+            self.chat = _Chat()
+
+    monkeypatch.setitem(sys.modules, "mistralai", types.SimpleNamespace(Mistral=_Mistral))
+    monkeypatch.setenv("MISTRAL_API_KEY", "test-key")
+    from core.llm_client import MistralProvider
+    MistralProvider().complete("d", model="m", max_tokens=5, json_mode=True)
+    assert sent["response_format"] == {"type": "json_object"}
+    sent.clear()
+    MistralProvider().complete("d", model="m", max_tokens=5)
+    assert "response_format" not in sent
+
+
+def test_psychologue_analysis_calls_request_json(monkeypatch):
+    import core.analyzer as analyzer
+    seen = {}
+    monkeypatch.setattr(analyzer._llm, "complete_text", lambda prompt, **kw: seen.update(kw) or "{}")
+    analyzer.call_llm("prompt", fast=True, label="persona[test]")
+    assert seen["json_mode"] is True
+
+
+def test_persona_keys_written_with_typographic_apostrophes_are_restored():
+    from core.analyzer import _normalize_keys
+    data = _normalize_keys({"besoin_d’appartenance": "tribu", "desir de legacy": "transmettre", "nom": "A", "rapport_argent": "x"})
+    assert data == {"besoin_d_appartenance": "tribu", "desir_de_legacy": "transmettre", "nom": "A", "rapport_argent": "x"}
+    # Une clé correcte déjà présente l'emporte sur sa variante mal écrite.
+    assert _normalize_keys({"besoin_d_appartenance": "vrai", "besoin_d’appartenance": "doublon"})["besoin_d_appartenance"] == "vrai"
+
+
+def test_une_coupure_reseau_est_reessayee(monkeypatch):
+    """Une erreur DNS passagère ne doit plus faire échouer une création."""
+    import httpx
+    import core.llm_client as module
+    monkeypatch.setattr(module.time, "sleep", lambda _s: None)
+    appels = []
+
+    class Instable:
+        name = "instable"
+        def complete(self, prompt, *, model, max_tokens, temperature=None, timeout_ms=300_000, system=None):
+            appels.append(1)
+            if len(appels) == 1:
+                try:
+                    raise httpx.ConnectError("[Errno 8] nodename nor servname provided")
+                except httpx.ConnectError as exc:
+                    raise RuntimeError("SDK error") from exc
+            return LLMResponse(text="ok", model=model)
+
+    assert complete("d", provider=Instable(), throttled=False, retry=module.RETRY_SIMPLE).text == "ok"
+    assert len(appels) == 2
+
+
+def test_une_erreur_metier_n_est_pas_reessayee_comme_une_coupure(monkeypatch):
+    import core.llm_client as module
+    appels = []
+
+    class Refus:
+        name = "refus"
+        def complete(self, prompt, *, model, max_tokens, temperature=None, timeout_ms=300_000, system=None):
+            appels.append(1)
+            raise ValueError("prompt invalide")
+
+    try:
+        complete("d", provider=Refus(), throttled=False, retry=module.RETRY_SIMPLE)
+        assert False
+    except ValueError:
+        pass
+    assert len(appels) == 1

@@ -156,6 +156,23 @@ def _parse_json(text, label=""):
     return parse_ai_json(text, on_error="raise", label=label)
 
 
+_APOSTROPHES = str.maketrans({"’": "_", "'": "_", "‘": "_", " ": "_", "-": "_"})
+
+
+def _normalize_keys(data):
+    """Rétablit les clés attendues quand le modèle les écrit avec une apostrophe
+    typographique ou un espace (« besoin_d’appartenance ») : sans cela le champ
+    existe mais aucun écran ne le trouve. Une clé déjà présente n'est jamais écrasée."""
+    if not isinstance(data, dict):
+        return data
+    for key in list(data):
+        propre = key.translate(_APOSTROPHES).lower()
+        propre = "_".join(part for part in propre.split("_") if part)
+        if propre != key and propre not in data:
+            data[propre] = data.pop(key)
+    return data
+
+
 def _check_completeness(data, expected_keys, label):
     """Verifie que les cles top-level attendues sont presentes et non vides.
     Une cle manquante/vide apres une reponse tronquee-et-reparee (repair_json)
@@ -515,7 +532,7 @@ def score_comments_math(comments, nlp_data, title=""):
 MISTRAL_MODELS = _llm.MODEL_TIERS
 
 
-def call_llm(prompt, max_tokens=5000, fast=False, label=""):
+def call_llm(prompt, max_tokens=5000, fast=False, label="", json_mode=True):
     """Appelle le LLM via la couche fournisseur unifiée (``core.llm_client``).
 
     fast=True → palier rapide ; fast=False → palier profond.
@@ -534,6 +551,10 @@ def call_llm(prompt, max_tokens=5000, fast=False, label=""):
         retry=_llm.RETRY_RESILIENT,
         label=label,
         throttled=True,
+        # Toutes les étapes de l'analyse lisent du JSON. Le mode natif évite
+        # que ministral glisse du markdown dans les valeurs (13/09/2026 :
+        # frustrations et aspirations avalées dans « biais_cognitifs »).
+        json_mode=json_mode,
     )
 
 
@@ -1256,7 +1277,7 @@ Reponds UNIQUEMENT avec ce JSON (un seul persona) :
         # Repli temporaire (palier rapide) : voir commentaire sur main_a/main_b
         # plus haut — même compte Mistral, même blocage 403 tier_not_allowed.
         text = call_llm(prompt, max_tokens=3000, fast=True, label=f"persona[{cluster_source}]")
-        data = _parse_json(text)
+        data = _normalize_keys(_parse_json(text))
         # Champs en toute fin de schéma — les premiers perdus si la réponse est tronquée
         _check_completeness(data, ["nom", "mission_cachee", "besoin_d_appartenance",
                                     "desir_de_legacy", "tension_existentielle"],
@@ -1344,7 +1365,8 @@ Reponds UNIQUEMENT avec ce JSON :
 
     # Repli temporaire (palier rapide) : voir commentaire sur main_a/main_b
     # plus haut — même compte Mistral, même blocage 403 tier_not_allowed.
-    text = call_llm(prompt, max_tokens=2500, fast=True, label="recommandations")
+    # 4000 : ministral-14b écrit plus long que mistral-small et tronquait à 2500.
+    text = call_llm(prompt, max_tokens=4000, fast=True, label="recommandations")
     data = _parse_json(text)
     return data.get('recommandations', {})
 
@@ -1613,7 +1635,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
 }}"""
 
     try:
-        text = call_llm(prompt, max_tokens=900, fast=True, label="interp_psycho")
+        text = call_llm(prompt, max_tokens=1800, fast=True, label="interp_psycho")
         data = _parse_json(text)
         if data and not data.get("parse_error"):
             print(f"[GABRIEL] Interprétation psychologique OK — insight: {str(data.get('main_insight',''))[:60]}")
@@ -1672,7 +1694,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown :
 }}"""
 
     try:
-        text = call_llm(prompt, max_tokens=900, fast=True, label="interp_socio")
+        text = call_llm(prompt, max_tokens=1800, fast=True, label="interp_socio")
         data = _parse_json(text)
         if data and not data.get("parse_error"):
             print(f"[GABRIEL] Interprétation socio-culturelle OK — insight: {str(data.get('main_insight',''))[:60]}")
