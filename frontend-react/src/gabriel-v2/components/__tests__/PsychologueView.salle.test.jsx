@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { configure, render, screen, cleanup, within } from '@testing-library/react';
+import { configure, render, screen, cleanup, within, waitFor } from '@testing-library/react';
 
 // Le premier affichage d'un écran complet dépasse parfois 1 s quand toute la suite tourne en parallèle.
 configure({ asyncUtilTimeout: 10000 });
@@ -84,7 +84,7 @@ describe('Salle Cross', () => {
     global.fetch = vi.fn(async () => ({ ok: true, status: 200, redirected: false, url: 'http://x', text: async () => JSON.stringify(CROSS) }));
     render(<PsychologueView workspace={null} openAnalysisRequest={{ crossId: CROSS.cross_analysis_id, at: 1 }} onNavigateAgent={vi.fn()} onAnalysisReady={onAnalysisReady} />);
     await screen.findByRole('heading', { name: 'Salle Cross' });
-    expect(onAnalysisReady).toHaveBeenCalledWith(expect.objectContaining({ id: CROSS.cross_analysis_id, cross: true, title: expect.stringContaining(A.title.slice(0, 20)) }));
+    await waitFor(() => expect(onAnalysisReady).toHaveBeenCalledWith(expect.objectContaining({ id: CROSS.cross_analysis_id, cross: true, title: expect.stringContaining(A.title.slice(0, 20)) })));
   });
 
   it('montre la carte dimension par audience sans mots vides', async () => {
