@@ -57,6 +57,27 @@ def _call_llm(prompt: str, system: str, max_tokens: int = 600) -> str:
         system=system,
     )
 
+
+# Perdue par accident lors du renommage _call_mistral → _call_llm (commit
+# bb17f4c) : la référence à _EXTRACT_SYSTEM à la ligne ci-dessous a survécu
+# au refactor, pas sa définition. Le NameError qui en résultait était avalé
+# par le `except Exception` de la boucle de retry — extract_answer() ne
+# renvoyait donc plus jamais rien, silencieusement, sur chaque message qui
+# n'était pas la toute première réponse de l'entretien (laquelle passe par
+# extract_answer_freeform, resté correct). Trouvé en conditions réelles :
+# le Stratège reposait indéfiniment la même question de la dimension
+# "identity", quelle que soit la précision de la réponse donnée.
+_EXTRACT_SYSTEM = """Tu extrais des informations business structurées depuis un message en langage naturel.
+
+RÈGLES STRICTES :
+1. Extraire UNIQUEMENT ce qui est explicitement dit — ne jamais inférer ni inventer.
+2. Si un champ n'est pas mentionné dans le message, ne pas l'inclure dans le JSON.
+3. Les valeurs doivent être des phrases courtes et précises, pas des mots seuls.
+4. Un seul message peut renseigner plusieurs champs à la fois — extrais tout ce qui est présent.
+
+Réponds UNIQUEMENT avec un objet JSON valide, sans texte autour."""
+
+
 def extract_answer(dimension_key: str, message: str, already_known: dict = None) -> dict:
     """Extrait les champs de la dimension donnée depuis un message libre.
 
@@ -66,7 +87,7 @@ def extract_answer(dimension_key: str, message: str, already_known: dict = None)
     """
     dim = DIMENSION_BY_KEY.get(dimension_key)
     if not dim:
-        return {"extracted": {}, "rejected_vague": []}
+        return {"extracted": {}, "rejected_vague": [], "failed": False}
 
     already_known = already_known or {}
     field_lines = "\n".join(
@@ -89,16 +110,12 @@ def extract_answer(dimension_key: str, message: str, already_known: dict = None)
     # mistral-large-latest. Un message clair qui n'extrait toujours rien
     # après une nouvelle tentative n'est probablement pas un hasard — dans
     # ce cas seulement, on abandonne et on laisse l'appelant gérer.
-    extracted_raw = {}
-    for _attempt in range(2):
-        try:
-            raw = _call_llm(prompt, _EXTRACT_SYSTEM)
-            start, end = raw.find('{'), raw.rfind('}') + 1
-            extracted_raw = json.loads(raw[start:end]) if start >= 0 and end > start else {}
-        except Exception:
-            extracted_raw = {}
-        if extracted_raw:
-            break
+    extracted_raw, erreurs = _extraire_avec_reessai(prompt, _EXTRACT_SYSTEM, 600)
+    if erreurs == _TENTATIVES:
+        # Panne du modèle (quota, 403, réseau…) : ce n'est PAS une réponse
+        # vide de l'utilisateur. Le signaler évite de reposer la question
+        # comme s'il n'avait rien dit — la boucle observée le 13/09/2026.
+        return {"extracted": {}, "rejected_vague": [], "failed": True}
 
     valid_keys = {f["key"] for f in dim["fields"]}
     extracted, rejected_vague = _parse_extraction(extracted_raw, valid_keys)
@@ -114,7 +131,29 @@ def extract_answer(dimension_key: str, message: str, already_known: dict = None)
     if not extracted and not rejected_vague and not _is_specific_enough(message):
         rejected_vague = [dim["label"]]
 
-    return {"extracted": extracted, "rejected_vague": rejected_vague}
+    return {"extracted": extracted, "rejected_vague": rejected_vague, "failed": False}
+
+
+_TENTATIVES = 2
+
+
+def _extraire_avec_reessai(prompt: str, system: str, max_tokens: int):
+    """Deux tentatives au plus. Renvoie (objet extrait, nombre d'appels en
+    erreur) : un JSON vide renvoyé par le modèle n'est pas une erreur, une
+    exception (API refusée, délai dépassé) en est une."""
+    extracted_raw, erreurs = {}, 0
+    for _attempt in range(_TENTATIVES):
+        try:
+            raw = _call_llm(prompt, system, max_tokens=max_tokens)
+            start, end = raw.find('{'), raw.rfind('}') + 1
+            extracted_raw = json.loads(raw[start:end]) if start >= 0 and end > start else {}
+        except Exception as exc:
+            erreurs += 1
+            print(f"[CONTEXT_EXTRACTION] échec d'appel ({type(exc).__name__}) : {str(exc)[:160]}")
+            extracted_raw = {}
+        if extracted_raw:
+            break
+    return extracted_raw, erreurs
 
 
 def _parse_extraction(extracted_raw, valid_keys: set) -> tuple:
@@ -184,16 +223,9 @@ def extract_answer_freeform(message: str, already_known: dict = None) -> dict:
         '"revenue_sources": "prestations ponctuelles facturées à la séance"}'
     )
 
-    extracted_raw = {}
-    for _attempt in range(2):
-        try:
-            raw = _call_llm(prompt, _FREEFORM_EXTRACT_SYSTEM, max_tokens=1200)
-            start, end = raw.find('{'), raw.rfind('}') + 1
-            extracted_raw = json.loads(raw[start:end]) if start >= 0 and end > start else {}
-        except Exception:
-            extracted_raw = {}
-        if extracted_raw:
-            break
+    extracted_raw, erreurs = _extraire_avec_reessai(prompt, _FREEFORM_EXTRACT_SYSTEM, 1200)
+    if erreurs == _TENTATIVES:
+        return {"extracted": {}, "rejected_vague": [], "failed": True}
 
     extracted, rejected_vague = _parse_extraction(extracted_raw, set(ALL_FIELD_KEYS))
 
@@ -203,4 +235,4 @@ def extract_answer_freeform(message: str, already_known: dict = None) -> dict:
     if not extracted and not rejected_vague and not _is_specific_enough(message):
         rejected_vague = ["votre présentation"]
 
-    return {"extracted": extracted, "rejected_vague": rejected_vague}
+    return {"extracted": extracted, "rejected_vague": rejected_vague, "failed": False}

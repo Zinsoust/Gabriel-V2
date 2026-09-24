@@ -46,6 +46,35 @@ _INTRO_UTTERANCE = {
 }
 
 
+# Nombre maximal de réponses sur une même dimension avant de passer à la
+# suivante. Au-delà, reposer la question agace sans rien apporter : on garde
+# la réponse telle que l'utilisateur l'a formulée et on avance.
+MAX_TOURS_PAR_DIMENSION = 3
+
+_PANNE_UTTERANCE = {
+    "display_text": (
+        "Je n'ai pas pu analyser votre réponse : un service technique ne répond "
+        "pas de mon côté. Votre message est bien reçu — renvoyez-le dans un "
+        "instant et je reprends exactement là où nous en étions."
+    ),
+    "speech_text": "Je n'ai pas pu analyser votre réponse à cause d'un souci technique. Renvoyez-la dans un instant.",
+    "stance": "clarify",
+    "tone": "calm",
+    "strategic_observation": "",
+    "next_question": "",
+    "speech_profile": {"pace": "standard", "emphasis": [], "pause_after": []},
+}
+
+
+def _valeur_de_repli(message: str) -> str:
+    """Ce qu'on retient quand l'extraction n'a rien structuré après plusieurs
+    tours : la réponse elle-même, jamais une invention."""
+    texte = " ".join(message.split())[:500]
+    if ae._is_specific_enough(texte):
+        return texte
+    return f"Non précisé par le dirigeant (réponse : « {texte[:160]} »)"
+
+
 def _with_state(utterance: dict, ready: bool) -> dict:
     """Ajoute l'état d'interview (contrat frontend, voir INTERVIEW_STATES
     dans stratege.html) à l'utterance renvoyée par tone_renderer — dérivé
@@ -153,10 +182,13 @@ def handle_message(user_id: str, message: str) -> dict:
     # réponse suivante repasse par l'extraction ciblée habituelle.
     existing_messages   = db.get_context_messages(session_id, user_id)
     is_first_user_reply = not any(m.get('role') == 'user' for m in existing_messages)
-
-    db.save_context_message(session_id, user_id, 'user', message, dimension_key=current_dim or '')
+    tours_precedents = sum(
+        1 for m in existing_messages
+        if m.get('role') == 'user' and current_dim and m.get('dimension_key') == current_dim
+    )
 
     if not current_dim:
+        db.save_context_message(session_id, user_id, 'user', message, dimension_key='')
         # Tout est déjà couvert — pas de dimension à traiter, on ne casse pas
         # pour autant : on répond simplement que le contexte est déjà complet.
         utterance = tr.render_completion(fields)
@@ -171,7 +203,30 @@ def handle_message(user_id: str, message: str) -> dict:
     else:
         known_for_dim = _fields_for_dimension(current_dim, fields)
         result = ae.extract_answer(current_dim, message, known_for_dim)
+    if result.get('failed'):
+        # Le message est enregistré sans dimension : un tour perdu à cause
+        # d'une panne ne compte pas dans la limite de tours de la dimension.
+        db.save_context_message(session_id, user_id, 'user', message, dimension_key='')
+        db.save_context_message(session_id, user_id, 'assistant', _PANNE_UTTERANCE['display_text'],
+                                 dimension_key=current_dim)
+        payload = _state_payload(user_id, session, fields)
+        payload['reply'] = _with_state(_PANNE_UTTERANCE, False)
+        payload['rejected_vague'] = []
+        payload['extraction_failed'] = True
+        return payload
+
+    db.save_context_message(session_id, user_id, 'user', message, dimension_key=current_dim)
     extracted, rejected_vague = result['extracted'], result['rejected_vague']
+
+    # Garde-fou anti-boucle : au dernier tour autorisé sur cette dimension, les
+    # champs obligatoires encore vides prennent la réponse de l'utilisateur
+    # telle quelle, et l'entretien passe à la suite au lieu de reformuler.
+    if not is_first_user_reply and tours_precedents + 1 >= MAX_TOURS_PAR_DIMENSION:
+        deja = {**fields, **extracted}
+        for cle in [f['key'] for f in DIMENSION_BY_KEY[current_dim]['fields']
+                    if f['required'] and not (deja.get(f['key']) or '').strip()]:
+            extracted[cle] = _valeur_de_repli(message)
+        rejected_vague = []
 
     for key, value in extracted.items():
         db.upsert_context_field(user_id, key, value, source_session_id=session_id)
