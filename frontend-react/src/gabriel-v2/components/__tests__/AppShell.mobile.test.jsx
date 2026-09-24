@@ -8,7 +8,10 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import { configure, render, screen, cleanup, waitFor } from '@testing-library/react';
+
+// Le premier affichage d'un écran complet dépasse parfois 1 s quand toute la suite tourne en parallèle.
+configure({ asyncUtilTimeout: 10000 });
 import userEvent from '@testing-library/user-event';
 import { AppShell } from '../AppShell.jsx';
 

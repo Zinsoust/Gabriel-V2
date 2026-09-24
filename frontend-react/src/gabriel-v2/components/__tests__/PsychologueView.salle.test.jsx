@@ -6,7 +6,10 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { configure, render, screen, cleanup, within } from '@testing-library/react';
+
+// Le premier affichage d'un écran complet dépasse parfois 1 s quand toute la suite tourne en parallèle.
+configure({ asyncUtilTimeout: 10000 });
 import userEvent from '@testing-library/user-event';
 import { PsychologueView } from '../PsychologueView.jsx';
 import CROSS from './fixtures/cross-salle-reelle.json';
