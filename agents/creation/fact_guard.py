@@ -37,6 +37,8 @@ SOURCE_RULE = """RÈGLE DES SOURCES (non négociable) :
 - Aucun chiffre, prix, durée, benchmark, pourcentage ou nombre de personnes qui ne figure pas dans les données. Formule l'idée sans chiffre plutôt que de laisser un trou.
 - Aucune expérience vécue attribuée au créateur (« mon PC », « mes erreurs », « mon repo », « j'ai testé ») sauf si elle figure dans les données : propose-la comme scène à tourner, pas comme un fait.
 - Aucun témoignage, pseudo, nom de client, étude ou citation inventés.
+- Aucun emplacement entre crochets pour un chiffre (« [montant à insérer] », « [durée réelle] ») : reformule l'idée sans chiffre (« un PC modeste », « quelques minutes »).
+- Aucune scène dialoguée présentée comme réelle (extrait de forum, de Discord ou de Reddit, message d'un « débutant », « moi aussi j'ai été là ») sauf si le texte cité figure dans les données. Sinon, écris une consigne de tournage sans citer de propos inventés : « scène à tourner : un débutant bloqué pose sa question ».
 - N'invente jamais l'offre. Gabriel est l'outil qui t'aide à écrire : il n'est ni le sujet ni le produit du contenu, ne le mentionne pas. Sans offre fournie, ne vends aucun produit ni fonctionnalité : l'appel à l'action reste générique (commenter, s'abonner, [offre à préciser]).
 - La force du texte vient de la justesse psychologique et des mots de l'audience, pas de preuves fabriquées."""
 
@@ -55,7 +57,8 @@ _UNITS = (
     r"clients?|personnes?|élèves?|étudiants?|utilisateurs?|abonnés?|membres?|vues?|ventes?|leads?|"
     r"entreprises?|créateurs?|participants?|inscrits?|avis|projets?|places?|deadlines?|prospects?|"
     r"commandes?|contrats?|missions?|followers?|likes?|partages?|téléchargements?|"
-    r"k\b|millions?|milliards?|milliers?"
+    r"k\b|millions?|milliards?|milliers?|"
+    r"go\b|gb\b|mo\b|mb\b|ko\b|kb\b|to\b|tb\b|gigaoctets?|m[ée]ga-?octets?|ghz|mhz|fps|ms\b|watts?"
 )
 # Un nombre (éventuellement décimal ou « 2-3 »), puis une unité : « 80 % »,
 # « 3h », « 2x », « 1 200 clients ». Les années seules (« 2017 ») et les
@@ -79,6 +82,10 @@ def _normalise(claim: str) -> str:
     m = re.match(r"^([$€£])(.+)$", c)
     if m:  # « $49,87 » et « 49,87$ » : même affirmation
         c = m.group(2) + m.group(1)
+    c = re.sub(r"(gigaoctets?|gb)$", "go", c)
+    c = re.sub(r"(m[ée]ga-?octets?|mb)$", "mo", c)
+    c = re.sub(r"kb$", "ko", c)
+    c = re.sub(r"tb$", "to", c)
     c = re.sub(r"euros?$", "€", c)
     c = re.sub(r"(minutes?|min)$", "min", c)
     return re.sub(r"(heures?|h)$", "h", c)
@@ -169,7 +176,11 @@ _SUSPECT = re.compile(
     r"chercheurs?|universit|directeur|directrice|fondateur|fondatrice|\bchez [A-Z]|"
     r"méthode [A-Z]{2,}|\bcas client|@\w{3,}|j['’]ai (?:lancé|testé|installé|galéré|essayé)|"
     r"\b(?:mon|ma|mes) (?:repo|github|pc|ordinateur|macbook|dell|config|erreurs?|logs?|terminal|notebook|scripts?|dossier|benchmark)|"
-    r"\bbenchmark|[«\"'*]\s*[A-ZÀ-Ý][^«»\"]{20,}[»\"'*]\s*[—–-]"
+    r"\bbenchmark|extrait d['’]un (?:fil|discord|forum|reddit|chat|groupe)|"
+    r"capture d['’]écran d['’]un (?:forum|fil|discord|reddit|post|commentaire|message|chat|groupe)|"
+    r"\bfil reddit|\bdiscord où|"
+    r"un (?:débutant|utilisateur|abonné|client|internaute|commentateur) (?:écrit|dit|répond|pose|commente|poste|demande) ?:|"
+    r"moi aussi,? j['’]ai|[«\"'*]\s*[A-ZÀ-Ý][^«»\"]{20,}[»\"'*]\s*[—–-]"
 )
 
 _SYSTEM = """Tu es le vérificateur de faits du Créateur de Gabriel.ai. On te donne des SOURCES (ce qui est réellement connu) et un CONTENU au format JSON.
@@ -183,8 +194,9 @@ Cas des expériences vécues : une anecdote à la première personne attribuée 
 Cas des pseudos : un pseudo ou compte présenté comme réel (« @TechFail2023 sur Reddit ») devient [témoignage client réel à insérer].
 Cas des démonstrations : un matériel, un modèle ou un résultat précis présenté comme observé (« sur ce MacBook Air 2015, on génère… ») devient [démonstration réelle à filmer : …] avec la description générique.
 
+Cas des scènes présentées comme réelles : un extrait de forum, de Discord, de Reddit, un message ou une réponse attribués à un « utilisateur », un « débutant » ou à une communauté, avec des propos entre guillemets qui ne figurent pas dans les sources, devient une consigne de tournage : [scène à tourner : un débutant bloqué pose sa question]. Ne garde aucun propos inventé. Une citation identique à un verbatim des sources est conservée.
 Cas des produits : si le contenu vend un produit, un outil ou des fonctionnalités (y compris « Gabriel », qui est l'outil d'écriture et jamais le produit) absents des sources, remplace le nom par [votre offre] et retire les fonctionnalités inventées.
-Cas des CHIFFRES NON SOURCÉS (liste fournie) : réécris chaque phrase qui les contient pour dire la même idée SANS chiffre ni emplacement entre crochets (« en 3 clics » → « en quelques clics », « 90 % des débutants abandonnent » → « beaucoup de débutants abandonnent »).
+Cas des CHIFFRES NON SOURCÉS et des EMPLACEMENTS CHIFFRÉS (listes fournies) : réécris chaque phrase qui les contient, y compris les emplacements du type [montant réel à insérer] ou [durée réelle à insérer], pour dire la même idée SANS chiffre ni emplacement entre crochets (« en 3 clics » → « en quelques clics », « 90 % des débutants abandonnent » → « beaucoup de débutants abandonnent »).
 
 Règles :
 - Ne modifie RIEN d'autre : même structure JSON, mêmes clés, même texte partout ailleurs.
@@ -206,30 +218,110 @@ def _source_digest(ctx) -> str:
     return (digest + "\n" + json.dumps(utile, ensure_ascii=False))[:6000]
 
 
+# ── Réécriture ciblée, passage par passage ─────────────────────────────────
+#
+# 24/09/2026 : la passe « tout le document d'un coup » ne suivait pas la
+# consigne (un modèle de 14 milliards de paramètres qui doit renvoyer 20 000
+# caractères de JSON en changeant trois phrases en oublie la moitié). On isole
+# donc les passages fautifs et on ne réécrit QUE ceux-là, par petits lots.
+
+# Emplacements chiffrés laissés par un modèle (« [montant réel à insérer] ») :
+# un texte qui en compte plusieurs devient illisible.
+_NUM_PLACEHOLDER = re.compile(r"\[(?:montant|durée|pourcentage|chiffre|nombre|prix|quantité|taux|délai)[^\]]{0,60}\]", re.IGNORECASE)
+# Personnes, projets ou captures présentés comme réels alors que rien ne le prouve.
+_REAL_CLAIM = re.compile(
+    r"(?:captures?(?: d['’]écran)?|exemples?|projets?|cas|témoignages?|extraits?|retours?) réel(?:le)?s?\b|"
+    r"créés? (?:cette semaine|par des (?:débutants|utilisateurs))|"
+    r"preuve sociale|extrait d['’]une? (?:discussion|échange|message|commentaire|mail|e-?mail)", re.IGNORECASE)
+
+_REWRITE_SYSTEM = """Tu corriges des extraits d'un contenu marketing. On te donne des SOURCES (ce qui est réellement connu) et des extraits numérotés. Pour CHAQUE extrait, retire ce qui n'est pas dans les sources, en gardant tout le reste mot pour mot (même langue, même ton, même mise en forme).
+
+À retirer ou reformuler :
+- Chiffres, quantités, durées, prix, pourcentages absents des sources : reformule sans chiffre (« en 3 clics » → « en quelques clics », « 10 Go » → « peu de place »). Aucun emplacement entre crochets pour un chiffre.
+- Emplacements chiffrés du type [montant réel à insérer], [durée réelle à insérer], [pourcentage réel à insérer] : supprime-les et reformule la phrase sans chiffre.
+- Scènes, forums, Discord, Reddit, messages ou réponses d'utilisateurs, débutants, clients, avec des propos entre guillemets qui ne sont pas dans les sources : remplace par une consigne de tournage sans propos inventés, par exemple [Scène à tourner : un débutant montre son écran et pose sa question].
+- « Preuve sociale », « cas réel » ou « extrait d'une discussion » suivis d'une citation ou d'une configuration précise (« CPU Intel i5 », « mon PC a suffi pour automatiser mes factures ») : remplace la citation et les détails par [témoignage client réel à insérer].
+- Personnes, projets, exemples, captures d'écran ou résultats présentés comme réels (« un artisan a automatisé… », « une étudiante a… ») : remplace par une consigne de tournage ou une formulation générale (« Imaginez quelqu'un qui… »).
+- Anecdotes personnelles du créateur (« mon PC », « mon repo », « j'ai testé ») : reformule à la deuxième personne ou en consigne de tournage.
+- Le mot « Gabriel » et toute offre inventée : remplace par [votre offre] ou retire.
+- Une citation identique à un verbatim des sources est conservée.
+
+Réponds UNIQUEMENT avec un JSON qui reprend les mêmes numéros : {"0": "extrait corrigé", "1": "..."}. Un extrait sans problème est renvoyé à l'identique."""
+
+
+def _leaves(node, out, key=None):
+    """Toutes les chaînes du contenu, sous forme (conteneur, clé) pour pouvoir les remplacer."""
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k in _SKIP_KEYS:
+                continue
+            if isinstance(v, str):
+                out.append((node, k))
+            else:
+                _leaves(v, out, k)
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            if isinstance(v, str):
+                out.append((node, i))
+            else:
+                _leaves(v, out, key)
+
+
+def _fautif(text: str, allowed: set, handles: set) -> bool:
+    if len(text) < 25:
+        return False
+    if _SUSPECT.search(text) or _NUM_PLACEHOLDER.search(text) or _REAL_CLAIM.search(text) or re.search(r"\bGabriel\b", text):
+        return True
+    return _clean_string(text, allowed, [], handles) != text
+
+
+def _rewrite_batches(leaves, ctx, sources: str) -> int:
+    """Réécrit les passages fautifs par lots de 8 au plus. Renvoie le nombre de passages modifiés."""
+    from agents.createur import _call_llm, _parse_json, CREATION_MAX_TOKENS
+    modifies = 0
+    for start in range(0, len(leaves), 8):
+        lot = leaves[start:start + 8]
+        extraits = {str(n): container[key] for n, (container, key) in enumerate(lot)}
+        prompt = (f"{_REWRITE_SYSTEM}\n\nSOURCES :\n{_source_digest(ctx)}\n\n"
+                  f"EXTRAITS :\n{json.dumps(extraits, ensure_ascii=False)}")
+        try:
+            corrige = _parse_json(_call_llm(prompt, max_tokens=CREATION_MAX_TOKENS, temperature=0.1))
+        except Exception as exc:
+            print(f"[CREATION/fact_guard] lot de réécriture indisponible : {exc}")
+            continue
+        if not isinstance(corrige, dict):
+            continue
+        for n, (container, key) in enumerate(lot):
+            neuf = corrige.get(str(n))
+            ancien = container[key]
+            # Une réponse vide ou coupée ne remplace jamais le texte d'origine.
+            if isinstance(neuf, str) and neuf.strip() and neuf != ancien and len(neuf) >= 0.3 * len(ancien):
+                container[key] = neuf
+                modifies += 1
+    return modifies
+
+
 def run(ctx) -> None:
+    import copy
     final = ctx.final or ctx.draft
     if not isinstance(final, dict) or final.get("parse_error"):
         return
-    texte = json.dumps(final, ensure_ascii=False)
-    # Les chiffres non sourcés sont reformulés ici plutôt que remplacés plus
-    # tard par « [chiffre à vérifier] » : 14/09/2026, un script YouTube en
-    # comptait une trentaine et devenait illisible.
-    _, non_sources = guard_numbers(final, sources_text(ctx.user_request, ctx.psycho_data, ctx.business_context, ctx.strategy, ctx.persona))
-    produit_suspect = re.search(r"\bGabriel\b", texte)
-    if not (_SUSPECT.search(texte) or non_sources or produit_suspect):
-        return
-    try:
-        from agents.createur import _call_llm, _parse_json, CREATION_MAX_TOKENS
-        liste = ", ".join(sorted(set(non_sources))) or "aucun"
-        prompt = (f"{_SYSTEM}\n\nSOURCES :\n{_source_digest(ctx)}\n\n"
-                  f"CHIFFRES NON SOURCÉS À REFORMULER SANS CHIFFRE : {liste}\n\nCONTENU :\n{texte}")
-        corrige = _parse_json(_call_llm(prompt, max_tokens=CREATION_MAX_TOKENS, temperature=0.1))
-        if isinstance(corrige, dict) and not corrige.get("parse_error") and corrige:
-            corrige.setdefault("content_type", ctx.content_type)
-            corrige["success"] = True
-            ctx.final = corrige
-    except Exception as exc:  # la vérification numérique déterministe reste appliquée ensuite
-        print(f"[CREATION/fact_guard] passe qualitative indisponible : {exc}")
+    sources = sources_text(ctx.user_request, ctx.psycho_data, ctx.business_context, ctx.strategy, ctx.persona)
+    allowed = _claims_in(sources)
+    handles = {h.lower() for h in _HANDLE.findall(sources)}
+    travail = copy.deepcopy(final)
+    # Deux tours au plus : le second ne reprend que ce que le premier a laissé.
+    for _ in range(2):
+        feuilles = []
+        _leaves(travail, feuilles)
+        fautives = [(c, k) for c, k in feuilles if _fautif(c[k], allowed, handles)]
+        if not fautives:
+            break
+        if not _rewrite_batches(fautives, ctx, sources):
+            break
+    travail.setdefault("content_type", ctx.content_type)
+    travail["success"] = True
+    ctx.final = travail
 
 
 def guard_result(result, sources: str):

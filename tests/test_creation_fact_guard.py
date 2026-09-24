@@ -116,22 +116,123 @@ def test_chaque_etape_qui_ecrit_ou_juge_recoit_la_regle_des_sources(monkeypatch)
     assert all('RÈGLE DES SOURCES' in p or 'Tu ne demandes JAMAIS' in p for p in prompts)
 
 
-def test_la_verification_recoit_la_liste_des_chiffres_a_reformuler(monkeypatch):
-    import agents.createur as createur
-    from agents.creation import fact_guard
-    from agents.creation.pipeline import CreationContext
-    recu = []
-    monkeypatch.setattr(createur, '_call_llm', lambda prompt, **kw: recu.append(prompt) or '{"texte": "Beaucoup de débutants abandonnent."}')
-    ctx = CreationContext(content_type='youtube', user_request='Un script')
-    ctx.final = {'texte': '90 % des débutants abandonnent en 3 jours.'}
-    fact_guard.run(ctx)
-    assert recu, "des chiffres non sourcés doivent déclencher la reformulation"
-    assert 'CHIFFRES NON SOURCÉS À REFORMULER SANS CHIFFRE : 3 jours, 90 %' in recu[0]
-    assert ctx.final['texte'] == 'Beaucoup de débutants abandonnent.'
-
-
 def test_l_outil_gabriel_n_est_jamais_presente_comme_le_produit():
     from agents.creation.fact_guard import SOURCE_RULE
     from agents.createur import _SYSTEM_PROMPTS
     assert "Gabriel est l'outil qui t'aide à écrire" in SOURCE_RULE
     assert all('LE CRÉATEUR de Gabriel' not in p for p in _SYSTEM_PROMPTS.values())
+
+
+# ── Étape 2 (24/09/2026) : quantités en Go, scènes inventées, emplacements chiffrés ──
+
+def test_les_quantites_en_go_non_sourcees_sont_retirees_mais_celles_de_l_audience_restent():
+    from agents.creation.fact_guard import guard_numbers, PLACEHOLDER
+    texte = {'texte': "Llama 2 tient dans 10 Go, Stable Diffusion demande 16 Go, et vous craignez les 80 Go."}
+    propre, retires = guard_numbers(texte, "Un commentaire de l'audience : installer jusqu'à 80 GB sur mon ordinateur.")
+    assert '10 Go' not in propre['texte'] and '16 Go' not in propre['texte']
+    assert '80 Go' in propre['texte']          # « 80 GB » et « 80 Go » : même affirmation, dite par l'audience
+    assert propre['texte'].count(PLACEHOLDER) == 2
+    assert set(retires) == {'10 Go', '16 Go'}
+
+
+def test_les_scenes_dialoguees_presentees_comme_reelles_declenchent_la_verification():
+    from agents.creation.fact_guard import _SUSPECT
+    # Une phrase par motif : chacune ne doit être attrapée que par « son » motif.
+    for phrase in ("Extrait d'un Discord, voici la discussion.",
+                   "Capture d'écran d'un forum ouverte à l'écran.",
+                   "Un débutant répond : « Ça marche ! Merci ! »",
+                   "Moi aussi, j'ai été là."):
+        assert _SUSPECT.search(phrase), phrase
+    assert not _SUSPECT.search("Imaginez une scène où quelqu'un hésite devant son écran.")
+
+
+def test_la_regle_des_sources_interdit_les_emplacements_chiffres_et_les_scenes_inventees():
+    from agents.creation.fact_guard import SOURCE_RULE
+    assert 'Aucun emplacement entre crochets pour un chiffre' in SOURCE_RULE
+    assert 'Aucune scène dialoguée présentée comme réelle' in SOURCE_RULE
+
+
+def _ctx(final):
+    from agents.creation.pipeline import CreationContext
+    ctx = CreationContext(content_type='youtube', user_request='Un script')
+    ctx.final = final
+    return ctx
+
+
+def test_seuls_les_passages_fautifs_sont_envoyes_a_la_reecriture(monkeypatch):
+    import agents.createur as createur
+    from agents.creation import fact_guard
+    prompts = []
+
+    def faux_llm(prompt, **kw):
+        prompts.append(prompt)
+        return '{"0": "Beaucoup de débutants abandonnent avant la première installation."}'
+    monkeypatch.setattr(createur, '_call_llm', faux_llm)
+    ctx = _ctx({'introduction': "Ici on parle simplement de ce que vous ressentez devant un écran noir.",
+                'partie': "90 % des débutants abandonnent avant la première installation.",
+                'cta': "Abonnez-vous et dites-moi en commentaire ce qui vous bloque le plus."})
+    fact_guard.run(ctx)
+    assert len(prompts) == 1
+    assert '90 %' in prompts[0] and 'écran noir' not in prompts[0] and 'Abonnez-vous' not in prompts[0]
+    assert ctx.final['partie'] == "Beaucoup de débutants abandonnent avant la première installation."
+    assert ctx.final['introduction'].startswith("Ici on parle simplement")     # intact
+    assert ctx.final['cta'].startswith("Abonnez-vous")                           # intact
+
+
+def test_les_emplacements_chiffres_et_les_scenes_inventees_sont_reecrits(monkeypatch):
+    import agents.createur as createur
+    from agents.creation import fact_guard
+    recu = []
+
+    def faux_llm(prompt, **kw):
+        recu.append(prompt)
+        return '{"0": "Votre PC modeste suffit largement pour démarrer.", "1": "[Scène à tourner : un débutant montre son écran et pose sa question.]", "2": "Imaginez quelqu\'un qui automatise ses étiquettes avec un petit script."}'
+    monkeypatch.setattr(createur, '_call_llm', faux_llm)
+    ctx = _ctx({'a': "Un PC à [montant réel à insérer] suffit largement pour démarrer.",
+                'b': "Extrait d'un fil Reddit où un débutant demande : « Comment faire sans GPU ? »",
+                'c': "Un artisan a automatisé ses étiquettes, voici les projets réels de la semaine."})
+    fact_guard.run(ctx)
+    assert '[montant réel à insérer]' not in json.dumps(ctx.final, ensure_ascii=False)
+    assert 'Reddit' not in ctx.final['b'] and ctx.final['b'].startswith('[Scène à tourner')
+    assert 'artisan' not in ctx.final['c']
+
+
+def test_une_reponse_coupee_ne_remplace_jamais_le_texte_d_origine(monkeypatch):
+    import agents.createur as createur
+    from agents.creation import fact_guard
+    monkeypatch.setattr(createur, '_call_llm', lambda p, **kw: '{"0": "ok"}')
+    original = "Un PC à [montant réel à insérer] suffit largement pour démarrer sans rien acheter du tout."
+    ctx = _ctx({'a': original})
+    fact_guard.run(ctx)
+    assert ctx.final['a'] == original
+
+
+def test_la_reecriture_s_arrete_apres_deux_tours(monkeypatch):
+    import agents.createur as createur
+    from agents.creation import fact_guard
+    appels = []
+    # Chaque réponse est différente et garde un emplacement chiffré : sans plafond, la boucle continuerait.
+    monkeypatch.setattr(createur, '_call_llm', lambda p, **kw: appels.append(1) or json.dumps({"0": f"Version {len(appels)} : un PC à [prix réel à insérer] pour démarrer sans souci."}))
+    ctx = _ctx({'a': "Un PC à [montant réel à insérer] suffit largement pour démarrer."})
+    fact_guard.run(ctx)
+    assert len(appels) == 2
+
+
+def test_un_texte_propre_ne_declenche_aucun_appel(monkeypatch):
+    import agents.createur as createur
+    from agents.creation import fact_guard
+    appels = []
+    monkeypatch.setattr(createur, '_call_llm', lambda p, **kw: appels.append(1) or '{}')
+    ctx = _ctx({'a': "Vous avez le droit d'apprendre à votre rythme, avec le matériel que vous avez déjà."})
+    fact_guard.run(ctx)
+    assert appels == []
+    assert ctx.final['a'].startswith("Vous avez le droit")
+
+
+def test_les_fausses_preuves_sociales_sont_reperees_pour_la_reecriture():
+    from agents.creation.fact_guard import _fautif
+    for texte in ("Preuve sociale : 'Je croyais avoir besoin d'un serveur. En réalité, mon PC a suffi.'",
+                  "Cas réel : capture d'une configuration fonctionnelle sur un PC d'occasion, CPU Intel i5.",
+                  "Extrait d'une discussion : 'On a cru que ça ne marcherait jamais avec si peu de RAM.'"):
+        assert _fautif(texte, set(), set()), texte
+    assert not _fautif("Vous avez le droit d'apprendre à votre rythme, avec le matériel que vous avez déjà.", set(), set())
