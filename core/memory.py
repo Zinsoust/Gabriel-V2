@@ -26,12 +26,12 @@
 # déploiement Render — l'apprentissage stratégique disparaissait donc à
 # chaque mise à jour du code.
 #
-# La mémoire est volontairement globale, pas cloisonnée par compte : chaque
-# recherche de cas similaires (find_similar) priorise d'abord les cas du
-# même utilisateur, et ne retombe sur l'ensemble des autres comptes que s'il
-# n'en a pas assez lui-même. Plus il y a d'utilisateurs, plus les patterns
-# détectés (quelle décision a fonctionné pour quel type d'audience) sont
-# fiables pour tout le monde — c'est le comportement d'apprentissage voulu.
+# La mémoire est CLOISONNÉE par compte par défaut (audit du 24/09/2026) : les
+# cas contiennent l'offre, le prix et la décision de chaque utilisateur, et
+# ne doivent jamais apparaître dans le prompt d'un autre. L'apprentissage
+# global initial — priorité aux cas du même utilisateur, repli sur tous les
+# comptes — reste disponible avec MEMORY_SHARE_ACROSS_USERS=true, pour une
+# équipe dont tous les comptes partagent les mêmes données.
 
 import re
 import datetime
@@ -295,8 +295,8 @@ class GabrielMemory:
         uid = user_id or self.user_id
         if uid and uid != 'global':
             user_cases = [c for c in pool if c.get('user_id') == uid]
-            if len(user_cases) >= 2:
-                pool = user_cases
+            if len(user_cases) >= 2 or not _db.memory_shared_across_users():
+                pool = user_cases      # cloisonné par défaut : jamais les cas d'un autre compte
 
         scored = []
         for case in pool:

@@ -103,3 +103,70 @@ def test_cross_as_psycho_gives_the_creator_only_verified_cross_material():
     brief = Createur().build_writing_brief('script_video', 'youtube', 'direct', '', psycho, {}, None, {}, 'Un script')
     assert 'ne pas les fusionner' in brief and 'Audience B : Rassurer B' in brief
     assert 'Le jargon : Ils fuient' in brief and 'On vous guide' in brief
+
+
+# ── Salle Cross → Ariane ─────────────────────────────────────────────────────
+
+def _cross_reel():
+    import json, os
+    chemin = os.path.join(os.path.dirname(__file__), '..', 'frontend-react', 'src', 'gabriel-v2', 'components',
+                          '__tests__', 'fixtures', 'cross-salle-reelle.json')
+    with open(chemin, encoding='utf-8') as f:
+        return json.load(f)['result']
+
+
+def test_le_stratege_lit_une_cross_analyse_comme_plusieurs_audiences():
+    """Sur la vraie Cross (deux vidéos YouTube) : ce que le Stratège lit doit nommer les deux
+    audiences, dire ce qui les rassemble et les sépare, et reprendre sujets et repoussoirs."""
+    from core.cross_synthesis import cross_as_psycho
+    from agents.stratege import _build_psycho_context
+    r = _cross_reel()
+    contexte = _build_psycho_context(cross_as_psycho(r))
+    insights = contexte['insights_cles']
+    assert 'A = ' in insights['synthese_audience'] and 'B = ' in insights['synthese_audience']
+    assert 'Ce qui les rassemble' in insights['synthese_audience'] and 'Ce qui les sépare' in insights['synthese_audience']
+    assert insights['insight_cle'] and insights['action_prioritaire']
+    assert contexte['signaux_marketing']['opportunites_contenu']
+    assert contexte['signaux_marketing']['positionnement_recommande'] == r['cross_synthesis']['message_commun']['message'].replace('*', '')
+    assert contexte['peurs_et_douleurs']['objections_invisibles']
+    assert contexte['aspirations']['ambitions']
+
+
+def test_strategize_accepte_l_identifiant_d_une_cross_analyse(monkeypatch):
+    import os, time
+    os.environ.setdefault('FLASK_SECRET_KEY', 'test-secret-cross-ariane'); os.environ.setdefault('MISTRAL_API_KEY', 'test-key')
+    import app as _app
+    import api.db as _db
+    recu = {}
+    monkeypatch.setattr(_db, 'has_enough_credits', lambda *a, **k: True)
+    monkeypatch.setattr(_db, 'deduct_credits', lambda *a, **k: None)
+    monkeypatch.setattr(_db, 'create_job', lambda *a, **k: True)
+    monkeypatch.setattr(_db, 'update_job', lambda *a, **k: True)
+    monkeypatch.setattr(_db, 'save_strategy', lambda *a, **k: 'strat-1')
+    monkeypatch.setattr(_db, 'update_analysis_strategy', lambda *a, **k: None)
+    monkeypatch.setattr(_db, 'get_cross_analysis', lambda cid, uid=None: {'result_data': _cross_reel()} if (cid, uid) == ('cross_290be78025464751', 'ariane-tester') else None)
+    monkeypatch.setattr(_app, '_missing_required_business_fields', lambda profile: [])
+    monkeypatch.setattr(_app, 'GabrielMemory', lambda uid: type('M', (), {
+        'get_memory_context': lambda s, *a, **k: '', 'get_similar_summary': lambda s, *a, **k: '', 'add_case': lambda s, *a, **k: None})())
+
+    def faux_stratege(psycho_data, brain_context, **kw):
+        recu.update(psycho=psycho_data, title=kw.get('title'))
+        return {'strategie': {'angle_positionnel': 'ok'}}
+    monkeypatch.setattr(_app.gabriel, 'run_stratege', faux_stratege)
+
+    client = _app.app.test_client()
+    with client.session_transaction() as s:
+        s['user_id'] = 'ariane-tester'; s['user_email'] = 'a@example.com'
+    r = client.post('/api/v2/agents/stratege/generate', json={'analysis_id': 'cross_290be78025464751', 'brain_profile': {'offer': 'x'}})
+    assert r.status_code == 200, r.get_data(as_text=True)
+    for _ in range(60):
+        if recu:
+            break
+        time.sleep(0.05)
+    assert 'A = ' in recu['psycho']['brief']['synthese'] and recu['title'].startswith('Cross Analyse · ')
+
+    # Un identifiant de Cross qui n'est pas à cet utilisateur est refusé, jamais deviné.
+    with client.session_transaction() as s:
+        s['user_id'] = 'un-autre-utilisateur'
+    r = client.post('/api/v2/agents/stratege/generate', json={'analysis_id': 'cross_290be78025464751', 'brain_profile': {'offer': 'x'}})
+    assert r.status_code == 400 and 'Cross Analyse introuvable' in r.get_json()['error']

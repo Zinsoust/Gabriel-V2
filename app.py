@@ -102,6 +102,38 @@ if _is_production:
     # authorize_redirect), même si l'en-tête forwarded venait à manquer.
     app.config['PREFERRED_URL_SCHEME'] = 'https'
 
+def production_safety_problems(env=None):
+    """Réglages qui rendraient un serveur DÉPLOYÉ dangereux pour ses utilisateurs.
+
+    Sans AUTH_ENABLED=true, chaque visiteur devient le même « utilisateur de
+    développement » : toutes les analyses et tous les crédits sont partagés,
+    sans aucune connexion. Le code prenait 'false' par défaut — un oubli de
+    variable sur le serveur suffisait à ouvrir l'application à tout le monde
+    (constaté à l'audit du 24/09/2026).
+
+    Le mode « déployé » est déclaré par Render (variable RENDER) ou par
+    GABRIEL_ENV=production. Ce n'est volontairement PAS déduit d'APP_URL : un
+    poste de développement garde l'adresse publique dans son .env."""
+    env = os.environ if env is None else env
+    deployed = bool(env.get('RENDER')) or str(env.get('GABRIEL_ENV', '')).lower() == 'production'
+    if not deployed:
+        return []
+    problems = []
+    if str(env.get('AUTH_ENABLED', 'false')).lower() != 'true':
+        problems.append("AUTH_ENABLED doit valoir 'true' : sans lui, l'application est ouverte à tous sur un compte unique.")
+    secret = str(env.get('FLASK_SECRET_KEY', ''))
+    if len(secret) < 24 or secret.startswith('VOTRE_'):
+        problems.append("FLASK_SECRET_KEY est trop courte ou reste celle de l'exemple : les sessions pourraient être falsifiées.")
+    return problems
+
+
+_security_problems = production_safety_problems()
+if _security_problems:
+    raise RuntimeError("Démarrage refusé — " + " ".join(_security_problems))
+if _is_production and os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
+    print("[SÉCURITÉ] AUTH_ENABLED n'est pas 'true' alors que APP_URL est public : "
+          "acceptable en développement uniquement, jamais sur le serveur déployé.")
+
 init_auth(app)
 app.register_blueprint(auth_bp)
 
@@ -1516,6 +1548,16 @@ def upload_comments_file():
     })
 
 
+def _interruption_message(job_id):
+    """Message d'interruption adapté au travail : une génération du Créateur
+    (identifiant « cr_… ») ne doit pas parler d'« analyse » ni de commentaires."""
+    if str(job_id or '').startswith('cr_'):
+        return ("La génération a été interrompue par un redémarrage du serveur. "
+                "Relancez-la : votre demande et votre contexte sont conservés.")
+    return ("L'analyse a été interrompue par un redémarrage du serveur. "
+            "Relancez l'analyse — vos commentaires n'ont pas été perdus.")
+
+
 @app.route('/api/v2/jobs/<job_id>', methods=['GET'])
 @app.route('/status/<job_id>', methods=['GET'])
 @login_required_api
@@ -1578,19 +1620,11 @@ def job_status(job_id):
         # Le job existe en base mais plus en mémoire : le serveur a redémarré
         # pendant l'analyse (worker unique) — le thread est perdu.
         _db.update_job(job_id, user_id=uid, status='interrupted',
-                       error_message='Analyse interrompue par un redémarrage du serveur.')
-        return jsonify({
-            'status': 'interrupted',
-            'error':  "L'analyse a été interrompue par un redémarrage du serveur. "
-                      "Relancez l'analyse — vos commentaires n'ont pas été perdus.",
-        })
+                       error_message=_interruption_message(job_id))
+        return jsonify({'status': 'interrupted', 'error': _interruption_message(job_id)})
 
     if db_status == 'interrupted':
-        return jsonify({
-            'status': 'interrupted',
-            'error':  "L'analyse a été interrompue par un redémarrage du serveur. "
-                      "Relancez l'analyse — vos commentaires n'ont pas été perdus.",
-        })
+        return jsonify({'status': 'interrupted', 'error': _interruption_message(job_id)})
 
     return jsonify({'status': 'not_found', 'error': 'Job introuvable ou expiré'}), 404
 
@@ -1685,6 +1719,19 @@ def strategize():
     uid_strat_early = (current_user() or {}).get('user_id')
     psycho_data_fallback = data.get('psycho_data') or {}
     cached = _psycho_cache.get(analysis_id)
+
+    # Salle Cross → Ariane : l'identifiant peut être celui d'une Cross Analyse. La
+    # stratégie part alors de la synthèse croisée vérifiée (audiences distinguées),
+    # jamais d'une seule audience.
+    if str(analysis_id or '').startswith('cross_'):
+        cross = (_db.get_cross_analysis(analysis_id, uid_strat_early) or {}) if uid_strat_early else {}
+        cross_result = cross.get('result_data') or {}
+        cross_psycho = cross_as_psycho(cross_result) if cross_result else {}
+        if not cross_psycho:
+            return jsonify({'success': False, 'error': "Cross Analyse introuvable ou sans synthèse exploitable."}), 400
+        titles = [str(p.get('title') or '') for p in (cross_result.get('source_profiles') or build_source_profiles(cross_result))]
+        cached = {'psycho': cross_psycho, 'title': ('Cross Analyse · ' + ' × '.join(t for t in titles if t))[:200],
+                  'video_context': '', 'user_id': uid_strat_early}
 
     # Invalider l'entrée cache si elle appartient à un autre utilisateur
     if cached and cached.get('user_id') and cached['user_id'] != uid_strat_early:
@@ -1980,6 +2027,9 @@ def creator_generate():
                     if j is not None:
                         j['step'] = label
                         j['progress'] = pct
+                    # Battement de cœur en base : prouve que le travail avance
+                    # et permet de repérer les orphelins après un redémarrage.
+                    _db.update_job(job_id, user_id=uid, status='running', progress=pct, step=label)
 
                 # Livraison progressive : le brouillon part à l'écran dès qu'il
                 # est écrit (~32 s) pendant que Gabriel le critique et
@@ -4519,6 +4569,21 @@ def _format_brain_context(profile):
         if val:
             lines.append(f"{label} : {val}")
     return "\n".join(lines)
+
+
+def _sweep_orphan_jobs():
+    """Au démarrage : les travaux restés « en cours » sans battement de cœur ont
+    perdu leur thread (le worker est unique) — on les marque « interrompus »."""
+    try:
+        counts = _db.mark_stale_jobs_interrupted()
+        if counts.get('jobs') or counts.get('cross'):
+            print(f"[JOB] orphelins marqués interrompus au démarrage : {counts}")
+    except Exception as exc:
+        print(f"[JOB] balayage des orphelins impossible : {exc}")
+
+
+if os.environ.get('JOB_SWEEP_ON_START', '1') == '1':
+    threading.Thread(target=_sweep_orphan_jobs, daemon=True, name='sweep-orphan-jobs').start()
 
 
 if __name__ == '__main__':

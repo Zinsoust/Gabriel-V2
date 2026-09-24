@@ -309,12 +309,30 @@ def cross_as_psycho(cross_result: Mapping[str, Any], per_source_verbatims: int =
         comments.sort(key=lambda e: -(e.get("likes") or 0))
         verbatims += [{"text": e["text"], "likes": e.get("likes") or 0} for e in comments[:per_source_verbatims]]
 
+    # Le Stratège lit brief.synthese / insight_cle / action_prioritaire, marketing.* et
+    # aspirations.* : sa vue d'ensemble doit dire qu'il y a PLUSIEURS audiences.
+    rassemble_txt, separe_txt = _plain(verdict.get("rassemble")), _plain(verdict.get("separe"))
+    synthese_stratege = " ".join(part for part in (
+        qui + ".",
+        f"Ce qui les rassemble : {rassemble_txt}" if rassemble_txt else "",
+        f"Ce qui les sépare : {separe_txt}" if separe_txt else "",
+    ) if part)
     return {
         "analysis_mode": "cross",
         "brief": {
             "qui": qui,
-            "insight": _plain(verdict.get("rassemble")),
-            "synthese": _plain(verdict.get("separe")),
+            "insight": rassemble_txt,
+            "synthese": synthese_stratege,
+            "insight_cle": rassemble_txt,
+            "action_prioritaire": _plain(verdict.get("a_leur_dire")),
+        },
+        "marketing": {
+            "opportunites_contenu": sujets[:3],
+            "objections_invisibles": eviter[:3],
+            "positionnement_recommande": _plain(message.get("message")),
+        },
+        "aspirations": {
+            "ambitions": [_plain(c.get("label")) for c in synthesis.get("centres_interet") or []][:3],
         },
         "psychologie": {
             "frustrations": labels({"frustrations", "objections"}),

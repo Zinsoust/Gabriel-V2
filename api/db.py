@@ -257,6 +257,25 @@ def save_orchestrator_session(user_id, conversation_id, folder_id, title,
 # ANALYSES
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _auth_active():
+    return os.environ.get('AUTH_ENABLED', 'false').lower() == 'true'
+
+
+def _owned_by(entry_owner, user_id):
+    """Un enregistrement du repli local n'est visible que de son propriétaire.
+
+    La clé Supabase du serveur contourne les règles d'accès de la base : quand
+    Supabase échoue, ces fichiers deviennent la seule barrière entre deux
+    utilisateurs. Sans authentification (poste de développement), les entrées
+    sans propriétaire écrites par d'anciennes versions ('local' ou vide) restent
+    visibles, pour ne rien perdre en local."""
+    if user_id and entry_owner == user_id:
+        return True
+    if _auth_active():
+        return False
+    return not entry_owner or entry_owner == 'local' or not user_id
+
+
 def get_history(user_id=None, limit=50, folder_id=None):
     """Liste des analyses (métadonnées only, pas le full_result).
     Si folder_id fourni, filtre par dossier pour isoler les espaces de travail."""
@@ -285,7 +304,7 @@ def get_history(user_id=None, limit=50, folder_id=None):
             'created_at':      e.get('date', ''),
             'has_strategy':    bool(e.get('strategie_result')),
         }
-        for e in history
+        for e in history if _owned_by(e.get('user_id'), user_id)
     ]
 
 
@@ -858,6 +877,34 @@ def update_job(job_id, user_id=None, status=None, progress=None, step=None,
         return False
 
 
+def mark_stale_jobs_interrupted(min_age_seconds=120):
+    """Passe en « interrupted » les travaux restés « pending/running » sans
+    battement de cœur depuis plus de min_age_seconds (analyses, générations
+    et Cross Analyses). Le thread qui les faisait avancer est mort avec le
+    serveur : sans ce balayage, un travail jamais relu restait « en cours »
+    pour toujours (24/09/2026 : 3 analyses et 1 Cross bloquées depuis août).
+    Le délai évite de toucher un travail qu'un autre processus fait encore
+    avancer. Retourne {'jobs': n, 'cross': n}."""
+    counts = {'jobs': 0, 'cross': 0}
+    if not _supabase:
+        return counts
+    now = datetime.datetime.utcnow()
+    cutoff = (now - datetime.timedelta(seconds=min_age_seconds)).isoformat()
+    message = 'Interrompu par un redémarrage du serveur.'
+    for key, table, extra in (
+        ('jobs', _T_JOBS, {'completed_at': now.isoformat()}),
+        ('cross', _T_CROSS_ANALYSES, {}),
+    ):
+        try:
+            res = _supabase.table(table)\
+                .update({'status': 'interrupted', 'error_message': message, 'updated_at': now.isoformat(), **extra})\
+                .in_('status', ['pending', 'running']).lt('updated_at', cutoff).execute()
+            counts[key] = len(res.data or [])
+        except Exception as e:
+            print(f'[DB] mark_stale_jobs_interrupted({table}) error: {e}')
+    return counts
+
+
 def get_job(job_id, user_id=None):
     """Récupère un job par job_id (filtré par user_id). None si introuvable."""
     if not (_supabase and job_id):
@@ -894,7 +941,7 @@ def update_analysis_strategy(analysis_id, strategy_result, strategy_id=None, use
     # stratégie, même quand Supabase avait déjà réussi.
     history = _load_json_history()
     for e in history:
-        if e.get('analysis_id') == analysis_id:
+        if e.get('analysis_id') == analysis_id and _owned_by(e.get('user_id'), user_id):
             e['strategie_result'] = strategy_result
             e['has_strategy'] = True
             break
@@ -916,7 +963,7 @@ def delete_analysis(analysis_id, user_id=None):
 
     history = _load_json_history()
     original_len = len(history)
-    history = [e for e in history if e.get('analysis_id') != analysis_id]
+    history = [e for e in history if not (e.get('analysis_id') == analysis_id and _owned_by(e.get('user_id'), user_id))]
     _write_json_history(history)
     return len(history) < original_len
 
@@ -1028,8 +1075,8 @@ def get_strategies(user_id=None, limit=50, folder_id=None):
         except Exception as e:
             print(f'[DB] get_strategies error: {e}')
 
-    # Fallback JSON
-    rows = _load_json_strategies()
+    # Fallback JSON — uniquement les stratégies de cet utilisateur
+    rows = [r for r in _load_json_strategies() if _owned_by(r.get('user_id'), user_id)]
     return [_attach_feedback({
         'strategy_id': r.get('strategy_id'),
         'analysis_id': r.get('analysis_id', ''),
@@ -1066,9 +1113,9 @@ def get_strategy_by_id(strategy_id, user_id=None):
         except Exception as e:
             print(f'[DB] get_strategy_by_id error: {e}')
 
-    # Fallback JSON
+    # Fallback JSON — jamais la stratégie d'un autre utilisateur
     for r in _load_json_strategies():
-        if r.get('strategy_id') == strategy_id:
+        if r.get('strategy_id') == strategy_id and _owned_by(r.get('user_id'), user_id):
             return r
     return None
 
@@ -1086,7 +1133,7 @@ def delete_strategy(strategy_id, user_id=None):
             print(f'[DB] delete_strategy error: {e}')
 
     rows = _load_json_strategies()
-    new_rows = [r for r in rows if r.get('strategy_id') != strategy_id]
+    new_rows = [r for r in rows if not (r.get('strategy_id') == strategy_id and _owned_by(r.get('user_id'), user_id))]
     _write_json_strategies(new_rows)
     return len(new_rows) < len(rows)
 
@@ -1178,7 +1225,7 @@ def get_feedbacks(user_id=None, limit=200):
         except Exception as e:
             print(f'[DB] get_feedbacks error: {e}')
 
-    return _load_json_feedbacks()[:limit]
+    return [f for f in _load_json_feedbacks() if _owned_by(f.get('user_id'), user_id)][:limit]
 
 
 def _feedback_index(user_id=None):
@@ -2070,6 +2117,17 @@ def delete_all_user_data(user_id):
 GLOBAL_MEMORY_POOL_LIMIT = 300
 
 
+def memory_shared_across_users():
+    """La mémoire de cas est cloisonnée par compte par défaut.
+
+    Ces cas contiennent l'offre, le prix et la décision stratégique de chaque
+    utilisateur : les montrer dans le prompt d'un autre compte contredit la
+    promesse d'isolation du protocole bêta (audit du 24/09/2026). Le
+    partage global se réactive explicitement (MEMORY_SHARE_ACROSS_USERS=true)
+    pour un usage où tous les comptes appartiennent à la même équipe."""
+    return os.environ.get('MEMORY_SHARE_ACROSS_USERS', 'false').lower() == 'true'
+
+
 def get_memory_cases(user_id=None):
     """Pool de cas pour la recherche de similarité : tout l'historique de cet
     utilisateur + un échantillon récent tous comptes confondus, pour que les
@@ -2078,6 +2136,9 @@ def get_memory_cases(user_id=None):
     l'utilisateur quand il en a assez avant de retomber sur ce pool élargi)."""
     if not _supabase:
         return []
+    shared = memory_shared_across_users()
+    if not user_id and not shared:
+        return []          # jamais un vidage de tous les comptes vers un processus sans utilisateur
     cases, seen = [], set()
     try:
         if user_id:
@@ -2090,6 +2151,8 @@ def get_memory_cases(user_id=None):
                 seen.add(row['case_id'])
     except Exception as e:
         print(f'[DB] get_memory_cases (user) error: {e}')
+    if not shared:
+        return cases
     try:
         res = (
             _supabase.table(_T_MEMORY_CASES).select('*')
