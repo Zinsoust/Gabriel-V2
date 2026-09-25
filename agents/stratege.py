@@ -341,6 +341,7 @@ def _critique_strategie(strat: dict, psycho_summary: str, brain_context: str) ->
     — si l'appel échoue, la stratégie reste utilisable sans relecture plutôt que
     de faire échouer tout le Stratège pour un problème de contrôle qualité."""
     summary = _summarize_strategy_for_critique(strat)
+    from agents.strategy_guard import SOURCE_RULE as _source_rule
     prompt = f"""Tu es un STRATÈGE SENIOR CONTRARIEN, spécialiste de la revue critique de décisions marketing.
 On te soumet une stratégie DÉJÀ PRODUITE par un autre analyste. Tu ne l'as pas écrite — ton rôle est de la challenger, pas de la valider par réflexe.
 
@@ -352,6 +353,9 @@ On te soumet une stratégie DÉJÀ PRODUITE par un autre analyste. Tu ne l'as pa
 
 ━━━ STRATÉGIE À CHALLENGER ━━━
 {summary}
+
+{_source_rule}
+Pour cette relecture : tes contre-propositions décrivent des STRUCTURES (offre d'entrée, offre principale, palier premium) sans les chiffrer, et n'avancent aucune statistique.
 
 MISSION : trouve la faille. Ne complimente pas la stratégie — un stratège senior cherche toujours ce qui pourrait la faire échouer.
 
@@ -409,12 +413,16 @@ class Stratege(BaseAgent):
 
         memory_section = ""
         if memory_context:
-            memory_section = f"\nCAS SIMILAIRES PASSÉS :\n{memory_context}\n"
+            # Les cas passés servent à retrouver des décisions, pas des prix : leurs montants ont
+            # été produits par Gabriel, jamais fournis par l'utilisateur.
+            from agents.strategy_guard import scrub_numbers
+            memory_section = f"\nCAS SIMILAIRES PASSÉS :\n{scrub_numbers(memory_context)}\n"
 
         title_section = f"\nCONTENU ANALYSÉ : {title}\n" if title else ""
 
         rag_section = _load_rag_rules(psycho_query, brain_context)
 
+        from agents.strategy_guard import SOURCE_RULE as _source_rule
         prompt = f"""{_strategy_reasoning()}
 
 ━━━ PROFIL BUSINESS DE L'UTILISATEUR ━━━
@@ -443,7 +451,7 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown, sans texte avant ou apr�
       "one_sentence_decision": "La décision marketing la plus importante à prendre maintenant — en une phrase d'action",
       "what_to_do_this_week": "Action concrète et précise à réaliser dans les 7 prochains jours pour générer les premiers revenus",
       "why_now": "Pourquoi cette décision maintenant et pas dans 3 mois — ancré dans les signaux audience",
-      "expected_business_impact": "Impact business réaliste attendu en 30-90 jours",
+      "expected_business_impact": "Impact business attendu en 30-90 jours, en termes qualitatifs (aucun chiffre d'affaires ni pourcentage qui ne vienne pas du profil business)",
       "confidence_score": 0.8  // Score d'alignement stratégie ↔ audience : mesure à quel point la décision, l'offre et le message s'appuient sur les signaux psychologiques réellement détectés.
     }},
     "audience_psychology_used": {{
@@ -481,8 +489,8 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown, sans texte avant ou apr�
       "why_this_format_fits_the_audience": "Pourquoi ce format correspond à la psychologie et aux habitudes de cette audience"
     }},
     "pricing_logic": {{
-      "recommended_price_range": "Fourchette de prix recommandée avec justification",
-      "pricing_reasoning": "Raisonnement complet basé sur la douleur marché, valeur créée, profil audience",
+      "recommended_price_range": "Logique de prix : positionnement (entrée / milieu / premium) et ancrage sur les offres et prix du profil business. Un montant en euros UNIQUEMENT s'il figure dans le profil business, sinon [montant à définir] et comment le fixer",
+      "pricing_reasoning": "Raisonnement basé sur la douleur marché, la valeur créée, le profil audience — sans statistique ni montant inventés",
       "entry_offer_if_needed": "Offre d'entrée recommandée si l'audience est sceptique ou hésitante",
       "proof_needed_to_support_price": "Quel type de preuve est nécessaire pour soutenir ce prix",
       "comfort_level_for_audience": "Niveau de confort de l'audience avec ce niveau de prix (bas / acceptable / effort / élevé)"
@@ -536,8 +544,8 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown, sans texte avant ou apr�
       "resultat_attendu": "résultat concret",
       "format": "format de livraison",
       "livrables": ["livrable 1", "livrable 2"],
-      "prix_recommande": "prix ou fourchette",
-      "justification_prix": "justification",
+      "prix_recommande": "montant du profil business, sinon [montant à définir]",
+      "justification_prix": "justification qualitative, sans chiffre inventé",
       "message_de_vente": "accroche principale",
       "canaux_acquisition": ["canal 1", "canal 2"],
       "objections_a_traiter": ["objection 1", "objection 2"]
@@ -545,8 +553,8 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown, sans texte avant ou apr�
     "pricing_logic_legacy": {{
       "valeur_percue": "valeur perçue par le marché",
       "niveau_douleur": "faible / moyen / fort / critique",
-      "capacite_paiement": "budget estimé de la cible",
-      "fourchette": "fourchette de prix",
+      "capacite_paiement": "capacité de paiement en mots (limitée / moyenne / forte), sans budget chiffré",
+      "fourchette": "fourchette du profil business, sinon [montant à définir]",
       "positionnement": "entrée / milieu / premium / ultra-premium",
       "justification": "raisonnement complet"
     }},
@@ -601,6 +609,8 @@ Réponds UNIQUEMENT avec ce JSON valide (sans markdown, sans texte avant ou apr�
   }}
 }}
 
+{_source_rule}
+
 RÈGLE FINALE : Si l'objectif utilisateur est flou, remplis questions_a_clarifier ET reasoning_trace.questions_to_clarify.
 Si les données d'audience sont insuffisantes, marque les hypothèses avec '(à valider)' dans les champs concernés."""
 
@@ -616,13 +626,30 @@ Si les données d'audience sont insuffisantes, marque les hypothèses avec '(à 
             # Garder pricing_logic (enrichi), supprimer l'alias legacy
             strat.pop('pricing_logic_legacy', None)
 
+        # Garde-fou : aucun montant ni pourcentage qui ne vienne des données réelles.
+        from agents.strategy_guard import guard_strategy, sources_for
+        _sources = sources_for(brain_context, psycho_json, title)
+
+        def _rewrite(p):
+            return _call_llm(p, max_tokens=4000, label="strategie_garde")
+
+        retires = []
+        if strat:
+            strat, retires = guard_strategy(strat, _sources, _rewrite, _parse_json)
+            data['strategie'] = strat
+
         # Relecture critique — 2e appel indépendant (non-bloquant)
         if strat:
             try:
-                strat['critique_strategique'] = _critique_strategie(strat, psycho_query, brain_context)
+                critique = _critique_strategie(strat, psycho_query, brain_context)
+                critique, retires_critique = guard_strategy(critique, _sources, _rewrite, _parse_json)
+                strat['critique_strategique'] = critique
+                retires = sorted(set(retires) | set(retires_critique))
                 print(f"[STRATÈGE] Critique OK — verdict={strat['critique_strategique'].get('verdict')}")
             except Exception as e:
                 print(f"[STRATÈGE] Critique ERREUR (non bloquant) : {e}")
+            if retires:
+                strat['chiffres_retires'] = retires
 
         ctx.add(self.AGENT_ID, data)
         return ctx
