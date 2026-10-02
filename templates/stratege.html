@@ -3424,6 +3424,8 @@ body.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .cha
 
 {% block content %}
 
+<link rel="stylesheet" href="{{ static_v('css/stratege-lovable.css') }}">
+
 <!-- Pipeline breadcrumb -->
 <div class="pipeline-bar">
   <div class="pipeline-step done">
@@ -3512,8 +3514,9 @@ body.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .cha
     <!-- Étape 1 du parcours — accueil. On nomme le moment avant de demander
          quoi que ce soit. -->
     <div class="interview-gate hidden" id="gate-welcome">
-      <h1 class="gate-title">Bienvenue dans votre Salle de Conseil</h1>
-      <div class="gate-sub">En quelques échanges, Gabriel analysera votre entreprise, votre marché, vos objectifs et construira une stratégie entièrement personnalisée.</div>
+      <div class="gate-eyebrow">Ariane · Le Stratège</div>
+      <h1 class="gate-title">Bonjour, je suis Ariane, votre stratège.</h1>
+      <div class="gate-sub">Ensemble, transformons vos ambitions et vos enjeux en une stratégie claire, solide et prête à être déployée.</div>
       <button type="button" class="gate-next" onclick="StrategyWorkspace.goTo('interview')">
         Commencer l’entretien stratégique
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -3608,7 +3611,7 @@ body.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .cha
           </button>
         </div>
       </div>
-      <div class="chat-messages" id="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation avec Gabriel"></div>
+      <div class="chat-messages" id="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Conversation avec Ariane"></div>
     </div>
 
     <!-- Barre de saisie — élément PERMANENT, hors de la conversation.
@@ -3624,6 +3627,7 @@ body.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .cha
       <a class="compose-add" href="/dossiers" title="Créer ou reprendre un dossier" aria-label="Créer ou reprendre un dossier">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </a>
+      <div class="composer-agent-label" aria-hidden="true">Ariane 1.0 · Stratège</div>
       <textarea class="chat-input" id="chat-input" placeholder="Écrivez votre réponse ou utilisez le micro…" rows="1"
         onkeydown="handleKey(event)" oninput="autoResize(this)" aria-label="Votre réponse à Gabriel"></textarea>
       <button type="button" class="review-restart-btn" id="review-restart-btn" onclick="restartTranscript()">Recommencer</button>
@@ -3639,6 +3643,13 @@ body.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .cha
     <button type="button" class="interview-progress-backdrop" onclick="toggleInterviewProgress(false)" aria-label="Fermer la progression"></button>
     <div class="interview-side" id="interview-side">
       <button type="button" class="interview-progress-close" onclick="toggleInterviewProgress(false)" aria-label="Fermer la progression">×</button>
+      <div class="interview-side-agent">
+        <img src="{{ static_v('images/personas/p2.jpeg') }}" alt="" style="object-position:center 28%;">
+        <div>
+          <strong>Ariane</strong>
+          <span>Décision et positionnement</span>
+        </div>
+      </div>
       <div class="ctx-badge empty" id="ctx-badge">
         <div class="ctx-dot"></div>
         <span id="ctx-badge-text">Contextualisation requise</span>
@@ -3711,7 +3722,7 @@ body.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .cha
       <div class="loading-overlay active" style="position:relative;min-height:300px;background:transparent;">
         <div class="loading-spinner"></div>
         <div class="loading-percent" id="strat-percent">0%</div>
-        <div class="loading-title">Gabriel élabore votre stratégie…</div>
+        <div class="loading-title">Ariane élabore votre stratégie…</div>
         <div class="loading-steps">
           <div class="loading-step active"><div class="loading-step-dot"></div>Lecture du contexte business</div>
           <div class="loading-step" id="sl2"><div class="loading-step-dot"></div>Analyse des insights audience</div>
@@ -6481,4 +6492,5 @@ async function resetContext() {
 _initVoiceUI();
 init();
 </script>
+<script src="{{ static_v('js/stratege-lovable.js') }}"></script>
 {% endblock %}

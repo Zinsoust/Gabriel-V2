@@ -7,12 +7,13 @@
 # Chaque agent reçoit l'AnalysisContext, lit les contributions précédentes,
 # dépose la sienne, retourne le contexte enrichi.
 
-from agents.context     import AnalysisContext
-from agents.psychologue import Psychologue
-from agents.stratege    import Stratege
-from agents.createur    import Createur
-from core.executor      import Executor
-from core.planner       import default_planner
+from agents.context      import AnalysisContext
+from agents.psychologue  import Psychologue
+from agents.stratege     import Stratege
+from agents.createur     import Createur
+from core.executor       import Executor
+from core.planner        import default_planner
+from agents.design_agent import compose as _design_compose
 
 
 class Gabriel:
@@ -80,4 +81,27 @@ class Gabriel:
             self.planner.plan('stratege', available=('psychologue',)), ctx)
 
         ctx.record_step("[GABRIEL] Pipeline stratégique terminé")
+        self._preview_design_agent(ctx)
         return ctx.to_response()
+
+    def _preview_design_agent(self, ctx):
+        """Observation temporaire : fait tourner le Design Agent (DESIGN_RUNTIME)
+        sur la vraie sortie du Stratège et journalise sa décision, sans jamais
+        toucher à la réponse renvoyée à l'utilisateur (`ctx.to_response()` reste
+        inchangé). Sert à vérifier le comportement sur une donnée réelle avant
+        tout branchement visible — protégé par un try/except pour ne jamais
+        faire échouer /strategize si le Design Agent lève une erreur."""
+        try:
+            stratege_result = ctx.get('stratege')
+            if not stratege_result:
+                return
+            envelope = {"source_agent": "stratege", "content": stratege_result}
+            preview = _design_compose(envelope)
+            ctx.record_step(
+                "[DESIGN AGENT — aperçu] "
+                f"format={preview['decision'].get('format_choice')!r} "
+                f"recette={preview['decision'].get('recipe_id')!r} "
+                f"composants={preview['decision'].get('components_used')!r}"
+            )
+        except Exception as error:  # noqa: BLE001 — aperçu, ne doit jamais casser /strategize
+            ctx.record_step(f"[DESIGN AGENT — aperçu] échec sans conséquence : {error}")

@@ -1,8 +1,9 @@
 /* Tranche A du Stratège natif : reprise d'une stratégie déjà enregistrée,
-   génération classique depuis une analyse Psychologue, tableau de bord à
-   5 onglets. L'entretien conversationnel et la couche vocale sont hors
-   périmètre de cette tranche — leur absence doit se voir honnêtement à
-   l'écran, pas être masquée. */
+   génération classique depuis une analyse Psychologue, rapport à 5 sections
+   (habillage « Ariane » — document déroulant avec sommaire, plus d'onglets
+   à cliquer, mêmes données réelles). L'entretien conversationnel et la
+   couche vocale sont hors périmètre de cette tranche — leur absence doit se
+   voir honnêtement à l'écran, pas être masquée. */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup, waitFor, act } from '@testing-library/react';
@@ -65,7 +66,7 @@ describe('Reprise d’une stratégie déjà enregistrée', () => {
     ]);
     render(<StrategeView workspace={WORKSPACE_DONE} />);
     await waitFor(() => expect(screen.getByText(/Lancer une offre premium/)).toBeInTheDocument());
-    expect(screen.getByRole('tab', { name: 'Synthèse' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: 'Synthèse' })).toBeInTheDocument();
   });
 });
 
@@ -125,19 +126,17 @@ describe('Aucun déclencheur disponible : l’entretien démarre directement', (
   });
 });
 
-describe('Tableau de bord : chaque bloc disparaît s’il est vide', () => {
-  it('n’affiche pas un onglet dont aucun champ n’est fourni', async () => {
+describe('Rapport : chaque bloc disparaît s’il est vide', () => {
+  it('n’affiche pas une section dont aucun champ n’est fourni', async () => {
     global.fetch = routeFetch([
       [/^\/strategies\/s-2$/, () => ({ json: { success: true, strategy_result: { decision_centrale: 'x' } } })],
     ]);
-    const user = userEvent.setup();
     render(<StrategeView workspace={WORKSPACE_DONE} />);
     await waitFor(() => expect(screen.getByText('x')).toBeInTheDocument());
+    // Le rapport rend désormais toutes les sections à la suite (plus
+    // d'onglets à ouvrir un par un) : un bloc vide doit rester absent
+    // partout dans le document, pas seulement hors d'un onglet fermé.
     expect(screen.queryByText('Offre recommandée')).toBeNull();
-    // Vérifié dans l'onglet où le bloc vivrait réellement, pas seulement
-    // sur l'onglet par défaut : sinon le test ne prouve que « cet onglet
-    // fermé n'affiche rien », ce qui est vrai de toute façon.
-    await user.click(screen.getByRole('tab', { name: 'Décision' }));
     expect(screen.queryByText('Regard critique · 2ᵉ avis indépendant')).toBeNull();
   });
 
@@ -145,11 +144,8 @@ describe('Tableau de bord : chaque bloc disparaît s’il est vide', () => {
     global.fetch = routeFetch([
       [/^\/strategies\/s-2$/, () => ({ json: { success: true, strategy_result: STRATEGIE } })],
     ]);
-    const user = userEvent.setup();
     render(<StrategeView workspace={WORKSPACE_DONE} />);
-    await waitFor(() => screen.getByRole('tab', { name: "Plan d'action" }));
-    await user.click(screen.getByRole('tab', { name: "Plan d'action" }));
-    expect(screen.getByText('Fondations')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Fondations')).toBeInTheDocument());
     expect(screen.getByText('Positionner l’offre')).toBeInTheDocument();
     expect(screen.getByText('10 prospects qualifiés')).toBeInTheDocument();
   });

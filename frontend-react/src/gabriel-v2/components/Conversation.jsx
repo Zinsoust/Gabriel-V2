@@ -95,6 +95,44 @@ function EventMessage({ mission, itemId }) {
   </div>;
 }
 
+function AssistantMessageActions({ content }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyResponse() {
+    try {
+      await navigator.clipboard.writeText(content);
+    } catch (_) {
+      const field = document.createElement('textarea');
+      field.value = content;
+      field.style.position = 'fixed';
+      field.style.opacity = '0';
+      document.body.append(field);
+      field.select();
+      document.execCommand('copy');
+      field.remove();
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1300);
+  }
+
+  function downloadResponse() {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `reponse-gabriel-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  return <div className="gv2-message-actions" aria-label="Actions de la réponse">
+    <button type="button" onClick={copyResponse}><Icon name="copy" size={18} /><span>{copied ? 'Copié' : 'Copier'}</span></button>
+    <button type="button" onClick={downloadResponse}><Icon name="download" size={18} /><span>Télécharger</span></button>
+  </div>;
+}
+
 const landingPrompts = [
   { label: 'Analyser une audience', text: 'Je souhaite analyser mon audience afin de mieux comprendre ses attentes, ses motivations et ses freins.', icon: 'knowledge' },
   { label: 'Clarifier une offre', text: 'Aide-moi à clarifier mon offre, sa promesse et ce qui la différencie.', icon: 'sparkle' },
@@ -172,9 +210,6 @@ export function ConversationFeed({ items, firstName, isSubmitting, compact = fal
   return <div className={`gv2-conversation-scroll${compact ? ' is-compact' : ''}${showLanding ? ' is-landing' : ''}`} ref={scrollRef}>
     <div className={`gv2-conversation${compact ? ' is-compact' : ''}${hasStarted ? ' has-started' : ''}${showLanding ? ' is-landing' : ''}`}>
       {showLanding && <header className="gv2-conversation-landing">
-        <div className="gv2-conversation-brand" aria-label="Gabriel.ai — L’IA 100 % business">
-          <strong>Gabriel.ai</strong><span>L’IA 100 % business</span>
-        </div>
         <h1>Que puis-je faire pour vous&nbsp;?</h1>
         <span>Décrivez votre besoin. Gabriel clarifie la demande et mobilise les bons experts au bon moment.</span>
       </header>}
@@ -187,7 +222,7 @@ export function ConversationFeed({ items, firstName, isSubmitting, compact = fal
         const editorial = item.role === 'assistant' && String(item.content || '').length > 460;
         return <article key={item.id} data-gv2-message-id={item.id} className={`gv2-message gv2-message--${item.role}${editorial ? ' is-editorial' : ''}`}>
           <div className="gv2-message-avatar">{item.role === 'assistant' ? 'G' : item.role === 'error' ? '!' : 'V'}</div>
-          <div className="gv2-message-body"><div className="gv2-message-meta"><strong>{item.role === 'assistant' ? 'Gabriel' : item.role === 'error' ? 'Gabriel' : 'Vous'}</strong><time>{item.createdAt}</time></div>{formatText(item.content, item.role === 'assistant')}</div>
+          <div className="gv2-message-body"><div className="gv2-message-meta"><strong>{item.role === 'assistant' ? 'Gabriel' : item.role === 'error' ? 'Gabriel' : 'Vous'}</strong><time>{item.createdAt}</time></div>{formatText(item.content, item.role === 'assistant')}{item.role === 'assistant' && <AssistantMessageActions content={item.content} />}</div>
         </article>;
       })}
       {isSubmitting && <article className="gv2-message gv2-message--assistant gv2-message--typing"><div className="gv2-message-avatar">G</div><div className="gv2-typing"><span /><span /><span /></div></article>}

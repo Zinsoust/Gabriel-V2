@@ -581,7 +581,7 @@ def test_welcome_screen_matches_product_spec():
     with c.session_transaction() as s:
         s['active_folder_id'] = 'folder-welcome-spec'   # sinon /stratege redirige
     html = c.get('/stratege?embedded=1').get_data(as_text=True)
-    assert 'Bienvenue dans votre Salle de Conseil' in html
+    assert 'Bonjour, je suis Ariane, votre stratège.' in html
     assert 'Commencer l’entretien stratégique' in html
     assert "StrategyWorkspace.goTo('interview')" in html
     assert 'js/strategy-workspace.js' in html

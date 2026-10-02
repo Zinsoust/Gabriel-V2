@@ -160,49 +160,37 @@ function CreatorContextPanel({ workspace, settings, onSettingsChange, hasOutput,
   </div>;
 }
 
-function ContextState({ done, label, detail }) {
-  return <div className={`gv2-strategy-context-state${done ? ' is-done' : ''}`}>
+function ContextState({ done, label, detail, current }) {
+  return <div className={`gv2-strategy-context-state${done ? ' is-done' : ''}${current ? ' is-current' : ''}`}>
     <span>{done ? <Icon name="check" size={12} /> : <i />}</span>
     <div><strong>{label}</strong>{detail && <small>{detail}</small>}</div>
   </div>;
 }
 
-/** Le Stratège ne prétend jamais connaître ce qui n'a pas été fourni. Cette
- * lecture transforme le contexte réel du workspace en niveau de clarté
- * actionnable, avant de prendre des décisions de positionnement. */
-function StrategyContextPanel({ workspace, mission, onStart, isStarting }) {
+/** Ariane ne prétend jamais connaître ce qui n'a pas été fourni. « Déjà
+ * compris » / « À éclaircir » viennent tels quels de context_progress
+ * (agents/context_builder/orchestrator.py, remonté par StrategeView via
+ * onInterviewChange) — jamais recalculés ou devinés ici à partir du
+ * workspace. Contrat : docs/interview_frontend_contract.md. Avant qu'un
+ * entretien n'ait démarré (interview === null, ex. une stratégie déjà
+ * enregistrée rouverte plus tard), on retombe sur un état neutre plutôt que
+ * d'inventer une progression. */
+function StrategyContextPanel({ interview, mission, onStart, isStarting }) {
   const [view, setView] = useState('progress');
-  const known = {
-    identity: Boolean(workspace?.title),
-    objective: Boolean(workspace?.objective),
-    source: Boolean(workspace?.source_type || workspace?.source_summary),
-    audience: Boolean(workspace?.analysis_id),
-    strategy: Boolean(workspace?.strategy_id),
-  };
-  const knownCount = Object.values(known).filter(Boolean).length;
-  const isClear = knownCount >= 3;
-  const progressItems = [
-    { key: 'identity', label: 'Identité de l’entreprise', detail: workspace?.title || '' },
-    { key: 'objective', label: 'Objectif actuel', detail: workspace?.objective || '' },
-    { key: 'source', label: 'Signaux terrain', detail: workspace?.source_type ? `Source : ${workspace.source_type}` : '' },
-    { key: 'audience', label: 'Audience', detail: workspace?.analysis_id ? 'Analyse disponible' : '' },
-    { key: 'strategy', label: 'Décision stratégique', detail: workspace?.strategy_id ? 'Stratégie reliée' : '' },
-  ];
-  const missingItems = ['Vision et positionnement', 'Modèle économique', 'Ressources disponibles', 'Contraintes à respecter', 'Historique utile'];
-  const historyItems = [
-    workspace?.source_type && { label: 'Source reliée', detail: `${workspace.source_type}${workspace.source_summary ? ` · ${workspace.source_summary}` : ''}` },
-    workspace?.analysis_id && { label: 'Analyse d’audience', detail: 'Disponible pour éclairer la décision.' },
-    workspace?.strategy_id && { label: 'Stratégie enregistrée', detail: 'Une décision existe déjà dans ce workspace.' },
-    mission?.title && { label: 'Mission Gabriel', detail: mission.title },
-  ].filter(Boolean);
+  const understood = interview?.contextProgress?.understood || [];
+  const remaining = interview?.contextProgress?.remaining || [];
+  const total = understood.length + remaining.length;
+  const isClear = Boolean(interview?.interviewReady);
+  const started = understood.length > 0 || remaining.length > 0;
+  const messages = interview?.messages || [];
 
   return <div className="gv2-strategy-context-panel">
     <section className="gv2-strategy-context-intro">
       <p className="gv2-panel-eyebrow"><Icon name="sparkle" size={16} />Lecture stratégique</p>
       <div className="gv2-context-agent"><img src={agents.stratege.portrait} alt="" /><div><strong>{agents.stratege.name}</strong><span>Décision et positionnement</span></div></div>
-      <div className={`gv2-strategy-clarity${isClear ? ' is-clear' : ''}`}><span /><p>{isClear ? 'Votre situation est suffisamment claire' : 'Le contexte est en cours de clarification'}</p></div>
-      <div className="gv2-strategy-clarity-line"><i style={{ width: `${Math.max(16, knownCount * 20)}%` }} /></div>
-      <h2>{isClear ? 'Compréhension suffisante' : 'Contexte à préciser'}</h2>
+      <div className={`gv2-strategy-clarity${isClear ? ' is-clear' : ''}`}><span /><p>{isClear ? 'Votre situation est suffisamment claire' : started ? 'Entretien en cours' : 'Entretien non commencé'}</p></div>
+      <div className="gv2-strategy-clarity-line"><i style={{ width: `${total > 0 ? Math.round((understood.length / total) * 100) : 0}%` }} /></div>
+      <h2>{isClear ? 'Compréhension suffisante' : total > 0 ? `${understood.length}/${total} clarifiés` : 'Contexte à préciser'}</h2>
       <p>Ariane utilise uniquement les informations réellement reliées à ce workspace.</p>
     </section>
 
@@ -210,9 +198,9 @@ function StrategyContextPanel({ workspace, mission, onStart, isStarting }) {
       <div className="gv2-strategy-context-tabs" role="tablist" aria-label="Lecture du contexte"><button type="button" role="tab" aria-selected={view === 'progress'} className={view === 'progress' ? 'is-active' : ''} onClick={() => setView('progress')}>Progression</button><button type="button" role="tab" aria-selected={view === 'history'} className={view === 'history' ? 'is-active' : ''} onClick={() => setView('history')}>Historique</button></div>
       {view === 'progress' ? <>
         <p className="gv2-strategy-context-label">Déjà compris</p>
-        <div className="gv2-strategy-context-list">{progressItems.filter(item => known[item.key]).map(item => <ContextState key={item.key} done label={item.label} detail={item.detail} />)}</div>
-        {missingItems.length > 0 && <><p className="gv2-strategy-context-label gv2-strategy-context-label--pending">À éclaircir</p><div className="gv2-strategy-context-list">{missingItems.map(label => <ContextState key={label} label={label} />)}</div></>}
-      </> : <div className="gv2-strategy-history">{historyItems.length ? historyItems.map(item => <div key={item.label}><span /><p><strong>{item.label}</strong><small>{item.detail}</small></p></div>) : <p>Aucun événement lié pour le moment. Ajoutez des sources ou expliquez votre contexte dans la conversation.</p>}</div>}
+        <div className="gv2-strategy-context-list">{understood.length ? understood.map(label => <ContextState key={label} done label={label} />) : <p className="gv2-strategy-context-empty">Rien pour le moment.</p>}</div>
+        {remaining.length > 0 && <><p className="gv2-strategy-context-label gv2-strategy-context-label--pending">À éclaircir</p><div className="gv2-strategy-context-list">{remaining.map(label => <ContextState key={label} label={label} current={label === interview?.currentDimension} />)}</div></>}
+      </> : <div className="gv2-strategy-history">{messages.length ? messages.map((m, i) => <div key={i}><span /><p><strong>{m.role === 'user' ? 'Vous' : 'Ariane'}</strong><small>{m.content}</small></p></div>) : <p>L’historique apparaîtra ici.</p>}</div>}
       {mission?.execution && (mission.status === 'ready' || mission.status === 'failed') && <button type="button" className="gv2-strategy-context-launch" onClick={onStart} disabled={isStarting}><Icon name="sparkle" size={15} />{isStarting ? 'Lancement…' : mission.execution.label}</button>}
     </section>
   </div>;
@@ -265,12 +253,12 @@ function MissionPanel({ mission, onStart, isStarting }) {
 /** Registre de panneaux. Le backend peut indiquer panel.type sans ajouter de logique dans la page. */
 const panelRegistry = { empty: EmptyPanel, mission_summary: MissionPanel, youtube_analyzer: MissionPanel, document_analyzer: MissionPanel, offer_builder: MissionPanel, data_import: MissionPanel };
 
-export function ContextPanel({ mission, workspace, activeAgent, onUpdateWorkspace, onStartMission, isStartingMission, creatorSettings, onCreatorSettingsChange, creatorHasOutput, onCreatorRefinement, onCreatorClose }) {
+export function ContextPanel({ mission, workspace, activeAgent, onUpdateWorkspace, onStartMission, isStartingMission, creatorSettings, onCreatorSettingsChange, creatorHasOutput, onCreatorRefinement, onCreatorClose, strategeInterview }) {
   if (activeAgent?.id === 'createur') return <aside className="gv2-context-panel gv2-context-panel--creator" aria-label="Paramètres de création">
     <CreatorContextPanel workspace={workspace} settings={creatorSettings} onSettingsChange={onCreatorSettingsChange} hasOutput={creatorHasOutput} onRefinement={onCreatorRefinement} onClose={onCreatorClose} />
   </aside>;
   if (activeAgent?.id === 'stratege') return <aside className="gv2-context-panel gv2-context-panel--strategy" aria-label="Clarté du contexte stratégique">
-    <StrategyContextPanel workspace={workspace} mission={mission} onStart={onStartMission} isStarting={isStartingMission} />
+    <StrategyContextPanel interview={strategeInterview} mission={mission} onStart={onStartMission} isStarting={isStartingMission} />
   </aside>;
   const Panel = mission ? (panelRegistry[mission.panelType] || panelRegistry.mission_summary) : panelRegistry.empty;
   return <aside className="gv2-context-panel" aria-label="Contexte du workspace">

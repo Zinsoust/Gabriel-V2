@@ -279,11 +279,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .gv2-workbench-resize-handle:hover::before, .gv2-workbench-resize-handle:focus-visible::before, .gv2-is-resizing .gv2-workbench-resize-handle::before { height: 60px; background: var(--champagne); opacity: 1; }
 
 @media (min-width: 981px) {
-  .gv2-agent-workbench.is-discussion-collapsed .gv2-discussion-panel { grid-template-rows: 1fr; }
-  .gv2-agent-workbench.is-discussion-collapsed .gv2-discussion-header { align-items: center; flex-direction: column; padding: 12px 7px; }
-  .gv2-agent-workbench.is-discussion-collapsed .gv2-discussion-heading,
-  .gv2-agent-workbench.is-discussion-collapsed .gv2-discussion-content { display: none; }
-  .gv2-agent-workbench.is-discussion-collapsed .gv2-discussion-toggle { margin: 0; transform: rotate(180deg); }
+  .gv2-agent-workbench.is-discussion-collapsed { grid-template-columns: minmax(0, 1fr); }
+  .gv2-agent-workbench.is-discussion-collapsed .gv2-discussion-panel { display: none; }
   .gv2-agent-workbench.is-discussion-collapsed .gv2-workbench-resize-handle { display: none; }
 }
 
@@ -520,6 +517,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   .gv2-main-column { grid-column: 2; }.gv2-context-panel { display: none; }
   .gv2-resize-handle, .gv2-context-toggle { display: none; }
   .gv2-agent-workbench { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(390px, 56dvh) minmax(620px, 74dvh); overflow: visible; }
+  .gv2-agent-workbench.is-discussion-collapsed { grid-template-rows: minmax(620px, 74dvh); }
+  .gv2-agent-workbench.is-discussion-collapsed .gv2-discussion-panel { display: none; }
   .gv2-discussion-panel { border-right: 0; border-bottom: 1px solid #eeeae3; }
   .gv2-workbench-resize-handle { display: none; }
   .gv2-agent-workspace { min-height: 620px; }
@@ -538,6 +537,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   .gv2-tab-placeholder { min-height: 60vh; }
   .gv2-agent-workspace-header { min-height: 76px; padding: 14px 16px; }.gv2-agent-workspace-copy h1 { font-size: 22px; }.gv2-agent-workspace-copy p { max-width: 240px; }.gv2-agent-conversation-link span, .gv2-agent-context-link span { display: none; }
   .gv2-agent-workbench { grid-template-rows: minmax(370px, 52dvh) minmax(560px, 74dvh); }
+  .gv2-agent-workbench.is-discussion-collapsed { grid-template-rows: minmax(560px, 74dvh); }
   .gv2-discussion-header { padding-inline: 12px; }
   .gv2-conversation.is-compact { padding-inline: 13px; }
   .gv2-creator-conversation { min-height: calc(100dvh - 105px); }
@@ -3014,6 +3014,118 @@ a.gv2-psy-ghost-btn { display: inline-flex; align-items: center; text-decoration
   }
 }
 
+/* Réponses des agents — le même registre éditorial que le Créateur : le
+   texte flotte sur la page, sans avatar, bulle, verre ni carte décorative. */
+.gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) {
+  display: block;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 0 48px;
+}
+
+.gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) > .gv2-message-avatar,
+.gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-meta {
+  display: none;
+}
+
+.gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-body,
+.gv2-conversation .gv2-message--assistant.is-editorial .gv2-message-body {
+  width: 100%;
+  max-width: 760px;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-body::before {
+  display: none;
+}
+
+.gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-body :is(p, li, blockquote),
+.gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-list {
+  color: #1d1e20;
+  font-family: var(--font-family-sans);
+  font-size: clamp(16px, 1.35vw, 19px);
+  font-weight: 400;
+  letter-spacing: -.022em;
+  line-height: 1.7;
+}
+
+.gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-opening,
+.gv2-conversation .gv2-message--assistant.is-editorial .gv2-message-opening {
+  max-width: 760px;
+  margin: 0 0 13px;
+  color: #1d1e20 !important;
+  font-family: var(--font-family-sans);
+  font-size: clamp(16px, 1.35vw, 19px) !important;
+  font-weight: 400 !important;
+  letter-spacing: -.022em;
+  line-height: 1.7 !important;
+}
+
+.gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-body :is(h2, h3) {
+  font-family: var(--font-family-sans);
+}
+
+.gv2-message-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.gv2-message-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 3px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #777a7e;
+  font-family: var(--font-family-sans);
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: color .16s ease;
+}
+
+.gv2-message-actions button:hover { color: #202326; }
+.gv2-message-actions button svg { flex: 0 0 auto; }
+
+.gv2-conversation.is-compact .gv2-message--assistant:not(.gv2-message--typing) { margin-bottom: 24px; }
+.gv2-conversation.is-compact .gv2-message-actions { display: none; }
+
+.gv2-theme-dark .gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-body,
+.gv2-theme-dark .gv2-conversation .gv2-message--assistant.is-editorial .gv2-message-body {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.gv2-theme-dark .gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-body :is(p, li, blockquote),
+.gv2-theme-dark .gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-list,
+.gv2-theme-dark .gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-opening {
+  color: #f0f1f1 !important;
+}
+
+.gv2-theme-dark .gv2-message-actions button { color: #a9adaf; }
+.gv2-theme-dark .gv2-message-actions button:hover { color: #fff; }
+
+@media (max-width: 640px) {
+  .gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) { margin-bottom: 38px; }
+  .gv2-conversation .gv2-message--assistant:not(.gv2-message--typing) .gv2-message-body,
+  .gv2-conversation .gv2-message--assistant.is-editorial .gv2-message-body { padding: 0; border-radius: 0; }
+  .gv2-message-actions { gap: 16px; margin-top: 19px; }
+}
+
 /* ── Psychologue : couleur porteuse de sens & visage des personas ────────
    Le champagne reste une indication, jamais une surface (règle du thème).
    Ce qui s'ajoute ici est du signal : vert = favorable, ambre = opposé,
@@ -3126,6 +3238,282 @@ a.gv2-psy-ghost-btn { display: inline-flex; align-items: center; text-decoration
   .gv2-psy-pc-quote { text-align: left; }
 }
 
+/* ── Stratège · panneau de lecture, DA blanche ──────────────────────────
+   Le suivi reste une colonne d'appui : une surface blanche, des filets fins
+   et une seule couleur métier (l'ardoise). Le vert est exclusivement réservé
+   aux informations réellement comprises. */
+.gv2-context-panel--strategy {
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+  font-family: var(--font-family-sans);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-panel {
+  min-height: 100%;
+  align-content: start;
+  padding: 0;
+  background: var(--surface);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-intro {
+  padding: 32px 24px 28px;
+  border-color: var(--line);
+}
+
+.gv2-context-panel--strategy .gv2-panel-eyebrow {
+  margin-bottom: 22px;
+  color: var(--strategist-slate);
+  font-family: var(--font-family-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .14em;
+}
+
+.gv2-context-panel--strategy .gv2-panel-eyebrow svg { color: var(--ink); }
+
+.gv2-context-panel--strategy .gv2-context-agent {
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.gv2-context-panel--strategy .gv2-context-agent img {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+}
+
+.gv2-context-panel--strategy .gv2-context-agent strong {
+  color: var(--ink);
+  font-family: var(--font-family-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+
+.gv2-context-panel--strategy .gv2-context-agent span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-clarity {
+  gap: 11px;
+  margin-bottom: 14px;
+  padding: 15px 16px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--soft);
+  color: var(--strategist-slate);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-clarity.is-clear {
+  border-color: color-mix(in srgb, var(--success) 22%, var(--line));
+  background: color-mix(in srgb, var(--success) 5%, var(--surface));
+  color: var(--success);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-clarity > span {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  opacity: .78;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-clarity p {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-clarity-line {
+  height: 2px;
+  margin: 0 0 24px;
+  border-radius: 0;
+  background: var(--line);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-clarity-line i {
+  border-radius: 0;
+  background: var(--strategist-slate);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-intro h2 {
+  margin-bottom: 13px;
+  color: var(--ink);
+  font-family: var(--font-family-display);
+  font-size: clamp(28px, 2vw, 34px);
+  font-weight: 400;
+  letter-spacing: -.035em;
+  line-height: 1.04;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-intro > p:last-child {
+  color: var(--muted);
+  font-family: var(--font-family-sans);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-body { padding: 22px 24px 28px; }
+
+.gv2-context-panel--strategy .gv2-strategy-context-tabs {
+  gap: 24px;
+  border-color: var(--line);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-tabs button {
+  padding-bottom: 11px;
+  color: var(--muted);
+  font-family: var(--font-family-sans);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-tabs button.is-active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-tabs button.is-active::after {
+  height: 2px;
+  border-radius: 0;
+  background: var(--strategist-slate);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-label {
+  margin: 24px 0 8px;
+  color: var(--muted);
+  font-family: var(--font-family-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .14em;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-label--pending {
+  margin-top: 28px;
+  color: var(--strategist-slate);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-list {
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-state {
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 11px;
+  min-height: 58px;
+  padding: 11px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-state > span {
+  width: 20px;
+  height: 20px;
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-state > span i {
+  background: var(--strategist-slate);
+  opacity: .42;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-state.is-done {
+  border-color: var(--line);
+  background: transparent;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-state.is-done > span {
+  border-color: color-mix(in srgb, var(--success) 28%, var(--line));
+  background: color-mix(in srgb, var(--success) 7%, var(--surface));
+  color: var(--success);
+}
+
+/* Dimension actuellement posée par Ariane — distincte des autres « à
+   éclaircir » en attente, mêmes tons que la maquette (ardoise = en cours,
+   champagne = simplement en attente). */
+.gv2-context-panel--strategy .gv2-strategy-context-state.is-current > span i {
+  background: var(--strategist-slate);
+  opacity: 1;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-state.is-current strong {
+  color: var(--strategist-slate);
+}
+
+.gv2-strategy-context-empty {
+  padding: 8px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-state strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-context-state small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-history {
+  gap: 0;
+  padding-top: 12px;
+}
+
+.gv2-context-panel--strategy .gv2-strategy-history > div {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.gv2-context-panel--strategy .gv2-strategy-history > div > span { background: var(--strategist-slate); }
+.gv2-context-panel--strategy .gv2-strategy-history strong { color: var(--ink); font-size: 12px; }
+.gv2-context-panel--strategy .gv2-strategy-history small,
+.gv2-context-panel--strategy .gv2-strategy-history p { color: var(--muted); font-size: 11px; }
+
+.gv2-context-panel--strategy .gv2-strategy-context-launch {
+  min-height: 40px;
+  margin-top: 24px;
+  padding: 10px 16px;
+  background: var(--ink);
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.gv2-theme-dark .gv2-context-panel--strategy,
+.gv2-theme-dark .gv2-context-panel--strategy .gv2-strategy-context-panel {
+  background: var(--surface);
+}
+
+.gv2-theme-dark .gv2-context-panel--strategy .gv2-strategy-clarity {
+  border-color: var(--line);
+  background: var(--soft);
+  color: #aab6c0;
+}
+
+.gv2-theme-dark .gv2-context-panel--strategy .gv2-strategy-clarity.is-clear {
+  border-color: color-mix(in srgb, var(--success) 30%, var(--line));
+  background: color-mix(in srgb, var(--success) 8%, var(--surface));
+}
+
+@media (max-width: 1180px) {
+  .gv2-context-panel--strategy .gv2-strategy-context-intro,
+  .gv2-context-panel--strategy .gv2-strategy-context-body {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+}
+
 /* ── Objectif du dossier, modifiable sur place ───────────────────────────
    Le texte reste un texte : rien n'indique un champ tant qu'on ne le
    survole pas. C'est ce qui permet de l'ajouter sans alourdir la lecture. */
@@ -3232,6 +3620,287 @@ a.gv2-psy-ghost-btn { display: inline-flex; align-items: center; text-decoration
 .gv2-theme-dark .gv2-plan-card { background: rgba(30,32,33,.7); }
 .gv2-theme-dark .gv2-plan-card.is-active { background: rgba(184,149,99,.1); }
 .gv2-theme-dark .gv2-plan-card-current { background: rgba(255,255,255,.06); }
+
+/* ── Le Stratège, natif (Tranche A) ───────────────────────────────────────
+   Cartes typographiques simples plutôt que les jauges SVG / poster d'offre
+   / échelle de prix animée de l'ancienne page — même donnée, présentation
+   sobre, décidé avec l'utilisateur pour laisser la finition visuelle à un
+   passage design dédié. Réutilise les tokens déjà en place. */
+.gv2-strat-empty { max-width: 480px; margin: 40px auto; padding: 28px 26px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); text-align: center; }
+.gv2-strat-empty h2 { margin: 0 0 8px; color: var(--ink); font-family: var(--font-family-display); font-size: 16px; font-weight: 600; }
+.gv2-strat-empty p { margin: 0 0 16px; color: var(--body); font-size: 12.5px; line-height: 1.6; }
+.gv2-strat-empty button, .gv2-strat-empty a { display: inline-block; padding: 9px 18px; border: 0; border-radius: 10px; background: var(--champagne); color: #1d1d1f; font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer; text-decoration: none; }
+.gv2-strat-missing { margin: 0 0 16px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.gv2-strat-missing li { padding: 6px 10px; border-radius: 8px; background: var(--line); color: var(--body); font-size: 11.5px; }
+.gv2-strat-progress-track { height: 4px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.gv2-strat-progress-fill { height: 100%; background: var(--champagne); transition: width .4s ease; }
+
+.gv2-strat-dashboard { width: min(var(--gv2-reading-width), calc(100% - 64px)); margin: 0 auto; padding: clamp(24px, 4vh, 48px) 0 32px; display: flex; flex-direction: column; gap: 24px; overflow: auto; }
+.gv2-strat-dashboard-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; padding-bottom: 0; }
+.gv2-strat-dashboard-head p { margin: 0 0 5px; color: var(--champagne-deep); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.gv2-strat-dashboard-head p span { padding: 0 3px; color: var(--champagne); }
+.gv2-strat-dashboard-head h2 { margin: 0; color: var(--ink); font-family: var(--font-family-sans); font-size: clamp(24px, 2vw, 27px); font-weight: 500; letter-spacing: -.01em; line-height: 1.15; }
+.gv2-strat-tabs { display: flex; gap: 2px; padding: 3px; overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; background: color-mix(in srgb, var(--surface) 94%, var(--soft)); scrollbar-width: none; }
+.gv2-strat-tabs::-webkit-scrollbar { display: none; }
+.gv2-strat-tabs button { flex: 1 0 auto; padding: 8px 11px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font: inherit; font-size: 11px; font-weight: 600; cursor: pointer; transition: background .16s ease, color .16s ease; }
+.gv2-strat-tabs button:hover { color: var(--ink); }
+.gv2-strat-tabs button.is-active { background: var(--ink); color: var(--surface); }
+.gv2-strat-panel { display: flex; flex-direction: column; gap: 20px; min-height: 0; }
+
+.gv2-strat-section-title { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.gv2-strat-section-title::before { content: ''; width: 14px; height: 1.5px; flex-shrink: 0; border-radius: 2px; background: var(--champagne); opacity: .7; }
+.gv2-strat-section-hint { margin: -4px 0 10px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+
+.gv2-strat-card { padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); margin-bottom: 10px; }
+.gv2-strat-card:last-child { margin-bottom: 0; }
+.gv2-strat-card.is-priority { border-color: rgba(184,149,99,.4); background: rgba(184,149,99,.05); }
+.gv2-strat-card.is-neg { border-color: rgba(150,112,58,.3); }
+.gv2-strat-card-title { margin-bottom: 9px; color: var(--champagne-deep); font-size: 11.5px; font-weight: 650; }
+.gv2-strat-hero-text { margin: 0 0 8px; color: var(--ink); font-size: 14px; font-weight: 550; line-height: 1.55; }
+.gv2-strat-row { padding: 7px 0; border-top: 1px solid var(--line); }
+.gv2-strat-row:first-child { border-top: 0; padding-top: 0; }
+.gv2-strat-row span { display: block; margin-bottom: 2px; color: var(--muted); font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.gv2-strat-row p { margin: 0; color: var(--body); font-size: 12px; line-height: 1.55; }
+.gv2-strat-row ul { margin: 2px 0 0; padding-left: 16px; color: var(--body); font-size: 12px; line-height: 1.65; }
+
+.gv2-strat-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.gv2-strat-metrics--text { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.gv2-strat-metric { padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.gv2-strat-metric-val { color: var(--ink); font-size: 18px; font-weight: 650; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.gv2-strat-metric-val--text { font-size: 12px; font-weight: 550; }
+.gv2-strat-metric-lbl { margin-top: 3px; color: var(--muted); font-size: 9.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+
+.gv2-strat-chips { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+.gv2-strat-chips span { padding: 3px 9px; border-radius: 6px; background: rgba(184,149,99,.12); color: var(--champagne-deep); font-size: 10.5px; }
+.gv2-strat-chips.is-neg span { background: rgba(150,112,58,.13); color: var(--psy-neg, #96703A); }
+
+.gv2-strat-verdict { display: inline-block; margin-bottom: 8px; padding: 3px 10px; border-radius: 20px; background: var(--line); color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.gv2-strat-phase-period { margin: -4px 0 8px; color: var(--muted); font-size: 10.5px; }
+.gv2-strat-question { margin: 0 0 8px; padding-left: 10px; border-left: 2px solid var(--champagne); color: var(--body); font-size: 12px; line-height: 1.55; }
+.gv2-strat-question:last-child { margin-bottom: 0; }
+.gv2-strat-to-createur { align-self: flex-start; padding: 8px 12px; border: 1px solid rgba(184,149,99,.42); border-radius: 9px; background: rgba(184,149,99,.08); color: var(--champagne-deep); font: inherit; font-size: 11px; font-weight: 650; cursor: pointer; }
+.gv2-strat-to-createur:hover { border-color: var(--champagne); background: rgba(184,149,99,.14); }
+
+.gv2-theme-dark .gv2-strat-empty, .gv2-theme-dark .gv2-strat-card, .gv2-theme-dark .gv2-strat-metric { background: rgba(30,32,33,.7); border-color: rgba(255,255,255,.08); }
+.gv2-theme-dark .gv2-strat-tabs { background: rgba(255,255,255,.05); }
+.gv2-theme-dark .gv2-strat-tabs button.is-active { background: rgba(255,255,255,.09); }
+.gv2-theme-dark .gv2-strat-missing li { background: rgba(255,255,255,.06); }
+
+/* ── Le Stratège, entretien textuel ─────────────────────────────────────
+   La conversation est la surface principale. Le contexte demeure accessible
+   mais ne concurrence plus la question en cours : une synthèse compacte,
+   puis le détail à la demande. Les couleurs restent utilitaires — noir pour
+   l'action et champagne seulement pour le progrès / le repère. */
+.gv2-strat-secondary { display: block; margin-top: 8px; background: transparent !important; color: var(--muted) !important; font-weight: 500 !important; text-decoration: underline; }
+.gv2-strat-banner { margin: 0; padding: 10px 13px; border: 1px solid rgba(184,149,99,.24); border-radius: 11px; background: rgba(184,149,99,.07); color: var(--champagne-deep); font-size: 11.5px; }
+
+.gv2-strat-interview { width: min(var(--gv2-reading-width), calc(100% - 64px)); min-height: 0; margin: 0 auto; padding: clamp(24px, 4vh, 48px) 0 32px; display: flex; flex-direction: column; gap: 16px; overflow: auto; overscroll-behavior: contain; }
+.gv2-strat-interview.is-opening { justify-content: flex-start; }
+.gv2-strat-progress-chips { position: relative; margin: 0; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--surface) 92%, var(--champagne-soft)); }
+.gv2-strat-progress-chips summary { display: flex; min-height: 48px; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 16px; list-style: none; cursor: pointer; }
+.gv2-strat-progress-chips summary::-webkit-details-marker { display: none; }
+.gv2-strat-progress-summary-copy { display: grid; min-width: 0; gap: 2px; }
+.gv2-strat-progress-summary-copy > span { color: var(--ink); font-size: 11px; font-weight: 650; letter-spacing: .015em; }
+.gv2-strat-progress-summary-copy small { overflow: hidden; color: var(--muted); font-size: 10.5px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.gv2-strat-progress-count { flex: 0 0 auto; color: var(--muted); font-size: 10.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gv2-strat-progress-count strong { color: var(--champagne-deep); font-weight: 700; }
+.gv2-strat-progress-chips summary::after { width: 7px; height: 7px; margin-left: 1px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); content: ''; transform: rotate(45deg) translateY(-2px); transition: transform .18s ease; }
+.gv2-strat-progress-chips[open] summary::after { transform: rotate(225deg) translate(-2px, -1px); }
+.gv2-strat-progress-detail { display: grid; gap: 16px; padding: 8px 16px 16px; border-top: 1px solid var(--line); }
+.gv2-strat-progress-detail > div { display: grid; gap: 6px; }
+.gv2-strat-progress-detail > div > div { display: flex; flex-wrap: wrap; gap: 5px; }
+.gv2-strat-progress-label { color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.gv2-strat-progress-detail .is-done, .gv2-strat-progress-detail .is-pending { padding: 4px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; line-height: 1.25; }
+.gv2-strat-progress-detail .is-done { background: rgba(63,107,74,.1); color: var(--psy-pos, #3F6B4A); }
+.gv2-strat-progress-detail .is-pending { background: var(--line); color: var(--muted); }
+
+.gv2-strat-chat { display: flex; min-height: 0; flex-direction: column; gap: 24px; padding: 0; }
+.gv2-strat-msg { width: min(100%, 710px); display: grid; gap: 7px; }
+.gv2-strat-msg--assistant { align-self: flex-start; }
+.gv2-strat-msg--user { align-self: flex-end; width: min(84%, 620px); }
+.gv2-strat-msg-meta { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10.5px; line-height: 1; }
+.gv2-strat-msg-meta strong { display: inline-flex; align-items: center; gap: 7px; color: var(--ink); font-size: 11.5px; font-weight: 650; }
+.gv2-strat-msg--assistant .gv2-strat-msg-meta strong::before { width: 6px; height: 6px; border-radius: 50%; background: var(--strategist-slate); content: ''; }
+.gv2-strat-msg--user .gv2-strat-msg-meta { justify-content: flex-end; }
+.gv2-strat-msg--user .gv2-strat-msg-meta strong { color: var(--muted); font-weight: 500; }
+.gv2-strat-msg-body { color: var(--body); font-size: clamp(14px, 1.1vw, 16px); line-height: 1.62; white-space: pre-wrap; }
+.gv2-strat-msg--user .gv2-strat-msg-body { padding: 0; background: transparent; color: var(--muted); font-size: 13.5px; line-height: 1.55; text-align: right; }
+.gv2-strat-observation { display: grid; gap: 5px; margin: 4px 0 2px; padding: 0 0 12px; border-bottom: 1px solid var(--line); color: var(--muted); }
+.gv2-strat-observation > span { color: var(--strategist-slate); font-family: var(--font-family-sans); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.gv2-strat-observation p { margin: 0; font-size: 12px; line-height: 1.55; }
+.gv2-strat-msg.is-thinking { width: auto; display: inline-flex; color: var(--muted); font-size: 11.5px; font-style: italic; }
+
+.gv2-strat-composer-zone { position: sticky; z-index: 2; bottom: 0; display: grid; gap: 8px; margin-top: 0; padding-top: 16px; background: linear-gradient(to bottom, transparent, var(--surface) 24px); }
+.gv2-strat-composer-tools { display: flex; min-height: 24px; align-items: center; gap: 8px; padding: 0 2px; }
+.gv2-strat-generate { margin-left: auto; padding: 6px 10px; border: 1px solid rgba(184,149,99,.42); border-radius: 999px; background: rgba(184,149,99,.1); color: var(--champagne-deep); font: inherit; font-size: 10.5px; font-weight: 650; cursor: pointer; }
+.gv2-strat-generate:hover { border-color: var(--champagne); background: rgba(184,149,99,.16); }
+
+.gv2-strat-composer { display: flex; min-height: 56px; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); transition: border-color .16s ease, box-shadow .16s ease; }
+.gv2-strat-composer:focus-within { border-color: rgba(184,149,99,.7); box-shadow: 0 0 0 3px rgba(184,149,99,.09); }
+.gv2-strat-composer textarea { min-width: 0; flex: 1; box-sizing: border-box; padding: 8px 6px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 14px; line-height: 1.5; resize: none; }
+.gv2-strat-composer textarea:focus { outline: none; }
+.gv2-strat-send { flex: 0 0 auto; min-width: 80px; padding: 10px 14px; border: 0; border-radius: 10px; background: var(--ink); color: var(--surface); font: inherit; font-size: 11.5px; font-weight: 650; cursor: pointer; transition: opacity .16s ease, transform .16s ease; }
+.gv2-strat-send:hover:not(:disabled) { transform: translateY(-1px); }
+.gv2-strat-send:disabled { opacity: .36; cursor: default; }
+.gv2-strat-composer-hint { margin: 0 0 0 4px; color: var(--muted); font-size: 9.5px; line-height: 1.4; }
+.gv2-strat-composer-hint span { padding: 0 4px; color: var(--champagne); }
+
+.gv2-theme-dark .gv2-strat-progress-chips, .gv2-theme-dark .gv2-strat-composer { background: rgba(30,32,33,.76); border-color: rgba(255,255,255,.1); }
+.gv2-theme-dark .gv2-strat-progress-detail .is-pending, .gv2-theme-dark .gv2-strat-msg--user .gv2-strat-msg-body { background: rgba(255,255,255,.07); }
+.gv2-theme-dark .gv2-strat-composer-zone { background: linear-gradient(to bottom, transparent, rgba(15,16,13,.96) 20px); }
+
+/* ── Le Stratège, couche vocale (Tranche C) ──────────────────────────────
+   Micro et lecture ElevenLabs — même patron que la dictée du composeur
+   principal (Conversation.jsx). Pas de forme d'onde réactive ni de
+   sous-titrage plein écran : simplification actée, la dictée alimente
+   directement le champ, modifiable avant l'envoi. */
+.gv2-strat-voice-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.gv2-strat-voice-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--muted); font: inherit; font-size: 10.5px; font-weight: 600; cursor: pointer; }
+.gv2-strat-voice-toggle.is-active { border-color: rgba(184,149,99,.45); background: rgba(184,149,99,.1); color: var(--champagne-deep); }
+.gv2-strat-voice-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
+.gv2-strat-voice-toggle.is-active .gv2-strat-voice-dot { background: var(--champagne); }
+.gv2-strat-voice-picker { padding: 5px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; font-size: 10.5px; }
+.gv2-strat-voice-speaking { color: var(--champagne-deep); font-size: 10.5px; font-style: italic; }
+.gv2-strat-voice-error { margin: 0; padding: 8px 12px; border-radius: 8px; background: rgba(150,60,60,.08); color: rgba(180,70,70,.9); font-size: 11px; }
+
+.gv2-strat-mic { flex-shrink: 0; display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 10px; background: var(--line); color: var(--muted); cursor: pointer; }
+.gv2-strat-mic:hover { background: rgba(184,149,99,.15); color: var(--champagne-deep); }
+.gv2-strat-mic.is-recording { background: rgba(180,70,70,.15); color: rgba(180,70,70,.9); animation: gv2-strat-mic-pulse 1.4s ease-in-out infinite; }
+@keyframes gv2-strat-mic-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
+.gv2-theme-dark .gv2-strat-voice-toggle, .gv2-theme-dark .gv2-strat-voice-picker { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); }
+.gv2-theme-dark .gv2-strat-mic { background: rgba(255,255,255,.06); }
+
+@media (max-width: 640px) {
+  .gv2-strat-dashboard, .gv2-strat-interview { width: calc(100% - 32px); padding-top: 24px; padding-bottom: 24px; }
+  .gv2-strat-dashboard { gap: 16px; }
+  .gv2-strat-dashboard-head { align-items: flex-start; flex-direction: column; }
+  .gv2-strat-to-createur--head { align-self: flex-start; }
+  .gv2-strat-tabs { width: calc(100% + 2px); margin-left: -1px; }
+  .gv2-strat-tabs button { flex: 0 0 auto; }
+  .gv2-strat-progress-chips summary { gap: 8px; padding-inline: 12px; }
+  .gv2-strat-progress-count { font-size: 10px; }
+  .gv2-strat-progress-summary-copy small { max-width: 170px; }
+  .gv2-strat-msg--user { width: min(92%, 620px); }
+  .gv2-strat-msg-body { font-size: 14px; }
+  .gv2-strat-composer-tools { flex-wrap: wrap; }
+  .gv2-strat-generate { margin-left: 0; }
+  .gv2-strat-send { min-width: 72px; padding-inline: 10px; }
+  .gv2-strat-composer-hint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gv2-strat-tabs button, .gv2-strat-progress-chips summary::after, .gv2-strat-composer, .gv2-strat-send { transition: none; }
+  .gv2-strat-send:hover:not(:disabled) { transform: none; }
+}
+
+/* ── Le Stratège, habillage « Ariane » ────────────────────────────────────
+   Transposition du design validé sur la maquette Lovable « Ariane » —
+   même logique métier que ci-dessus (entretien réel, dictée réelle, lecture
+   ElevenLabs réelle, génération réelle), seule la présentation change.
+   Réutilise les tokens déjà posés dans ce fichier (--strategist-slate,
+   --core-champagne, Space Grotesk / Inter Tight / JetBrains Mono) plutôt que
+   d'en introduire de nouveaux : la maquette avait été construite sur ces
+   mêmes tokens. */
+
+.gv2-ariane-label { font-family: var(--font-family-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; }
+
+@keyframes gv2-ariane-caret { 0%, 100% { opacity: 1; } 50% { opacity: .12; } }
+@keyframes gv2-ariane-stream-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@keyframes gv2-ariane-wave-bar { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+@keyframes gv2-ariane-dash-draw { from { stroke-dashoffset: 240; } to { stroke-dashoffset: 0; } }
+
+.gv2-ariane-caret { display: inline-block; margin-left: 2px; animation: gv2-ariane-caret 1.1s ease-in-out infinite; }
+.gv2-ariane-stream-in { animation: gv2-ariane-stream-in .4s cubic-bezier(.2,.8,.2,1) both; }
+
+/* Écran d'ouverture — un seul message assistant, aucune réponse encore. */
+.gv2-strat-interview.is-opening .gv2-ariane-hero { margin-bottom: 8px; }
+.gv2-ariane-hero h1 { margin: 0; color: var(--ink); font-family: var(--font-family-display); font-size: clamp(24px, 3.4vw, 32px); font-weight: 500; letter-spacing: -.01em; line-height: 1.16; }
+.gv2-ariane-hero p { margin: 14px 0 0; max-width: 58ch; color: var(--body); font-size: 15.5px; line-height: 1.65; }
+.gv2-ariane-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 28px; }
+.gv2-ariane-hero-cta { padding: 11px 22px; border: 0; border-radius: 999px; background: var(--ink); color: #fff; font: inherit; font-size: 14.5px; font-weight: 550; cursor: pointer; transition: opacity .16s ease; }
+.gv2-ariane-hero-cta:hover { opacity: .88; }
+.gv2-ariane-hero-secondary { border: 0; background: none; padding: 0; color: var(--muted); font: inherit; font-size: 14.5px; cursor: pointer; text-underline-offset: 4px; }
+.gv2-ariane-hero-secondary:hover { color: var(--ink); text-decoration: underline; }
+
+/* Carte de statut vocal — écoute, lecture, erreur. Un seul gabarit, un
+   contenu qui change avec l'état réel (isRecording / voiceError / speaking). */
+.gv2-ariane-voice-card { margin-top: 4px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: 0 18px 40px -30px rgba(20,20,24,.18); }
+.gv2-ariane-voice-card.is-error { border-color: rgba(180,138,82,.5); }
+.gv2-ariane-voice-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.gv2-ariane-voice-head > span:first-child { color: var(--strategist-slate); }
+.gv2-ariane-voice-timer { font-family: var(--font-family-mono); font-size: 11px; font-variant-numeric: tabular-nums; letter-spacing: .1em; color: var(--muted); }
+.gv2-ariane-waveform { display: flex; align-items: center; gap: 3px; height: 26px; margin-top: 12px; }
+.gv2-ariane-waveform span { width: 2px; border-radius: 999px; background: var(--strategist-slate); transform-origin: center; }
+.gv2-ariane-voice-transcript { margin: 12px 0 0; min-height: 3rem; max-width: 62ch; color: var(--ink); font-size: 15px; line-height: 1.6; }
+.gv2-ariane-voice-transcript.is-empty { color: var(--muted); }
+.gv2-ariane-voice-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.gv2-ariane-voice-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-family: var(--font-family-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: border-color .14s ease, color .14s ease; }
+.gv2-ariane-voice-btn:hover { border-color: var(--muted); color: var(--ink); }
+.gv2-ariane-voice-btn--primary { border: 0; background: var(--ink); color: #fff; }
+.gv2-ariane-voice-btn--primary:hover { color: #fff; opacity: .88; }
+.gv2-ariane-voice-eyebrow--speaking { color: var(--psychologist-sage); }
+.gv2-ariane-voice-eyebrow--error { color: var(--core-champagne); }
+
+/* Transition « prêt à générer » — sous le fil, quand context_progress
+   indique is_ready côté serveur (interviewReady). */
+.gv2-ariane-ready { margin-top: 8px; padding-top: 24px; border-top: 1px solid var(--line); }
+.gv2-ariane-ready p { margin: 0; color: var(--ink); font-size: 15.5px; line-height: 1.65; }
+.gv2-ariane-ready-cta { display: inline-block; margin-top: 14px; border: 0; background: none; padding: 0; color: var(--core-champagne); font: inherit; font-size: 14.5px; cursor: pointer; text-underline-offset: 4px; }
+.gv2-ariane-ready-cta:hover { text-decoration: underline; }
+
+/* Génération — écran minimal, une ligne qui se dessine, une phase qui
+   défile. Les phases restent génériques (elles décrivent la construction
+   d'une stratégie, pas des données inventées). */
+.gv2-ariane-generating { width: min(560px, calc(100% - 48px)); margin: 0 auto; padding: 96px 0; display: flex; flex-direction: column; align-items: flex-start; }
+.gv2-ariane-generating svg { width: 100%; max-width: 220px; height: 52px; overflow: visible; }
+.gv2-ariane-generating-line { stroke: var(--line); stroke-width: 1; }
+.gv2-ariane-generating-line--fill { stroke: var(--strategist-slate); stroke-width: 1; stroke-dasharray: 240; animation: gv2-ariane-dash-draw 2.6s cubic-bezier(.2,.8,.2,1) both; }
+.gv2-ariane-generating h2 { margin: 32px 0 0; color: var(--ink); font-family: var(--font-family-display); font-size: 21px; font-weight: 500; letter-spacing: -.01em; }
+.gv2-ariane-generating-phase { margin-top: 10px; }
+
+/* Rapport — document déroulant, sommaire fixe à gauche (desktop), même
+   contenu réel que les 5 onglets d'origine, réorganisé en sections. */
+.gv2-ariane-report { position: relative; height: 100%; overflow-y: auto; }
+.gv2-ariane-report-progress { position: sticky; top: 0; z-index: 5; height: 2px; background: var(--line); }
+.gv2-ariane-report-progress > div { height: 100%; background: var(--strategist-slate); transition: width .12s linear; }
+.gv2-ariane-report-wrap { display: flex; gap: 56px; width: min(var(--gv2-reading-width, 1040px), calc(100% - 64px)); margin: 0 auto; align-items: flex-start; }
+.gv2-ariane-report-nav { position: sticky; top: 32px; flex: 0 0 168px; padding: 40px 0; }
+.gv2-ariane-report-nav ul { margin: 0; padding: 0; list-style: none; border-left: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.gv2-ariane-report-nav a { display: flex; gap: 8px; margin-left: -1px; padding-left: 15px; border-left: 1px solid transparent; color: var(--muted); font-size: 13px; text-decoration: none; transition: color .14s ease, border-color .14s ease; }
+.gv2-ariane-report-nav a:hover { color: var(--ink); }
+.gv2-ariane-report-nav a.is-active { border-left-color: var(--strategist-slate); color: var(--ink); }
+.gv2-ariane-report-nav a span:first-child { font-family: var(--font-family-mono); font-size: 10.5px; line-height: 1.5; color: var(--muted); }
+.gv2-ariane-report-article { min-width: 0; flex: 1; padding: 40px 0 96px; }
+.gv2-ariane-report-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+.gv2-ariane-report-header h1 { margin: 10px 0 0; color: var(--ink); font-family: var(--font-family-display); font-size: clamp(21px, 2.4vw, 27px); font-weight: 500; letter-spacing: -.01em; line-height: 1.2; }
+.gv2-ariane-report-header p { margin: 10px 0 0; max-width: 52ch; color: var(--body); font-size: 13.5px; line-height: 1.6; }
+.gv2-ariane-report-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; flex-shrink: 0; }
+.gv2-ariane-report-actions button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 0; color: var(--muted); font: inherit; font-size: 12.5px; cursor: pointer; }
+.gv2-ariane-report-actions button:hover { color: var(--ink); }
+.gv2-ariane-report-section { scroll-margin-top: 40px; padding-top: 48px; }
+.gv2-ariane-report-section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.gv2-ariane-report-section-head span { font-family: var(--font-family-mono); font-size: 11px; letter-spacing: .1em; color: var(--muted); }
+.gv2-ariane-report-section-head h2 { margin: 0; color: var(--ink); font-family: var(--font-family-display); font-size: clamp(18px, 1.8vw, 21px); font-weight: 500; letter-spacing: -.01em; }
+.gv2-ariane-report-to-createur { margin-top: 40px; }
+
+@media (max-width: 900px) {
+  .gv2-ariane-report-wrap { flex-direction: column; gap: 0; width: calc(100% - 32px); }
+  .gv2-ariane-report-nav { position: static; width: 100%; padding: 20px 0; }
+  .gv2-ariane-report-nav ul { flex-direction: row; overflow-x: auto; border-left: 0; gap: 16px; }
+  .gv2-ariane-report-nav a { border-left: 0; padding-left: 0; white-space: nowrap; }
+  .gv2-ariane-report-nav a.is-active { border-left: 0; }
+  .gv2-ariane-report-header { flex-direction: column; }
+  .gv2-ariane-report-actions { flex-direction: row; align-items: center; }
+}
+
+.gv2-theme-dark .gv2-ariane-voice-card { background: rgba(30,32,33,.76); border-color: rgba(255,255,255,.1); }
+.gv2-theme-dark .gv2-ariane-voice-btn { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); }
+.gv2-theme-dark .gv2-ariane-hero-cta { background: #fff; color: #16161a; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gv2-ariane-caret, .gv2-ariane-stream-in, .gv2-ariane-generating-line--fill { animation: none; }
+}
 
 /* ── Bouton Tarifs — barre latérale + en-tête ────────────────────────────
    Lien direct vers /tarifs (page publique, reste en V1 — décidé plus tôt

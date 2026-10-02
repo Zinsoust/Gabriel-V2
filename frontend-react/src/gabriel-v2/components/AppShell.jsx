@@ -185,6 +185,11 @@ export function AppShell({ bootstrap }) {
   const [creatorSettings, setCreatorSettings] = useState(CREATOR_DEFAULTS);
   const [creatorHasOutput, setCreatorHasOutput] = useState(false);
   const [creatorRefinementRequest, setCreatorRefinementRequest] = useState(null);
+  // État réel de l'entretien d'Ariane (contextProgress/currentDimension/
+  // interviewReady/messages), remonté depuis StrategeView pour que le panneau
+  // de contexte (Progression/Historique) affiche exactement ce que le
+  // serveur a renvoyé — jamais une complétude recalculée ou devinée ici.
+  const [strategeInterview, setStrategeInterview] = useState(null);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   // Sur téléphone, le menu latéral s'ouvre en tiroir (il est masqué sinon : rien d'autre ne permet d'y accéder).
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -792,7 +797,7 @@ export function AppShell({ bootstrap }) {
           : tab === 'psychologue'
           ? <PsychologueView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} openAnalysisRequest={analysisToOpen} onAnalysisReady={setLastAnalysis} />
           : tab === 'stratege'
-          ? <StrategeView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} />
+          ? <StrategeView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} onInterviewChange={setStrategeInterview} />
           : tab === 'tarifs'
           ? <TarifsView />
           : isAgentTab(tab)
@@ -801,7 +806,7 @@ export function AppShell({ bootstrap }) {
             ? <WorkspaceActivity workspace={activeWorkspace} mission={mission} />
             : <WorkspaceMemory workspace={activeWorkspace} />}
     </section>
-    <ContextPanel mission={mission} workspace={activeWorkspace} onUpdateWorkspace={updateWorkspaceFields} activeAgent={activeAgent} onStartMission={startMission} isStartingMission={isStartingMission} creatorSettings={creatorSettings} onCreatorSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} creatorHasOutput={creatorHasOutput} onCreatorRefinement={text => setCreatorRefinementRequest({ id: Date.now(), text })} onCreatorClose={() => setRightCollapsed(true)} />
+    <ContextPanel mission={mission} workspace={activeWorkspace} onUpdateWorkspace={updateWorkspaceFields} activeAgent={activeAgent} onStartMission={startMission} isStartingMission={isStartingMission} creatorSettings={creatorSettings} onCreatorSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} creatorHasOutput={creatorHasOutput} onCreatorRefinement={text => setCreatorRefinementRequest({ id: Date.now(), text })} onCreatorClose={() => setRightCollapsed(true)} strategeInterview={strategeInterview} />
     {!effectiveLeftCollapsed && <button className="gv2-resize-handle gv2-resize-handle--left" type="button" onPointerDown={event => beginResize('left', event)} onDoubleClick={() => setLeftWidth(LEFT_DEFAULT)} onKeyDown={event => handleResizeKey('left', event)} aria-label="Redimensionner la navigation" title="Glisser pour redimensionner · double clic pour réinitialiser" />}
     {!effectiveRightCollapsed && <button className="gv2-resize-handle gv2-resize-handle--right" type="button" onPointerDown={event => beginResize('right', event)} onDoubleClick={() => setRightWidth(RIGHT_DEFAULT)} onKeyDown={event => handleResizeKey('right', event)} aria-label="Redimensionner le contexte" title="Glisser pour redimensionner · double clic pour réinitialiser" />}
     {onboardingOpen && <OnboardingTour onFinish={finishOnboarding} onOpenNavigation={showNavigation} />}

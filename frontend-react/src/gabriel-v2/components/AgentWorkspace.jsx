@@ -63,6 +63,162 @@ function addStrategistThinkingState(frameDocument) {
   }
 }
 
+/* Le composeur historique garde ses actions et leurs gestionnaires. La V2 ne
+   fait que leur donner un langage visuel plus éditorial : contexte à gauche,
+   saisie généreuse, puis voix et envoi à droite. */
+function adaptStrategistComposer(frameDocument) {
+  const composer = frameDocument.querySelector('.chat-input-row');
+  if (!composer) return;
+
+  /* Nettoie également le contrôle injecté par une version précédente lorsque
+     l'iframe est déjà ouverte pendant une mise à jour à chaud. */
+  composer.querySelector('.gv2-strategist-atelier')?.remove();
+
+  const addContext = composer.querySelector('.compose-add');
+  if (addContext && !addContext.dataset.gv2ComposerIcon) {
+    addContext.dataset.gv2ComposerIcon = 'paperclip';
+    addContext.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+      </svg>`;
+  }
+
+  const send = composer.querySelector('.chat-send');
+  if (send && !send.dataset.gv2ComposerIcon) {
+    send.dataset.gv2ComposerIcon = 'arrow-up';
+    send.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
+      </svg>`;
+  }
+
+  const input = composer.querySelector('#chat-input');
+  input?.setAttribute('aria-label', 'Votre réponse à Ariane');
+
+  const mic = composer.querySelector('#mic-btn');
+  mic?.setAttribute('aria-label', 'Répondre à Ariane à la voix');
+  mic?.setAttribute('title', 'Répondre à la voix');
+}
+
+/* Le template historique nomme encore ponctuellement « Gabriel » dans ses
+   libellés vocaux. La logique et les données restent intactes ; seule la
+   copie visible de l'espace Ariane est harmonisée dans l'iframe V2. */
+function adaptStrategistVoiceCopy(frameDocument) {
+  const selectors = [
+    '#interview-state-kicker',
+    '#interview-state-title',
+    '#interview-state-copy',
+    '#voice-speaking-badge',
+    '#voice-live-label',
+  ];
+
+  const sync = () => selectors.forEach(selector => {
+    const node = frameDocument.querySelector(selector);
+    if (!node?.textContent?.includes('Gabriel')) return;
+    const textNodes = [...node.childNodes].filter(child => child.nodeType === 3);
+    if (textNodes.length) {
+      textNodes.forEach(child => {
+        if (child.textContent?.includes('Gabriel')) child.textContent = child.textContent.replaceAll('Gabriel', 'Ariane');
+      });
+      return;
+    }
+    node.textContent = node.textContent.replaceAll('Gabriel', 'Ariane');
+  });
+
+  sync();
+  const root = frameDocument.querySelector('.chat-window');
+  if (!root || root.__gv2VoiceCopyObserver || !frameDocument.defaultView?.MutationObserver) return;
+  const observer = new frameDocument.defaultView.MutationObserver(sync);
+  observer.observe(root, { childList: true, subtree: true, characterData: true });
+  root.__gv2VoiceCopyObserver = observer;
+}
+
+/* Les réponses d'Ariane reprennent le même vocabulaire éditorial que le
+   Créateur : le texte reste le centre de gravité et les outils sont une
+   ligne secondaire. Copier et télécharger restent entièrement locaux. */
+function adaptStrategistReplies(frameDocument) {
+  const messages = frameDocument.getElementById('chat-messages');
+  if (!messages) return;
+
+  const buttonIcon = {
+    copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+    download: '<path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/>',
+  };
+
+  const makeButton = (name, label) => {
+    const button = frameDocument.createElement('button');
+    button.type = 'button';
+    button.className = `gv2-strategist-reply-action gv2-strategist-reply-action--${name}`;
+    button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${buttonIcon[name]}</svg><span>${label}</span>`;
+    return button;
+  };
+
+  const copyFallback = text => {
+    const field = frameDocument.createElement('textarea');
+    field.value = text;
+    field.style.position = 'fixed';
+    field.style.opacity = '0';
+    frameDocument.body.append(field);
+    field.select();
+    frameDocument.execCommand?.('copy');
+    field.remove();
+  };
+
+  const decorate = message => {
+    if (!(message instanceof frameDocument.defaultView.HTMLElement)) return;
+    if (!message.matches('.msg.agent:not(#typing)') || message.querySelector('.gv2-strategist-reply-actions')) return;
+    const bubble = message.querySelector('.msg-bubble');
+    const text = bubble?.innerText?.trim();
+    if (!bubble || !text) return;
+
+    const actions = frameDocument.createElement('div');
+    actions.className = 'gv2-strategist-reply-actions';
+
+    const copy = makeButton('copy', 'Copier');
+    copy.addEventListener('click', async () => {
+      try {
+        await frameDocument.defaultView.navigator.clipboard.writeText(text);
+      } catch (_) {
+        copyFallback(text);
+      }
+      const label = copy.querySelector('span');
+      if (label) label.textContent = 'Copié';
+      frameDocument.defaultView.setTimeout(() => { if (label?.isConnected) label.textContent = 'Copier'; }, 1300);
+    });
+
+    const download = makeButton('download', 'Télécharger');
+    download.addEventListener('click', () => {
+      const blob = new frameDocument.defaultView.Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = frameDocument.defaultView.URL.createObjectURL(blob);
+      const link = frameDocument.createElement('a');
+      link.href = url;
+      link.download = `reponse-ariane-${new Date().toISOString().slice(0, 10)}.txt`;
+      frameDocument.body.append(link);
+      link.click();
+      link.remove();
+      frameDocument.defaultView.setTimeout(() => frameDocument.defaultView.URL.revokeObjectURL(url), 0);
+    });
+
+    actions.append(copy, download);
+    bubble.insertAdjacentElement('afterend', actions);
+  };
+
+  messages.querySelectorAll('.msg.agent').forEach(decorate);
+  if (!messages.__gv2ReplyObserver && frameDocument.defaultView?.MutationObserver) {
+    const observer = new frameDocument.defaultView.MutationObserver(records => {
+      const keepPinned = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 90;
+      records.forEach(record => record.addedNodes.forEach(node => {
+        if (!(node instanceof frameDocument.defaultView.HTMLElement)) return;
+        decorate(node);
+        node.querySelectorAll?.('.msg.agent').forEach(decorate);
+      }));
+      if (keepPinned) frameDocument.defaultView.requestAnimationFrame(() => { messages.scrollTop = messages.scrollHeight; });
+    });
+    observer.observe(messages, { childList: true, subtree: true });
+    messages.__gv2ReplyObserver = observer;
+  }
+}
+
 /*
  * Les outils spécialisés restent des pages autonomes pour préserver leur
  * fonctionnement historique. Cette couche est toutefois injectée dans
@@ -71,6 +227,17 @@ function addStrategistThinkingState(frameDocument) {
  */
 function applyV2EmbeddedPresentation(frameDocument, agentId, darkMode) {
   if (!['stratege', 'psychologue'].includes(agentId) || !frameDocument?.head) return;
+
+  /* Une iframe possède son propre document : elle ne peut pas hériter des
+     fontes chargées par le shell. On charge donc explicitement la même
+     famille que Gabriel V2, sans toucher au template historique. */
+  if (!frameDocument.getElementById('gabriel-v2-fonts')) {
+    const fonts = frameDocument.createElement('link');
+    fonts.id = 'gabriel-v2-fonts';
+    fonts.rel = 'stylesheet';
+    fonts.href = 'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600&display=swap';
+    frameDocument.head.append(fonts);
+  }
 
   if (agentId === 'stratege') {
     /* Le Stratège devient une interlocutrice identifiable dans l'espace V2.
@@ -90,6 +257,9 @@ function applyV2EmbeddedPresentation(frameDocument, agentId, darkMode) {
     if (listeningTitle) listeningTitle.textContent = 'Ariane vous écoute.';
     if (listeningCopy) listeningCopy.textContent = 'Parlez librement. Votre réponse est retranscrite en direct.';
     addStrategistThinkingState(frameDocument);
+    adaptStrategistComposer(frameDocument);
+    adaptStrategistVoiceCopy(frameDocument);
+    adaptStrategistReplies(frameDocument);
     mountFrontEndStrategeBuilder(frameDocument);
   }
 
@@ -178,20 +348,351 @@ function applyV2EmbeddedPresentation(frameDocument, agentId, darkMode) {
       body.is-embedded-agent.page-psychologue .analyse-btn:hover { background: #f5dcb0 !important; border-color: #f5dcb0 !important; color: #261b10 !important; }
     ` : ''}
   ` : `
-    /* Dix pixels gagnés en bas donnent de la place au fil sans alourdir la
-       boîte de saisie. Le sélecteur reste volontairement limité au Stratège. */
-    body.page-stratege:not(.strategy-studio-preview) .chat-input-row {
-      margin-bottom: 8px;
+    /* Contrat d'intégration V2 : le shell Gabriel possède déjà l'identité
+       d'Ariane et son panneau de progression. L'iframe ne rend donc que le
+       parcours central. Les éléments historiques restent dans le DOM pour
+       leurs contrôleurs, mais ne créent plus de seconde colonne ni de
+       scrollbar concurrente. */
+    body.is-embedded-agent.page-stratege .ctx-panel,
+    body.is-embedded-agent.page-stratege .ctx-panel.step-welcome {
+      grid-template-columns: minmax(0, 1fr) !important;
+      grid-template-rows: minmax(0, 1fr) auto !important;
+      padding-right: 0 !important;
     }
-    body.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .chat-input-row {
-      bottom: max(8px, env(safe-area-inset-bottom));
+    body.is-embedded-agent.page-stratege .ctx-panel::before,
+    body.is-embedded-agent.page-stratege .ctx-panel::after {
+      display: none !important;
+      content: none !important;
+    }
+    body.is-embedded-agent.page-stratege .ctx-panel .interview-side,
+    body.is-embedded-agent.page-stratege .ctx-panel.step-welcome .interview-side,
+    body.is-embedded-agent.page-stratege :is(.interview-progress-btn, .interview-progress-backdrop, .interview-progress-close, .pipeline-bar) {
+      display: none !important;
+    }
+    body.is-embedded-agent.page-stratege :is(.interview-gate, .chat-window) {
+      grid-column: 1 !important;
+    }
+
+    /* Géométrie du parcours intégré — la zone centrale et le composeur
+       partagent deux rangées réelles. Le contenu peut donc défiler dans la
+       première sans jamais passer sous la barre de saisie. */
+    html:has(body.is-embedded-agent.page-stratege) {
+      height: 100% !important;
+      overflow: hidden !important;
+    }
+    body.is-embedded-agent.page-stratege {
+      height: 100vh !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+    body.is-embedded-agent.page-stratege :is(.app-layout, .app-main, .app-content, .strat-layout) {
+      min-height: 0 !important;
+    }
+    body.is-embedded-agent.page-stratege .app-layout {
+      height: 100% !important;
+      overflow: hidden !important;
+    }
+    body.is-embedded-agent.page-stratege .app-main {
+      height: 100% !important;
+      overflow: hidden !important;
+    }
+    body.is-embedded-agent.page-stratege .app-content {
+      display: flex !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      flex-direction: column !important;
+      padding-bottom: 0 !important;
+      overflow: hidden !important;
+    }
+    body.is-embedded-agent.page-stratege .strat-layout {
+      display: grid !important;
+      flex: 1 1 auto !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      grid-template-rows: minmax(0, 1fr) !important;
+      align-items: stretch !important;
+      overflow: hidden !important;
+    }
+    body.is-embedded-agent.page-stratege .ctx-panel,
+    body.is-embedded-agent.page-stratege .ctx-panel.step-welcome {
+      box-sizing: border-box !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      align-self: stretch !important;
+      overflow: hidden !important;
+    }
+    body.is-embedded-agent.page-stratege :is(.interview-gate, .chat-window) {
+      grid-row: 1 !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-input-row {
+      grid-row: 2 !important;
+    }
+    body.is-embedded-agent.page-stratege .interview-gate {
+      box-sizing: border-box !important;
+      width: min(100%, 920px) !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      padding: clamp(30px, 5vh, 54px) clamp(28px, 6vw, 72px) clamp(26px, 4vh, 46px) !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain !important;
+      scrollbar-gutter: stable !important;
+    }
+    body.is-embedded-agent.page-stratege #gate-welcome .gate-eyebrow {
+      margin-bottom: clamp(14px, 2.4vh, 24px) !important;
+    }
+    body.is-embedded-agent.page-stratege #gate-welcome .gate-sub {
+      margin-top: clamp(18px, 2.8vh, 28px) !important;
+    }
+    body.is-embedded-agent.page-stratege #gate-welcome .gate-next {
+      margin-top: clamp(28px, 4vh, 44px) !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window {
+      box-sizing: border-box !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      max-height: 100% !important;
+      overflow: hidden !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-messages {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain !important;
+      scrollbar-gutter: stable !important;
+    }
+
+    /* Composeur du Stratège — même respiration que l'Atelier du Créateur,
+       avec une hiérarchie adaptée à la décision : la demande occupe la
+       première ligne, les outils restent discrets dans le socle. */
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input-row {
+      box-sizing: border-box !important;
+      display: grid !important;
+      grid-template-columns: 36px minmax(0, 1fr) 36px 48px !important;
+      grid-template-rows: minmax(70px, auto) 48px !important;
+      column-gap: 8px !important;
+      row-gap: 5px !important;
+      align-items: center !important;
+      width: min(820px, calc(100% - 48px)) !important;
+      max-width: 820px !important;
+      min-height: 154px !important;
+      margin: 0 auto 14px !important;
+      padding: 18px 18px 15px !important;
+      overflow: visible !important;
+      border: 1px solid rgba(102, 114, 125, .24) !important;
+      border-radius: 24px !important;
+      background: #fff !important;
+      box-shadow: 0 18px 42px -34px rgba(25, 31, 36, .55) !important;
+      transform: none !important;
+      transition: border-color .18s ease, box-shadow .18s ease !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input-row:focus-within {
+      border-color: rgba(102, 114, 125, .58) !important;
+      box-shadow: 0 22px 48px -36px rgba(25, 31, 36, .62) !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input {
+      grid-column: 1 / -1 !important;
+      grid-row: 1 !important;
+      align-self: stretch !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      min-height: 66px !important;
+      max-height: 142px !important;
+      padding: 2px 4px !important;
+      color: #26292c !important;
+      font-size: 15px !important;
+      line-height: 1.55 !important;
+      caret-color: #66727d !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input::placeholder { color: #8c9195 !important; }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) :is(.compose-add, .mic-btn) {
+      width: 36px !important;
+      height: 36px !important;
+      min-width: 36px !important;
+      align-self: center !important;
+      border: 0 !important;
+      border-radius: 50% !important;
+      background: transparent !important;
+      color: #747b80 !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .compose-add { grid-column: 1 !important; grid-row: 2 !important; }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .mic-btn { grid-column: 3 !important; grid-row: 2 !important; }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) :is(.compose-add, .mic-btn):hover {
+      background: #f2f4f5 !important;
+      color: #48535c !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) :is(.compose-add, .mic-btn) svg {
+      width: 21px !important;
+      height: 21px !important;
+      stroke: currentColor !important;
+      fill: none !important;
+      stroke-width: 1.8 !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .review-restart-btn {
+      grid-column: 2 !important;
+      grid-row: 2 !important;
+      justify-self: start !important;
+      align-self: center !important;
+      height: 34px !important;
+      padding: 0 12px !important;
+      border-color: #e0e3e4 !important;
+      color: #667078 !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-send {
+      grid-column: 4 !important;
+      grid-row: 2 !important;
+      width: 48px !important;
+      height: 48px !important;
+      min-width: 48px !important;
+      align-self: center !important;
+      border: 0 !important;
+      border-radius: 50% !important;
+      background: #111416 !important;
+      color: #fff !important;
+      box-shadow: none !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-send:hover { background: #273038 !important; }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-send svg {
+      width: 23px !important;
+      height: 23px !important;
+      stroke: currentColor !important;
+      fill: none !important;
+      stroke-width: 1.8 !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .chat-input-row {
+      position: fixed !important;
+      z-index: 340 !important;
+      left: 50% !important;
+      right: auto !important;
+      bottom: max(18px, env(safe-area-inset-bottom)) !important;
+      width: min(820px, calc(100vw - 56px)) !important;
+      max-width: 820px !important;
+      margin: 0 !important;
+      transform: translateX(-50%) !important;
+    }
+    body.is-embedded-agent.page-stratege.gv2-strategy-report-active #strat-dashboard.sfb-report { padding-bottom: 190px !important; }
+    @media (max-width: 700px) {
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input-row,
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .chat-input-row {
+        grid-template-columns: 34px minmax(0, 1fr) 34px 44px !important;
+        grid-template-rows: minmax(54px, auto) 44px !important;
+        width: calc(100% - 20px) !important;
+        max-width: none !important;
+        min-height: 128px !important;
+        padding: 14px 13px 12px !important;
+        border-radius: 20px !important;
+      }
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input { min-height: 50px !important; font-size: 14px !important; }
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-send { width: 44px !important; height: 44px !important; min-width: 44px !important; }
+    }
+    /* Réponses d'Ariane — aucune bulle décorative : une colonne éditoriale
+       calme, puis les outils réellement utiles en gris secondaire. */
+    body.is-embedded-agent.page-stratege .chat-messages {
+      padding: clamp(24px, 4vw, 46px) clamp(24px, 6vw, 62px) 18px !important;
+      gap: clamp(25px, 4vh, 38px) !important;
+    }
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing) {
+      align-self: center !important;
+      width: min(720px, 100%) !important;
+      max-width: 100% !important;
+      margin: 0 auto !important;
+      gap: 0 !important;
+    }
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing)::before,
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing) .msg-time { display: none !important; }
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing) .msg-bubble {
+      padding: 0 !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      color: #171a1c !important;
+      font-family: 'Creato Display', Arial, sans-serif !important;
+      font-size: clamp(16px, 1.65vw, 19px) !important;
+      font-weight: 400 !important;
+      letter-spacing: -.016em !important;
+      line-height: 1.72 !important;
+    }
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing).stance-challenge .msg-bubble,
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing).stance-contradict .msg-bubble {
+      padding-left: 18px !important;
+      border-left: 1px solid rgba(102, 114, 125, .48) !important;
+    }
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing) .msg-observation {
+      margin: 0 0 16px !important;
+      padding: 0 0 12px !important;
+      border-bottom: 1px solid #e4e6e7 !important;
+      color: #66727d !important;
+      font-size: 12px !important;
+      line-height: 1.55 !important;
+    }
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing) .msg-observation span {
+      margin-bottom: 5px !important;
+      color: #8b9297 !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-size: 9px !important;
+      letter-spacing: .13em !important;
+    }
+    body.is-embedded-agent.page-stratege .gv2-strategist-reply-actions {
+      display: flex !important;
+      align-items: center !important;
+      flex-wrap: wrap !important;
+      gap: 18px !important;
+      margin-top: 22px !important;
+    }
+    body.is-embedded-agent.page-stratege .gv2-strategist-reply-action {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 7px !important;
+      min-height: 30px !important;
+      padding: 3px 0 !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      color: #747a7f !important;
+      font-family: 'Creato Display', Arial, sans-serif !important;
+      font-size: 12px !important;
+      font-weight: 400 !important;
+      cursor: pointer !important;
+      transition: color .16s ease !important;
+    }
+    body.is-embedded-agent.page-stratege .gv2-strategist-reply-action:hover { color: #273139 !important; }
+    body.is-embedded-agent.page-stratege .gv2-strategist-reply-action svg {
+      width: 18px !important;
+      height: 18px !important;
+      stroke: currentColor !important;
+      fill: none !important;
+      stroke-width: 1.7 !important;
+      stroke-linecap: round !important;
+      stroke-linejoin: round !important;
+    }
+    body.is-embedded-agent.page-stratege #typing {
+      width: min(720px, 100%) !important;
+      max-width: 100% !important;
+      margin-inline: auto !important;
+    }
+    body.is-embedded-agent.page-stratege #typing .msg-bubble {
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      font-size: 13px !important;
+    }
+    @media (max-width: 700px) {
+      body.is-embedded-agent.page-stratege .chat-messages { padding: 20px 18px 14px !important; gap: 24px !important; }
+      body.is-embedded-agent.page-stratege .msg.agent:not(#typing) .msg-bubble { font-size: 15px !important; line-height: 1.65 !important; }
+      body.is-embedded-agent.page-stratege .gv2-strategist-reply-actions { margin-top: 17px !important; gap: 15px !important; }
     }
     /* Entretien d'Ariane : la page historique distribuait le titre, le micro
        et l'action sur toute la hauteur. Dans la colonne V2 ils forment un
        seul moment de réponse, lisible et compact. */
     body.is-embedded-agent.page-stratege .app-content {
-      padding-top: 20px !important;
-      padding-bottom: 10px !important;
+      padding: 0 !important;
     }
     body.is-embedded-agent.page-stratege .interview-session-bar {
       padding-bottom: 8px !important;
@@ -1215,6 +1716,546 @@ function applyV2EmbeddedPresentation(frameDocument, agentId, darkMode) {
       body.is-embedded-agent.page-stratege .gv2-audio-thinking-status { color: #e8e3f1 !important; }
       body.is-embedded-agent.page-stratege .gv2-audio-thinking-copy { color: #bab3c3 !important; }
     ` : ''}
+
+    /* ── Entretien vocal V2 — normalisation finale ──────────────────────
+       Ces règles gagnent volontairement sur les expérimentations visuelles
+       précédentes. Elles conservent le DOM, les événements et les appels
+       vocaux historiques, mais rendent chaque état dans la DA blanche. */
+    body.is-embedded-agent.page-stratege {
+      --gv2-strategist: #66727d;
+      --gv2-sage: #718078;
+      --gv2-champagne: #b08a52;
+      --gv2-ink: #1d1d1f;
+      --gv2-muted: #777b7f;
+      --gv2-rule: #e3e5e6;
+      --gv2-surface: #ffffff;
+      background: #fff !important;
+      color: var(--gv2-ink) !important;
+      font-family: 'Inter Tight', 'Helvetica Neue', Arial, sans-serif !important;
+    }
+    body.is-embedded-agent.page-stratege :is(button, input, textarea, select) {
+      font-family: 'Inter Tight', 'Helvetica Neue', Arial, sans-serif !important;
+    }
+    body.is-embedded-agent.page-stratege :is(.gate-eyebrow, .interview-state-kicker, .listening-kicker, .composer-agent-label) {
+      font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+    }
+
+    /* Le fil reste la seule zone de défilement. Le composeur occupe une
+       rangée distincte : aucun message ne passe dessous. */
+    body.is-embedded-agent.page-stratege .chat-window {
+      display: flex !important;
+      min-height: 0 !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      background: #fff !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-messages {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      padding: clamp(26px, 4vw, 46px) clamp(22px, 6vw, 60px) 52px !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      scroll-behavior: smooth !important;
+      scrollbar-gutter: stable !important;
+    }
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing) .msg-bubble,
+    body.is-embedded-agent.page-stratege .gv2-strategist-reply-action {
+      font-family: 'Inter Tight', 'Helvetica Neue', Arial, sans-serif !important;
+    }
+    body.is-embedded-agent.page-stratege .msg.agent:not(#typing) .msg-bubble {
+      font-size: clamp(16px, 1.35vw, 18px) !important;
+      line-height: 1.66 !important;
+    }
+    body.is-embedded-agent.page-stratege .msg.user {
+      align-self: flex-end !important;
+      width: min(520px, 72%) !important;
+      max-width: 72% !important;
+      margin: 0 0 0 auto !important;
+      text-align: right !important;
+    }
+    body.is-embedded-agent.page-stratege .msg.user::before,
+    body.is-embedded-agent.page-stratege .msg.user .msg-time { display: none !important; }
+    body.is-embedded-agent.page-stratege .msg.user .msg-bubble {
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      color: #777b7f !important;
+      font-family: 'Inter Tight', 'Helvetica Neue', Arial, sans-serif !important;
+      font-size: 13px !important;
+      line-height: 1.55 !important;
+    }
+
+    /* Command bar issue de la référence Lovable : texte sur un niveau
+       dédié, commandes regroupées sur un second niveau compact. */
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input-row,
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .chat-input-row {
+      position: relative !important;
+      z-index: 22 !important;
+      inset: auto !important;
+      box-sizing: border-box !important;
+      display: grid !important;
+      grid-template-columns: 30px max-content minmax(0, 1fr) 34px 42px !important;
+      grid-template-rows: minmax(28px, auto) 42px !important;
+      column-gap: 8px !important;
+      row-gap: 0 !important;
+      align-items: center !important;
+      justify-self: center !important;
+      align-self: end !important;
+      width: min(760px, calc(100% - 40px)) !important;
+      max-width: 760px !important;
+      min-width: 0 !important;
+      min-height: 88px !important;
+      margin: 0 auto max(12px, env(safe-area-inset-bottom)) !important;
+      padding: 9px 10px 8px 12px !important;
+      overflow: hidden !important;
+      border: 1px solid rgba(102, 114, 125, .26) !important;
+      border-radius: 19px !important;
+      background: rgba(255, 255, 255, .98) !important;
+      box-shadow: 0 18px 42px -34px rgba(25, 31, 36, .52) !important;
+      transform: none !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input-row:focus-within {
+      border-color: rgba(102, 114, 125, .62) !important;
+      box-shadow: 0 20px 44px -34px rgba(25, 31, 36, .58) !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input {
+      grid-column: 1 / -1 !important;
+      grid-row: 1 !important;
+      align-self: start !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      min-height: 26px !important;
+      max-height: 72px !important;
+      padding: 3px 5px !important;
+      overflow-y: auto !important;
+      color: var(--gv2-ink) !important;
+      font-size: 15px !important;
+      line-height: 1.45 !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .composer-agent-label {
+      grid-column: 2 !important;
+      grid-row: 2 !important;
+      align-self: center !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      min-width: 0 !important;
+      overflow: hidden !important;
+      color: #8b9094 !important;
+      font-size: 9px !important;
+      font-weight: 500 !important;
+      line-height: 1.2 !important;
+      letter-spacing: .12em !important;
+      text-overflow: ellipsis !important;
+      text-transform: uppercase !important;
+      white-space: nowrap !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .compose-add {
+      grid-column: 1 !important;
+      grid-row: 2 !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .mic-btn {
+      grid-column: 4 !important;
+      grid-row: 2 !important;
+      color: var(--gv2-strategist) !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-send {
+      grid-column: 5 !important;
+      grid-row: 2 !important;
+      width: 42px !important;
+      height: 42px !important;
+      min-width: 42px !important;
+      background: #111416 !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .review-restart-btn {
+      grid-column: 2 !important;
+      grid-row: 2 !important;
+      z-index: 2 !important;
+      height: 24px !important;
+      padding: 0 !important;
+      border: 0 !important;
+      background: #fff !important;
+      font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+      font-size: 9px !important;
+      letter-spacing: .1em !important;
+      text-transform: uppercase !important;
+    }
+    body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input-row:has(.review-restart-btn.active) .composer-agent-label {
+      visibility: hidden !important;
+    }
+    body.is-embedded-agent.page-stratege.gv2-strategy-report-active #strat-dashboard.sfb-report {
+      padding-bottom: 108px !important;
+    }
+
+    /* L'invitation vocale reste centrale mais n'est plus enfermée dans une
+       grande carte. Le texte demeure disponible en dessous. */
+    body.is-embedded-agent.page-stratege #gate-intro {
+      width: min(720px, calc(100% - 40px)) !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      padding: clamp(34px, 7vh, 64px) 24px !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+    body.is-embedded-agent.page-stratege #gate-intro .gate-eyebrow {
+      margin-bottom: 18px !important;
+      color: var(--gv2-strategist) !important;
+      font-size: 10px !important;
+    }
+    body.is-embedded-agent.page-stratege #gate-intro .gate-mic {
+      width: 58px !important;
+      height: 58px !important;
+      border-color: rgba(102, 114, 125, .32) !important;
+      background: #111416 !important;
+      color: #fff !important;
+      box-shadow: none !important;
+    }
+    body.is-embedded-agent.page-stratege #gate-intro .gate-question {
+      max-width: 600px !important;
+      min-height: 0 !important;
+      margin-top: 18px !important;
+      color: #4d5358 !important;
+      font-size: 15px !important;
+      line-height: 1.62 !important;
+    }
+
+    /* Autorisation, transcription, analyse et lecture utilisent le stage
+       natif piloté par le backend. Il apparaît dans le flux, jamais en
+       plein écran. */
+    body.is-embedded-agent.page-stratege .interview-state-stage {
+      box-sizing: border-box !important;
+      display: none !important;
+      width: min(720px, calc(100% - 40px)) !important;
+      min-height: 104px !important;
+      margin: 12px auto 0 !important;
+      padding: 15px 18px !important;
+      flex: 0 0 auto !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      border: 1px solid var(--gv2-rule) !important;
+      border-radius: 16px !important;
+      background: #fff !important;
+      box-shadow: none !important;
+      text-align: left !important;
+    }
+    body.is-embedded-agent.page-stratege .ctx-panel:is(
+      [data-interview-state='requesting_permission'],
+      [data-interview-state='transcribing'],
+      [data-interview-state='analyzing'],
+      [data-interview-state='gabriel_speaking'],
+      [data-interview-state='session_paused'],
+      [data-interview-state='error']
+    ) .interview-state-stage { display: flex !important; }
+    body.is-embedded-agent.page-stratege .interview-state-kicker {
+      color: var(--gv2-strategist) !important;
+      font-size: 9px !important;
+      font-weight: 500 !important;
+      letter-spacing: .16em !important;
+      text-transform: uppercase !important;
+    }
+    body.is-embedded-agent.page-stratege .interview-state-title {
+      margin: 8px 0 3px !important;
+      color: var(--gv2-ink) !important;
+      font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif !important;
+      font-size: 20px !important;
+      font-weight: 500 !important;
+      letter-spacing: -.025em !important;
+      line-height: 1.2 !important;
+    }
+    body.is-embedded-agent.page-stratege .interview-state-copy {
+      margin: 0 !important;
+      color: var(--gv2-muted) !important;
+      font-size: 13px !important;
+      line-height: 1.5 !important;
+    }
+    body.is-embedded-agent.page-stratege .interview-state-wave {
+      width: min(210px, 55%) !important;
+      height: 18px !important;
+      margin-top: 10px !important;
+    }
+    body.is-embedded-agent.page-stratege .interview-state-wave span {
+      background: var(--gv2-strategist) !important;
+      box-shadow: none !important;
+    }
+    body.is-embedded-agent.page-stratege .gv2-audio-thinking,
+    body.is-embedded-agent.page-stratege .ctx-panel[data-interview-state='transcribing'] .gv2-audio-thinking.is-active {
+      display: none !important;
+    }
+
+    /* Écoute en direct : même carte compacte, dans le flux de conversation.
+       Tous les gestionnaires historiques restent ceux du backend. */
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-overlay {
+      position: relative !important;
+      z-index: 9 !important;
+      inset: auto !important;
+      box-sizing: border-box !important;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      flex: 0 0 auto !important;
+      width: min(720px, calc(100% - 40px)) !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      margin: 12px auto 18px !important;
+      padding: 15px 18px !important;
+      align-items: center !important;
+      justify-content: stretch !important;
+      gap: 7px 16px !important;
+      overflow: hidden !important;
+      border: 1px solid rgba(102, 114, 125, .28) !important;
+      border-radius: 16px !important;
+      background: #fff !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      transform: none !important;
+      text-align: left !important;
+      isolation: auto !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-overlay::before,
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-overlay::after {
+      display: none !important;
+      content: none !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-overlay > * {
+      z-index: auto !important;
+      margin: 0 !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-kicker {
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      color: var(--gv2-strategist) !important;
+      font-size: 9px !important;
+      font-weight: 500 !important;
+      letter-spacing: .16em !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-title {
+      grid-column: 1 !important;
+      grid-row: 2 !important;
+      color: var(--gv2-ink) !important;
+      font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif !important;
+      font-size: 19px !important;
+      font-weight: 500 !important;
+      letter-spacing: -.02em !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-copy {
+      grid-column: 1 !important;
+      grid-row: 3 !important;
+      display: block !important;
+      max-width: 54ch !important;
+      color: var(--gv2-muted) !important;
+      font-size: 12px !important;
+      line-height: 1.45 !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-mic-btn {
+      grid-column: 2 !important;
+      grid-row: 1 / 4 !important;
+      width: 44px !important;
+      height: 44px !important;
+      border: 0 !important;
+      background: var(--gv2-strategist) !important;
+      color: #fff !important;
+      box-shadow: none !important;
+      animation: none !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-mic-btn svg {
+      width: 19px !important;
+      height: 19px !important;
+      stroke: #fff !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-transcript {
+      grid-column: 1 / -1 !important;
+      grid-row: 4 !important;
+      display: block !important;
+      width: 100% !important;
+      max-width: none !important;
+      min-height: 34px !important;
+      max-height: 48px !important;
+      padding: 8px 0 0 !important;
+      overflow-y: auto !important;
+      border-top: 1px solid var(--gv2-rule) !important;
+      color: #42484d !important;
+      font-size: 14px !important;
+      line-height: 1.52 !important;
+      text-align: left !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-wave {
+      grid-column: 1 !important;
+      grid-row: 5 !important;
+      width: min(240px, 70%) !important;
+      height: 16px !important;
+      justify-content: flex-start !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-wave span {
+      background: var(--gv2-strategist) !important;
+      box-shadow: none !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-meta {
+      grid-column: 2 !important;
+      grid-row: 5 !important;
+      display: flex !important;
+      gap: 8px !important;
+      color: var(--gv2-muted) !important;
+      font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+      font-size: 9px !important;
+      letter-spacing: .08em !important;
+      white-space: nowrap !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-silence {
+      display: inline !important;
+      color: var(--gv2-strategist) !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-actions {
+      grid-column: 1 / -1 !important;
+      grid-row: 6 !important;
+      display: flex !important;
+      width: auto !important;
+      justify-content: flex-start !important;
+      gap: 8px !important;
+      padding-top: 3px !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-action {
+      flex: 0 0 auto !important;
+      min-height: 30px !important;
+      padding: 5px 11px !important;
+      border: 1px solid var(--gv2-rule) !important;
+      border-radius: 999px !important;
+      background: #fff !important;
+      color: #5d6368 !important;
+      font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+      font-size: 9px !important;
+      letter-spacing: .08em !important;
+      text-transform: uppercase !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-action.primary {
+      border-color: #111416 !important;
+      background: #111416 !important;
+      color: #fff !important;
+    }
+    body.is-embedded-agent.page-stratege .ctx-panel[data-interview-state='listening'] .chat-input-row,
+    body.is-embedded-agent.page-stratege .ctx-panel[data-interview-state='paused'] .chat-input-row {
+      display: grid !important;
+      grid-template-columns: 30px max-content minmax(0, 1fr) 42px !important;
+    }
+    body.is-embedded-agent.page-stratege .ctx-panel:is(
+      [data-interview-state='listening'],
+      [data-interview-state='paused']
+    ) .chat-input-row .mic-btn {
+      display: none !important;
+    }
+    body.is-embedded-agent.page-stratege .ctx-panel:is(
+      [data-interview-state='listening'],
+      [data-interview-state='paused']
+    ) .chat-input-row .chat-send {
+      grid-column: 4 !important;
+    }
+    body.is-embedded-agent.page-stratege .chat-window.is-recording .voice-toolbar {
+      display: none !important;
+    }
+
+    /* Lecture de la réponse : la barre native devient une ligne secondaire,
+       sans bulle et sans concurrence avec le texte d'Ariane. */
+    body.is-embedded-agent.page-stratege .voice-toolbar {
+      width: min(720px, calc(100% - 40px)) !important;
+      min-height: 30px !important;
+      margin: 8px auto 0 !important;
+      padding: 0 !important;
+      flex: 0 0 auto !important;
+      border: 0 !important;
+      background: transparent !important;
+    }
+    body.is-embedded-agent.page-stratege .voice-speaking-badge.active {
+      display: inline-flex !important;
+      padding: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+      color: var(--gv2-sage) !important;
+      font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+      font-size: 9px !important;
+      letter-spacing: .1em !important;
+      text-transform: uppercase !important;
+    }
+    body.is-embedded-agent.page-stratege .voice-speaking-badge .voice-wave span {
+      background: var(--gv2-sage) !important;
+    }
+    body.is-embedded-agent.page-stratege .voice-playback-btn {
+      width: 28px !important;
+      height: 28px !important;
+      border-color: var(--gv2-rule) !important;
+      border-radius: 50% !important;
+      background: #fff !important;
+      color: #687078 !important;
+    }
+
+    @media (max-width: 700px) {
+      body.is-embedded-agent.page-stratege .chat-messages {
+        padding: 22px 16px 42px !important;
+      }
+      body.is-embedded-agent.page-stratege .msg.user {
+        width: min(88%, 460px) !important;
+        max-width: 88% !important;
+      }
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input-row,
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .strat-layout.has-strategy .chat-input-row {
+        grid-template-columns: 28px minmax(0, 1fr) 34px 42px !important;
+        grid-template-rows: minmax(27px, auto) 40px !important;
+        width: calc(100% - 18px) !important;
+        min-height: 82px !important;
+        padding: 8px 8px 7px 10px !important;
+        border-radius: 17px !important;
+      }
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .composer-agent-label {
+        display: none !important;
+      }
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-input {
+        grid-column: 1 / -1 !important;
+        grid-row: 1 !important;
+        min-height: 25px !important;
+        max-height: 64px !important;
+        font-size: 14px !important;
+      }
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .mic-btn {
+        grid-column: 3 !important;
+        grid-row: 2 !important;
+      }
+      body.is-embedded-agent.page-stratege:not(.strategy-studio-preview) .chat-send {
+        grid-column: 4 !important;
+        grid-row: 2 !important;
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+      }
+      body.is-embedded-agent.page-stratege .interview-state-stage,
+      body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-overlay,
+      body.is-embedded-agent.page-stratege .voice-toolbar {
+        width: calc(100% - 18px) !important;
+      }
+      body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-overlay {
+        grid-template-columns: minmax(0, 1fr) 40px !important;
+        padding: 13px 14px !important;
+      }
+      body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-copy { display: none !important; }
+      body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-transcript { max-height: 68px !important; }
+      body.is-embedded-agent.page-stratege .chat-window.is-recording .listening-meta {
+        grid-column: 1 / -1 !important;
+        justify-self: start !important;
+      }
+      body.is-embedded-agent.page-stratege .ctx-panel:is(
+        [data-interview-state='listening'],
+        [data-interview-state='paused']
+      ) .chat-input-row {
+        grid-template-columns: 28px minmax(0, 1fr) 42px !important;
+      }
+      body.is-embedded-agent.page-stratege .ctx-panel:is(
+        [data-interview-state='listening'],
+        [data-interview-state='paused']
+      ) .chat-input-row .chat-send {
+        grid-column: 3 !important;
+        grid-row: 2 !important;
+      }
+    }
   `;
 }
 

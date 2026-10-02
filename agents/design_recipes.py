@@ -114,13 +114,29 @@ def match_recipe(shape: dict, envelope: dict) -> Optional[dict]:
     return None
 
 
+def _field_signature(field: dict) -> str:
+    """Empreinte d'un champ — assez précise pour que deux formes vraiment
+    différentes ne soient jamais confondues (bug corrigé : un objet à 2 clés
+    et un objet à 15 clés produisaient la même signature "objet", ce qui
+    faisait taire un vrai nouveau manque derrière un ancien déjà connu)."""
+    shape = field["shape"]
+    if shape == "object":
+        return f"{field['key']}:object:{','.join(sorted(field.get('keys', [])))}"
+    if shape == "list_of_records":
+        return (f"{field['key']}:list_of_records:"
+                f"{','.join(sorted(field.get('record_keys', [])))}:"
+                f"{field.get('is_scored_list', False)}")
+    if shape == "list_of_scalars":
+        return f"{field['key']}:list_of_scalars"
+    if shape == "text":
+        return f"{field['key']}:text:{field.get('is_quote_like', False)}"
+    return f"{field['key']}:{shape}"
+
+
 def _signature(shape: dict) -> str:
     """Résumé compact et stable de la forme — sert seulement à dédupliquer la
     file d'attente des manques, pas à choisir un format."""
-    parts = []
-    for field in shape.get("fields", []):
-        parts.append(f"{field['key']}:{field['shape']}:{field.get('is_scored_list', False)}")
-    return "|".join(sorted(parts))
+    return "|".join(sorted(_field_signature(f) for f in shape.get("fields", [])))
 
 
 def log_gap(shape: dict, envelope: dict) -> None:

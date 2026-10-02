@@ -68,6 +68,29 @@ function Chips({ items, tone }) {
   return <div className={`gv2-strat-chips${tone ? ` is-${tone}` : ''}`}>{clean.map((c, i) => <span key={i}>{esc(c)}</span>)}</div>;
 }
 
+/* Onde décorative — même calcul que la maquette Ariane (aucune donnée
+   micro réelle à visualiser ici : le navigateur ne l'expose pas). */
+function Waveform({ active = true, bars = 26, height = 26, minimal = false }) {
+  const items = Array.from({ length: minimal ? Math.min(bars, 14) : bars });
+  return <div className="gv2-ariane-waveform" aria-hidden="true" style={{ height }}>
+    {items.map((_, i) => {
+      const seed = (Math.sin(i * 1.7) + 1) / 2;
+      const base = minimal ? 0.18 + seed * 0.3 : 0.16 + seed * 0.84;
+      return <span key={i} style={{
+        height: `${Math.max(3, base * height)}px`,
+        opacity: active ? 0.35 + base * 0.55 : 0.22,
+        animation: active ? `gv2-ariane-wave-bar ${0.9 + (i % 5) * 0.16}s ease-in-out ${i * 0.045}s infinite` : 'none',
+      }} />;
+    })}
+  </div>;
+}
+
+function formatTimer(seconds) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
 /* ── Synthèse ─────────────────────────────────────────────────────────── */
 function TabSynthese({ d }) {
   const ed = d.executive_decision || {};
@@ -311,24 +334,98 @@ function TabDecision({ d }) {
   </>;
 }
 
-const TABS = [
-  { key: 'synthese', label: 'Synthèse', Comp: TabSynthese },
-  { key: 'marketing', label: 'Marketing', Comp: TabMarketing },
-  { key: 'branding', label: 'Branding', Comp: TabBranding },
-  { key: 'plan', label: "Plan d'action", Comp: TabPlan },
-  { key: 'decision', label: 'Décision', Comp: TabDecision },
+const SECTIONS = [
+  { key: 'synthese', num: '01', label: 'Synthèse', Comp: TabSynthese },
+  { key: 'marketing', num: '02', label: 'Marketing', Comp: TabMarketing },
+  { key: 'branding', num: '03', label: 'Branding', Comp: TabBranding },
+  { key: 'plan', num: '04', label: "Plan d'action", Comp: TabPlan },
+  { key: 'decision', num: '05', label: 'Décision', Comp: TabDecision },
 ];
 
-function Dashboard({ strategy, onGoToCreateur }) {
-  const [tab, setTab] = useState('synthese');
-  const active = TABS.find(t => t.key === tab) || TABS[0];
-  return <div className="gv2-strat-dashboard">
-    <div className="gv2-strat-tabs" role="tablist">
-      {TABS.map(t => <button key={t.key} type="button" role="tab" aria-selected={t.key === tab}
-        className={t.key === tab ? 'is-active' : ''} onClick={() => setTab(t.key)}>{t.label}</button>)}
+function downloadReport(strategy) {
+  const blob = new Blob([JSON.stringify(strategy, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = 'strategie-gabriel.json';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+/* Rapport — document déroulant avec sommaire fixe (habillage « Ariane »).
+   Mêmes cinq sections et mêmes données réelles que l'ancien tableau à
+   onglets (TabSynthese…TabDecision, inchangés) : seule la présentation
+   passe d'un aller-retour par clic à une lecture continue. */
+function Report({ strategy, onGoToCreateur, onRestart }) {
+  const [active, setActive] = useState(SECTIONS[0].key);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return undefined;
+    function onScroll() {
+      const total = el.scrollHeight - el.clientHeight;
+      setScrollProgress(total > 0 ? Math.min(100, Math.max(0, (el.scrollTop / total) * 100)) : 0);
+    }
+    onScroll();
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined;
+    const observer = new IntersectionObserver(entries => {
+      const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
+      if (visible) setActive(visible.target.id.replace('gv2-ariane-report-', ''));
+    }, { root: el, rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+    SECTIONS.forEach(s => {
+      const node = el.querySelector(`#gv2-ariane-report-${s.key}`);
+      if (node) observer.observe(node);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return <div className="gv2-ariane-report" ref={containerRef}>
+    <div className="gv2-ariane-report-progress"><div style={{ width: `${scrollProgress}%` }} /></div>
+    <div className="gv2-ariane-report-wrap">
+      <nav className="gv2-ariane-report-nav" aria-label="Sections de votre stratégie">
+        <ul>
+          {SECTIONS.map(s => <li key={s.key}>
+            <a href={`#gv2-ariane-report-${s.key}`} className={active === s.key ? 'is-active' : ''}
+              onClick={event => {
+                event.preventDefault();
+                containerRef.current?.querySelector(`#gv2-ariane-report-${s.key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}>
+              <span>{s.num}</span><span>{s.label}</span>
+            </a>
+          </li>)}
+        </ul>
+      </nav>
+      <article className="gv2-ariane-report-article">
+        <header className="gv2-ariane-report-header">
+          <div>
+            <span className="gv2-ariane-label" style={{ color: 'var(--muted)' }}>Ariane · Restitution</span>
+            <h1>Votre stratégie</h1>
+            <p>Diagnostic établi à partir de l'entretien stratégique conduit par Ariane.</p>
+          </div>
+          <div className="gv2-ariane-report-actions">
+            <button type="button" onClick={() => downloadReport(strategy)}><Icon name="download" size={14} />Télécharger</button>
+            {onRestart && <button type="button" onClick={onRestart}><Icon name="refresh" size={14} />Nouvelle analyse</button>}
+          </div>
+        </header>
+        {SECTIONS.map(s => <section key={s.key} id={`gv2-ariane-report-${s.key}`} className="gv2-ariane-report-section">
+          <div className="gv2-ariane-report-section-head"><span>{s.num}</span><h2>{s.label}</h2></div>
+          <s.Comp d={strategy} />
+        </section>)}
+        {onGoToCreateur && <div className="gv2-ariane-report-to-createur">
+          <button type="button" className="gv2-strat-to-createur" onClick={onGoToCreateur}>Le Créateur →</button>
+        </div>}
+      </article>
     </div>
-    <div className="gv2-strat-panel" role="tabpanel"><active.Comp d={strategy} /></div>
-    {onGoToCreateur && <button type="button" className="gv2-strat-to-createur" onClick={onGoToCreateur}>Le Créateur →</button>}
   </div>;
 }
 
@@ -347,26 +444,25 @@ function lireHandoffPsycho() {
   } catch (_) { return null; }
 }
 
-function ChatMessage({ role, content }) {
-  return <div className={`gv2-strat-msg gv2-strat-msg--${role}`}>{esc(content)}</div>;
+function ChatMessage({ role, content, observation, hero }) {
+  const isUser = role === 'user';
+  const author = isUser ? 'Vous' : 'Ariane';
+  if (hero) {
+    return <div className="gv2-ariane-hero gv2-ariane-stream-in"><h1>{esc(content)}</h1></div>;
+  }
+  return <article className={`gv2-strat-msg gv2-strat-msg--${isUser ? 'user' : 'assistant'}`}>
+    <header className="gv2-strat-msg-meta">
+      <strong>{author}</strong>
+    </header>
+    {!isUser && observation && <aside className="gv2-strat-observation">
+      <span>Observation stratégique</span>
+      <p>{esc(observation)}</p>
+    </aside>}
+    <div className="gv2-strat-msg-body">{esc(content)}</div>
+  </article>;
 }
 
-/* « Déjà compris » / « À éclaircir » — déjà groupés côté serveur
-   (context_progress, agents/context_builder/orchestrator.py). Le
-   contrat (docs/interview_frontend_contract.md) est explicite : le
-   frontend ne déduit aucun fait business et ne recalcule pas la
-   complétude — on affiche ces deux listes telles quelles. */
-function ProgressChips({ contextProgress }) {
-  if (!contextProgress) return null;
-  const { understood = [], remaining = [] } = contextProgress;
-  if (!understood.length && !remaining.length) return null;
-  return <div className="gv2-strat-progress-chips">
-    {understood.map(l => <span key={l} className="is-done">{l}</span>)}
-    {remaining.map(l => <span key={l} className="is-pending">{l}</span>)}
-  </div>;
-}
-
-export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) {
+export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent, onInterviewChange }) {
   const [stage, setStage] = useState('loading'); // loading | need_analysis | need_profile | interview | generating | result | error
   const [strategy, setStrategy] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -374,11 +470,19 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
   const [progress, setProgress] = useState(0);
   const [messages, setMessages] = useState([]);
   const [contextProgress, setContextProgress] = useState(null);
+  const [currentDimension, setCurrentDimension] = useState('');
   const [interviewReady, setInterviewReady] = useState(false);
   const [updatedContext, setUpdatedContext] = useState(null);
   const [interviewInput, setInterviewInput] = useState('');
   const [sending, setSending] = useState(false);
   const [psychoHandoff, setPsychoHandoff] = useState(null);
+
+  /* Remonte l'état réel de l'entretien vers le panneau de contexte partagé
+     (Progression/Historique, voir ContextPanel.jsx) — jamais un fait recalculé
+     ou deviné là-bas, seulement ce que le serveur a renvoyé ici même. */
+  useEffect(() => {
+    onInterviewChange?.({ contextProgress, currentDimension, interviewReady, messages });
+  }, [onInterviewChange, contextProgress, currentDimension, interviewReady, messages]);
 
   /* Couche vocale (Tranche C) — même patron que la dictée du composeur
      principal (Conversation.jsx:311-421), pas réinventé : reconnaissance du
@@ -394,6 +498,8 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
   const [voiceId, setVoiceId] = useState('');
   const [voices, setVoices] = useState(null);
   const [speaking, setSpeaking] = useState(false);
+  const [speechPaused, setSpeechPaused] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const speechRecognitionRef = useRef(null);
   const speechBaseRef = useRef('');
   const speechFinalRef = useRef('');
@@ -404,6 +510,7 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
   const audioElRef = useRef(null);
   const aliveRef = useRef(true);
   const pollingRef = useRef(false);
+  const chatEndRef = useRef(null);
 
   useEffect(() => { aliveRef.current = true; return () => { aliveRef.current = false; }; }, []);
   useEffect(() => { setPsychoHandoff(lireHandoffPsycho()); }, []);
@@ -440,6 +547,30 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
     }
   }, [voiceMode, voices]);
 
+  /* Minuteur d'écoute — purement d'affichage, dérivé du vrai isRecording
+     (pas une valeur simulée : il compte le temps réellement écoulé). */
+  useEffect(() => {
+    if (!isRecording) { setRecordingSeconds(0); return undefined; }
+    const id = window.setInterval(() => setRecordingSeconds(s => s + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [isRecording]);
+
+  function pauseSpeech() {
+    audioElRef.current?.pause();
+    setSpeechPaused(true);
+  }
+  function resumeSpeech() {
+    audioElRef.current?.play().catch(() => {});
+    setSpeechPaused(false);
+  }
+  function replaySpeech() {
+    const audio = audioElRef.current;
+    if (!audio) return;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+    setSpeechPaused(false);
+  }
+
   function toggleVoiceMode() {
     setVoiceMode(current => {
       const next = !current;
@@ -465,9 +596,9 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
       const blob = await response.blob();
       const audio = new Audio(URL.createObjectURL(blob));
       audioElRef.current = audio;
-      audio.onplay = () => setSpeaking(true);
-      audio.onended = () => setSpeaking(false);
-      audio.onerror = () => setSpeaking(false);
+      audio.onplay = () => { setSpeaking(true); setSpeechPaused(false); };
+      audio.onended = () => { setSpeaking(false); setSpeechPaused(false); };
+      audio.onerror = () => { setSpeaking(false); setSpeechPaused(false); };
       await audio.play();
     } catch (_) { setSpeaking(false); }
   }
@@ -608,6 +739,7 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
         if (!vivant) return;
         setMessages(Array.isArray(payload.messages) ? payload.messages : []);
         setContextProgress(payload.context_progress || null);
+        setCurrentDimension(payload.current_dimension || '');
         setInterviewReady(Boolean(payload.is_ready));
         setUpdatedContext(payload.updated_context || {});
       } catch (_) {
@@ -616,6 +748,20 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
     })();
     return () => { vivant = false; };
   }, [stage, workspace?.folder_id]);
+
+  /* À chaque réponse, le fil garde naturellement le dernier échange visible.
+     Le défilement reste local au contenu : il ne déplace ni la navigation ni
+     le panneau de contexte. */
+  useEffect(() => {
+    if (stage !== 'interview' || !messages.length) return;
+    const revealLastMessage = () => chatEndRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+    if (typeof window.requestAnimationFrame === 'function') {
+      const frame = window.requestAnimationFrame(revealLastMessage);
+      return () => window.cancelAnimationFrame?.(frame);
+    }
+    revealLastMessage();
+    return undefined;
+  }, [stage, messages.length, sending]);
 
   async function envoyerReponse() {
     const message = interviewInput.trim();
@@ -632,10 +778,15 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
       const payload = await readApiPayload(response, 'L’entretien stratégique');
       if (payload?.error) { setMessages(current => [...current, { role: 'assistant', content: payload.error }]); return; }
       const texte = payload.reply?.display_text || (typeof payload.reply === 'string' ? payload.reply : '');
-      if (texte) setMessages(current => [...current, { role: 'assistant', content: texte }]);
+      if (texte) setMessages(current => [...current, {
+        role: 'assistant',
+        content: texte,
+        observation: payload.reply?.strategic_observation || '',
+      }]);
       const aLire = payload.reply?.speech_text || texte;
       lire(aLire, payload.reply?.speech_profile?.pace);
       setContextProgress(payload.context_progress || null);
+      setCurrentDimension(payload.current_dimension || '');
       setInterviewReady(Boolean(payload.is_ready));
       setUpdatedContext(payload.updated_context || {});
     } catch (_) {
@@ -756,9 +907,19 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
   }
 
   if (stage === 'generating') {
-    return <div className="gv2-strat-empty">
-      <h2>Gabriel construit votre stratégie…</h2>
-      <div className="gv2-strat-progress-track"><div className="gv2-strat-progress-fill" style={{ width: `${progress}%` }} /></div>
+    const phases = ['Synthèse', 'Diagnostic', 'Priorités', "Plan d'action"];
+    const phase = phases[Math.min(phases.length - 1, Math.floor((progress / 100) * phases.length))];
+    return <div className="gv2-ariane-generating">
+      <svg viewBox="0 0 240 60" aria-hidden="true">
+        <line x1="4" y1="30" x2="236" y2="30" className="gv2-ariane-generating-line" />
+        <line x1="4" y1="30" x2="236" y2="30" className="gv2-ariane-generating-line--fill" style={{ strokeDashoffset: 240 - (progress / 100) * 240 }} />
+        {[60, 120, 180].map(x => <circle key={x} cx={x} cy="30" r="2" fill="var(--strategist-slate)" />)}
+        <circle cx="4" cy="30" r="3" fill="var(--ink)" />
+      </svg>
+      <h2>Ariane structure votre stratégie</h2>
+      <p key={phase} className="gv2-ariane-label gv2-ariane-generating-phase gv2-ariane-stream-in" aria-live="polite">
+        {phase}<span className="gv2-ariane-caret">_</span>
+      </p>
     </div>;
   }
 
@@ -773,40 +934,92 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent }) 
   if (stage === 'interview') {
     const dicteeDisponible = typeof window !== 'undefined'
       && (window.SpeechRecognition || window.webkitSpeechRecognition || (navigator.mediaDevices?.getUserMedia && window.MediaRecorder));
-    return <div className="gv2-strat-interview">
+    const hasUserReply = messages.some(message => message.role === 'user');
+    const voiceCardState = isRecording ? 'listening' : voiceError ? 'error' : speaking ? 'speaking' : null;
+    return <div className={`gv2-strat-interview${hasUserReply ? ' has-replies' : ' is-opening'}`}>
       {psychoHandoff && <div className="gv2-strat-banner">Analyse Psychologue détectée — elle sera prise en compte dans la stratégie.</div>}
-      <div className="gv2-strat-voice-bar">
-        <button type="button" className={`gv2-strat-voice-toggle${voiceMode ? ' is-active' : ''}`} onClick={toggleVoiceMode}
-          aria-pressed={voiceMode} title="Gabriel lit ses réponses à voix haute">
-          <span className="gv2-strat-voice-dot" />Mode vocal
-        </button>
-        {voiceMode && voices && voices.length > 0 && (
-          <select className="gv2-strat-voice-picker" value={voiceId} onChange={event => changerVoix(event.target.value)} aria-label="Voix de Gabriel">
-            <option value="">Voix par défaut</option>
-            {voices.map(v => <option key={v.id} value={v.id}>{v.label}</option>)}
-          </select>
-        )}
-        {speaking && <span className="gv2-strat-voice-speaking">Gabriel parle…</span>}
+      <div className="gv2-strat-chat" role="log" aria-live="polite" aria-label="Conversation avec Ariane">
+        {messages.map((m, i) => <ChatMessage key={i} role={m.role} content={m.content} observation={m.observation || m.strategic_observation}
+          hero={!hasUserReply && i === 0 && m.role !== 'user'} />)}
+        {sending && <article className="gv2-strat-msg gv2-strat-msg--assistant is-thinking"><span>Ariane structure votre réponse…</span></article>}
+
+        {!hasUserReply && dicteeDisponible && !voiceCardState && <div className="gv2-ariane-hero-actions">
+          <button type="button" className="gv2-ariane-hero-cta" onClick={toggleDictation}>Commencer l'entretien à la voix</button>
+        </div>}
+
+        {voiceCardState === 'listening' && <div className="gv2-ariane-voice-card gv2-ariane-stream-in">
+          <div className="gv2-ariane-voice-head">
+            <span className="gv2-ariane-label" style={{ color: 'var(--strategist-slate)' }}>Ariane · Écoute</span>
+            <span className="gv2-ariane-voice-timer">{formatTimer(recordingSeconds)}</span>
+          </div>
+          <Waveform active />
+          <p className={`gv2-ariane-voice-transcript${interviewInput ? '' : ' is-empty'}`}>
+            {interviewInput || 'Parlez, je transcris au fil de l\'eau…'}
+            <span className="gv2-ariane-caret">▍</span>
+          </p>
+          <div className="gv2-ariane-voice-actions">
+            <button type="button" className="gv2-ariane-voice-btn gv2-ariane-voice-btn--primary" onClick={toggleDictation}>Terminer</button>
+            <button type="button" className="gv2-ariane-voice-btn" onClick={() => { toggleDictation(); setInterviewInput(''); }}>Annuler</button>
+          </div>
+        </div>}
+
+        {voiceCardState === 'error' && <div className="gv2-ariane-voice-card is-error gv2-ariane-stream-in">
+          <span className="gv2-ariane-label gv2-ariane-voice-eyebrow--error">Ariane · Micro indisponible</span>
+          <p className="gv2-ariane-voice-transcript" style={{ marginTop: 10 }}>{voiceError}</p>
+          <div className="gv2-ariane-voice-actions">
+            <button type="button" className="gv2-ariane-voice-btn" onClick={toggleDictation}>Réessayer le micro</button>
+            <button type="button" className="gv2-ariane-voice-btn gv2-ariane-voice-btn--primary" onClick={() => setVoiceError('')}>Continuer par écrit</button>
+          </div>
+        </div>}
+
+        {voiceCardState === 'speaking' && <div className="gv2-ariane-voice-card gv2-ariane-stream-in">
+          <div className="gv2-ariane-voice-head">
+            <span className="gv2-ariane-label gv2-ariane-voice-eyebrow--speaking">Ariane vous répond</span>
+            <Icon name="volume" size={16} />
+          </div>
+          <Waveform active={!speechPaused} minimal />
+          <div className="gv2-ariane-voice-actions">
+            <button type="button" className="gv2-ariane-voice-btn" onClick={speechPaused ? resumeSpeech : pauseSpeech}>
+              <Icon name={speechPaused ? 'play' : 'pause'} size={12} />{speechPaused ? 'Reprendre' : 'Pause'}
+            </button>
+            <button type="button" className="gv2-ariane-voice-btn" onClick={replaySpeech}><Icon name="refresh" size={12} />Réécouter</button>
+          </div>
+        </div>}
+
+        {interviewReady && <div className="gv2-ariane-ready gv2-ariane-stream-in">
+          <p>Votre situation est suffisamment claire. Ariane peut maintenant produire votre diagnostic.</p>
+          <button type="button" className="gv2-ariane-ready-cta" onClick={genererDepuisEntretien}>Générer mon diagnostic stratégique →</button>
+        </div>}
+
+        <div ref={chatEndRef} aria-hidden="true" />
       </div>
-      <ProgressChips contextProgress={contextProgress} />
-      <div className="gv2-strat-chat" role="log" aria-live="polite">
-        {messages.map((m, i) => <ChatMessage key={i} role={m.role} content={m.content} />)}
-        {sending && <div className="gv2-strat-msg gv2-strat-msg--assistant is-thinking">…</div>}
-      </div>
-      {voiceError && <p className="gv2-strat-voice-error" role="alert">{voiceError}</p>}
-      {interviewReady && <button type="button" className="gv2-strat-generate" onClick={genererDepuisEntretien}>Générer la stratégie</button>}
-      <div className="gv2-strat-composer">
-        {dicteeDisponible && <button type="button" className={`gv2-strat-mic${isRecording ? ' is-recording' : ''}`}
-          onClick={toggleDictation} disabled={sending} aria-label={isRecording ? 'Arrêter la dictée' : 'Répondre à la voix'} title="Parler">
-          <Icon name="mic" size={16} />
-        </button>}
-        <textarea rows={1} value={interviewInput} placeholder="Écrivez votre réponse…" disabled={sending}
-          onChange={event => setInterviewInput(event.target.value)}
-          onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); envoyerReponse(); } }} />
-        <button type="button" disabled={sending || !interviewInput.trim()} onClick={envoyerReponse} aria-label="Envoyer">Envoyer</button>
+      <div className="gv2-strat-composer-zone">
+        <div className="gv2-strat-composer-tools">
+          <button type="button" className={`gv2-strat-voice-toggle${voiceMode ? ' is-active' : ''}`} onClick={toggleVoiceMode}
+            aria-pressed={voiceMode} title="Gabriel lit ses réponses à voix haute">
+            <span className="gv2-strat-voice-dot" />Mode vocal
+          </button>
+          {voiceMode && voices && voices.length > 0 && (
+            <select className="gv2-strat-voice-picker" value={voiceId} onChange={event => changerVoix(event.target.value)} aria-label="Voix de Gabriel">
+              <option value="">Voix par défaut</option>
+              {voices.map(v => <option key={v.id} value={v.id}>{v.label}</option>)}
+            </select>
+          )}
+        </div>
+        <div className="gv2-strat-composer">
+          {dicteeDisponible && <button type="button" className={`gv2-strat-mic${isRecording ? ' is-recording' : ''}`}
+            onClick={toggleDictation} disabled={sending} aria-label={isRecording ? 'Arrêter la dictée' : 'Répondre à la voix'} title="Parler">
+            <Icon name={isRecording ? 'square' : 'mic'} size={isRecording ? 12 : 16} />
+          </button>}
+          <textarea rows={1} value={interviewInput} placeholder={voiceCardState === 'listening' ? 'Micro actif…' : 'Écrivez votre réponse…'} disabled={sending || voiceCardState === 'listening'}
+            onChange={event => setInterviewInput(event.target.value)}
+            onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); envoyerReponse(); } }} />
+          <button type="button" className="gv2-strat-send" disabled={sending || !interviewInput.trim()} onClick={envoyerReponse} aria-label="Envoyer">Envoyer</button>
+        </div>
+        <p className="gv2-strat-composer-hint">Entrée pour envoyer <span>·</span> Maj + Entrée pour un saut de ligne</p>
       </div>
     </div>;
   }
 
-  return <Dashboard strategy={strategy || {}} onGoToCreateur={() => onNavigateAgent?.('createur')} />;
+  return <Report strategy={strategy || {}} onGoToCreateur={() => onNavigateAgent?.('createur')} onRestart={() => { setStrategy(null); setMessages([]); setContextProgress(null); setInterviewReady(false); setStage('interview'); }} />;
 }

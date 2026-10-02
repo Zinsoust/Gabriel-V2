@@ -50,11 +50,17 @@ describe('Ouverture de l’entretien', () => {
     expect(appels).toBe(1);
   });
 
-  it('affiche « déjà compris » et « à éclaircir » tels que renvoyés par le serveur', async () => {
+  it('remonte « déjà compris » et « à éclaircir » tels que renvoyés par le serveur, pour le panneau de contexte', async () => {
+    /* Depuis l'habillage Ariane, la progression ne s'affiche plus en ligne
+       dans le fil (voir ContextPanel.jsx, panneau partagé monté par
+       AppShell) — StrategeView se contente de la remonter fidèlement via
+       onInterviewChange, sans rien recalculer lui-même. */
     global.fetch = routeFetch([[/^\/business-context/, () => ({ json: OUVERTURE })]]);
-    render(<StrategeView workspace={WORKSPACE} />);
-    await waitFor(() => expect(screen.getByText('Identité')).toBeInTheDocument());
-    expect(screen.getByText('Offre')).toBeInTheDocument();
+    const onInterviewChange = vi.fn();
+    render(<StrategeView workspace={WORKSPACE} onInterviewChange={onInterviewChange} />);
+    await waitFor(() => expect(onInterviewChange).toHaveBeenCalledWith(
+      expect.objectContaining({ contextProgress: { understood: [], remaining: ['Identité', 'Offre'] } }),
+    ));
   });
 });
 
@@ -76,6 +82,30 @@ describe('Tour de conversation', () => {
     expect(JSON.parse(appel[1].body)).toEqual({ message: 'Je suis coach business' });
   });
 
+  it('affiche l’observation et la dimension réellement renvoyées par le serveur', async () => {
+    global.fetch = routeFetch([
+      [/^\/business-context/, () => ({ json: OUVERTURE })],
+      [/^\/context-chat$/, () => ({ json: {
+        reply: {
+          display_text: 'Votre cible est claire. Précisons maintenant votre vision.',
+          strategic_observation: 'Votre offre est déjà compréhensible ; sa promesse doit encore être plus spécifique.',
+        },
+        current_dimension: 'Vision',
+        context_progress: { understood: ['Identité'], remaining: ['Vision', 'Offre'] },
+        is_ready: false,
+        updated_context: { role_utilisateur: 'Coach' },
+      } })],
+    ]);
+    const user = userEvent.setup();
+    const onInterviewChange = vi.fn();
+    render(<StrategeView workspace={WORKSPACE} onInterviewChange={onInterviewChange} />);
+    await waitFor(() => screen.getByPlaceholderText('Écrivez votre réponse…'));
+    await user.type(screen.getByPlaceholderText('Écrivez votre réponse…'), 'Je suis coach{Enter}');
+    await waitFor(() => expect(screen.getByText('Observation stratégique')).toBeInTheDocument());
+    expect(screen.getByText('Votre offre est déjà compréhensible ; sa promesse doit encore être plus spécifique.')).toBeInTheDocument();
+    expect(onInterviewChange).toHaveBeenCalledWith(expect.objectContaining({ currentDimension: 'Vision' }));
+  });
+
   it('ne propose « Générer la stratégie » qu’une fois is_ready', async () => {
     global.fetch = routeFetch([
       [/^\/business-context/, () => ({ json: OUVERTURE })],
@@ -85,9 +115,9 @@ describe('Tour de conversation', () => {
     const user = userEvent.setup();
     render(<StrategeView workspace={WORKSPACE} />);
     await waitFor(() => screen.getByPlaceholderText('Écrivez votre réponse…'));
-    expect(screen.queryByRole('button', { name: 'Générer la stratégie' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Générer mon diagnostic/ })).toBeNull();
     await user.type(screen.getByPlaceholderText('Écrivez votre réponse…'), 'Coaching business{Enter}');
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Générer la stratégie' })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('button', { name: /Générer mon diagnostic/ })).toBeInTheDocument());
   });
 
   it('n’envoie rien pour un message vide', async () => {
@@ -108,8 +138,8 @@ describe('Génération depuis l’entretien', () => {
     ]);
     const user = userEvent.setup();
     render(<StrategeView workspace={WORKSPACE} />);
-    await waitFor(() => screen.getByRole('button', { name: 'Générer la stratégie' }));
-    await user.click(screen.getByRole('button', { name: 'Générer la stratégie' }));
+    await waitFor(() => screen.getByRole('button', { name: /Générer mon diagnostic/ }));
+    await user.click(screen.getByRole('button', { name: /Générer mon diagnostic/ }));
     await waitFor(() => expect(screen.getByText('Se positionner premium')).toBeInTheDocument());
     const appel = global.fetch.mock.calls.find(([url]) => url === '/strategize');
     const body = JSON.parse(appel[1].body);
@@ -130,8 +160,8 @@ describe('Génération depuis l’entretien', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     render(<StrategeView workspace={WORKSPACE} />);
-    await waitFor(() => screen.getByRole('button', { name: 'Générer la stratégie' }));
-    await user.click(screen.getByRole('button', { name: 'Générer la stratégie' }));
+    await waitFor(() => screen.getByRole('button', { name: /Générer mon diagnostic/ }));
+    await user.click(screen.getByRole('button', { name: /Générer mon diagnostic/ }));
     await vi.advanceTimersByTimeAsync(3100);
     await waitFor(() => expect(screen.getByText('Décision liée')).toBeInTheDocument());
     const appel = global.fetch.mock.calls.find(([url]) => url === '/strategize');
