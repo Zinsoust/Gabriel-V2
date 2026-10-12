@@ -1371,6 +1371,26 @@ def upgrade_user_plan(user_id, plan):
 
 DEFAULT_FREE_CREDITS = 300
 
+
+class CreditError(RuntimeError):
+    """Base class for credit failures that must stop a paid operation."""
+
+
+class CreditStoreUnavailable(CreditError):
+    """The configured credit store could not be read."""
+
+
+class CreditAccountNotFound(CreditError):
+    """No persisted account exists for this user id."""
+
+
+class CreditBalanceMissing(CreditError):
+    """The account exists but has no usable persisted credit balance."""
+
+
+class CreditDeductionFailed(CreditError):
+    """A debit could not be confirmed by the persistent store."""
+
 # Le Psychologue coûte le plus cher (scraping + analyse profonde d'audience),
 # le Créateur le moins cher (il exécute une décision déjà construite par les
 # deux agents précédents, pas de travail d'analyse).
@@ -1382,41 +1402,84 @@ CREDIT_COSTS = {
 
 
 def get_user_credits(user_id):
-    """Solde de crédits de l'utilisateur. 300 par défaut (offerts à l'inscription,
-    y compris pour un compte créé avant l'introduction de ce champ)."""
+    """Return the persisted balance; never invent credits after a read error.
+
+    The initial 300 credits are assigned by account creation (the SQL column
+    default in Supabase, or the explicit value in ``users.json``), not here.
+    """
     if not user_id:
         return 0
     if _supabase:
         try:
             res = _supabase.table(_T_USERS).select('credits').eq('user_id', user_id).limit(1).execute()
             rows = res.data or []
-            if rows:
-                credits = rows[0].get('credits')
-                return DEFAULT_FREE_CREDITS if credits is None else int(credits)
         except Exception as e:
-            print(f'[DB] get_user_credits error: {e}')
-    users_file = os.path.join(_DATA_DIR, 'users.json')
-    if os.path.exists(users_file):
+            print(f'[DB] get_user_credits unavailable: {type(e).__name__}')
+            raise CreditStoreUnavailable('credit store read failed') from e
+        if not rows:
+            raise CreditAccountNotFound('credit account not found')
         try:
-            with open(users_file, 'r', encoding='utf-8') as f:
-                users = json.load(f)
-            credits = users.get(user_id, {}).get('credits')
-            return DEFAULT_FREE_CREDITS if credits is None else int(credits)
-        except Exception:
-            pass
-    return DEFAULT_FREE_CREDITS
+            credits = rows[0].get('credits')
+        except (AttributeError, TypeError) as e:
+            raise CreditBalanceMissing('credit balance invalid') from e
+        if credits is None:
+            raise CreditBalanceMissing('credit balance missing')
+        try:
+            balance = int(credits)
+        except (TypeError, ValueError) as e:
+            raise CreditBalanceMissing('credit balance invalid') from e
+        if balance < 0:
+            raise CreditBalanceMissing('credit balance invalid')
+        return balance
+
+    users_file = os.path.join(_DATA_DIR, 'users.json')
+    if not os.path.exists(users_file):
+        raise CreditAccountNotFound('credit account not found')
+    try:
+        with open(users_file, 'r', encoding='utf-8') as f:
+            users = json.load(f)
+    except (OSError, ValueError, TypeError) as e:
+        print(f'[DB] get_user_credits local unavailable: {type(e).__name__}')
+        raise CreditStoreUnavailable('local credit store read failed') from e
+
+    # Historical Google fallback files are keyed by google_id, not user_id.
+    # Locate by the persisted field too so legitimate accounts keep their
+    # signup balance and can actually be debited.
+    user = users.get(user_id)
+    if not isinstance(user, dict) or str(user.get('user_id')) != str(user_id):
+        user = next(
+            (row for row in users.values()
+             if isinstance(row, dict) and str(row.get('user_id')) == str(user_id)),
+            None,
+        )
+    if not user:
+        raise CreditAccountNotFound('credit account not found')
+    credits = user.get('credits')
+    if credits is None:
+        raise CreditBalanceMissing('credit balance missing')
+    try:
+        balance = int(credits)
+    except (TypeError, ValueError) as e:
+        raise CreditBalanceMissing('credit balance invalid') from e
+    if balance < 0:
+        raise CreditBalanceMissing('credit balance invalid')
+    return balance
 
 
 def has_enough_credits(user_id, cost, email=None):
-    """Vérifie le solde avant de lancer un agent. Bypass admin/dev, cohérent
-    avec check_usage_limit ci-dessus."""
+    """Vérifie le solde avant de lancer un agent.
+
+    Admin/dev restent exemptés du seuil, mais seulement après une lecture
+    réussie : une panne du stockage ne doit jamais autoriser un coût payant.
+    """
+    if not user_id:
+        return True
+    balance = get_user_credits(user_id)
     if email and email.strip().lower() in ADMIN_EMAILS:
         return True
     if os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
         return True
-    if not user_id:
-        return True
-    return get_user_credits(user_id) >= cost
+    return balance >= cost
 
 
 def deduct_credits(user_id, cost, reason=''):
@@ -1428,21 +1491,39 @@ def deduct_credits(user_id, cost, reason=''):
     new_balance = max(0, get_user_credits(user_id) - cost)
     if _supabase:
         try:
-            _supabase.table(_T_USERS).update({'credits': new_balance}).eq('user_id', user_id).execute()
+            res = _supabase.table(_T_USERS).update({'credits': new_balance}).eq('user_id', user_id).execute()
+            rows = res.data or []
         except Exception as e:
-            print(f'[DB] deduct_credits error: {e}')
+            print(f'[DB] deduct_credits failed: {type(e).__name__}')
+            raise CreditDeductionFailed('credit debit write failed') from e
+        if not rows:
+            raise CreditDeductionFailed('credit debit updated no account')
+        try:
+            persisted_balance = int(rows[0].get('credits'))
+        except (AttributeError, TypeError, ValueError) as e:
+            raise CreditDeductionFailed('credit debit response invalid') from e
+        if persisted_balance != new_balance:
+            raise CreditDeductionFailed('credit debit was not persisted')
     else:
         users_file = os.path.join(_DATA_DIR, 'users.json')
-        if os.path.exists(users_file):
-            try:
-                with open(users_file, 'r', encoding='utf-8') as f:
-                    users = json.load(f)
-                if user_id in users:
-                    users[user_id]['credits'] = new_balance
-                    with open(users_file, 'w', encoding='utf-8') as f:
-                        json.dump(users, f, ensure_ascii=False, indent=2)
-            except Exception as e:
-                print(f'[DB] deduct_credits json error: {e}')
+        try:
+            with open(users_file, 'r', encoding='utf-8') as f:
+                users = json.load(f)
+            storage_key = next(
+                (key for key, row in users.items()
+                 if isinstance(row, dict) and str(row.get('user_id')) == str(user_id)),
+                None,
+            )
+            if storage_key is None:
+                raise CreditAccountNotFound('credit account not found')
+            users[storage_key]['credits'] = new_balance
+            with open(users_file, 'w', encoding='utf-8') as f:
+                json.dump(users, f, ensure_ascii=False, indent=2)
+        except CreditError:
+            raise
+        except (OSError, ValueError, TypeError) as e:
+            print(f'[DB] deduct_credits local failed: {type(e).__name__}')
+            raise CreditDeductionFailed('local credit debit write failed') from e
     print(f'[CREDITS] user={user_id} -{cost} ({reason}) -> {new_balance}')
     return new_balance
 

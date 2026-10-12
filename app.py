@@ -151,7 +151,24 @@ def _inject_credits():
     uid = session.get('user_id')
     if not uid:
         return {'nav_credits': None}
-    return {'nav_credits': _db.get_user_credits(uid)}
+    try:
+        return {'nav_credits': _db.get_user_credits(uid)}
+    except _db.CreditError:
+        return {'nav_credits': None}
+
+
+def _credit_error_response(user_id, error):
+    """Fail closed without exposing storage details or pretending a zero balance."""
+    safe_log_event(
+        'credit_store_unavailable',
+        user_id=user_id,
+        metadata={'failure_type': type(error).__name__},
+    )
+    return jsonify({
+        'success': False,
+        'error': 'Le solde de crédits est temporairement indisponible. Réessayez dans quelques instants.',
+        'error_code': 'credits_unavailable',
+    }), 503
 
 
 # ── Cache-busting des assets statiques ────────────────────────────────────────
@@ -720,11 +737,19 @@ def analyze():
 
     # Vérifier le solde de crédits (transversal aux 3 agents — voir api/db.py)
     _cost_psycho = _db.CREDIT_COSTS['psychologue']
-    if uid_early and not _db.has_enough_credits(uid_early, _cost_psycho, email=email_early):
+    try:
+        _psycho_has_credits = (
+            not uid_early
+            or _db.has_enough_credits(uid_early, _cost_psycho, email=email_early)
+        )
+        _psycho_balance = _db.get_user_credits(uid_early) if uid_early and not _psycho_has_credits else None
+    except _db.CreditError as exc:
+        return _credit_error_response(uid_early, exc)
+    if not _psycho_has_credits:
         return jsonify({
             'error':            'credits_insufficient',
             'upgrade_required': True,
-            'credits':          _db.get_user_credits(uid_early),
+            'credits':          _psycho_balance,
             'cost':             _cost_psycho,
         }), 402
 
@@ -1098,11 +1123,16 @@ def launch_psychologue_cross_analysis():
 
     cost_per_source = _db.CREDIT_COSTS['psychologue']
     maximum_cost = cost_per_source * len(sources)
-    if not _db.has_enough_credits(uid, maximum_cost, email=email):
+    try:
+        _cross_has_credits = _db.has_enough_credits(uid, maximum_cost, email=email)
+        _cross_balance = _db.get_user_credits(uid) if not _cross_has_credits else None
+    except _db.CreditError as exc:
+        return _credit_error_response(uid, exc)
+    if not _cross_has_credits:
         return jsonify({
             'error': 'credits_insufficient',
             'upgrade_required': True,
-            'credits': _db.get_user_credits(uid),
+            'credits': _cross_balance,
             'cost_per_source': cost_per_source,
             'estimated_cost': maximum_cost,
         }), 402
@@ -1652,12 +1682,25 @@ def strategize():
     _cu_strat_early = current_user() or {}
     _uid_strat_credits = _cu_strat_early.get('user_id')
     _cost_stratege = _db.CREDIT_COSTS['stratege']
-    if _uid_strat_credits and not _db.has_enough_credits(
-            _uid_strat_credits, _cost_stratege, email=_cu_strat_early.get('email', '')):
+    try:
+        _strategy_has_credits = (
+            not _uid_strat_credits
+            or _db.has_enough_credits(
+                _uid_strat_credits, _cost_stratege,
+                email=_cu_strat_early.get('email', ''),
+            )
+        )
+        _strategy_balance = (
+            _db.get_user_credits(_uid_strat_credits)
+            if _uid_strat_credits and not _strategy_has_credits else None
+        )
+    except _db.CreditError as exc:
+        return _credit_error_response(_uid_strat_credits, exc)
+    if not _strategy_has_credits:
         return jsonify({
             'error':            'credits_insufficient',
             'upgrade_required': True,
-            'credits':          _db.get_user_credits(_uid_strat_credits),
+            'credits':          _strategy_balance,
             'cost':             _cost_stratege,
         }), 402
 
@@ -1954,11 +1997,21 @@ def creator_generate():
         return jsonify({'error': err}), 400
 
     _cost_createur = _db.CREDIT_COSTS['createur']
-    if uid and not _db.has_enough_credits(uid, _cost_createur, email=(current_user() or {}).get('email', '')):
+    try:
+        _creator_has_credits = (
+            not uid
+            or _db.has_enough_credits(
+                uid, _cost_createur, email=(current_user() or {}).get('email', ''),
+            )
+        )
+        _creator_balance = _db.get_user_credits(uid) if uid and not _creator_has_credits else None
+    except _db.CreditError as exc:
+        return _credit_error_response(uid, exc)
+    if not _creator_has_credits:
         return jsonify({
             'error':            'credits_insufficient',
             'upgrade_required': True,
-            'credits':          _db.get_user_credits(uid),
+            'credits':          _creator_balance,
             'cost':             _cost_createur,
         }), 402
 
@@ -2545,7 +2598,10 @@ def credits():
     de navigation après chaque génération (voir gbRefreshCredits() dans
     base.html)."""
     uid = (current_user() or {}).get('user_id')
-    return jsonify({'credits': _db.get_user_credits(uid) if uid else 0})
+    try:
+        return jsonify({'credits': _db.get_user_credits(uid) if uid else 0})
+    except _db.CreditError as exc:
+        return _credit_error_response(uid, exc)
 
 
 @app.route('/memory/stats', methods=['GET'])

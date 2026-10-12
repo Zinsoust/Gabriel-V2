@@ -34,11 +34,25 @@ def _client(uid):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 1. Solde par défaut — 300 crédits offerts, y compris pour un compte inconnu
+# 1. Solde initial — les 300 crédits viennent d'un compte persisté
 # ══════════════════════════════════════════════════════════════════════════════
-def test_get_user_credits_default_is_300():
+def test_get_user_credits_initial_balance_is_300(monkeypatch, tmp_path):
     uid = f'uid-credits-{uuid.uuid4().hex[:8]}'
+    (tmp_path / 'users.json').write_text(
+        json.dumps({uid: {'user_id': uid, 'credits': _db.DEFAULT_FREE_CREDITS}}),
+        encoding='utf-8',
+    )
+    monkeypatch.setattr(_db, '_supabase', None)
+    monkeypatch.setattr(_db, '_DATA_DIR', str(tmp_path))
     assert _db.get_user_credits(uid) == _db.DEFAULT_FREE_CREDITS == 300
+
+
+def test_get_user_credits_unknown_account_is_not_given_free_credits(monkeypatch, tmp_path):
+    (tmp_path / 'users.json').write_text('{}', encoding='utf-8')
+    monkeypatch.setattr(_db, '_supabase', None)
+    monkeypatch.setattr(_db, '_DATA_DIR', str(tmp_path))
+    with pytest.raises(_db.CreditAccountNotFound):
+        _db.get_user_credits('unknown-user')
 
 
 def test_get_user_credits_no_user_id():
@@ -82,9 +96,14 @@ def test_deduct_credits_never_goes_negative(monkeypatch, tmp_path):
     assert _db.get_user_credits(uid) == 0
 
 
-def test_deduct_credits_noop_without_user_id():
+def test_deduct_credits_noop_without_user_id(monkeypatch, tmp_path):
+    uid = 'some-uid'
+    (tmp_path / 'users.json').write_text(
+        json.dumps({uid: {'user_id': uid, 'credits': 300}}), encoding='utf-8')
+    monkeypatch.setattr(_db, '_supabase', None)
+    monkeypatch.setattr(_db, '_DATA_DIR', str(tmp_path))
     assert _db.deduct_credits(None, 100) == 0
-    assert _db.deduct_credits('some-uid', 0) == _db.get_user_credits('some-uid')
+    assert _db.deduct_credits(uid, 0) == _db.get_user_credits(uid)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -92,12 +111,14 @@ def test_deduct_credits_noop_without_user_id():
 # ══════════════════════════════════════════════════════════════════════════════
 def test_has_enough_credits_bypass_dev_mode(monkeypatch):
     monkeypatch.setenv('AUTH_ENABLED', 'false')
+    monkeypatch.setattr(_db, 'get_user_credits', lambda uid: 0)
     assert _db.has_enough_credits('any-uid', 999999) is True
     monkeypatch.setenv('AUTH_ENABLED', 'true')  # restaure pour les autres tests du module
 
 
 def test_has_enough_credits_bypass_admin_email(monkeypatch):
     monkeypatch.setattr(_db, 'ADMIN_EMAILS', frozenset({'admin@example.com'}))
+    monkeypatch.setattr(_db, 'get_user_credits', lambda uid: 0)
     assert _db.has_enough_credits('any-uid', 999999, email='admin@example.com') is True
 
 
@@ -118,6 +139,7 @@ def test_has_enough_credits_gates_normal_user(monkeypatch, tmp_path):
 def test_analyze_blocked_when_credits_insufficient(monkeypatch):
     monkeypatch.setattr(_db, 'check_usage_limit', lambda uid, email=None: {'allowed': True})
     monkeypatch.setattr(_db, 'has_enough_credits', lambda uid, cost, email=None: False)
+    monkeypatch.setattr(_db, 'get_user_credits', lambda uid: 0)
 
     c = _client('uid-block-analyze')
     r = c.post('/analyze',
@@ -133,6 +155,7 @@ def test_analyze_blocked_when_credits_insufficient(monkeypatch):
 
 def test_strategize_blocked_when_credits_insufficient(monkeypatch):
     monkeypatch.setattr(_db, 'has_enough_credits', lambda uid, cost, email=None: False)
+    monkeypatch.setattr(_db, 'get_user_credits', lambda uid: 0)
 
     c = _client('uid-block-strategize')
     r = c.post('/strategize',
@@ -147,6 +170,7 @@ def test_strategize_blocked_when_credits_insufficient(monkeypatch):
 
 def test_creator_generate_blocked_when_credits_insufficient(monkeypatch):
     monkeypatch.setattr(_db, 'has_enough_credits', lambda uid, cost, email=None: False)
+    monkeypatch.setattr(_db, 'get_user_credits', lambda uid: 0)
 
     c = _client('uid-block-creator')
     r = c.post('/creator/generate',
@@ -158,8 +182,9 @@ def test_creator_generate_blocked_when_credits_insufficient(monkeypatch):
     assert d['cost'] == _db.CREDIT_COSTS['createur']
 
 
-def test_credits_route_returns_balance():
+def test_credits_route_returns_balance(monkeypatch):
     uid = 'uid-route-credits'
+    monkeypatch.setattr(_db, 'get_user_credits', lambda user_id: 300 if user_id == uid else 0)
     c = _client(uid)
     r = c.get('/credits')
     assert r.status_code == 200

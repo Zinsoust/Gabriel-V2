@@ -33,6 +33,32 @@ def _client():
     return c
 
 
+@pytest.fixture
+def funded_credit_store(monkeypatch, tmp_path):
+    """Provide an isolated, funded local credit account for paid job tests."""
+    users_file = tmp_path / 'users.json'
+    users_file.write_text(
+        json.dumps({
+            UID: {
+                'user_id': UID,
+                'email': 'jobs@example.com',
+                'credits': _db.DEFAULT_FREE_CREDITS,
+            },
+        }),
+        encoding='utf-8',
+    )
+    monkeypatch.setattr(_db, '_supabase', None)
+    monkeypatch.setattr(_db, '_DATA_DIR', str(tmp_path))
+    return users_file
+
+
+def _assert_psychologist_debit(users_file):
+    users = json.loads(users_file.read_text(encoding='utf-8'))
+    assert users[UID]['credits'] == (
+        _db.DEFAULT_FREE_CREDITS - _db.CREDIT_COSTS['psychologue']
+    )
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # 1. Job en mémoire — status running (avec step/progress)
 # ════════════════════════════════════════════════════════════════════════════
@@ -168,7 +194,7 @@ def test_db_job_helpers_without_supabase():
 # ════════════════════════════════════════════════════════════════════════════
 # 10. /analyze crée un job et retourne job_id (100 commentaires, LLM mocké)
 # ════════════════════════════════════════════════════════════════════════════
-def test_analyze_creates_job_100_comments(monkeypatch):
+def test_analyze_creates_job_100_comments(monkeypatch, funded_credit_store):
     # 100 commentaires — la promesse produit minimum
     comments = '\n'.join(f'Commentaire numéro {i} vraiment intéressant' for i in range(100))
 
@@ -201,13 +227,14 @@ def test_analyze_creates_job_100_comments(monkeypatch):
     assert _app._jobs[d['job_id']]['status'] == 'done'
     result = _app._jobs[d['job_id']]['result']
     assert result['meta']['total_commentaires'] == 100
+    _assert_psychologist_debit(funded_credit_store)
     _app._jobs.pop(d['job_id'], None)
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # 11. progress_cb met à jour step/progress dans le job mémoire
 # ════════════════════════════════════════════════════════════════════════════
-def test_progress_cb_updates_job(monkeypatch):
+def test_progress_cb_updates_job(monkeypatch, funded_credit_store):
     captured = {}
 
     def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
@@ -238,7 +265,9 @@ def test_progress_cb_updates_job(monkeypatch):
         if job and job['status'] in ('done', 'error'):
             break
         time.sleep(0.1)
+    assert _app._jobs[d['job_id']]['status'] == 'done'
     assert captured.get('progress') == 30
+    _assert_psychologist_debit(funded_credit_store)
     _app._jobs.pop(d['job_id'], None)
 
 
@@ -263,7 +292,7 @@ def test_status_running_exposes_partial():
 # ════════════════════════════════════════════════════════════════════════════
 # 13. partial_cb du pipeline alimente bien _jobs[id]['partial'] via /analyze
 # ════════════════════════════════════════════════════════════════════════════
-def test_partial_cb_updates_job(monkeypatch):
+def test_partial_cb_updates_job(monkeypatch, funded_credit_store):
     captured = {}
 
     def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
@@ -295,7 +324,9 @@ def test_partial_cb_updates_job(monkeypatch):
             break
         time.sleep(0.1)
 
+    assert _app._jobs[job_id]['status'] == 'done'
     assert captured.get('seen_before_done') is True
+    _assert_psychologist_debit(funded_credit_store)
     _app._jobs.pop(job_id, None)
 
 
