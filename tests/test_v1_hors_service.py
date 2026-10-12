@@ -210,6 +210,11 @@ def test_identite_dev_local_obtient_sa_ligne_gabriel_users(monkeypatch):
     solde après une génération de stratégie réussie en conditions réelles."""
     import api.auth as _auth
 
+    monkeypatch.setenv('AUTH_ENABLED', 'false')
+    monkeypatch.setenv('GABRIEL_ENV', 'development')
+    monkeypatch.delenv('RENDER', raising=False)
+    monkeypatch.delenv('RENDER_EXTERNAL_URL', raising=False)
+
     class _FakeTable:
         def __init__(self, store):
             self.store = store
@@ -249,6 +254,11 @@ def test_identite_dev_local_obtient_sa_ligne_gabriel_users(monkeypatch):
 
 def test_provisionnement_dev_ne_recree_pas_une_ligne_existante(monkeypatch):
     import api.auth as _auth
+
+    monkeypatch.setenv('AUTH_ENABLED', 'false')
+    monkeypatch.setenv('GABRIEL_ENV', 'development')
+    monkeypatch.delenv('RENDER', raising=False)
+    monkeypatch.delenv('RENDER_EXTERNAL_URL', raising=False)
 
     class _FakeTable:
         def __init__(self, store):

@@ -159,6 +159,17 @@ def _inject_credits():
 
 def _credit_error_response(user_id, error):
     """Fail closed without exposing storage details or pretending a zero balance."""
+    if isinstance(error, _db.CreditAccountNotFound):
+        safe_log_event(
+            'credit_account_not_provisioned',
+            user_id=user_id,
+        )
+        return jsonify({
+            'success': False,
+            'error': "Le compte de crédits n'est pas encore provisionné.",
+            'error_code': 'credit_account_not_provisioned',
+        }), 409
+
     safe_log_event(
         'credit_store_unavailable',
         user_id=user_id,

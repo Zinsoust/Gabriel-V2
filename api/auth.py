@@ -132,29 +132,61 @@ _DEV_USER = {
 # en local. Un vrai compte obtient sa ligne à l'inscription
 # (_sb_upsert_google / register_email_user, plus bas dans ce fichier) ; le
 # mode sans authentification contourne entièrement ce chemin. Provisionnée
-# une seule fois par démarrage de processus, avec la même forme que
-# l'inscription email — 'credits' n'est jamais envoyé explicitement, il
-# vient du DEFAULT 300 de la colonne Supabase (voir _sb_upsert_google).
+# une seule fois par démarrage de processus. Supabase conserve son DEFAULT 300
+# de colonne (voir _sb_upsert_google) ; le fallback JSON inscrit explicitement
+# la même valeur puisqu'il ne dispose pas d'un schéma avec valeur par défaut.
 _dev_user_provisioned = False
+
+
+def _is_local_development():
+    """Return whether the shared fictitious identity is safe to provision."""
+    auth_disabled = os.environ.get('AUTH_ENABLED', 'false').lower() != 'true'
+    deployed = (
+        bool(os.environ.get('RENDER'))
+        or bool(os.environ.get('RENDER_EXTERNAL_URL'))
+        or os.environ.get('GABRIEL_ENV', '').lower() == 'production'
+    )
+    return auth_disabled and not deployed
 
 
 def _ensure_dev_user_row():
     global _dev_user_provisioned
-    if _dev_user_provisioned or not _supabase:
+    if _dev_user_provisioned or not _is_local_development():
         return
     try:
-        existing = _supabase.table(_TABLE).select('user_id').eq('user_id', _DEV_USER['user_id']).limit(1).execute()
-        if not existing.data:
-            now = datetime.datetime.utcnow().isoformat()
-            _supabase.table(_TABLE).insert({
-                'user_id':    _DEV_USER['user_id'],
-                'email':      _DEV_USER['email'],
-                'name':       _DEV_USER['name'],
-                'created_at': now,
-                'last_login': now,
-            }).execute()
+        now = datetime.datetime.utcnow().isoformat()
+        if _supabase:
+            existing = _supabase.table(_TABLE).select('user_id').eq('user_id', _DEV_USER['user_id']).limit(1).execute()
+            if not existing.data:
+                _supabase.table(_TABLE).insert({
+                    'user_id':    _DEV_USER['user_id'],
+                    'email':      _DEV_USER['email'],
+                    'name':       _DEV_USER['name'],
+                    'created_at': now,
+                    'last_login': now,
+                }).execute()
+        else:
+            users = _load_json_users()
+            existing = next(
+                (row for row in users.values()
+                 if isinstance(row, dict)
+                 and str(row.get('user_id')) == _DEV_USER['user_id']),
+                None,
+            )
+            if existing is None:
+                from api.db import DEFAULT_FREE_CREDITS
+                users[_DEV_USER['user_id']] = {
+                    'user_id':    _DEV_USER['user_id'],
+                    'email':      _DEV_USER['email'],
+                    'name':       _DEV_USER['name'],
+                    'created_at': now,
+                    'last_login': now,
+                    'credits':    DEFAULT_FREE_CREDITS,
+                }
+                _save_json_users(users)
     except Exception as e:
         print(f'[AUTH] _ensure_dev_user_row error : {e}')
+        return
     _dev_user_provisioned = True
 
 

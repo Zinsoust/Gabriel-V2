@@ -23,6 +23,7 @@ os.environ['NLP_PRELOAD'] = 'false'
 os.environ['RAG_PRELOAD'] = 'false'
 
 import api.db as _db
+import api.auth as _auth
 
 try:
     import app as _app
@@ -153,6 +154,70 @@ class CreditStoreUnitTests(unittest.TestCase):
                 220,
             )
 
+    def test_local_dev_account_is_provisioned_once_without_resetting_balance(self):
+        with tempfile.TemporaryDirectory() as directory:
+            users_file = Path(directory) / 'users.json'
+            dev_environment = {
+                'AUTH_ENABLED': 'false',
+                'GABRIEL_ENV': 'development',
+                'RENDER': '',
+                'RENDER_EXTERNAL_URL': '',
+            }
+            with patch.dict(os.environ, dev_environment), \
+                    patch.object(_auth, '_supabase', None), \
+                    patch.object(_auth, '_USERS_FILE', str(users_file)), \
+                    patch.object(_auth, '_dev_user_provisioned', False), \
+                    patch.object(_db, '_supabase', None), \
+                    patch.object(_db, '_DATA_DIR', directory):
+                _auth._ensure_dev_user_row()
+                self.assertEqual(
+                    _db.get_user_credits(_auth._DEV_USER['user_id']),
+                    _db.DEFAULT_FREE_CREDITS,
+                )
+
+                self.assertEqual(
+                    _db.deduct_credits(
+                        _auth._DEV_USER['user_id'],
+                        _db.CREDIT_COSTS['psychologue'],
+                        reason='test',
+                    ),
+                    220,
+                )
+
+                # Simulate another process start: provisioning must detect the
+                # existing account and must never restore its credits to 300.
+                _auth._dev_user_provisioned = False
+                _auth._ensure_dev_user_row()
+                self.assertEqual(
+                    _db.get_user_credits(_auth._DEV_USER['user_id']),
+                    220,
+                )
+
+    def test_dev_account_is_never_provisioned_in_production(self):
+        with tempfile.TemporaryDirectory() as directory:
+            users_file = Path(directory) / 'users.json'
+            class _ForbiddenSupabase:
+                called = False
+
+                def table(self, _name):
+                    self.called = True
+                    raise AssertionError('production must not provision the dev account')
+
+            fake_supabase = _ForbiddenSupabase()
+            production_environment = {
+                'AUTH_ENABLED': 'false',
+                'GABRIEL_ENV': 'production',
+                'RENDER': 'true',
+                'RENDER_EXTERNAL_URL': 'https://example.invalid',
+            }
+            with patch.dict(os.environ, production_environment), \
+                    patch.object(_auth, '_supabase', fake_supabase), \
+                    patch.object(_auth, '_USERS_FILE', str(users_file)), \
+                    patch.object(_auth, '_dev_user_provisioned', False):
+                _auth._ensure_dev_user_row()
+                self.assertFalse(fake_supabase.called)
+                self.assertFalse(users_file.exists())
+
 
 @unittest.skipIf(_app is None, f'application dependencies unavailable: {_APP_IMPORT_ERROR}')
 class CreditRouteIntegrationTests(unittest.TestCase):
@@ -176,6 +241,23 @@ class CreditRouteIntegrationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.get_json()['error_code'], 'credits_unavailable')
+
+    def test_paid_route_reports_an_unprovisioned_account_as_a_conflict(self):
+        def account_not_found(*_args, **_kwargs):
+            raise _db.CreditAccountNotFound('missing')
+
+        with patch.object(_db, 'check_usage_limit', return_value={'allowed': True}), \
+                patch.object(_db, 'has_enough_credits', side_effect=account_not_found):
+            response = self._client().post('/analyze', json={
+                'source': 'text',
+                'content': 'Commentaire un\nCommentaire deux\nCommentaire trois',
+            })
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(
+            response.get_json()['error_code'],
+            'credit_account_not_provisioned',
+        )
 
     def test_creator_job_is_failed_when_deduction_was_not_persisted(self):
         persisted_states = []
