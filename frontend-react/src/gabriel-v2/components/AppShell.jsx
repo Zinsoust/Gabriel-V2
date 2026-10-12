@@ -7,6 +7,7 @@ import { ContextPanel } from './ContextPanel.jsx';
 import { AgentWorkbench } from './AgentWorkbench.jsx';
 import { CreatorConversation } from './CreatorConversation.jsx';
 import { PsychologueView } from './PsychologueView.jsx';
+import { ProspectView } from './ProspectView.jsx';
 import { StrategeView } from './StrategeView.jsx';
 import { TarifsView } from './TarifsView.jsx';
 import { OnboardingTour } from './OnboardingTour.jsx';
@@ -798,6 +799,8 @@ export function AppShell({ bootstrap }) {
           ? <PsychologueView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} openAnalysisRequest={analysisToOpen} onAnalysisReady={setLastAnalysis} />
           : tab === 'stratege'
           ? <StrategeView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} onInterviewChange={setStrategeInterview} />
+          : tab === 'prospect'
+          ? <ProspectView />
           : tab === 'tarifs'
           ? <TarifsView />
           : isAgentTab(tab)

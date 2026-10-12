@@ -19,6 +19,11 @@ describe('L’adresse décide de l’écran ouvert', () => {
     expect(urlWithTab('https://x.fr/orchestrateur', 'conversation')).toContain('agent=conversation');
   });
 
+  it('garde Gabriel Prospect accessible par son adresse', () => {
+    expect(tabFromUrl('https://x.fr/orchestrateur?agent=prospect')).toBe('prospect');
+    expect(urlWithTab('https://x.fr/orchestrateur', 'prospect')).toContain('agent=prospect');
+  });
+
   it('ignore un agent qui n’existe pas', () => {
     /* Une adresse trafiquée ne doit pas ouvrir un écran vide. */
     expect(tabFromUrl('https://x.fr/orchestrateur?agent=nimportequoi')).toBe('psychologue');

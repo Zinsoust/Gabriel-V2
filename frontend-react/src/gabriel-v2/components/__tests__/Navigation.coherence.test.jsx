@@ -50,11 +50,15 @@ describe('Menu latéral', () => {
 });
 
 describe('Onglets', () => {
-  it('séparent comprendre, prolonger et suivre', () => {
-    render(<WorkspaceTabs currentTab="psychologue" onChange={vi.fn()} />);
+  it('séparent comprendre, prolonger, acquérir et suivre', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<WorkspaceTabs currentTab="psychologue" onChange={onChange} />);
     const nav = screen.getByRole('navigation');
     const suite = [...nav.children].map(el => el.classList.contains('gv2-tabs-divider') ? '|' : el.textContent);
-    expect(suite).toEqual(['Psychologue', '|', 'Ariane', 'Créateur', '|', 'Conversation', 'Activité', 'Mémoire']);
+    expect(suite).toEqual(['Psychologue', '|', 'Ariane', 'Créateur', '|', 'Prospect', '|', 'Conversation', 'Activité', 'Mémoire']);
+    await user.click(within(nav).getByRole('button', { name: 'Prospect' }));
+    expect(onChange).toHaveBeenCalledWith('prospect');
   });
 });
 

@@ -4647,6 +4647,142 @@ a.gv2-psy-ghost-btn { display: inline-flex; align-items: center; text-decoration
 html[data-gabriel-v2-theme="dark"] .gv2-creator-message--error { border-color: #5a2f2b; background: #221716; color: #e3a49c; }
 html[data-gabriel-v2-theme="dark"] .gv2-creator-message--error span { background: #4a2724; color: #f0bcb5; }
 
+/* Gabriel Prospect — prévisualisation CSV locale et déterministe (12/10/2026). */
+.gv2-prospect-view {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: clamp(28px, 4vw, 54px) clamp(22px, 4vw, 58px) 64px;
+  color: var(--ink);
+  scrollbar-gutter: stable;
+}
+.gv2-prospect-view > * { width: min(1180px, 100%); margin-right: auto; margin-left: auto; }
+.gv2-prospect-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 28px; }
+.gv2-prospect-kicker { margin: 0 0 9px; color: var(--champagne-deep); font: 500 10.5px var(--font-family-mono); letter-spacing: .14em; text-transform: uppercase; }
+.gv2-prospect-hero h1 { margin: 0; font-family: var(--font-family-display); font-size: clamp(34px, 4vw, 52px); font-weight: 500; letter-spacing: -.04em; line-height: 1.04; }
+.gv2-prospect-hero > div > p:last-child { max-width: 670px; margin: 15px 0 0; color: var(--body); font-size: 15.5px; line-height: 1.6; }
+.gv2-prospect-local-badge { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; margin-top: 4px; padding: 7px 11px; border: 1px solid color-mix(in srgb, var(--success) 34%, var(--line)); border-radius: 999px; background: color-mix(in srgb, var(--success) 7%, transparent); color: var(--success); font-size: 11.5px; font-weight: 600; }
+.gv2-prospect-disclaimer { display: flex; align-items: flex-start; gap: 12px; margin-top: 26px; padding: 14px 16px; border-left: 3px solid var(--champagne); background: var(--champagne-soft); color: var(--body); }
+.gv2-prospect-disclaimer svg { flex: 0 0 auto; margin-top: 1px; color: var(--champagne-deep); }
+.gv2-prospect-disclaimer p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+.gv2-prospect-disclaimer strong { color: var(--ink); font-weight: 600; }
+
+.gv2-prospect-import { display: grid; grid-template-columns: minmax(250px, .8fr) minmax(390px, 1.2fr); align-items: center; gap: 24px; margin-top: 18px; padding: 20px; border: 1px solid var(--line); border-radius: 13px; background: var(--soft); }
+.gv2-prospect-import-copy { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.gv2-prospect-import-copy > span { display: grid; flex: 0 0 42px; height: 42px; place-items: center; border-radius: 11px; background: var(--ink); color: var(--surface); }
+.gv2-prospect-import-copy h2 { margin: 0; font-family: var(--font-family-display); font-size: 17px; font-weight: 550; letter-spacing: -.015em; }
+.gv2-prospect-import-copy p { margin: 4px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.4; }
+.gv2-prospect-file-actions { position: relative; display: grid; min-width: 0; grid-template-columns: auto minmax(100px, 1fr) auto; align-items: center; gap: 10px; }
+.gv2-prospect-file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+.gv2-prospect-file-button, .gv2-prospect-submit { display: inline-flex; height: 40px; align-items: center; justify-content: center; gap: 7px; padding: 0 13px; border-radius: 9px; font-size: 12px; font-weight: 600; cursor: pointer; transition: border-color .18s ease, background .18s ease, color .18s ease, opacity .18s ease; }
+.gv2-prospect-file-button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.gv2-prospect-file-button:hover { border-color: var(--muted); }
+.gv2-prospect-file-name { min-width: 0; overflow: hidden; color: var(--muted); font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
+.gv2-prospect-submit { border: 1px solid var(--ink); background: var(--ink); color: var(--surface); }
+.gv2-prospect-submit:hover:not(:disabled) { opacity: .86; }
+.gv2-prospect-submit:disabled { border-color: var(--line); background: var(--line); color: var(--muted); cursor: not-allowed; }
+.gv2-prospect-file-button:focus-visible, .gv2-prospect-submit:focus-visible, .gv2-prospect-detail-button:focus-visible, .gv2-prospect-filters select:focus-visible { outline: 2px solid var(--champagne); outline-offset: 2px; }
+.gv2-prospect-spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: gv2-prospect-spin .8s linear infinite; }
+@keyframes gv2-prospect-spin { to { transform: rotate(360deg); } }
+
+.gv2-prospect-error, .gv2-prospect-loading { display: flex; align-items: center; gap: 9px; margin-top: 14px; padding: 11px 13px; border-radius: 9px; font-size: 12.5px; }
+.gv2-prospect-error { border: 1px solid color-mix(in srgb, var(--danger) 32%, var(--line)); background: color-mix(in srgb, var(--danger) 7%, transparent); color: var(--danger); }
+.gv2-prospect-loading { border: 1px solid var(--line); background: var(--soft); color: var(--body); }
+.gv2-prospect-empty { display: grid; min-height: 260px; margin-top: 18px; place-items: center; align-content: center; padding: 36px; border: 1px dashed var(--line); color: var(--muted); text-align: center; }
+.gv2-prospect-empty svg { margin-bottom: 13px; color: var(--champagne); }
+.gv2-prospect-empty h2 { margin: 0; color: var(--ink); font-family: var(--font-family-display); font-size: 20px; font-weight: 500; }
+.gv2-prospect-empty p { margin: 8px 0 0; font-size: 13px; }
+
+.gv2-prospect-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin-top: 24px; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--line); }
+.gv2-prospect-summary > div { display: grid; min-width: 0; grid-template-columns: auto 1fr; gap: 3px 11px; padding: 16px 18px; background: var(--surface); }
+.gv2-prospect-summary span { grid-column: 1 / -1; color: var(--muted); font: 500 9.5px var(--font-family-mono); letter-spacing: .1em; text-transform: uppercase; }
+.gv2-prospect-summary strong { color: var(--ink); font: 500 25px var(--font-family-display); }
+.gv2-prospect-summary small { align-self: end; padding-bottom: 3px; color: var(--body); font-size: 11.5px; line-height: 1.25; }
+
+.gv2-prospect-results { margin-top: 18px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+.gv2-prospect-results-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 22px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.gv2-prospect-results-head h2 { margin: 0; font-family: var(--font-family-display); font-size: 20px; font-weight: 550; letter-spacing: -.02em; }
+.gv2-prospect-results-head > div:first-child p { margin: 5px 0 0; color: var(--muted); font-size: 11.5px; }
+.gv2-prospect-filters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.gv2-prospect-filters label { display: grid; gap: 4px; color: var(--muted); font: 500 8.5px var(--font-family-mono); letter-spacing: .06em; text-transform: uppercase; }
+.gv2-prospect-filters input, .gv2-prospect-filters select { height: 32px; border: 1px solid var(--line); border-radius: 7px; background: var(--soft); color: var(--ink); padding: 0 9px; font: 400 11.5px var(--font-family-sans); letter-spacing: normal; text-transform: none; }
+.gv2-prospect-filters input { width: 78px; }
+.gv2-prospect-table-wrap { width: 100%; overflow-x: auto; }
+.gv2-prospect-table { width: 100%; min-width: 900px; border-collapse: collapse; }
+.gv2-prospect-table th { padding: 11px 14px; border-bottom: 1px solid var(--line); color: var(--muted); font: 500 9px var(--font-family-mono); letter-spacing: .08em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+.gv2-prospect-table td { padding: 14px; border-bottom: 1px solid var(--line); color: var(--body); font-size: 12.5px; line-height: 1.4; vertical-align: middle; }
+.gv2-prospect-table tbody > tr:last-child > td { border-bottom: 0; }
+.gv2-prospect-table td > strong { display: block; max-width: 190px; overflow: hidden; color: var(--ink); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.gv2-prospect-table td > small { display: block; margin-top: 3px; color: var(--muted); font-size: 10.5px; }
+.gv2-prospect-score { font-family: var(--font-family-mono); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.gv2-prospect-score.is-high { color: var(--success); }
+.gv2-prospect-score.is-medium { color: var(--champagne-deep); }
+.gv2-prospect-score.is-low { color: var(--danger); }
+.gv2-prospect-status, .gv2-prospect-duplicate, .gv2-prospect-unverified { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+.gv2-prospect-status.is-eligible { background: color-mix(in srgb, var(--success) 10%, transparent); color: var(--success); }
+.gv2-prospect-status.is-ineligible { background: color-mix(in srgb, var(--danger) 9%, transparent); color: var(--danger); }
+.gv2-prospect-duplicate.is-none { background: var(--soft); color: var(--muted); }
+.gv2-prospect-duplicate.is-exact { background: color-mix(in srgb, var(--danger) 9%, transparent); color: var(--danger); }
+.gv2-prospect-duplicate.is-possible { background: var(--champagne-soft); color: var(--champagne-deep); }
+.gv2-prospect-detail-button { display: grid; width: 30px; height: 30px; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+.gv2-prospect-detail-button:hover { border-color: var(--muted); color: var(--ink); }
+.gv2-prospect-detail-button[aria-expanded="true"] svg { transform: rotate(180deg); }
+.gv2-prospect-detail-row > td { padding: 0; background: var(--soft); }
+
+.gv2-prospect-detail { padding: 22px; color: var(--body); }
+.gv2-prospect-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.gv2-prospect-detail-grid > section > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.gv2-prospect-detail-grid header p { margin: 0; color: var(--ink); font-size: 12px; font-weight: 650; }
+.gv2-prospect-detail-grid header > strong { color: var(--ink); font: 500 12px var(--font-family-mono); }
+.gv2-prospect-unverified { background: var(--champagne-soft); color: var(--champagne-deep); }
+.gv2-prospect-criteria { border-top: 1px solid var(--line); }
+.gv2-prospect-criteria article { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.gv2-prospect-criteria article > div { display: flex; justify-content: space-between; gap: 12px; }
+.gv2-prospect-criteria span { color: var(--ink); font-size: 11.5px; font-weight: 550; }
+.gv2-prospect-criteria strong { color: var(--muted); font: 500 10.5px var(--font-family-mono); }
+.gv2-prospect-criteria article.is-matched strong { color: var(--success); }
+.gv2-prospect-criteria p { margin: 4px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.45; }
+.gv2-prospect-facts { max-height: 300px; margin: 0; overflow-y: auto; border-top: 1px solid var(--line); }
+.gv2-prospect-facts > div { display: grid; grid-template-columns: minmax(110px, .7fr) minmax(0, 1.3fr); gap: 13px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.gv2-prospect-facts dt { color: var(--muted); font-size: 10.5px; }
+.gv2-prospect-facts dd { min-width: 0; margin: 0; overflow-wrap: anywhere; color: var(--ink); font-size: 11.5px; }
+.gv2-prospect-facts dd small { display: block; margin-top: 3px; color: var(--muted); font-size: 9.5px; }
+.gv2-prospect-detail-empty { color: var(--muted); font-size: 12px; }
+.gv2-prospect-review-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
+.gv2-prospect-review-grid > section { padding: 13px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
+.gv2-prospect-review-grid h3 { margin: 0 0 8px; color: var(--ink); font-size: 11.5px; font-weight: 650; }
+.gv2-prospect-review-grid p, .gv2-prospect-review-grid ul { margin: 0; color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+.gv2-prospect-review-grid ul { padding-left: 17px; }
+.gv2-prospect-filter-empty { display: grid; min-height: 180px; place-items: center; align-content: center; gap: 8px; color: var(--muted); text-align: center; }
+.gv2-prospect-filter-empty p { margin: 0; font-size: 12.5px; }
+
+.gv2-theme-dark .gv2-prospect-disclaimer, .gv2-theme-dark .gv2-prospect-unverified, .gv2-theme-dark .gv2-prospect-duplicate.is-possible { background: rgba(184, 149, 99, .12); color: #d9bd93; }
+.gv2-theme-dark .gv2-prospect-local-badge, .gv2-theme-dark .gv2-prospect-status.is-eligible { color: #6fd08a; }
+.gv2-theme-dark .gv2-prospect-error, .gv2-theme-dark .gv2-prospect-status.is-ineligible, .gv2-theme-dark .gv2-prospect-duplicate.is-exact { color: #f08e88; }
+
+@media (max-width: 980px) {
+  .gv2-prospect-import { grid-template-columns: 1fr; }
+  .gv2-prospect-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gv2-prospect-results-head { align-items: flex-start; flex-direction: column; }
+  .gv2-prospect-filters { justify-content: flex-start; }
+}
+@media (max-width: 640px) {
+  .gv2-prospect-view { padding: 24px 16px 48px; }
+  .gv2-prospect-hero { flex-direction: column; gap: 14px; }
+  .gv2-prospect-local-badge { margin-top: 0; }
+  .gv2-prospect-import { padding: 16px; }
+  .gv2-prospect-file-actions { grid-template-columns: 1fr; }
+  .gv2-prospect-file-button, .gv2-prospect-submit { width: 100%; }
+  .gv2-prospect-summary { grid-template-columns: 1fr 1fr; }
+  .gv2-prospect-summary > div { grid-template-columns: auto 1fr; padding: 13px; }
+  .gv2-prospect-filters { display: grid; width: 100%; grid-template-columns: 1fr; }
+  .gv2-prospect-filters input, .gv2-prospect-filters select { width: 100%; }
+  .gv2-prospect-detail-grid, .gv2-prospect-review-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .gv2-prospect-spinner { animation: none; } }
+
 /* ── Téléphone : navigation entre les agents et menu en tiroir (24/09/2026) ──
    Avant, le menu latéral ET la barre des agents étaient masqués sous 640 px, sans
    aucun autre moyen de naviguer : on ne pouvait pas quitter le premier écran. */
