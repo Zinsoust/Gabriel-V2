@@ -45,6 +45,32 @@ def _upload(filename, content_bytes, column=None):
                           content_type='multipart/form-data')
 
 
+@pytest.fixture
+def funded_credit_store(monkeypatch, tmp_path):
+    """Compte local isolé : les tests /analyze exercent le vrai débit."""
+    users_file = tmp_path / 'users.json'
+    users_file.write_text(
+        json.dumps({
+            UID: {
+                'user_id': UID,
+                'email': 'files@example.com',
+                'credits': _db.DEFAULT_FREE_CREDITS,
+            },
+        }),
+        encoding='utf-8',
+    )
+    monkeypatch.setattr(_db, '_supabase', None)
+    monkeypatch.setattr(_db, '_DATA_DIR', str(tmp_path))
+    return users_file
+
+
+def _assert_psychologist_debit(users_file):
+    users = json.loads(users_file.read_text(encoding='utf-8'))
+    assert users[UID]['credits'] == (
+        _db.DEFAULT_FREE_CREDITS - _db.CREDIT_COSTS['psychologue']
+    )
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # 1. CSV simple (virgule)
 # ════════════════════════════════════════════════════════════════════════════
@@ -257,7 +283,7 @@ def test_forced_column():
 # ════════════════════════════════════════════════════════════════════════════
 # 15. Intégration /analyze avec source='file' (LLM mocké)
 # ════════════════════════════════════════════════════════════════════════════
-def test_analyze_with_file_source(monkeypatch):
+def test_analyze_with_file_source(monkeypatch, funded_credit_store):
     captured = {}
 
     def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
@@ -291,13 +317,14 @@ def test_analyze_with_file_source(monkeypatch):
     assert len(captured['comments']) == 3
     assert captured['comments'][0]['text'] == 'Très bon service client'
     assert captured['comments'][0]['likes'] == 12
+    _assert_psychologist_debit(funded_credit_store)
     _app._jobs.pop(d['job_id'], None)
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # 16. /analyze source='file' avec payload malveillant → sanitisé
 # ════════════════════════════════════════════════════════════════════════════
-def test_analyze_file_source_sanitizes_payload(monkeypatch):
+def test_analyze_file_source_sanitizes_payload(monkeypatch, funded_credit_store):
     captured = {}
 
     def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
@@ -334,13 +361,14 @@ def test_analyze_file_source_sanitizes_payload(monkeypatch):
     assert all(len(t) <= 2000 for t in texts)               # troncature
     assert sent[0]['likes'] == 0                            # likes invalide → 0
     assert len(sent) == 4                                   # item sans text ignoré
+    _assert_psychologist_debit(funded_credit_store)
     _app._jobs.pop(d['job_id'], None)
 
 
 # ════════════════════════════════════════════════════════════════════════════
 # 17. Mode copier-coller toujours fonctionnel (non-régression)
 # ════════════════════════════════════════════════════════════════════════════
-def test_manual_paste_still_works(monkeypatch):
+def test_manual_paste_still_works(monkeypatch, funded_credit_store):
     def fake_run_psycho(self, comments, video_context='', title='', progress_cb=None, partial_cb=None):
         return {'kpis': {}, 'meta': {'total_commentaires': len(comments)}}
 
@@ -355,4 +383,13 @@ def test_manual_paste_still_works(monkeypatch):
     d = r.get_json()
     assert r.status_code == 200
     assert d.get('job_id')
-    _app._jobs.pop(d.get('job_id'), None)
+
+    import time
+    for _ in range(50):
+        job = _app._jobs.get(d['job_id'])
+        if job and job['status'] in ('done', 'error'):
+            break
+        time.sleep(0.1)
+    assert _app._jobs[d['job_id']]['status'] == 'done'
+    _assert_psychologist_debit(funded_credit_store)
+    _app._jobs.pop(d['job_id'], None)

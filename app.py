@@ -59,6 +59,7 @@ from core.cross_interpreter import (
     run_dialectic_review,
 )
 from api.auth import auth_bp, init_auth, current_user, login_required, login_required_api, login_required_page, get_or_create_user
+from gabriel_prospect.api import prospect_bp
 import api.db as _db
 from services.scraper import (
     scrape_youtube,
@@ -136,6 +137,7 @@ if _is_production and os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
 
 init_auth(app)
 app.register_blueprint(auth_bp)
+app.register_blueprint(prospect_bp)
 
 
 @app.context_processor
