@@ -16,7 +16,7 @@ def _fact_value(field, raw_value, normalized_data):
     return normalize_text(raw_value)
 
 
-def _assess_contact_eligibility(prospect):
+def assess_contact_eligibility(prospect):
     """Assess structural outreach readiness independently from ICP fit."""
     blocking_reasons = [
         {
@@ -102,7 +102,7 @@ def build_import_preview(filename, raw_bytes, mapping=None, icp=None):
 
     duplicate_counts = detect_duplicates(prospects)
     for prospect in prospects:
-        prospect["eligibility"] = _assess_contact_eligibility(prospect)
+        prospect["eligibility"] = assess_contact_eligibility(prospect)
 
     return {
         "import": {

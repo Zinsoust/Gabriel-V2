@@ -60,6 +60,7 @@ from core.cross_interpreter import (
 )
 from api.auth import auth_bp, init_auth, current_user, login_required, login_required_api, login_required_page, get_or_create_user
 from gabriel_prospect.api import prospect_bp
+from gabriel_prospect.repository import init_repository as _init_prospect_repository
 import api.db as _db
 from services.scraper import (
     scrape_youtube,
@@ -324,6 +325,7 @@ def health():
 # Passer le client Supabase à db.py
 from api.auth import _supabase as _sb_client
 _db.init_db(_sb_client)
+_init_prospect_repository(_sb_client)
 gabriel = Gabriel()
 memory  = GabrielMemory()
 # Le pipeline Cross n'est qu'un adaptateur autour du Psychologue existant : il

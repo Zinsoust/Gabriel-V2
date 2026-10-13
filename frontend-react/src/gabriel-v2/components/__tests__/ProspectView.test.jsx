@@ -9,6 +9,7 @@ const prospect = ({
   company,
   score,
   eligible = true,
+  email,
   duplicate = null,
   unknowns = [],
   validationErrors = [],
@@ -22,7 +23,7 @@ const prospect = ({
     contact_first_name: 'Contact',
     contact_last_name: String(row),
     job_title: 'Fondatrice',
-    email: `contact${row}@example.test`,
+    email: email === undefined ? `contact${row}@example.test` : email,
     linkedin_url: null,
   },
   sources: [{
@@ -90,6 +91,7 @@ const preview = {
       company: 'Atelier Rivage',
       score: 65,
       eligible: false,
+      email: null,
       unknowns: ['linkedin_url'],
       validationErrors: [{ field: 'email', code: 'invalid_email', message: "L'email est invalide.", blocking: true }],
     }),
@@ -101,6 +103,17 @@ const preview = {
       duplicate: { kind: 'exact', matched_row: 2, reason: 'Même email normalisé.' },
     }),
   ],
+};
+
+const savedProspect = {
+  ...prospect({ row: 2, company: 'Studio Nord', score: 100 }),
+  prospect_id: 'prospect-1',
+  user_id: 'user-test',
+  import_id: 'import-1',
+  status: 'qualified',
+  icp_score: 100,
+  created_at: '2026-10-12T10:00:00Z',
+  updated_at: '2026-10-12T10:00:00Z',
 };
 
 function jsonResponse(payload, { ok = true, status = 200 } = {}) {
@@ -120,7 +133,12 @@ async function uploadAndSubmit(user, file = new File(['Entreprise\nStudio Nord\n
 
 describe('Gabriel Prospect', () => {
   beforeEach(() => {
-    global.fetch = vi.fn(async () => jsonResponse({ success: true, preview }));
+    global.fetch = vi.fn(async (url, options = {}) => {
+      if (url === '/api/v2/prospects' && (!options.method || options.method === 'GET')) {
+        return jsonResponse({ success: true, prospects: [], count: 0 });
+      }
+      return jsonResponse({ success: true, preview });
+    });
   });
 
   it('présente un import vide sans inventer de prospect et rappelle la provenance déclarative', () => {
@@ -139,8 +157,9 @@ describe('Gabriel Prospect', () => {
 
     await uploadAndSubmit(user);
 
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-    const [url, options] = global.fetch.mock.calls[0];
+    const previewCall = global.fetch.mock.calls.find(([url]) => url === '/api/v2/prospects/imports/preview');
+    expect(previewCall).toBeTruthy();
+    const [url, options] = previewCall;
     expect(url).toBe('/api/v2/prospects/imports/preview');
     expect(options.method).toBe('POST');
     expect(options.credentials).toBe('same-origin');
@@ -197,15 +216,21 @@ describe('Gabriel Prospect', () => {
     await uploadAndSubmit(user, oversized);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('2 Mo');
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(
+      global.fetch.mock.calls.some(
+        ([url]) => url === '/api/v2/prospects/imports/preview',
+      ),
+    ).toBe(false);
   });
 
   it('rend les erreurs du backend sans exposer le contenu du fichier', async () => {
-    global.fetch = vi.fn(async () => jsonResponse({
-      success: false,
-      error: 'Le fichier contient plus de 1 000 lignes.',
-      error_code: 'too_many_rows',
-    }, { ok: false, status: 400 }));
+    global.fetch = vi.fn(async (url) => url === '/api/v2/prospects'
+      ? jsonResponse({ success: true, prospects: [], count: 0 })
+      : jsonResponse({
+        success: false,
+        error: 'Le fichier contient plus de 1 000 lignes.',
+        error_code: 'too_many_rows',
+      }, { ok: false, status: 400 }));
     const user = userEvent.setup();
     render(<ProspectView />);
 
@@ -213,5 +238,125 @@ describe('Gabriel Prospect', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('plus de 1 000 lignes');
     expect(screen.queryByText('Studio Nord')).toBeNull();
+  });
+
+  it('retrouve les prospects sauvegardés après chargement et les filtre', async () => {
+    global.fetch = vi.fn(async (url) => url === '/api/v2/prospects'
+      ? jsonResponse({ success: true, prospects: [savedProspect], count: 1 })
+      : jsonResponse({ success: true, preview }));
+    const user = userEvent.setup();
+    render(<ProspectView />);
+
+    await user.click(await screen.findByRole('button', { name: /Prospects sauvegardés/ }));
+
+    const table = await screen.findByRole('table', { name: 'Prospects sauvegardés' });
+    expect(within(table).getByText('Studio Nord')).toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledWith('/api/v2/prospects', expect.objectContaining({ credentials: 'same-origin' }));
+
+    await user.type(screen.getByLabelText('Rechercher dans les prospects sauvegardés'), 'absent');
+    expect(screen.getByText(/aucun prospect sauvegardé ne correspond/i)).toBeInTheDocument();
+  });
+
+  it('enregistre uniquement les entreprises explicitement sélectionnées', async () => {
+    let saved = [];
+    global.fetch = vi.fn(async (url, options = {}) => {
+      if (url === '/api/v2/prospects/imports/preview') return jsonResponse({ success: true, preview });
+      if (url === '/api/v2/prospects' && options.method === 'POST') {
+        const body = JSON.parse(options.body);
+        saved = [savedProspect];
+        expect(body.prospects).toHaveLength(1);
+        expect(body.prospects[0].data.company_name).toBe('Studio Nord');
+        return jsonResponse({ success: true, result: { saved_count: 1, duplicate_count: 0, saved: [{ prospect_id: 'prospect-1', source_row: 2 }], duplicates: [] } }, { status: 201 });
+      }
+      return jsonResponse({ success: true, prospects: saved, count: saved.length });
+    });
+    const user = userEvent.setup();
+    render(<ProspectView />);
+    await uploadAndSubmit(user);
+
+    const eligibleCheckbox = await screen.findByRole('checkbox', { name: 'Sélectionner Studio Nord' });
+    expect(screen.getByRole('checkbox', { name: 'Sélectionner Atelier Rivage' })).toBeEnabled();
+    expect(screen.getByRole('checkbox', { name: 'Sélectionner Studio Nord bis' })).toBeDisabled();
+    expect(screen.getAllByText('À enrichir · non éligible').length).toBeGreaterThan(0);
+    await user.click(eligibleCheckbox);
+    await user.click(screen.getByRole('button', { name: 'Enregistrer 1 prospect' }));
+
+    expect(await screen.findByText(/1 prospect enregistré/i)).toBeInTheDocument();
+    expect(global.fetch.mock.calls.some(([url, options]) => url === '/api/v2/prospects' && options.method === 'POST')).toBe(true);
+  });
+
+  it('permet de sauvegarder volontairement une entreprise à enrichir', async () => {
+    let payloadSent = null;
+    global.fetch = vi.fn(async (url, options = {}) => {
+      if (url === '/api/v2/prospects/imports/preview') return jsonResponse({ success: true, preview });
+      if (url === '/api/v2/prospects' && options.method === 'POST') {
+        payloadSent = JSON.parse(options.body);
+        return jsonResponse({ success: true, result: { saved_count: 1, duplicate_count: 0 } }, { status: 201 });
+      }
+      return jsonResponse({ success: true, prospects: [], count: 0 });
+    });
+    const user = userEvent.setup();
+    render(<ProspectView />);
+    await uploadAndSubmit(user);
+
+    await user.click(await screen.findByRole('checkbox', { name: 'Sélectionner Atelier Rivage' }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer 1 prospect' }));
+
+    expect(payloadSent.prospects).toHaveLength(1);
+    expect(payloadSent.prospects[0].data.company_name).toBe('Atelier Rivage');
+  });
+
+  it('met à jour un statut, charge son historique et préserve do_not_contact', async () => {
+    let current = { ...savedProspect };
+    global.fetch = vi.fn(async (url, options = {}) => {
+      if (url === '/api/v2/prospects') return jsonResponse({ success: true, prospects: [current], count: 1 });
+      if (url === '/api/v2/prospects/prospect-1/status' && options.method === 'PATCH') {
+        current = { ...current, status: JSON.parse(options.body).status };
+        return jsonResponse({ success: true, prospect: current });
+      }
+      if (url === '/api/v2/prospects/prospect-1') {
+        return jsonResponse({ success: true, prospect: { ...current, events: [{ event_id: 'e1', event_type: 'status_changed', from_status: 'qualified', to_status: current.status, created_at: '2026-10-12T12:00:00Z' }] } });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    });
+    const user = userEvent.setup();
+    render(<ProspectView />);
+    await user.click(await screen.findByRole('button', { name: /Prospects sauvegardés/ }));
+
+    await user.selectOptions(await screen.findByLabelText('Statut de Studio Nord'), 'do_not_contact');
+    expect(await screen.findByLabelText('Statut de Studio Nord')).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Voir le suivi de Studio Nord' }));
+
+    const history = await screen.findByLabelText('Historique de Studio Nord');
+    expect(
+      within(history).getByText(/passage de Qualifié à Ne pas contacter/i),
+    ).toBeInTheDocument();
+  });
+
+  it('supprime explicitement un prospect et son suivi apres confirmation', async () => {
+    let current = [savedProspect];
+    global.fetch = vi.fn(async (url, options = {}) => {
+      if (url === '/api/v2/prospects' && (!options.method || options.method === 'GET')) {
+        return jsonResponse({ success: true, prospects: current, count: current.length });
+      }
+      if (url === '/api/v2/prospects/prospect-1' && options.method === 'DELETE') {
+        current = [];
+        return jsonResponse({ success: true, deleted: true });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    });
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const user = userEvent.setup();
+    render(<ProspectView />);
+    await user.click(await screen.findByRole('button', { name: /Prospects sauvegard/ }));
+
+    await user.click(await screen.findByRole('button', { name: 'Supprimer Studio Nord' }));
+
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringMatching(/Studio Nord et son historique/i));
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/v2/prospects/prospect-1',
+      expect.objectContaining({ method: 'DELETE', credentials: 'same-origin' }),
+    );
+    expect(await screen.findByText(/Aucun prospect sauvegard/)).toBeInTheDocument();
   });
 });

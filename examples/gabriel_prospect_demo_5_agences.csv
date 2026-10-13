@@ -1,0 +1,6 @@
+Entreprise;Site;Type agence;Services;Prénom;Nom;Fonction;Effectif;Pays;Email;LinkedIn
+Atelier Pixel;https://atelier-pixel.test;Agence branding;Identité de marque;Alice;Martin;Fondatrice;12;France;alice@atelier-pixel.test;
+Studio Onde;https://studio-onde.test;Agence social media;Social media;Chloé;Bernard;CEO;80;France;chloe@studio-onde.test;
+Maison Signal;https://maison-signal.test;Agence relations presse;Relations presse;Léa;Robert;Directrice;8;Allemagne;;https://www.linkedin.com/in/lea-robert-test
+Collectif Nova;https://collectif-nova.test;Agence marketing;Marketing digital;;;Responsable acquisition;4;Belgique;adresse-invalide;
+Agence Horizon;https://agence-horizon.test;Agence marketing B2B;Stratégie de contenu;Nora;Petit;Gérante;25;Suisse;nora@agence-horizon.test;

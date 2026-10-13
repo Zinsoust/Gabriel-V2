@@ -4757,6 +4757,42 @@ html[data-gabriel-v2-theme="dark"] .gv2-creator-message--error span { background
 .gv2-prospect-review-grid ul { padding-left: 17px; }
 .gv2-prospect-filter-empty { display: grid; min-height: 180px; place-items: center; align-content: center; gap: 8px; color: var(--muted); text-align: center; }
 .gv2-prospect-filter-empty p { margin: 0; font-size: 12.5px; }
+.gv2-prospect-sections { display: flex; gap: 4px; margin-top: 18px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.gv2-prospect-sections button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
+.gv2-prospect-sections button:hover, .gv2-prospect-sections button.is-active { background: var(--soft); color: var(--ink); }
+.gv2-prospect-sections button span { display: grid; min-width: 20px; height: 20px; place-items: center; padding: 0 5px; border-radius: 999px; background: var(--line); font: 500 10px var(--font-family-mono); }
+.gv2-prospect-savebar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 16px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--soft); }
+.gv2-prospect-savebar > div { display: grid; gap: 3px; }
+.gv2-prospect-savebar strong { color: var(--ink); font-size: 12.5px; }
+.gv2-prospect-savebar span { color: var(--muted); font-size: 11px; }
+.gv2-prospect-savebar button { min-height: 36px; padding: 0 14px; border: 1px solid var(--ink); border-radius: 8px; background: var(--ink); color: var(--surface); font-size: 11.5px; font-weight: 650; cursor: pointer; }
+.gv2-prospect-savebar button:disabled { border-color: var(--line); background: var(--line); color: var(--muted); cursor: not-allowed; }
+.gv2-prospect-save-notice { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 10px 13px; border: 1px solid color-mix(in srgb, var(--success) 30%, var(--line)); border-radius: 8px; background: color-mix(in srgb, var(--success) 7%, transparent); color: var(--success); font-size: 12px; }
+.gv2-prospect-checkbox { width: 16px; height: 16px; accent-color: var(--ink); cursor: pointer; }
+.gv2-prospect-checkbox:disabled { cursor: not-allowed; opacity: .35; }
+.gv2-prospect-saved { margin-top: 18px; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+.gv2-prospect-saved-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 20px; border-bottom: 1px solid var(--line); }
+.gv2-prospect-saved-head h2 { margin: 0; font-family: var(--font-family-display); font-size: 24px; font-weight: 550; letter-spacing: -.025em; }
+.gv2-prospect-saved-head > div > p:last-child { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+.gv2-prospect-saved-head > button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--body); font-size: 11px; cursor: pointer; }
+.gv2-prospect-saved-head > button:disabled { cursor: wait; opacity: .5; }
+.gv2-prospect-saved-filters { display: grid; grid-template-columns: minmax(180px, 1fr) 120px 190px; gap: 10px; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--soft); }
+.gv2-prospect-saved-filters label { display: grid; gap: 4px; color: var(--muted); font: 500 8.5px var(--font-family-mono); letter-spacing: .06em; text-transform: uppercase; }
+.gv2-prospect-saved-filters input, .gv2-prospect-saved-filters select, .gv2-prospect-pipeline-status { height: 34px; min-width: 0; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); padding: 0 9px; font: 400 11.5px var(--font-family-sans); letter-spacing: normal; text-transform: none; }
+.gv2-prospect-pipeline-status { width: 158px; }
+.gv2-prospect-pipeline-status.is-do_not_contact { border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); color: var(--danger); }
+.gv2-prospect-pipeline-status:disabled { opacity: .78; }
+.gv2-prospect-row-actions { display: flex; gap: 5px; }
+.gv2-prospect-row-actions button { display: grid; width: 29px; height: 29px; place-items: center; padding: 0; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--muted); cursor: pointer; }
+.gv2-prospect-row-actions button:hover { color: var(--ink); }
+.gv2-prospect-row-actions button.is-delete:hover { border-color: color-mix(in srgb, var(--danger) 35%, var(--line)); color: var(--danger); }
+.gv2-prospect-history { margin: 0 22px 22px; padding: 17px; border-top: 1px solid var(--line); }
+.gv2-prospect-history h3 { margin: 0 0 12px; color: var(--ink); font-size: 12px; }
+.gv2-prospect-history ol { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.gv2-prospect-history li { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 13px; color: var(--body); font-size: 11.5px; }
+.gv2-prospect-history li span { color: var(--muted); font-family: var(--font-family-mono); font-size: 10px; }
+.gv2-prospect-history li strong { color: var(--ink); font-weight: 550; }
+.gv2-prospect-history > p { margin: 0; color: var(--muted); font-size: 11.5px; }
 
 .gv2-theme-dark .gv2-prospect-disclaimer, .gv2-theme-dark .gv2-prospect-unverified, .gv2-theme-dark .gv2-prospect-duplicate.is-possible { background: rgba(184, 149, 99, .12); color: #d9bd93; }
 .gv2-theme-dark .gv2-prospect-local-badge, .gv2-theme-dark .gv2-prospect-status.is-eligible { color: #6fd08a; }
@@ -4780,6 +4816,9 @@ html[data-gabriel-v2-theme="dark"] .gv2-creator-message--error span { background
   .gv2-prospect-filters { display: grid; width: 100%; grid-template-columns: 1fr; }
   .gv2-prospect-filters input, .gv2-prospect-filters select { width: 100%; }
   .gv2-prospect-detail-grid, .gv2-prospect-review-grid { grid-template-columns: 1fr; }
+  .gv2-prospect-savebar, .gv2-prospect-saved-head { align-items: stretch; flex-direction: column; }
+  .gv2-prospect-saved-filters { grid-template-columns: 1fr; padding: 13px; }
+  .gv2-prospect-history li { grid-template-columns: 1fr; gap: 3px; }
 }
 @media (prefers-reduced-motion: reduce) { .gv2-prospect-spinner { animation: none; } }
 
