@@ -78,6 +78,23 @@ class FakeQuery:
             return SimpleNamespace(data=selected[:self.maximum] if self.maximum else selected)
         if self.operation == "insert":
             inserted = self.payload if isinstance(self.payload, list) else [self.payload]
+            if self.table == "gabriel_prospects":
+                suppressions = self.database.rows.setdefault("gabriel_prospect_suppressions", [])
+                for row in inserted:
+                    identifiers = (
+                        ("email", row.get("email_hash")),
+                        ("linkedin", row.get("linkedin_hash")),
+                        ("identity", row.get("identity_hash")),
+                    )
+                    if any(
+                        value
+                        and suppression.get("user_id") == row.get("user_id")
+                        and suppression.get("identifier_kind") == kind
+                        and suppression.get("identifier_hash") == value
+                        for kind, value in identifiers
+                        for suppression in suppressions
+                    ):
+                        raise RuntimeError("contact identifier is suppressed")
             rows.extend(dict(row) for row in inserted)
             return SimpleNamespace(data=[dict(row) for row in inserted])
         matched = [row for row in rows if self._matches(row)]
@@ -98,6 +115,31 @@ class FakeQuery:
             return SimpleNamespace(data=[dict(row) for row in matched])
         if self.operation == "delete":
             removed = [dict(row) for row in matched]
+            if self.table == "gabriel_prospects":
+                for row in removed:
+                    if row.get("status") != "do_not_contact":
+                        continue
+                    identifiers = [
+                        ("email", row.get("email_hash")),
+                        ("linkedin", row.get("linkedin_hash")),
+                        ("identity", row.get("identity_hash")),
+                    ]
+                    identifiers = [(kind, value) for kind, value in identifiers if value]
+                    if not identifiers:
+                        raise RuntimeError("cannot delete do_not_contact without a stable identifier")
+                    suppressions = self.database.rows.setdefault("gabriel_prospect_suppressions", [])
+                    for kind, value in identifiers:
+                        if not any(
+                            item.get("user_id") == row.get("user_id")
+                            and item.get("identifier_kind") == kind
+                            and item.get("identifier_hash") == value
+                            for item in suppressions
+                        ):
+                            suppressions.append({
+                                "user_id": row["user_id"],
+                                "identifier_kind": kind,
+                                "identifier_hash": value,
+                            })
             self.database.rows[self.table] = [row for row in rows if not self._matches(row)]
             return SimpleNamespace(data=removed)
         raise AssertionError(self.operation)
@@ -262,3 +304,49 @@ def test_deleted_do_not_contact_is_suppressed_on_reimport():
     assert reimport["duplicate_count"] == 1
     assert reimport["duplicates"][0]["reason"] == "do_not_contact"
     assert reimport["duplicates"][0]["existing_prospect_id"] is None
+
+
+def test_direct_database_delete_also_preserves_do_not_contact_suppression():
+    database = FakeSupabase()
+    repository = SupabaseProspectRepository(database)
+    first = repository.save_selected("user-a", _prepared())
+    prospect_id = first["saved"][0]["prospect_id"]
+    repository.update_status("user-a", prospect_id, "do_not_contact")
+
+    database.table("gabriel_prospects").delete().eq("prospect_id", prospect_id).eq("user_id", "user-a").execute()
+    reimport = repository.save_selected("user-a", _prepared(row=9))
+
+    assert reimport["saved_count"] == 0
+    assert reimport["duplicates"][0]["reason"] == "do_not_contact"
+
+
+def test_direct_database_insert_cannot_bypass_suppression():
+    database = FakeSupabase()
+    repository = SupabaseProspectRepository(database)
+    first = repository.save_selected("user-a", _prepared())
+    prospect_id = first["saved"][0]["prospect_id"]
+    blocked_row = dict(repository.get_prospect("user-a", prospect_id))
+    blocked_row.pop("events")
+    blocked_row["prospect_id"] = "direct-reimport"
+    repository.update_status("user-a", prospect_id, "do_not_contact")
+    database.table("gabriel_prospects").delete().eq(
+        "prospect_id", prospect_id
+    ).eq("user_id", "user-a").execute()
+
+    with pytest.raises(RuntimeError, match="contact identifier is suppressed"):
+        database.table("gabriel_prospects").insert(blocked_row).execute()
+
+
+def test_repository_never_inserts_suppressions_directly():
+    database = FakeSupabase()
+    repository = SupabaseProspectRepository(database)
+    first = repository.save_selected("user-a", _prepared())
+    prospect_id = first["saved"][0]["prospect_id"]
+    repository.update_status("user-a", prospect_id, "do_not_contact")
+
+    assert repository.delete_prospect("user-a", prospect_id) is True
+    assert not any(
+        call["table"] == "gabriel_prospect_suppressions"
+        and call["operation"] == "insert"
+        for call in database.calls
+    )

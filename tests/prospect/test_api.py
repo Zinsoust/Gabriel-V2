@@ -161,16 +161,24 @@ def test_prospect_package_has_no_external_service_client_imports():
         "stripe", "supabase",
     }
     imported_roots = set()
+    supabase_importers = set()
 
     for source_file in package_dir.glob("*.py"):
         tree = ast.parse(source_file.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
-                imported_roots.update(alias.name.split(".", 1)[0] for alias in node.names)
+                roots = {alias.name.split(".", 1)[0] for alias in node.names}
+                imported_roots.update(roots)
+                if "supabase" in roots:
+                    supabase_importers.add(source_file.name)
             elif isinstance(node, ast.ImportFrom) and node.module:
-                imported_roots.add(node.module.split(".", 1)[0])
+                root = node.module.split(".", 1)[0]
+                imported_roots.add(root)
+                if root == "supabase":
+                    supabase_importers.add(source_file.name)
 
-    assert imported_roots.isdisjoint(forbidden_roots)
+    assert imported_roots.isdisjoint(forbidden_roots - {"supabase"})
+    assert supabase_importers == {"client.py"}
 
 
 def _save_payload():
@@ -256,6 +264,22 @@ def test_save_selected_prospects_revalidates_and_passes_authenticated_user(repos
     operation, user_id, prepared = repository_stub.calls[0]
     assert operation == "save" and user_id == UID
     assert prepared["prospects"][0]["score"]["total"] == 100
+
+
+def test_save_without_dedicated_storage_returns_controlled_503(monkeypatch):
+    from gabriel_prospect import api as prospect_api
+    from gabriel_prospect.repository import SupabaseProspectRepository
+
+    monkeypatch.setattr(
+        prospect_api,
+        "get_repository",
+        lambda: SupabaseProspectRepository(None),
+    )
+
+    response = _client().post("/api/v2/prospects", json=_save_payload())
+
+    assert response.status_code == 503
+    assert response.get_json()["error_code"] == "prospect_storage_unavailable"
 
 
 def test_save_rejects_tampered_preview_provenance(repository_stub):

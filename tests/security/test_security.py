@@ -266,6 +266,14 @@ class TestSecureLogging:
     def test_safe_log_event_none_uid(self):
         safe_log_event('test_event', user_id=None)
 
+    def test_http_transport_does_not_log_full_request_urls_at_info(self):
+        app_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'app.py'
+        )
+        with open(app_path, encoding='utf-8') as app_file:
+            content = app_file.read()
+        assert "logging.getLogger('httpx').setLevel(logging.WARNING)" in content
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GROUPE 5 — Contrôle d'appartenance des jobs
@@ -304,7 +312,7 @@ class TestSecretsProtection:
             os.path.dirname(os.path.dirname(os.path.dirname(__file__))), '.gitignore'
         )
         assert os.path.exists(gitignore_path), ".gitignore introuvable"
-        with open(gitignore_path) as f:
+        with open(gitignore_path, encoding='utf-8') as f:
             content = f.read()
         assert '.env' in content, ".env absent de .gitignore"
 
@@ -322,7 +330,7 @@ class TestSecretsProtection:
         )
         if not os.path.exists(example_path):
             pytest.skip(".env.example introuvable")
-        with open(example_path) as f:
+        with open(example_path, encoding='utf-8') as f:
             content = f.read()
 
         # Ces patterns indiquent une vraie clé (prefixes Anthropic, Stripe, Supabase...)
@@ -345,7 +353,7 @@ class TestSecretsProtection:
             'supabase', 'security_policies.sql'
         )
         assert os.path.exists(rls_path), "supabase/security_policies.sql introuvable"
-        with open(rls_path) as f:
+        with open(rls_path, encoding='utf-8') as f:
             content = f.read()
         # Vérifie que les tables sensibles sont couvertes
         for table in ['gabriel_analyses', 'gabriel_strategies', 'gabriel_feedbacks', 'gabriel_exports']:

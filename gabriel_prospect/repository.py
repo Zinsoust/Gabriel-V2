@@ -303,25 +303,6 @@ class SupabaseProspectRepository:
         return rows[0]
 
     def delete_prospect(self, user_id, prospect_id):
-        current = self.get_prospect(user_id, prospect_id)
-        if current.get("status") == "do_not_contact":
-            suppressions = []
-            for kind, value in (
-                ("email", current.get("email_hash")),
-                ("linkedin", current.get("linkedin_hash")),
-                ("identity", current.get("identity_hash")),
-            ):
-                if value:
-                    suppressions.append({
-                        "suppression_id": str(uuid.uuid4()),
-                        "user_id": user_id,
-                        "identifier_kind": kind,
-                        "identifier_hash": value,
-                        "created_at": _now(),
-                    })
-            if not suppressions:
-                raise ProspectConflict("suppression_identity_missing")
-            self._execute(self.client.table(SUPPRESSIONS_TABLE).insert(suppressions))
         result = self._execute(
             self.client.table(PROSPECTS_TABLE)
             .delete()

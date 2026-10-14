@@ -14,6 +14,10 @@ from functools import wraps
 # rien n'apparaît dans les logs Render ni en local. On configure explicitement
 # un handler stdout au niveau INFO pour tous les loggers de l'app.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)s %(message)s')
+# httpx logs full request URLs at INFO. Supabase filters can contain user IDs
+# and hashed contact identifiers, so keep those transport details out of the
+# application logs while preserving warnings and errors.
+logging.getLogger('httpx').setLevel(logging.WARNING)
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response, send_file, Response
 from dotenv import load_dotenv
 
@@ -60,7 +64,7 @@ from core.cross_interpreter import (
 )
 from api.auth import auth_bp, init_auth, current_user, login_required, login_required_api, login_required_page, get_or_create_user
 from gabriel_prospect.api import prospect_bp
-from gabriel_prospect.repository import init_repository as _init_prospect_repository
+from gabriel_prospect.client import init_prospect_storage as _init_prospect_storage
 import api.db as _db
 from services.scraper import (
     scrape_youtube,
@@ -325,7 +329,7 @@ def health():
 # Passer le client Supabase à db.py
 from api.auth import _supabase as _sb_client
 _db.init_db(_sb_client)
-_init_prospect_repository(_sb_client)
+_init_prospect_storage()
 gabriel = Gabriel()
 memory  = GabrielMemory()
 # Le pipeline Cross n'est qu'un adaptateur autour du Psychologue existant : il
