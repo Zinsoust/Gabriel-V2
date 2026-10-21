@@ -161,6 +161,8 @@ describe('Passerelle vers Le Créateur', () => {
     render(<StrategeView workspace={WORKSPACE_DONE} onNavigateAgent={onNavigateAgent} />);
     await waitFor(() => screen.getByText('Le Créateur →'));
     await user.click(screen.getByText('Le Créateur →'));
-    expect(onNavigateAgent).toHaveBeenCalledWith('createur');
+    expect(onNavigateAgent).toHaveBeenCalledWith('createur', {
+      source: 'stratege', folder_id: 'f-2', strategy_id: 's-2',
+    });
   });
 });

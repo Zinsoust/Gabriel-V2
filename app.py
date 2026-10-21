@@ -8,6 +8,7 @@ import datetime
 import logging
 import threading
 from functools import wraps
+from urllib.parse import urlsplit
 
 # Sans handler configuré, logger.info() (utilisé par safe_log_event, y compris
 # les logs OAuth) est silencieusement ignoré par le logging root de Python —
@@ -63,8 +64,6 @@ from core.cross_interpreter import (
     run_dialectic_review,
 )
 from api.auth import auth_bp, init_auth, current_user, login_required, login_required_api, login_required_page, get_or_create_user
-from gabriel_prospect.api import prospect_bp
-from gabriel_prospect.client import init_prospect_storage as _init_prospect_storage
 import api.db as _db
 from services.scraper import (
     scrape_youtube,
@@ -94,9 +93,47 @@ _is_production = (
     or bool(os.environ.get('RENDER'))
     or os.environ.get('RENDER_EXTERNAL_URL', '').startswith('https://')
 )
+
+# Gabriel Prospect reste disponible dans le dépôt pour un éventuel retour,
+# mais il ne fait plus partie du produit lancé. Même si la variable de test
+# subsistait par erreur sur le serveur, le module ne peut pas s'activer en prod.
+_PROSPECT_ENABLED = (
+    not _is_production
+    and os.environ.get('GABRIEL_ENV', '').lower() != 'production'
+    and os.environ.get('GABRIEL_PROSPECT_ENABLED', 'false').lower() == 'true'
+)
+if _PROSPECT_ENABLED:
+    from gabriel_prospect.api import prospect_bp
+    from gabriel_prospect.client import init_prospect_storage as _init_prospect_storage
+
 app.config['SESSION_COOKIE_SECURE']   = _is_production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
+
+@app.before_request
+def _reject_cross_origin_state_change():
+    """Bloque les soumissions navigateur provenant d'un autre site.
+
+    SameSite protège déjà le cookie dans les navigateurs modernes, mais ce
+    contrôle couvre aussi le login CSRF et les navigateurs/proxies atypiques.
+    Les webhooks et clients serveur sans en-tête Origin/Referer restent admis.
+    """
+    if request.method not in {'POST', 'PUT', 'PATCH', 'DELETE'}:
+        return None
+    source = request.headers.get('Origin') or request.headers.get('Referer')
+    if not source:
+        return None
+    try:
+        parsed = urlsplit(source)
+        expected_scheme = request.scheme.lower()
+        expected_host = request.host.lower()
+        if parsed.scheme.lower() == expected_scheme and parsed.netloc.lower() == expected_host:
+            return None
+    except (TypeError, ValueError):
+        pass
+    safe_log_event('cross_origin_request_blocked', metadata={'path': request.path})
+    return jsonify({'success': False, 'error': 'Origine de requête refusée.'}), 403
 
 # Render (et tout reverse proxy HTTPS) transmet les requêtes en HTTP interne.
 # Sans ProxyFix, url_for(..., _external=True) génère http:// → Google OAuth refuse.
@@ -142,7 +179,8 @@ if _is_production and os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
 
 init_auth(app)
 app.register_blueprint(auth_bp)
-app.register_blueprint(prospect_bp)
+if _PROSPECT_ENABLED:
+    app.register_blueprint(prospect_bp)
 
 
 @app.context_processor
@@ -329,7 +367,8 @@ def health():
 # Passer le client Supabase à db.py
 from api.auth import _supabase as _sb_client
 _db.init_db(_sb_client)
-_init_prospect_storage()
+if _PROSPECT_ENABLED:
+    _init_prospect_storage()
 gabriel = Gabriel()
 memory  = GabrielMemory()
 # Le pipeline Cross n'est qu'un adaptateur autour du Psychologue existant : il
@@ -739,39 +778,6 @@ def analyze():
     if not ok:
         return jsonify({'error': err}), 400
 
-    # Vérifier la limite d'usage du plan gratuit
-    _cu_early = current_user() or {}
-    uid_early   = _cu_early.get('user_id')
-    email_early = _cu_early.get('email', '')
-    if uid_early:
-        usage = _db.check_usage_limit(uid_early, email=email_early)
-        if not usage.get('allowed'):
-            return jsonify({
-                'error':            'limit_reached',
-                'upgrade_required': True,
-                'analyses_used':    usage.get('used', 0),
-                'analyses_limit':   usage.get('limit', _db.FREE_ANALYSES_LIMIT),
-                'plan':             usage.get('plan', 'free'),
-            }), 403
-
-    # Vérifier le solde de crédits (transversal aux 3 agents — voir api/db.py)
-    _cost_psycho = _db.CREDIT_COSTS['psychologue']
-    try:
-        _psycho_has_credits = (
-            not uid_early
-            or _db.has_enough_credits(uid_early, _cost_psycho, email=email_early)
-        )
-        _psycho_balance = _db.get_user_credits(uid_early) if uid_early and not _psycho_has_credits else None
-    except _db.CreditError as exc:
-        return _credit_error_response(uid_early, exc)
-    if not _psycho_has_credits:
-        return jsonify({
-            'error':            'credits_insufficient',
-            'upgrade_required': True,
-            'credits':          _psycho_balance,
-            'cost':             _cost_psycho,
-        }), 402
-
     comments      = []
     video_context = ""
     video_title   = ""
@@ -825,6 +831,40 @@ def analyze():
                 'video_context': video_context,
                 'source_label': source_label,
             })
+
+        # Un aperçu ne consomme ni quota ni crédit. Les contrôles payants sont
+        # donc effectués seulement après validation et extraction de la source,
+        # juste avant de créer le vrai job d'analyse.
+        _cu_early = current_user() or {}
+        uid_early = _cu_early.get('user_id')
+        email_early = _cu_early.get('email', '')
+        if uid_early:
+            usage = _db.check_usage_limit(uid_early, email=email_early)
+            if not usage.get('allowed'):
+                return jsonify({
+                    'error': 'limit_reached',
+                    'upgrade_required': True,
+                    'analyses_used': usage.get('used', 0),
+                    'analyses_limit': usage.get('limit', _db.FREE_ANALYSES_LIMIT),
+                    'plan': usage.get('plan', 'free'),
+                }), 403
+
+        _cost_psycho = _db.CREDIT_COSTS['psychologue']
+        try:
+            _psycho_has_credits = (
+                not uid_early
+                or _db.has_enough_credits(uid_early, _cost_psycho, email=email_early)
+            )
+            _psycho_balance = _db.get_user_credits(uid_early) if uid_early and not _psycho_has_credits else None
+        except _db.CreditError as exc:
+            return _credit_error_response(uid_early, exc)
+        if not _psycho_has_credits:
+            return jsonify({
+                'error': 'credits_insufficient',
+                'upgrade_required': True,
+                'credits': _psycho_balance,
+                'cost': _cost_psycho,
+            }), 402
 
         # ── Job en arrière-plan : le LLM peut prendre 30-120 s ──────────────
         uid         = (current_user() or {}).get('user_id')
@@ -1958,18 +1998,37 @@ def _resolve_psycho(data, uid):
 
 
 def _resolve_strategy(data, uid):
-    """Résout la stratégie depuis le body, un strategy_id, ou le dossier lié — jamais laissée vide si disponible."""
+    """Résout une stratégie appartenant à l'utilisateur et au dossier demandé.
+
+    Les anciens clients peuvent encore fournir une stratégie embarquée ou un
+    ``strategy_id`` sans dossier. Dès qu'un ``folder_id`` est présent, le lien
+    dossier → stratégie devient toutefois obligatoire : cela empêche un onglet
+    ancien de réutiliser silencieusement le contexte d'un autre dossier.
+    """
     strategy = data.get('strategy') or data.get('strategie_data') or {}
+    folder_id = str(data.get('folder_id') or '').strip()
+    strategy_id = str(data.get('strategy_id') or '').strip()
+    folder = _db.get_folder_by_id(folder_id, uid) if folder_id else None
+    if folder_id and not folder:
+        return {}
+    linked_strategy_id = str((folder or {}).get('strategy_id') or '').strip()
+    if folder_id and strategy_id and strategy_id != linked_strategy_id:
+        return {}
+    if folder_id and strategy and not linked_strategy_id:
+        return {}
+    if folder_id and strategy:
+        # Avec un dossier, le body n'est jamais une source de vérité : on
+        # recharge la stratégie persistée et liée au dossier.
+        strategy = {}
+        strategy_id = linked_strategy_id
     if strategy:
         return strategy
-    strategy_id = str(data.get('strategy_id') or '').strip()
-    folder_id   = str(data.get('folder_id') or '').strip()
-    if not strategy_id and folder_id:
-        folder = _db.get_folder_by_id(folder_id, uid)
-        strategy_id = (folder or {}).get('strategy_id', '')
+    if not strategy_id:
+        strategy_id = linked_strategy_id
     if strategy_id:
         s = _db.get_strategy_by_id(strategy_id, uid)
-        if s:
+        stored_folder_id = str((s or {}).get('folder_id') or '').strip()
+        if s and (not folder_id or not stored_folder_id or stored_folder_id == folder_id):
             return s.get('strategy_result') or {}
     return {}
 
@@ -2046,6 +2105,11 @@ def creator_generate():
     # demandée. Sans indication (anciens clients), comportement historique.
     psycho_data = {} if data.get('use_psycho') is False else _resolve_psycho(data, uid)
     strategy    = {} if data.get('use_strategy') is False else _resolve_strategy(data, uid)
+    if data.get('use_strategy') is True and not strategy:
+        return jsonify({
+            'error': 'strategy_context_mismatch',
+            'message': "La stratégie d’Ariane n’est pas liée à ce dossier. Rechargez le dossier avant de générer.",
+        }), 409
 
     # Le persona utilisé doit être l'objet exact généré par le Psychologue pour
     # cette analyse — jamais celui envoyé par le client. Le nom sert seulement
@@ -3249,7 +3313,6 @@ def strategy_session_step():
 @_rl(_RL_CHAT)
 def strategy_chat():
     """Consultant stratégique IA — McKinsey/Deloitte level."""
-    from mistralai import Mistral
     data          = request.get_json(silent=True) or {}
     message       = data.get('message', '').strip()
     analysis_id   = data.get('analysis_id', '')
@@ -3264,6 +3327,10 @@ def strategy_chat():
     ok, err = validate_size(message, 'message', LIMITS['chat_message_max_chars'])
     if not ok:
         return jsonify({'error': err}), 400
+
+    # Une erreur de saisie doit rester déterministe même si le SDK IA n'est
+    # pas installé. L'import n'intervient qu'une fois le contrat validé.
+    from mistralai import Mistral
 
     # Récupérer les données psycho : payload frontend > cache > DB
     uid_chat = (current_user() or {}).get('user_id')

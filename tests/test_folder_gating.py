@@ -136,7 +136,7 @@ def test_resolve_strategy_via_folder_id(monkeypatch):
         return {'strategy_id': 'sid-linked'}
     def fake_get_strategy_by_id(strategy_id, user_id=None):
         assert strategy_id == 'sid-linked'
-        return {'strategy_result': {'decision_centrale': 'Via folder_id'}}
+        return {'folder_id': 'fid-99', 'strategy_result': {'decision_centrale': 'Via folder_id'}}
     monkeypatch.setattr(_db, 'get_folder_by_id', fake_get_folder_by_id)
     monkeypatch.setattr(_db, 'get_strategy_by_id', fake_get_strategy_by_id)
 
@@ -148,3 +148,59 @@ def test_resolve_strategy_folder_without_strategy_yet():
     """Un dossier existant mais sans stratégie liée ne doit pas planter — retourne {}."""
     strat = _app._resolve_strategy({'folder_id': 'fid-no-strategy'}, UID)
     assert strat == {}
+
+
+def test_resolve_strategy_rejects_strategy_from_another_folder(monkeypatch):
+    """Un ancien onglet ne peut pas injecter l'identifiant d'un autre dossier."""
+    monkeypatch.setattr(_db, 'get_folder_by_id', lambda folder_id, user_id: {
+        'folder_id': folder_id, 'strategy_id': 'sid-current',
+    })
+    monkeypatch.setattr(_db, 'get_strategy_by_id', lambda *_args, **_kwargs: {
+        'folder_id': 'fid-other',
+        'strategy_result': {'decision_centrale': 'Contexte périmé'},
+    })
+
+    assert _app._resolve_strategy({
+        'folder_id': 'fid-current', 'strategy_id': 'sid-other',
+    }, UID) == {}
+
+
+def test_resolve_strategy_accepts_exact_folder_strategy_pair(monkeypatch):
+    monkeypatch.setattr(_db, 'get_folder_by_id', lambda folder_id, user_id: {
+        'folder_id': folder_id, 'strategy_id': 'sid-current',
+    })
+    monkeypatch.setattr(_db, 'get_strategy_by_id', lambda *_args, **_kwargs: {
+        'folder_id': 'fid-current',
+        'strategy_result': {'decision_centrale': 'Contexte courant'},
+    })
+
+    strat = _app._resolve_strategy({
+        'folder_id': 'fid-current', 'strategy_id': 'sid-current',
+    }, UID)
+    assert strat['decision_centrale'] == 'Contexte courant'
+
+
+def test_creator_route_refuses_stale_strategy_before_generation(monkeypatch):
+    monkeypatch.setattr(_db, 'has_enough_credits', lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(_db, 'get_folder_by_id', lambda folder_id, user_id: {
+        'folder_id': folder_id, 'strategy_id': 'sid-current',
+    })
+    called = {'strategy': False}
+
+    def forbidden_strategy_load(*_args, **_kwargs):
+        called['strategy'] = True
+        return None
+
+    monkeypatch.setattr(_db, 'get_strategy_by_id', forbidden_strategy_load)
+    response = _client().post('/api/v2/agents/createur/generate', json={
+        'content_type': 'script',
+        'user_request': 'Créer un script',
+        'folder_id': 'fid-current',
+        'strategy_id': 'sid-stale',
+        'use_psycho': False,
+        'use_strategy': True,
+    })
+
+    assert response.status_code == 409
+    assert response.get_json()['error'] == 'strategy_context_mismatch'
+    assert called['strategy'] is False

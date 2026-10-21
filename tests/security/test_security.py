@@ -421,6 +421,31 @@ class TestRouteAuth:
             assert resp.status_code in (200, 302), \
                 f"GET {path} devrait être accessible (got {resp.status_code})"
 
+    def test_cross_origin_post_is_rejected_before_route_logic(self, app_client):
+        """Une page tierce ne peut pas soumettre un formulaire avec la session Gabriel."""
+        with app_client.session_transaction() as sess:
+            sess['user_id'] = 'test-uid'
+            sess['user_email'] = 'test@test.com'
+        response = app_client.post(
+            '/strategy_chat',
+            json={'message': ''},
+            headers={'Origin': 'https://evil.example'},
+        )
+        assert response.status_code == 403
+        assert response.get_json()['error'] == 'Origine de requête refusée.'
+
+    def test_same_origin_post_reaches_normal_validation(self, app_client):
+        with app_client.session_transaction() as sess:
+            sess['user_id'] = 'test-uid'
+            sess['user_email'] = 'test@test.com'
+        response = app_client.post(
+            '/strategy_chat',
+            json={'message': ''},
+            headers={'Origin': 'http://localhost'},
+        )
+        assert response.status_code == 400
+        assert response.get_json()['error'] == 'Message vide'
+
     def test_analyze_input_too_long(self, app_client):
         """Input trop long sur /analyze → refus SANS appel LLM."""
         with app_client.session_transaction() as sess:

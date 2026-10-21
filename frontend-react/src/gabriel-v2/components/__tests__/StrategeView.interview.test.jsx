@@ -147,10 +147,28 @@ describe('Génération depuis l’entretien', () => {
     expect(body.analysis_id).toBeUndefined();
   });
 
+  it('transmet immédiatement l’identifiant de la stratégie créée à Thomas', async () => {
+    global.fetch = routeFetch([
+      [/^\/business-context/, () => ({ json: { ...OUVERTURE, is_ready: true, updated_context: { offre: 'Coaching' } } })],
+      [/^\/strategize$/, () => ({ json: { success: true, strategy_id: 'nouvelle-strat', decision_centrale: 'Décision fraîche' } })],
+    ]);
+    const onNavigateAgent = vi.fn();
+    const user = userEvent.setup();
+    render(<StrategeView workspace={WORKSPACE} onNavigateAgent={onNavigateAgent} />);
+    await waitFor(() => screen.getByRole('button', { name: /Générer mon diagnostic/ }));
+    await user.click(screen.getByRole('button', { name: /Générer mon diagnostic/ }));
+    await waitFor(() => screen.getByText('Le Créateur →'));
+    await user.click(screen.getByText('Le Créateur →'));
+    expect(onNavigateAgent).toHaveBeenCalledWith('createur', {
+      source: 'stratege', folder_id: 'f-1', strategy_id: 'nouvelle-strat',
+    });
+  });
+
   it('bascule en flux classique quand une analyse Psychologue a été transmise', async () => {
     try {
       window.sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({
-        analysis_id: 'a-transmise', folder_id: 'f-1', psycho_brief: 'Audience en quête de structure.', psycho_data: {} }));
+        schema_version: 1, created_at: Date.now(), analysis_id: 'a-transmise', folder_id: 'f-1',
+        psycho_brief: 'Audience en quête de structure.', psycho_data: {} }));
     } catch (_) {}
     global.fetch = routeFetch([
       [/^\/business-context/, () => ({ json: { ...OUVERTURE, is_ready: true, updated_context: { offre: 'Coaching' } } })],
@@ -173,10 +191,34 @@ describe('Génération depuis l’entretien', () => {
 
   it('affiche la bannière quand une analyse Psychologue a été transmise', async () => {
     try {
-      window.sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({ analysis_id: 'a-2', psycho_brief: 'x', psycho_data: {} }));
+      window.sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({
+        schema_version: 1, created_at: Date.now(), analysis_id: 'a-2', folder_id: 'f-1', psycho_brief: 'x', psycho_data: {},
+      }));
     } catch (_) {}
     global.fetch = routeFetch([[/^\/business-context/, () => ({ json: OUVERTURE })]]);
     render(<StrategeView workspace={WORKSPACE} />);
     await waitFor(() => expect(screen.getByText(/Analyse Psychologue détectée/)).toBeInTheDocument());
+  });
+
+  it('ignore et consomme un handoff Psychologue périmé', async () => {
+    window.sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({
+      schema_version: 1, created_at: Date.now() - 11 * 60 * 1000,
+      analysis_id: 'a-old', folder_id: 'f-1', psycho_brief: 'ancien',
+    }));
+    global.fetch = routeFetch([[/^\/business-context/, () => ({ json: OUVERTURE })]]);
+    render(<StrategeView workspace={WORKSPACE} />);
+    await waitFor(() => expect(screen.getByText('Parlez-moi de votre entreprise.')).toBeInTheDocument());
+    expect(screen.queryByText(/Analyse Psychologue détectée/)).not.toBeInTheDocument();
+    expect(window.sessionStorage.getItem('gabriel_for_stratege')).toBeNull();
+  });
+
+  it('ignore un handoff Psychologue d’un autre dossier', async () => {
+    window.sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({
+      schema_version: 1, created_at: Date.now(), analysis_id: 'a-other', folder_id: 'f-other', psycho_brief: 'autre',
+    }));
+    global.fetch = routeFetch([[/^\/business-context/, () => ({ json: OUVERTURE })]]);
+    render(<StrategeView workspace={WORKSPACE} />);
+    await waitFor(() => expect(screen.getByText('Parlez-moi de votre entreprise.')).toBeInTheDocument());
+    expect(screen.queryByText(/Analyse Psychologue détectée/)).not.toBeInTheDocument();
   });
 });

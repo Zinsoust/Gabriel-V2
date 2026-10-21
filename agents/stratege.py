@@ -89,6 +89,73 @@ _PERSONA_FIELDS_FOR_STRATEGE = [
 ]
 
 
+class PsychoContextContractError(ValueError):
+    """Le rapport Psychologue reçu ne correspond à aucun contrat connu."""
+
+
+def _normalise_brief(brief: dict) -> tuple[dict, str]:
+    """Adapte le contrat courant et les analyses historiques sans perte muette."""
+    if not isinstance(brief, dict):
+        raise PsychoContextContractError("Le champ brief du Psychologue doit être un objet.")
+
+    current_keys = ("qui", "insight", "action")
+    legacy_keys = ("synthese", "insight_cle", "action_prioritaire")
+    if brief and not any(brief.get(key) for key in (*current_keys, *legacy_keys)):
+        raise PsychoContextContractError(
+            "Le brief du Psychologue ne contient ni le contrat courant "
+            "(qui/insight/action), ni le contrat historique compatible."
+        )
+
+    has_current = any(brief.get(key) for key in current_keys)
+    has_legacy = any(brief.get(key) for key in legacy_keys)
+    source_schema = (
+        "psychologue.brief.v1+v2" if has_current and has_legacy
+        else "psychologue.brief.v2" if has_current
+        else "psychologue.brief.v1" if has_legacy
+        else "empty"
+    )
+    return {
+        # Les adaptateurs Cross fournissent volontairement les deux formes :
+        # leurs champs historiques sont enrichis (audiences + convergences +
+        # divergences) et doivent donc primer sur les alias compacts.
+        "synthese_audience": brief.get("synthese") or brief.get("qui", ""),
+        "insight_cle": brief.get("insight_cle") or brief.get("insight", ""),
+        "action_prioritaire": brief.get("action_prioritaire") or brief.get("action", ""),
+    }, source_schema
+
+
+def _sentiment_percentages(distribution: dict, dashboard: dict) -> tuple[float, float]:
+    measured = dashboard.get("sentiment_distribution") or {}
+    if measured:
+        return measured.get("positive", 0), measured.get("negative", 0)
+    if "positif" in distribution or "negatif" in distribution:
+        return distribution.get("positif", 0), distribution.get("negatif", 0)
+    total = max(int(distribution.get("total") or 0), 0)
+    if not total:
+        return 0, 0
+    positive = int(distribution.get("positifs") or 0) + int(distribution.get("tres_positifs") or 0)
+    negative = int(distribution.get("negatifs") or 0) + int(distribution.get("tres_negatifs") or 0)
+    return round(positive / total * 100, 1), round(negative / total * 100, 1)
+
+
+def _dominant_emotions(emotions: dict, dashboard: dict) -> list[str]:
+    # Le dashboard est la mesure déterministe issue des commentaires. La
+    # répartition narrative historique reste le repli pour les rapports v1.
+    measured = dashboard.get("emotion_distribution") or {}
+    if measured:
+        return [
+            name for name, value in sorted(
+                measured.items(), key=lambda item: item[1], reverse=True
+            )[:4] if value
+        ]
+    legacy = [
+        item.get("emotion", "")
+        for item in (emotions.get("repartition") or [])[:4]
+        if isinstance(item, dict) and item.get("emotion")
+    ]
+    return legacy
+
+
 def _build_psycho_context(psycho_data: dict) -> dict:
     """Construit le contexte psychologique structuré transmis au Stratège :
     les 3 personas prioritaires, les peurs/douleurs/émotions de l'audience,
@@ -104,6 +171,8 @@ def _build_psycho_context(psycho_data: dict) -> dict:
     personas       = psycho_data.get('personas') or []
     dashboard      = psycho_data.get('dashboard') or {}
     interpretation = psycho_data.get('interpretation') or {}
+    normalized_brief, source_schema = _normalise_brief(brief)
+    positive_pct, negative_pct = _sentiment_percentages(distribution, dashboard)
 
     personas_prioritaires = []
     for p in personas[:3]:
@@ -114,8 +183,13 @@ def _build_psycho_context(psycho_data: dict) -> dict:
 
     context = {
         "personas_prioritaires": personas_prioritaires,
+        "contract": {
+            "name": "psychologue_to_stratege",
+            "version": 2,
+            "source_schema": source_schema,
+        },
         "emotions_audience": {
-            "dominantes": [e.get('emotion', '') for e in emotions.get('repartition', [])[:4] if isinstance(e, dict)],
+            "dominantes": _dominant_emotions(emotions, dashboard),
             "espoir_decu": emotions.get('espoir_decu', ''),
             "aspiration_nourrie": emotions.get('aspiration_nourrie', ''),
         },
@@ -140,9 +214,7 @@ def _build_psycho_context(psycho_data: dict) -> dict:
         "motivations_profondes": psychologie.get('motivations_profondes', [])[:4],
         "desirs_caches":         psychologie.get('desirs_caches', [])[:4],
         "insights_cles": {
-            "synthese_audience":     brief.get('synthese', ''),
-            "insight_cle":           brief.get('insight_cle', ''),
-            "action_prioritaire":    brief.get('action_prioritaire', ''),
+            **normalized_brief,
             "insight_psychologique": (interpretation.get('psychologique') or {}).get('main_insight', ''),
             "insight_socio_culturel":(interpretation.get('socio_culturelle') or {}).get('main_insight', ''),
         },
@@ -158,8 +230,8 @@ def _build_psycho_context(psycho_data: dict) -> dict:
             "polarisation": (kpis.get('polarisation') or {}).get('score', 0),
         },
         "distribution": {
-            "positif_pct": distribution.get('positif', 0),
-            "negatif_pct": distribution.get('negatif', 0),
+            "positif_pct": positive_pct,
+            "negatif_pct": negative_pct,
         },
     }
     if dashboard:

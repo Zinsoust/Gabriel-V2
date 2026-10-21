@@ -1,7 +1,16 @@
 """Équivalence de l'outil d'adaptation Psychologue → Stratège."""
 
+import json
+from pathlib import Path
+
+import pytest
+
 import tools as tools_pkg
-from agents.stratege import _build_psycho_context, _psycho_query_text
+from agents.stratege import (
+    PsychoContextContractError,
+    _build_psycho_context,
+    _psycho_query_text,
+)
 
 
 PSYCHO_DATA = {
@@ -48,6 +57,31 @@ class TestContrat:
         spec = tools_pkg.registry.get('adaptation.psycho_to_strategy_context').spec
         assert spec.deterministic is True
         assert spec.cacheable is True
+
+    def test_le_contrat_courant_conserve_les_champs_et_les_mesures(self):
+        fixture = Path(__file__).resolve().parents[1] / (
+            'frontend-react/src/gabriel-v2/components/__tests__/fixtures/'
+            'psychologue-analyse-youtube.json'
+        )
+        psycho = json.loads(fixture.read_text(encoding='utf-8'))
+
+        context = _build_psycho_context(psycho)
+
+        assert context['contract']['source_schema'] == 'psychologue.brief.v2'
+        assert context['insights_cles']['synthese_audience'] == psycho['brief']['qui']
+        assert context['insights_cles']['insight_cle'] == psycho['brief']['insight']
+        assert context['insights_cles']['action_prioritaire'] == psycho['brief']['action']
+        assert context['emotions_audience']['dominantes'][0] == 'confusion'
+        assert context['distribution'] == {'positif_pct': 26.1, 'negatif_pct': 7.8}
+
+    def test_une_analyse_historique_reste_compatible(self):
+        context = _build_psycho_context(PSYCHO_DATA)
+        assert context['contract']['source_schema'] == 'psychologue.brief.v1'
+        assert context['insights_cles']['insight_cle'] == 'Le prix est un proxy de peur'
+
+    def test_un_brief_inconnu_echoue_explicitement(self):
+        with pytest.raises(PsychoContextContractError, match='contrat courant'):
+            _build_psycho_context({'brief': {'nouvelle_cle_inconnue': 'x'}})
 
 
 class TestPipelineReelRebranche:

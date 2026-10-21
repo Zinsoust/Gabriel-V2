@@ -7,7 +7,6 @@ import { ContextPanel } from './ContextPanel.jsx';
 import { AgentWorkbench } from './AgentWorkbench.jsx';
 import { CreatorConversation } from './CreatorConversation.jsx';
 import { PsychologueView } from './PsychologueView.jsx';
-import { ProspectView } from './ProspectView.jsx';
 import { StrategeView } from './StrategeView.jsx';
 import { TarifsView } from './TarifsView.jsx';
 import { OnboardingTour } from './OnboardingTour.jsx';
@@ -179,6 +178,10 @@ export function AppShell({ bootstrap }) {
   const [analysisToOpen, setAnalysisToOpen] = useState(null);
   // Dernière analyse du Psychologue vue dans cette session : le Créateur s'en sert par défaut.
   const [lastAnalysis, setLastAnalysis] = useState(null);
+  // Passage volontaire Ariane → Créateur. Ce contexte reste en mémoire React
+  // uniquement : un rechargement ou un changement de dossier ne peut donc pas
+  // réactiver une ancienne stratégie par accident.
+  const [creatorHandoff, setCreatorHandoff] = useState(null);
   const [darkMode, setDarkMode] = useState(() => {
     try { return window.localStorage.getItem('gabriel-v2:theme') !== 'light'; } catch (_) { return true; }
   });
@@ -341,7 +344,16 @@ export function AppShell({ bootstrap }) {
   // La zone 3 est secondaire dans le Hall, mais elle devient le panneau de
   // réglages indispensable dès qu'un agent est ouvert. On la rouvre donc au
   // changement d'agent ; l'utilisateur peut toujours la refermer ensuite.
-  async function selectTab(nextTab) {
+  async function selectTab(nextTab, navigationContext = null) {
+    const validCreatorHandoff = nextTab === 'createur'
+      && navigationContext?.source === 'stratege'
+      && navigationContext.folder_id === activeWorkspaceId
+      && navigationContext.strategy_id === activeWorkspace?.strategy_id;
+    setCreatorHandoff(validCreatorHandoff ? {
+      source: 'stratege',
+      folder_id: navigationContext.folder_id,
+      strategy_id: navigationContext.strategy_id,
+    } : null);
     // Sans workspace, un agent intégré créerait un dossier isolé dans son
     // iframe. Ouvrir un agent démarre donc une session V2 explicite, reliée
     // au shell avant le chargement de l'iframe.
@@ -794,13 +806,11 @@ export function AppShell({ bootstrap }) {
       {tab === 'conversation'
         ? <section className={`gv2-conversation-stage${isConversationLanding ? ' is-landing' : ''}`}><ConversationFeed items={items} firstName={firstName} isSubmitting={isSubmitting} landing={isConversationLanding} /><Composer onSend={sendMessage} disabled={isSubmitting} landing={isConversationLanding} /></section>
         : tab === 'createur'
-          ? <CreatorConversation workspace={activeWorkspace} lastAnalysis={lastAnalysis} settings={creatorSettings} refinementRequest={creatorRefinementRequest} onHasOutputChange={setCreatorHasOutput} onWorkspaceChange={refreshWorkspace} onSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} contextCollapsed={effectiveRightCollapsed} onShowContext={() => setRightCollapsed(false)} />
+          ? <CreatorConversation workspace={activeWorkspace} lastAnalysis={lastAnalysis} creatorHandoff={creatorHandoff} settings={creatorSettings} refinementRequest={creatorRefinementRequest} onHasOutputChange={setCreatorHasOutput} onWorkspaceChange={refreshWorkspace} onSettingsChange={patch => setCreatorSettings(current => ({ ...current, ...patch }))} contextCollapsed={effectiveRightCollapsed} onShowContext={() => setRightCollapsed(false)} />
           : tab === 'psychologue'
           ? <PsychologueView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} openAnalysisRequest={analysisToOpen} onAnalysisReady={setLastAnalysis} />
           : tab === 'stratege'
           ? <StrategeView workspace={activeWorkspace} onWorkspaceChange={refreshWorkspace} onNavigateAgent={selectTab} onInterviewChange={setStrategeInterview} />
-          : tab === 'prospect'
-          ? <ProspectView />
           : tab === 'tarifs'
           ? <TarifsView />
           : isAgentTab(tab)

@@ -275,7 +275,7 @@ function clearPendingCreation() {
   try { window.localStorage.removeItem(PENDING_CREATION_KEY); } catch (_) { /* facultatif */ }
 }
 
-export function CreatorConversation({ workspace, lastAnalysis, settings, refinementRequest, onHasOutputChange, onWorkspaceChange, onSettingsChange, contextCollapsed, onShowContext }) {
+export function CreatorConversation({ workspace, lastAnalysis, creatorHandoff, settings, refinementRequest, onHasOutputChange, onWorkspaceChange, onSettingsChange, contextCollapsed, onShowContext }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null);
@@ -298,6 +298,17 @@ export function CreatorConversation({ workspace, lastAnalysis, settings, refinem
     ? { id: workspace.analysis_id, title: 'Analyse de cet espace' }
     : lastAnalysis?.id ? lastAnalysis : latestAnalysis;
   const strategyAvailable = Boolean(workspace?.strategy_id);
+  const strategyActivatedByAriane = Boolean(
+    creatorHandoff?.source === 'stratege'
+    && creatorHandoff.folder_id === workspace?.folder_id
+    && creatorHandoff.strategy_id === workspace?.strategy_id,
+  );
+
+  useEffect(() => {
+    // Seul le bouton explicite du rapport d'Ariane active automatiquement sa
+    // stratégie. Une ouverture directe de Thomas conserve le mode autonome.
+    setUseStrategy(strategyActivatedByAriane);
+  }, [strategyActivatedByAriane, workspace?.folder_id, workspace?.strategy_id]);
 
   useEffect(() => {
     if (workspace?.analysis_id || lastAnalysis?.id) return undefined;
@@ -621,7 +632,7 @@ export function CreatorConversation({ workspace, lastAnalysis, settings, refinem
           disabled={!strategyAvailable} onClick={() => setUseStrategy(value => !value)}
           title={strategyAvailable ? 'Appuyer la création sur la stratégie d’Ariane' : 'Aucune stratégie d’Ariane dans cet espace'}>
           <img src={agents.stratege.portrait} alt="" />
-          <span><strong>Stratégie d’Ariane</strong><small>{strategyAvailable ? (useStrategy ? 'Utilisée' : 'Optionnelle') : 'Aucune stratégie'}</small></span>
+          <span><strong>Stratégie d’Ariane</strong><small>{strategyAvailable ? (useStrategy ? (strategyActivatedByAriane ? 'Activée depuis Ariane' : 'Utilisée') : 'Optionnelle') : 'Aucune stratégie'}</small></span>
           <i aria-hidden="true" />
         </button>
       </div>

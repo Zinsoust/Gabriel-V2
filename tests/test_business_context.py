@@ -23,13 +23,14 @@ class TestModuleIndependantDApp:
         app.py doit rester une feuille, jamais une racine. Les tests qui
         importent `app` pour un client Flask de test sont légitimes et exclus."""
         import pathlib
-        import subprocess
         racine = pathlib.Path(__file__).resolve().parent.parent
-        resultat = subprocess.run(
-            ['grep', '-rl', '--include=*.py', 'from app import', str(racine)],
-            capture_output=True, text=True)
-        fichiers = [f for f in resultat.stdout.strip().splitlines() if f]
-        hors_tests = [f for f in fichiers if '/tests/' not in f]
+        ignores = {'.git', 'venv', '.venv', 'tests', 'node_modules'}
+        hors_tests = [
+            str(path)
+            for path in racine.rglob('*.py')
+            if not ignores.intersection(path.relative_to(racine).parts)
+            and 'from app import' in path.read_text(encoding='utf-8')
+        ]
         assert hors_tests == []
 
 

@@ -435,12 +435,22 @@ function pause(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
    « stratege » (voir goToStratege) : {analysis_id, folder_id, psycho_brief,
    psycho_data}. N'existe que si l'utilisateur vient de cliquer « Stratège
    → » depuis une analyse — jamais lu ni écrit ailleurs. */
-function lireHandoffPsycho() {
+const PSYCHO_HANDOFF_MAX_AGE_MS = 10 * 60 * 1000;
+
+function lireHandoffPsycho(activeFolderId) {
   try {
     const raw = window.sessionStorage.getItem('gabriel_for_stratege');
     if (!raw) return null;
+    window.sessionStorage.removeItem('gabriel_for_stratege');
     const stored = JSON.parse(raw);
-    return stored && stored.analysis_id ? stored : null;
+    const age = Date.now() - Number(stored?.created_at || 0);
+    const valid = stored?.schema_version === 1
+      && Boolean(stored.analysis_id)
+      && Boolean(activeFolderId)
+      && stored.folder_id === activeFolderId
+      && age >= 0
+      && age <= PSYCHO_HANDOFF_MAX_AGE_MS;
+    return valid ? stored : null;
   } catch (_) { return null; }
 }
 
@@ -465,6 +475,7 @@ function ChatMessage({ role, content, observation, hero }) {
 export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent, onInterviewChange }) {
   const [stage, setStage] = useState('loading'); // loading | need_analysis | need_profile | interview | generating | result | error
   const [strategy, setStrategy] = useState(null);
+  const [activeStrategyId, setActiveStrategyId] = useState(workspace?.strategy_id || '');
   const [errorMsg, setErrorMsg] = useState('');
   const [missingFields, setMissingFields] = useState(null);
   const [progress, setProgress] = useState(0);
@@ -513,7 +524,12 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent, on
   const chatEndRef = useRef(null);
 
   useEffect(() => { aliveRef.current = true; return () => { aliveRef.current = false; }; }, []);
-  useEffect(() => { setPsychoHandoff(lireHandoffPsycho()); }, []);
+  useEffect(() => {
+    if (!workspace?.folder_id) return;
+    setPsychoHandoff(lireHandoffPsycho(workspace.folder_id));
+  }, [workspace?.folder_id]);
+
+  useEffect(() => { setActiveStrategyId(workspace?.strategy_id || ''); }, [workspace?.strategy_id]);
 
   useEffect(() => {
     try {
@@ -717,7 +733,10 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent, on
           if (isLoginResponse(response)) { window.location.assign('/login'); return; }
           const payload = await readApiPayload(response, 'La stratégie');
           if (!vivant) return;
-          if (response.ok && payload?.success) { setStrategy(payload.strategy_result || {}); setStage('result'); return; }
+          if (response.ok && payload?.success) {
+            setActiveStrategyId(workspace.strategy_id);
+            setStrategy(payload.strategy_result || {}); setStage('result'); return;
+          }
         } catch (_) { /* on retombe sur les autres déclencheurs */ }
       }
       if (!vivant) return;
@@ -809,6 +828,7 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent, on
         if (payload.status === 'done') {
           const jobResult = payload.data || {};
           const strategyResult = jobResult.data?.strategie || jobResult;
+          setActiveStrategyId(jobResult.strategy_id || jobResult.data?.strategy_id || '');
           setStrategy(strategyResult); setStage('result');
           await onWorkspaceChange?.();
           return;
@@ -854,7 +874,10 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent, on
       }
       if (body?.error) { setStage('error'); setErrorMsg(body.error); return; }
       if (body?.job_id) { await pollStrategize(body.job_id); return; }
-      if (body?.success) { setStrategy(body); setStage('result'); await onWorkspaceChange?.(); return; }
+      if (body?.success) {
+        setActiveStrategyId(body.strategy_id || '');
+        setStrategy(body); setStage('result'); await onWorkspaceChange?.(); return;
+      }
       setStage('error'); setErrorMsg('Réponse inattendue du serveur.');
     } catch (error) {
       setStage('error'); setErrorMsg(error.message || 'Erreur réseau. Réessayez.');
@@ -1021,5 +1044,7 @@ export function StrategeView({ workspace, onWorkspaceChange, onNavigateAgent, on
     </div>;
   }
 
-  return <Report strategy={strategy || {}} onGoToCreateur={() => onNavigateAgent?.('createur')} onRestart={() => { setStrategy(null); setMessages([]); setContextProgress(null); setInterviewReady(false); setStage('interview'); }} />;
+  return <Report strategy={strategy || {}} onGoToCreateur={activeStrategyId ? () => onNavigateAgent?.('createur', {
+    source: 'stratege', folder_id: workspace?.folder_id, strategy_id: activeStrategyId,
+  }) : undefined} onRestart={() => { setStrategy(null); setMessages([]); setContextProgress(null); setInterviewReady(false); setStage('interview'); }} />;
 }

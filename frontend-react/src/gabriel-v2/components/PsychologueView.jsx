@@ -2246,6 +2246,8 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent,
     if (hooks.length) lines.push('Hooks : ' + hooks.join(' | '));
     try {
       window.sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({
+        schema_version: 1,
+        created_at: Date.now(),
         analysis_id: data.analysis_id,
         folder_id: workspace?.folder_id || '',
         psycho_brief: lines.join('\n'),
@@ -2276,6 +2278,8 @@ export function PsychologueView({ workspace, onWorkspaceChange, onNavigateAgent,
     if (message) lines.push('Message commun : ' + clean(message));
     try {
       window.sessionStorage.setItem('gabriel_for_stratege', JSON.stringify({
+        schema_version: 1,
+        created_at: Date.now(),
         analysis_id: res.cross_analysis_id || crossData?.cross_analysis_id,
         folder_id: workspace?.folder_id || '',
         psycho_brief: lines.join('\n'),

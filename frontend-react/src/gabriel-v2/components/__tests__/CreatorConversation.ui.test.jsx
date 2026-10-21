@@ -114,6 +114,28 @@ describe('Sources de contexte du Créateur', () => {
     expect(envois[0]).toMatchObject({ use_strategy: true, strategy_id: 's-1' });
   });
 
+  it('active explicitement la stratégie lors du passage Ariane → Créateur', async () => {
+    const envois = espionnerGeneration();
+    const user = userEvent.setup();
+    renderCreator({
+      workspace: { folder_id: 'f1', analysis_id: 'a-1', strategy_id: 's-1' },
+      creatorHandoff: { source: 'stratege', folder_id: 'f1', strategy_id: 's-1' },
+    });
+    expect(screen.getByText('Activée depuis Ariane')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Stratégie d’Ariane/ })).toHaveAttribute('aria-pressed', 'true');
+    await demander(user);
+    expect(envois[0]).toMatchObject({ folder_id: 'f1', use_strategy: true, strategy_id: 's-1' });
+  });
+
+  it('rejette un handoff Ariane provenant d’un autre dossier', () => {
+    renderCreator({
+      workspace: { folder_id: 'f1', strategy_id: 's-1' },
+      creatorHandoff: { source: 'stratege', folder_id: 'f-old', strategy_id: 's-old' },
+    });
+    expect(screen.getByRole('button', { name: /Stratégie d’Ariane/ })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByText('Activée depuis Ariane')).not.toBeInTheDocument();
+  });
+
   it('reprend la dernière analyse vue dans le Psychologue, même hors espace', async () => {
     const envois = espionnerGeneration();
     const user = userEvent.setup();
