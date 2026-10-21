@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS gabriel_ux_settings (
 
 ALTER TABLE gabriel_ux_settings ENABLE ROW LEVEL SECURITY;
 
--- Accès applicatif uniquement : les routes Flask vérifient ADMIN_EMAILS et
+-- Acces applicatif uniquement : les routes Flask verifient ADMIN_USER_IDS et
 -- utilisent le client serveur. Aucun accès direct depuis le navigateur.
 DROP POLICY IF EXISTS "gabriel_ux_settings_no_direct_access" ON gabriel_ux_settings;
 CREATE POLICY "gabriel_ux_settings_no_direct_access"

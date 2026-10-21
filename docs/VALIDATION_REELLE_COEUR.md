@@ -13,6 +13,47 @@ Ces scénarios ne doivent être exécutés qu'après autorisation explicite des 
 
 Le coût maximal doit être calculé juste avant le test : somme, pour chaque appel, de `(tokens entrée × tarif entrée) + (tokens sortie × tarif sortie)`. Arrêter si le plafond validé est atteint. Aucun appel n'a été effectué lors de la préparation de ce document.
 
+## Garde-fou obligatoire avant autorisation
+
+Le mode de validation est desactive par defaut. Une campagne A+B doit utiliser
+un seul `MISTRAL_VALIDATION_RUN_ID` et le meme fichier SQLite persistant pendant
+toute sa duree. Ne jamais supprimer, remplacer ou restaurer ce ledger entre les
+deux scenarios.
+
+Avant le premier appel, configurer et verifier :
+
+- `MISTRAL_VALIDATION_BUDGET_ENABLED=true` ;
+- `MISTRAL_VALIDATION_BUDGET_USD` au plafond explicitement autorise ;
+- `MISTRAL_VALIDATION_MAX_ATTEMPTS` au nombre maximal de requetes physiques,
+  retries compris ;
+- `MISTRAL_VALIDATION_LEDGER_PATH` vers un chemin absolu, persistant et partage
+  par toutes les instances susceptibles d'emettre un appel ;
+- `MISTRAL_MODEL_FAST`, `MISTRAL_MODEL_DEEP` et, s'il est utilise,
+  `MISTRAL_ORCHESTRATOR_MODEL` avec des identifiants versionnes, jamais
+  `*-latest` ;
+- `MISTRAL_VALIDATION_PRICING_JSON` avec le tarif officiel verifie le jour du
+  test pour chacun de ces modeles ;
+- un plafond de depense Mistral cote fournisseur, independant de l'application.
+
+Selection candidate verifiee dans le catalogue public Mistral le 21 octobre
+2026 : `mistral-small-2603` pour le palier rapide (0,15 USD/M tokens en entree,
+0,60 USD/M en sortie) et `mistral-large-2512` pour le palier profond (0,50
+USD/M en entree, 1,50 USD/M en sortie). Les deux sont annonces GA et prennent
+en charge Chat Completions. Leur disponibilite pour le compte Gabriel doit
+encore etre confirmee, sans generation, par `GET /v1/models/{model_id}` juste
+avant la campagne. Les tarifs doivent etre relus a ce meme moment.
+
+Chaque tentative reserve atomiquement son cout maximal avant l'appel. Un retry,
+une erreur reseau, une interruption, une reponse sans metriques ou un changement
+de modele conserve la reservation maximale. Les journaux et le ledger ne
+stockent aucun prompt ni contenu utilisateur.
+
+Limite importante : le ledger applicatif ne peut pas garantir seul un plafond
+de facturation absolu. Les tarifs, arrondis et metriques finales relevent du
+fournisseur ; un disque ephemere ou plusieurs instances sans stockage SQLite
+partage brisent aussi la garantie locale. Le plafond fournisseur reste donc le
+dernier verrou obligatoire.
+
 ## Scénario A — chaîne neuve dans un seul dossier
 
 1. Le compte A crée un dossier et importe un jeu autorisé de 100 à 150 commentaires.
