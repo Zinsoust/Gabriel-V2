@@ -44,6 +44,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Optional
 
+from core.llm_budget import MistralBudgetGuard
+
 
 # ── Politique de modèle ──────────────────────────────────────────────────────
 # Source de vérité unique des modèles réellement appelés. Tout ``model_version``
@@ -240,13 +242,19 @@ class MistralProvider(LLMProvider):
             model=model,
             max_tokens=max_tokens,
             messages=messages,
+            # Every physical request must be preceded by a ledger reservation.
+            # Disable SDK-level retries so only the retry loop in complete()
+            # can issue another billed request.
+            retries=None,
             **extra,
         )
         choice = response.choices[0]
         usage = response.usage
         return LLMResponse(
             text=(choice.message.content or "").strip(),
-            model=model,
+            # Preserve the provider-reported model when available so the
+            # validation budget can detect an unexpected server-side fallback.
+            model=getattr(response, "model", None) or model,
             prompt_tokens=getattr(usage, "prompt_tokens", None) if usage else None,
             completion_tokens=getattr(usage, "completion_tokens", None) if usage else None,
             finish_reason=getattr(choice, "finish_reason", None),
@@ -408,6 +416,10 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
     """
     engine = provider or _default_provider
     model = model_for_tier(tier)
+    budget_guard = MistralBudgetGuard.from_env()
+    if budget_guard:
+        budget_guard.require_mistral_provider(engine.name)
+    budget_input = (system or "") + "\n" + prompt
 
     for attempt in range(retry.max_attempts):
         try:
@@ -420,15 +432,36 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
                     print(f"[LLM] label={label or '?'} attente_file={waited:.2f}s "
                           f"({_MAX_CONCURRENCY} créneaux partagés par toute l'app)")
             try:
+                reservation = None
+                if budget_guard:
+                    reservation = budget_guard.reserve(
+                        model=model,
+                        input_text=budget_input,
+                        max_output_tokens=max_tokens,
+                        label=label,
+                        attempt_number=attempt + 1,
+                    )
                 # json_mode n'est transmis qu'aux fournisseurs qui le connaissent :
                 # un fournisseur tiers continue de fonctionner à l'identique (la
                 # réparation JSON tolérante reste alors le filet de sécurité).
                 extra = {"json_mode": True} if json_mode and _accepts_json_mode(engine) else {}
-                response = engine.complete(
-                    prompt, model=model, max_tokens=max_tokens,
-                    temperature=temperature, timeout_ms=timeout_ms,
-                    system=system, **extra,
-                )
+                try:
+                    response = engine.complete(
+                        prompt, model=model, max_tokens=max_tokens,
+                        temperature=temperature, timeout_ms=timeout_ms,
+                        system=system, **extra,
+                    )
+                except BaseException as exc:
+                    if budget_guard and reservation:
+                        budget_guard.mark_uncertain(reservation, type(exc).__name__)
+                    raise
+                if budget_guard and reservation:
+                    budget_guard.settle(
+                        reservation,
+                        response_model=response.model,
+                        input_tokens=response.prompt_tokens,
+                        output_tokens=response.completion_tokens,
+                    )
             finally:
                 if throttled:
                     _semaphore.release()

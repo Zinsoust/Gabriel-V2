@@ -31,6 +31,12 @@ prefer_ipv4()
 
 from core.orchestrator import Gabriel
 from core.llm_client import model_for_tier as _llm_model_for_tier
+from core.admin_access import is_admin_user
+from core.llm_budget import (
+    MistralBudgetConfigurationError,
+    MistralBudgetGuard,
+    validation_budget_enabled,
+)
 from core.memory import GabrielMemory
 from core.business_context import (
     get_user_profile as _get_user_profile,
@@ -388,6 +394,52 @@ except ImportError:
     def _get_mistral_client(timeout_ms=60_000):
         raise RuntimeError("mistralai non disponible")
 
+
+def _budgeted_mistral_complete(client, *, model, max_tokens, messages, label):
+    """Single guarded path for direct Mistral SDK calls outside llm_client."""
+    guard = MistralBudgetGuard.from_env()
+    reservation = None
+    if guard:
+        guard.require_mistral_provider('mistral')
+        reservation = guard.reserve(
+            model=model,
+            input_text=json.dumps(messages, ensure_ascii=False, separators=(',', ':')),
+            max_output_tokens=max_tokens,
+            label=label,
+            attempt_number=1,
+        )
+    try:
+        response = client.chat.complete(
+            model=model,
+            max_tokens=max_tokens,
+            messages=messages,
+            # A hidden SDK retry would create another billable request without
+            # a second reservation. This direct path never retries internally.
+            retries=None,
+        )
+    except BaseException as exc:
+        if guard and reservation:
+            guard.mark_uncertain(reservation, type(exc).__name__)
+        raise
+
+    if guard and reservation:
+        usage = getattr(response, 'usage', None) or {}
+
+        def _usage_value(*names):
+            for name in names:
+                value = usage.get(name) if isinstance(usage, dict) else getattr(usage, name, None)
+                if value is not None:
+                    return value
+            return None
+
+        guard.settle(
+            reservation,
+            response_model=getattr(response, 'model', None) or model,
+            input_tokens=_usage_value('prompt_tokens', 'input_tokens'),
+            output_tokens=_usage_value('completion_tokens', 'output_tokens'),
+        )
+    return response
+
 # ── RAG — lazy loading (Render : le port doit s'ouvrir avant tout chargement) ─
 # Par défaut, AUCUN index n'est chargé au démarrage : rag.search() charge et
 # met en cache l'index d'un agent à sa première utilisation (première analyse).
@@ -662,7 +714,7 @@ def stratege_page():
         folder_analysis_id = (_f or {}).get('analysis_id', '') or ''
     _ux_row = _db.get_ux_settings('stratege') or {}
     _ux_published = sanitize_strategy_ux(_ux_row.get('published'))
-    _is_studio_admin = ((current_user() or {}).get('email', '').lower() in _db.ADMIN_EMAILS)
+    _is_studio_admin = is_admin_user(current_user())
     resp = make_response(render_template(
         'stratege.html',
         current_user=current_user(),
@@ -682,7 +734,7 @@ def stratege_page():
 
 def _strategy_studio_admin():
     user = current_user() or {}
-    return user if user.get('email', '').strip().lower() in _db.ADMIN_EMAILS else None
+    return user if is_admin_user(user) else None
 
 
 @app.route('/studio/stratege')
@@ -2701,7 +2753,7 @@ def memory_stats():
 def rag_reload():
     """Recharger les index RAG — admin uniquement."""
     user = current_user() or {}
-    if user.get('email') not in _db.ADMIN_EMAILS:
+    if not is_admin_user(user):
         return jsonify({'success': False, 'error': 'Accès refusé.', 'error_code': 'forbidden'}), 403
     data  = request.get_json(silent=True) or {}
     agent = data.get('agent', '')
@@ -3486,10 +3538,12 @@ RÈGLES ABSOLUES :
 
     try:
         client = _get_mistral_client(timeout_ms=90_000)
-        response = client.chat.complete(
+        response = _budgeted_mistral_complete(
+            client,
             model=_llm_model_for_tier('deep'),
             max_tokens=1200,
             messages=messages,
+            label='strategy_chat',
         )
         return jsonify({'reply': response.choices[0].message.content.strip()})
     except Exception as e:
@@ -3621,10 +3675,13 @@ def _call_mistral_orchestrator_fallback(messages, max_output_tokens, use_web,
         })
 
     client = _get_mistral_client(timeout_ms=90_000)
-    response = client.chat.complete(
-        model=os.environ.get('MISTRAL_ORCHESTRATOR_MODEL') or _llm_model_for_tier('deep'),
+    fallback_model = os.environ.get('MISTRAL_ORCHESTRATOR_MODEL') or _llm_model_for_tier('deep')
+    response = _budgeted_mistral_complete(
+        client,
+        model=fallback_model,
         max_tokens=int(max_output_tokens),
         messages=fallback_messages,
+        label='orchestrator_fallback',
     )
     choices = getattr(response, 'choices', None) or []
     if not choices:
@@ -3665,6 +3722,10 @@ def _call_openai_orchestrator(messages, max_output_tokens, reasoning_effort,
     import requests
 
     api_key = os.environ.get('OPENAI_API_KEY', '').strip()
+    if api_key and validation_budget_enabled():
+        raise MistralBudgetConfigurationError(
+            'le mode de validation Mistral interdit le fallback vers OpenAI'
+        )
     if not api_key:
         return _call_mistral_orchestrator_fallback(
             messages=messages,

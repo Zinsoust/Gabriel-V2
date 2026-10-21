@@ -31,11 +31,11 @@ client = _app.app.test_client()
 # HELPERS
 # ════════════════════════════════════════════════════════════════════════════
 
-def _auth_session(c):
+def _auth_session(c, uid='test-uid-001', email='test@example.com'):
     """Injecte une session utilisateur de test."""
     with c.session_transaction() as s:
-        s['user_id']    = 'test-uid-001'
-        s['user_email'] = 'test@example.com'
+        s['user_id']    = uid
+        s['user_email'] = email
         s['user_name']  = 'Test User'
 
 
@@ -617,9 +617,10 @@ def test_strategy_studio_is_admin_only_and_uses_react_bundle(monkeypatch):
     _auth_session(non_admin)
     assert non_admin.get('/studio/stratege').status_code == 403
 
-    monkeypatch.setattr(_app._db, 'ADMIN_EMAILS', frozenset({'test@example.com'}))
+    admin_id = '11111111-1111-4111-8111-111111111111'
+    monkeypatch.setenv('ADMIN_USER_IDS', admin_id)
     admin = _app.app.test_client()
-    _auth_session(admin)
+    _auth_session(admin, uid=admin_id)
     response = admin.get('/studio/stratege')
     assert response.status_code == 200
     html = response.get_data(as_text=True)
@@ -629,7 +630,8 @@ def test_strategy_studio_is_admin_only_and_uses_react_bundle(monkeypatch):
 
 
 def test_strategy_studio_api_sanitizes_and_bounds_settings(monkeypatch):
-    monkeypatch.setattr(_app._db, 'ADMIN_EMAILS', frozenset({'test@example.com'}))
+    admin_id = '11111111-1111-4111-8111-111111111111'
+    monkeypatch.setenv('ADMIN_USER_IDS', admin_id)
     monkeypatch.setattr(_app._db, 'get_ux_settings', lambda page: None)
     saved = {}
     monkeypatch.setattr(
@@ -637,7 +639,7 @@ def test_strategy_studio_api_sanitizes_and_bounds_settings(monkeypatch):
         lambda page, settings, author: saved.update(settings) or True,
     )
     admin = _app.app.test_client()
-    _auth_session(admin)
+    _auth_session(admin, uid=admin_id)
     response = admin.put('/api/studio/stratege/settings', json={'settings': {
         'st-chatwidth': 99999,
         'ux-champagne': 'red; background:url(https://evil.test)',
@@ -650,10 +652,11 @@ def test_strategy_studio_api_sanitizes_and_bounds_settings(monkeypatch):
 
 
 def test_strategy_studio_preview_is_real_strategist_without_folder(monkeypatch):
-    monkeypatch.setattr(_app._db, 'ADMIN_EMAILS', frozenset({'test@example.com'}))
+    admin_id = '11111111-1111-4111-8111-111111111111'
+    monkeypatch.setenv('ADMIN_USER_IDS', admin_id)
     monkeypatch.setattr(_app._db, 'get_ux_settings', lambda page: None)
     admin = _app.app.test_client()
-    _auth_session(admin)
+    _auth_session(admin, uid=admin_id)
     response = admin.get('/studio/stratege/preview')
     assert response.status_code == 200
     html = response.get_data(as_text=True)

@@ -823,4 +823,55 @@ def test_orchestrator_uses_mistral_when_openai_is_not_configured(monkeypatch):
     assert result['usage']['total_tokens'] == 20
     from core.llm_client import model_for_tier
     assert captured['model'] == model_for_tier('deep')
+    assert captured['retries'] is None
     assert any('recherche web n\'est pas disponible' in item['content'] for item in captured['messages'])
+
+
+def test_orchestrator_mistral_fallback_uses_persistent_budget(monkeypatch, tmp_path):
+    """The direct SDK fallback cannot bypass the campaign ledger."""
+    import json
+    import sqlite3
+    from types import SimpleNamespace
+
+    model = 'mistral-test-202610'
+    ledger = tmp_path / 'orchestrator-budget.sqlite3'
+    monkeypatch.delenv('OPENAI_API_KEY', raising=False)
+    monkeypatch.setenv('MISTRAL_API_KEY', 'test-key')
+    monkeypatch.setenv('MISTRAL_VALIDATION_BUDGET_ENABLED', 'true')
+    monkeypatch.setenv('MISTRAL_VALIDATION_RUN_ID', 'orchestrator-test')
+    monkeypatch.setenv('MISTRAL_VALIDATION_BUDGET_USD', '1.00')
+    monkeypatch.setenv('MISTRAL_VALIDATION_MAX_ATTEMPTS', '2')
+    monkeypatch.setenv('MISTRAL_VALIDATION_LEDGER_PATH', str(ledger.resolve()))
+    monkeypatch.setenv('MISTRAL_VALIDATION_PRICING_JSON', json.dumps({model: {
+        'input_usd_per_million': '0.10',
+        'output_usd_per_million': '1.00',
+    }}))
+    monkeypatch.setattr(_app, '_llm_model_for_tier', lambda tier: model)
+
+    response = SimpleNamespace(
+        id='mistral-budget-test',
+        model=model,
+        usage={'prompt_tokens': 12, 'completion_tokens': 8, 'total_tokens': 20},
+        choices=[SimpleNamespace(message=SimpleNamespace(content='Reponse locale.'))],
+    )
+
+    class _FakeChat:
+        def complete(self, **kwargs):
+            return response
+
+    class _FakeClient:
+        chat = _FakeChat()
+
+    monkeypatch.setattr(_app, '_get_mistral_client', lambda **kwargs: _FakeClient())
+    result = _app._call_openai_orchestrator(
+        messages=[{'role': 'user', 'content': 'Bonjour'}],
+        max_output_tokens=100,
+        reasoning_effort='low',
+        return_metadata=True,
+    )
+    assert result['reply'] == 'Reponse locale.'
+    with sqlite3.connect(ledger) as conn:
+        row = conn.execute(
+            'SELECT provider, model, label, status FROM mistral_budget_attempts'
+        ).fetchone()
+    assert row == ('mistral', model, 'orchestrator_fallback', 'settled')

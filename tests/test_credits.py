@@ -116,10 +116,11 @@ def test_has_enough_credits_bypass_dev_mode(monkeypatch):
     monkeypatch.setenv('AUTH_ENABLED', 'true')  # restaure pour les autres tests du module
 
 
-def test_has_enough_credits_bypass_admin_email(monkeypatch):
-    monkeypatch.setattr(_db, 'ADMIN_EMAILS', frozenset({'admin@example.com'}))
+def test_has_enough_credits_bypass_admin_user_id(monkeypatch):
+    admin_id = '11111111-1111-4111-8111-111111111111'
+    monkeypatch.setenv('ADMIN_USER_IDS', admin_id)
     monkeypatch.setattr(_db, 'get_user_credits', lambda uid: 0)
-    assert _db.has_enough_credits('any-uid', 999999, email='admin@example.com') is True
+    assert _db.has_enough_credits(admin_id, 999999, email='spoofed@example.com') is True
 
 
 def test_has_enough_credits_gates_normal_user(monkeypatch, tmp_path):
@@ -127,7 +128,7 @@ def test_has_enough_credits_gates_normal_user(monkeypatch, tmp_path):
     uid = 'uid-gate-1'
     users_file.write_text(json.dumps({uid: {'user_id': uid, 'credits': 50}}), encoding='utf-8')
     monkeypatch.setattr(_db, '_DATA_DIR', str(tmp_path))
-    monkeypatch.setattr(_db, 'ADMIN_EMAILS', frozenset())
+    monkeypatch.delenv('ADMIN_USER_IDS', raising=False)
 
     assert _db.has_enough_credits(uid, 50) is True
     assert _db.has_enough_credits(uid, 51) is False

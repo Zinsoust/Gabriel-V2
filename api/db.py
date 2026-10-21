@@ -13,6 +13,8 @@ import uuid
 import tempfile
 import datetime
 
+from core.admin_access import is_admin_user_id
+
 _BASE_DIR     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _DATA_DIR     = os.path.join(_BASE_DIR, 'data')
 _HISTORY_FILE    = os.path.join(_DATA_DIR, 'history.json')
@@ -45,10 +47,8 @@ _T_SOURCE_COMMENTS = 'gabriel_source_comments'
 
 FREE_ANALYSES_LIMIT = 3
 
-# Emails avec accès illimité (admin / fondateurs)
-# Configurable via ADMIN_EMAILS dans l'environnement (séparés par des virgules)
-_admin_env = os.environ.get('ADMIN_EMAILS', 'outilsagencechretienne@gmail.com')
-ADMIN_EMAILS = frozenset(e.strip().lower() for e in _admin_env.split(',') if e.strip())
+# Administrative privileges are resolved centrally from ADMIN_USER_IDS.
+# Email addresses are deliberately ignored for authorization.
 
 _supabase = None
 
@@ -1308,8 +1308,10 @@ def check_usage_limit(user_id, email=None):
       {'allowed': True}  — peut analyser
       {'allowed': False, 'reason': 'limit', 'used': N, 'limit': 5, 'plan': 'free'}
     """
-    # Bypass admin (fondateurs / emails spéciaux)
-    if email and email.strip().lower() in ADMIN_EMAILS:
+    # Bypass admin by stable internal identity only.
+    # ``email`` is retained for call compatibility only. It never grants a
+    # privilege: only the stable internal user UUID can do so.
+    if is_admin_user_id(user_id):
         return {'allowed': True, 'plan': 'admin', 'used': 0, 'limit': 999}
 
     # En mode dev (AUTH_ENABLED=false), pas de limite
@@ -1475,7 +1477,7 @@ def has_enough_credits(user_id, cost, email=None):
     if not user_id:
         return True
     balance = get_user_credits(user_id)
-    if email and email.strip().lower() in ADMIN_EMAILS:
+    if is_admin_user_id(user_id):
         return True
     if os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
         return True
