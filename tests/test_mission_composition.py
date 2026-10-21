@@ -71,7 +71,8 @@ class TestExecutionReelleDeBoutEnBout:
     catalogue — exécutée pour de vrai, IA neutralisée pour ne pas dépendre
     du réseau, mais Planner/Executor/Agents/Tools réels de bout en bout."""
 
-    def test_gabriel_core_recoit_une_mission_et_produit_une_synthese(self, monkeypatch):
+    def test_gabriel_core_recoit_une_mission_et_produit_une_synthese(
+            self, monkeypatch, deterministic_vader):
         import core.analyzer as analyzer
         monkeypatch.setattr(analyzer, 'call_llm', lambda *a, **k: '{"placeholder": true}')
         monkeypatch.setattr(analyzer, '_NLP_AVAILABLE', False)

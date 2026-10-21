@@ -47,7 +47,7 @@ class TestUnificationSansChangementDeTexte:
     def test_lancienne_duplication_a_bien_disparu(self):
         """Le corps de la consigne ne doit plus apparaître littéralement deux
         fois dans l'analyzer : une seule source, deux interpolations."""
-        source = ANALYZER.read_text()
+        source = ANALYZER.read_text(encoding='utf-8')
         signature = "NE JAMAIS les reproduire dans tes textes."
         assert source.count(signature) == 1
         assert source.count('{_no_technical_leakage()}') == 2
@@ -66,7 +66,7 @@ class TestDetteRestanteMesuree:
         La constante `_NO_TECHNICAL_LEAKAGE` correspond elle-même au motif :
         l'inclure ferait compter la solution parmi les problèmes.
         """
-        lignes_src = pathlib.Path(chemin).read_text().splitlines()
+        lignes_src = pathlib.Path(chemin).read_text(encoding='utf-8').splitlines()
         vues = set()
         for i, l in enumerate(lignes_src):
             if re.match(r'RÈGLE DE LANGAGE', l):

@@ -74,7 +74,8 @@ class TestEquivalenceAvecLAppelDirect:
         pas les avoir identiques."""
         return {k: v for k, v in resultat.items() if k != '_timing'}
 
-    def test_le_plan_du_psychologue_rend_ce_que_l_agent_rend_seul(self, monkeypatch):
+    def test_le_plan_du_psychologue_rend_ce_que_l_agent_rend_seul(
+            self, monkeypatch, deterministic_vader):
         from agents.psychologue import Psychologue
 
         self._sans_ia(monkeypatch)
@@ -91,7 +92,8 @@ class TestEquivalenceAvecLAppelDirect:
         assert trace.ok is True
         assert [s.agent_id for s in trace.steps] == ['psychologue']
 
-    def test_le_pipeline_public_rend_toujours_la_meme_chose(self, monkeypatch):
+    def test_le_pipeline_public_rend_toujours_la_meme_chose(
+            self, monkeypatch, deterministic_vader):
         """`run_psycho` est le point d'entrée utilisé par app.py : son contenu
         ne doit pas avoir bougé d'un caractère avec le rebranchement."""
         from agents.psychologue import Psychologue

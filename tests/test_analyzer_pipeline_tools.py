@@ -29,7 +29,8 @@ def _sans_ia(monkeypatch):
     monkeypatch.setattr(analyzer, "_NLP_AVAILABLE", False)
 
 
-def test_le_pipeline_produit_kpis_et_distribution_non_intervertis(monkeypatch):
+def test_le_pipeline_produit_kpis_et_distribution_non_intervertis(
+        monkeypatch, deterministic_vader):
     _sans_ia(monkeypatch)
     resultat = analyzer.analyze_comments(COMMENTAIRES, title="Structurer son offre")
 
@@ -49,7 +50,8 @@ def test_le_pipeline_produit_kpis_et_distribution_non_intervertis(monkeypatch):
     assert kpis != distribution  # sinon la comparaison ci-dessus ne prouve rien
 
 
-def test_le_pipeline_produit_un_dashboard_coherent(monkeypatch):
+def test_le_pipeline_produit_un_dashboard_coherent(
+        monkeypatch, deterministic_vader):
     _sans_ia(monkeypatch)
     resultat = analyzer.analyze_comments(COMMENTAIRES, title="Structurer son offre")
     dashboard = resultat["dashboard"]

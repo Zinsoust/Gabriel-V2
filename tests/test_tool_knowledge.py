@@ -1,13 +1,7 @@
-"""Équivalence de l'outil de recherche documentaire.
-
-Le modèle sémantique n'est pas chargé dans ces tests — trop lent, et non
-hermétique (dépendrait du corpus réel). `core.rag.search` a déjà un chemin de
-repli documenté quand le modèle est indisponible (ordre brut, score=1.0) :
-c'est ce chemin, réellement emprunté en production si le modèle échoue à
-charger, qui est exercé ici.
-"""
+"""Équivalence de l'outil de recherche documentaire, sans modèle distant."""
 
 import pytest
+import numpy as np
 
 import tools as tools_pkg
 from core import rag
@@ -18,14 +12,26 @@ AGENT_TEST = 'test_knowledge_tool'
 
 @pytest.fixture
 def index_factice(monkeypatch):
-    """Un index en mémoire, sans passer par le disque ni le modèle."""
+    """Un index et un encodeur déterministes, entièrement en mémoire."""
     chunks = [
         {'text': 'Le prix est le premier frein psychologique.', 'source': 'pricing'},
         {'text': 'La rareté perçue augmente la valeur ressentie.', 'source': 'pricing'},
         {'text': "L'audience cherche une transformation, pas un produit.", 'source': 'audience'},
     ]
-    rag._indexes[AGENT_TEST] = {'chunks': chunks, 'embeddings': None, 'hash': 'x'}
-    monkeypatch.setattr(rag, '_get_model', lambda: None)
+
+    class FakeSemanticModel:
+        def encode(self, texts, **_kwargs):
+            return np.asarray([
+                [1.0, 0.0] if 'prix' in text.lower() else [0.0, 1.0]
+                for text in texts
+            ])
+
+    rag._indexes[AGENT_TEST] = {
+        'chunks': chunks,
+        'embeddings': np.asarray([[1.0, 0.0], [0.8, 0.2], [0.0, 1.0]]),
+        'hash': 'x',
+    }
+    monkeypatch.setattr(rag, '_get_model', lambda: FakeSemanticModel())
     yield chunks
     rag._indexes.pop(AGENT_TEST, None)
 
@@ -86,6 +92,20 @@ class TestCasLimites:
         avec_liste_vide = tools_pkg.registry.get('knowledge.search').run(
             query='prix', agent=AGENT_TEST, sources=[], top_k=5)
         assert avec_none['results'] == avec_liste_vide['results']
+
+    def test_un_index_sans_embeddings_echoue_explicitement(self, monkeypatch):
+        rag._indexes['index_incomplet'] = {
+            'chunks': [{'text': 'contenu', 'source': 'test'}],
+            'embeddings': None,
+            'hash': 'x',
+        }
+        monkeypatch.setattr(rag, '_get_model', lambda: None)
+        try:
+            with pytest.raises(rag.RAGEmbeddingUnavailableError, match='embeddings'):
+                tools_pkg.registry.get('knowledge.search').run(
+                    query='contenu', agent='index_incomplet')
+        finally:
+            rag._indexes.pop('index_incomplet', None)
 
 
 class TestContrat:

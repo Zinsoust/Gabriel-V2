@@ -45,6 +45,7 @@ class TestPipelineReelRebranche:
 
         monkeypatch.setattr(stratege, '_call_llm', _capture_llm)
         monkeypatch.setattr(stratege, '_critique_strategie', lambda *a, **k: {})
+        monkeypatch.setattr(stratege, '_load_rag_rules', lambda *a, **k: '')
 
         from agents.context import AnalysisContext
         ctx = AnalysisContext(comments=[], brain_context='Profil business',

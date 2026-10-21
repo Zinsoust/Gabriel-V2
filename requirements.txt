@@ -18,6 +18,9 @@ scikit-learn>=1.3.0
 sentence-transformers>=2.2.2
 reportlab>=4.0.0
 google-api-python-client>=2.100.0
+# 2.42+ exige OpenTelemetry >=1.44, incompatible avec mistralai 1.10.0
+# (semantic conventions <0.60). 2.28.1 n'impose pas OpenTelemetry.
+google-api-core==2.28.1
 Pillow>=10.0.0
 stripe>=7.0.0
 pypdf>=4.0.0

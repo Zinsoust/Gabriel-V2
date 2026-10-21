@@ -23,13 +23,54 @@ import re
 import json
 import pickle
 import hashlib
+import tempfile
+import threading
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
 _BASE_DIR       = Path(__file__).parent.parent
 _AGENTS_DIR     = _BASE_DIR / "agents"
-_INDEX_DIR      = _BASE_DIR / "knowledge" / "_index"
-_INDEX_DIR.mkdir(parents=True, exist_ok=True)
+_DEFAULT_INDEX_DIR = _BASE_DIR / "knowledge" / "_index"
+_INDEX_DIR_ENV = "GABRIEL_RAG_INDEX_DIR"
+_index_dir_override: Optional[Path] = None
+_cache_lock = threading.RLock()
+
+
+class RAGError(RuntimeError):
+    """Base class for explicit, user-safe RAG failures."""
+
+
+class RAGCacheError(RAGError):
+    """The on-disk cache is unusable or cannot be written safely."""
+
+
+class RAGEmbeddingUnavailableError(RAGError):
+    """Semantic search cannot run because embeddings are unavailable."""
+
+
+class RAGSearchError(RAGError):
+    """Semantic scoring failed after cache and model validation."""
+
+
+def get_index_dir() -> Path:
+    """Return the active cache directory without creating it."""
+    if _index_dir_override is not None:
+        return _index_dir_override
+    configured = os.environ.get(_INDEX_DIR_ENV, "").strip()
+    if configured:
+        path = Path(configured).expanduser()
+        if not path.is_absolute():
+            path = _BASE_DIR / path
+        return path.resolve()
+    return _DEFAULT_INDEX_DIR
+
+
+def configure_index_dir(path: Optional[Path]) -> Path:
+    """Inject a cache directory and clear only the in-memory registry."""
+    global _index_dir_override
+    _index_dir_override = None if path is None else Path(path).expanduser().resolve()
+    clear_runtime_cache()
+    return get_index_dir()
 
 # Sous-RAGs spécialisés : index séparés pointant vers des sous-dossiers
 _CUSTOM_AGENT_DIRS: Dict[str, Path] = {
@@ -51,24 +92,47 @@ CHUNK_OVERLAP = 80    # mots de recouvrement
 # ── Modèle sémantique ─────────────────────────────────────────────────────────
 
 _model = None
+_model_checked = False
+_model_error = None
 
 def _get_model():
     """Réutilise le modèle déjà chargé par nlp_engine (une seule copie en RAM —
     charger deux SentenceTransformer provoque un OOM sur Render 512 Mo)."""
-    global _model
+    global _model, _model_checked, _model_error
+    if _model is not None:
+        _model_checked = True
+        return _model
+    if _model_checked:
+        return None
+
+    _model_checked = True
+    errors = []
+    try:
+        from core.nlp_engine import _get_model as _nlp_get_model
+        _model = _nlp_get_model()
+    except Exception as exc:
+        errors.append(f"nlp_engine:{type(exc).__name__}")
     if _model is None:
         try:
-            from core.nlp_engine import _get_model as _nlp_get_model
-            _model = _nlp_get_model()
-        except Exception as e:
-            print(f"[RAG] Modèle nlp_engine non disponible : {e}")
-        if _model is None:
-            try:
-                from sentence_transformers import SentenceTransformer
-                _model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
-            except Exception as e:
-                print(f"[RAG] Modèle sémantique non disponible : {e}")
+            from sentence_transformers import SentenceTransformer
+            _model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+        except Exception as exc:
+            errors.append(f"sentence_transformers:{type(exc).__name__}")
+    if _model is None:
+        _model_error = ", ".join(errors) or "aucun modèle retourné"
+        print(f"[RAG] Recherche sémantique indisponible ({_model_error}).")
+    else:
+        _model_error = None
     return _model
+
+
+def embedding_status() -> Dict:
+    """Expose a diagnostic without loading or downloading a model."""
+    return {
+        "checked": _model_checked,
+        "available": _model is not None,
+        "error": _model_error,
+    }
 
 
 # ── Lecture des documents ─────────────────────────────────────────────────────
@@ -236,8 +300,14 @@ def _chunk_text(text: str, source: str) -> List[Dict]:
 _indexes: Dict[str, Dict] = {}
 
 
+def clear_runtime_cache() -> None:
+    """Forget loaded indexes without deleting or rewriting any file."""
+    with _cache_lock:
+        _indexes.clear()
+
+
 def _index_path(agent: str) -> Path:
-    return _INDEX_DIR / f"{agent}.pkl"
+    return get_index_dir() / f"{agent}.pkl"
 
 
 def _hash_dir(agent_dir: Path) -> str:
@@ -279,44 +349,155 @@ def _build_index(agent: str) -> Dict:
         return {"chunks": all_chunks, "embeddings": None, "hash": _hash_dir(agent_dir)}
 
     model = _get_model()
-    embeddings = None
-    if model:
-        try:
-            import numpy as np
-            texts = [c["text"] for c in all_chunks]
-            embeddings = model.encode(texts, batch_size=32, show_progress_bar=False)
-            print(f"[RAG] {agent} : {len(all_chunks)} chunks indexés")
-        except Exception as e:
-            print(f"[RAG] Embeddings échoués pour {agent} : {e}")
+    if model is None:
+        raise RAGEmbeddingUnavailableError(
+            f"Modèle d'embeddings indisponible pour reconstruire l'index RAG '{agent}'."
+        )
+    try:
+        texts = [c["text"] for c in all_chunks]
+        embeddings = model.encode(texts, batch_size=32, show_progress_bar=False)
+    except Exception as exc:
+        raise RAGEmbeddingUnavailableError(
+            f"Calcul des embeddings impossible pour l'index RAG '{agent}' "
+            f"({type(exc).__name__})."
+        ) from exc
+    if embeddings is None or len(embeddings) != len(all_chunks):
+        raise RAGEmbeddingUnavailableError(
+            f"Embeddings incomplets pour l'index RAG '{agent}'."
+        )
+    print(f"[RAG] {agent} : {len(all_chunks)} chunks indexés")
 
     return {
         "chunks":     all_chunks,
         "embeddings": embeddings,
         "hash":       _hash_dir(agent_dir),
+        "schema_version": 1,
+        "mode": "semantic",
     }
 
 
-def _load_or_build(agent: str) -> Dict:
+def _cache_condition(cached, current_hash: str) -> str:
+    if not isinstance(cached, dict):
+        return "corrupt"
+    if cached.get("hash") != current_hash:
+        return "stale"
+    chunks = cached.get("chunks")
+    if not isinstance(chunks, list):
+        return "corrupt"
+    embeddings = cached.get("embeddings")
+    if chunks and embeddings is None:
+        return "incomplete"
+    if embeddings is not None:
+        try:
+            if len(embeddings) != len(chunks):
+                return "corrupt"
+        except TypeError:
+            return "corrupt"
+    return "valid"
+
+
+def cache_status(agent: str) -> Dict:
+    """Inspect an index without rebuilding or modifying it."""
     agent_dir = _agent_rag_dir(agent)
     idx_file  = _index_path(agent)
     current_hash = _hash_dir(agent_dir) if agent_dir.exists() else ""
-
-    if idx_file.exists():
-        try:
-            with open(idx_file, "rb") as f:
-                cached = pickle.load(f)
-            if cached.get("hash") == current_hash:
-                return cached
-        except Exception:
-            pass
-
-    idx = _build_index(agent)
+    if not idx_file.exists():
+        return {
+            "agent": agent,
+            "status": "missing",
+            "file": idx_file.name,
+            "source_hash": current_hash,
+        }
     try:
-        with open(idx_file, "wb") as f:
-            pickle.dump(idx, f)
-    except Exception as e:
-        print(f"[RAG] Sauvegarde index échouée : {e}")
-    return idx
+        with open(idx_file, "rb") as handle:
+            cached = pickle.load(handle)
+        condition = _cache_condition(cached, current_hash)
+        chunks = cached.get("chunks", []) if isinstance(cached, dict) else []
+        embeddings = cached.get("embeddings") if isinstance(cached, dict) else None
+        return {
+            "agent": agent,
+            "status": condition,
+            "file": idx_file.name,
+            "source_hash": current_hash,
+            "cache_hash": cached.get("hash") if isinstance(cached, dict) else None,
+            "chunks": len(chunks) if isinstance(chunks, list) else None,
+            "has_embeddings": embeddings is not None,
+        }
+    except Exception as exc:
+        return {
+            "agent": agent,
+            "status": "corrupt",
+            "file": idx_file.name,
+            "source_hash": current_hash,
+            "error_type": type(exc).__name__,
+        }
+
+
+def _write_cache_atomically(idx_file: Path, idx: Dict) -> None:
+    idx_file.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{idx_file.name}.", suffix=".tmp", dir=str(idx_file.parent)
+    )
+    temporary_path = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            descriptor = None
+            pickle.dump(idx, handle)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, idx_file)
+    except Exception as exc:
+        raise RAGCacheError(
+            f"Écriture atomique impossible pour l'index RAG '{idx_file.stem}' "
+            f"({type(exc).__name__})."
+        ) from exc
+    finally:
+        if descriptor is not None:
+            try:
+                os.close(descriptor)
+            except OSError:
+                pass
+        if temporary_path.exists():
+            try:
+                temporary_path.unlink()
+            except OSError:
+                pass
+
+
+def _load_or_build(agent: str, force_rebuild: bool = False) -> Dict:
+    agent_dir = _agent_rag_dir(agent)
+    idx_file = _index_path(agent)
+    current_hash = _hash_dir(agent_dir) if agent_dir.exists() else ""
+
+    with _cache_lock:
+        condition = "forced" if force_rebuild else "missing"
+        if idx_file.exists() and not force_rebuild:
+            try:
+                with open(idx_file, "rb") as handle:
+                    cached = pickle.load(handle)
+                condition = _cache_condition(cached, current_hash)
+                if condition == "valid":
+                    return cached
+            except Exception:
+                condition = "corrupt"
+
+        try:
+            idx = _build_index(agent)
+        except RAGEmbeddingUnavailableError as exc:
+            raise RAGEmbeddingUnavailableError(
+                f"Cache RAG '{agent}' {condition}; reconstruction annulée et "
+                "cache existant préservé. " + str(exc)
+            ) from exc
+
+        rebuilt_condition = _cache_condition(idx, current_hash)
+        if rebuilt_condition != "valid":
+            raise RAGCacheError(
+                f"Reconstruction invalide de l'index RAG '{agent}' "
+                f"({rebuilt_condition}); cache existant préservé."
+            )
+        _write_cache_atomically(idx_file, idx)
+        print(f"[RAG] Index '{agent}' reconstruit atomiquement (cause={condition}).")
+        return idx
 
 
 def load_all():
@@ -336,10 +517,8 @@ def ensure_loaded(agent: str) -> bool:
 
 def reload(agent: str):
     """Recharger l'index d'un agent (après ajout de fichiers dans agents/{agent}/rag/)."""
-    idx_file = _index_path(agent)
-    if idx_file.exists():
-        idx_file.unlink()
-    _indexes[agent] = _load_or_build(agent)
+    _indexes.pop(agent, None)
+    _indexes[agent] = _load_or_build(agent, force_rebuild=True)
     print(f"[RAG] Index {agent} rechargé depuis agents/{agent}/rag/")
 
 
@@ -360,10 +539,16 @@ def search(query: str, agent: str, top_k: int = 4) -> List[Dict]:
     if not chunks:
         return []
 
+    if embeddings is None:
+        raise RAGEmbeddingUnavailableError(
+            f"L'index RAG '{agent}' ne contient pas d'embeddings sémantiques."
+        )
     model = _get_model()
-    if model is None or embeddings is None:
-        return [{"text": c["text"], "source": c["source"], "score": 1.0}
-                for c in chunks[:top_k]]
+    if model is None:
+        raise RAGEmbeddingUnavailableError(
+            f"Le modèle d'embeddings requis pour interroger l'index RAG '{agent}' "
+            "est indisponible."
+        )
 
     try:
         import numpy as np
@@ -378,10 +563,11 @@ def search(query: str, agent: str, top_k: int = 4) -> List[Dict]:
             for i in top_idx
             if float(sims[i]) > 0.1
         ]
-    except Exception as e:
-        print(f"[RAG] Recherche échouée : {e}")
-        return [{"text": c["text"], "source": c["source"], "score": 1.0}
-                for c in chunks[:top_k]]
+    except Exception as exc:
+        raise RAGSearchError(
+            f"Recherche sémantique impossible pour l'index RAG '{agent}' "
+            f"({type(exc).__name__})."
+        ) from exc
 
 
 def search_filtered(query: str, agent: str, sources: List[str], top_k: int = 4) -> List[Dict]:
@@ -403,10 +589,16 @@ def search_filtered(query: str, agent: str, sources: List[str], top_k: int = 4) 
         return search(query, agent, top_k)
 
     f_chunks = [chunks[i] for i in filtered_idx]
+    if embs is None:
+        raise RAGEmbeddingUnavailableError(
+            f"L'index RAG '{agent}' ne contient pas d'embeddings sémantiques."
+        )
     model = _get_model()
-    if model is None or embs is None:
-        return [{"text": c["text"], "source": c["source"], "score": 1.0}
-                for c in f_chunks[:top_k]]
+    if model is None:
+        raise RAGEmbeddingUnavailableError(
+            f"Le modèle d'embeddings requis pour interroger l'index RAG '{agent}' "
+            "est indisponible."
+        )
 
     try:
         import numpy as np
@@ -420,9 +612,11 @@ def search_filtered(query: str, agent: str, sources: List[str], top_k: int = 4) 
             {"text": f_chunks[j]["text"], "source": f_chunks[j]["source"], "score": float(sims[j])}
             for j in top if float(sims[j]) > 0.05
         ]
-    except Exception:
-        return [{"text": c["text"], "source": c["source"], "score": 1.0}
-                for c in f_chunks[:top_k]]
+    except Exception as exc:
+        raise RAGSearchError(
+            f"Recherche sémantique filtrée impossible pour l'index RAG '{agent}' "
+            f"({type(exc).__name__})."
+        ) from exc
 
 
 def format_context(results: List[Dict], max_chars: int = 1800) -> str:

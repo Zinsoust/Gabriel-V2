@@ -5,6 +5,7 @@ import math
 import time
 import random
 import threading
+import logging
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
@@ -12,6 +13,8 @@ from core import llm_client as _llm
 from core.ai_json import parse_ai_json
 from core.security import wrap_untrusted_content, PROMPT_INJECTION_GUARD
 from tools import registry as tool_registry
+
+_logger = logging.getLogger(__name__)
 
 # NLP Engine — couche de prétraitement linguistique et statistique
 try:
@@ -384,14 +387,55 @@ def _detect_signals_v2(text):
 # like_bonus     : log(1+likes)/10 dans le sens du sentiment
 # spam           : alpha_ratio < 0.3 sur texte court → -1.0
 #
+class AnalyzerDependencyError(RuntimeError):
+    """A required deterministic analysis dependency is unavailable."""
+
+
+_vader_init_error = None
 try:
     from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as _VaderClass
-    _vader_singleton = _VaderClass()
-except Exception:
+except ImportError as exc:
+    _VaderClass = None
     _vader_singleton = None
+    _vader_init_error = exc
+else:
+    try:
+        _vader_singleton = _VaderClass()
+    except Exception as exc:
+        _vader_singleton = None
+        _vader_init_error = exc
+
+if _vader_singleton is None:
+    _logger.warning(
+        "Analyse de sentiment indisponible: dépendance vaderSentiment>=3.3.2 "
+        "absente ou non initialisable (%s).",
+        type(_vader_init_error).__name__ if _vader_init_error else "UnknownError",
+    )
+
+
+def analyzer_dependency_status():
+    """Return a safe diagnostic without exposing environment details."""
+    return {
+        "vader": {
+            "required": True,
+            "available": _vader_singleton is not None,
+            "error_type": (
+                type(_vader_init_error).__name__ if _vader_init_error else None
+            ),
+        }
+    }
+
+
+def _require_vader():
+    if _vader_singleton is None:
+        raise AnalyzerDependencyError(
+            "Analyse de sentiment indisponible: installez "
+            "vaderSentiment>=3.3.2 avant d'exécuter le Psychologue."
+        ) from _vader_init_error
+    return _vader_singleton
 
 def score_comments_math(comments, nlp_data, title=""):
-    vader = _vader_singleton
+    vader = _require_vader()
     relevance_scores = (nlp_data or {}).get("relevance_scores", [])
     title_keywords   = _extract_title_keywords(title)
 
