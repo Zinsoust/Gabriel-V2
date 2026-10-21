@@ -11,6 +11,7 @@ os.environ["AUTH_ENABLED"] = "true"
 os.environ["FLASK_SECRET_KEY"] = "test-secret-prospect-preview"
 os.environ["RATE_LIMIT_ENABLED"] = "false"
 os.environ["NLP_PRELOAD"] = "false"
+os.environ["GABRIEL_PROSPECT_ENABLED"] = "true"
 os.environ.setdefault("MISTRAL_API_KEY", "test-key")
 os.environ.setdefault("SUPABASE_URL", "")
 os.environ.setdefault("SUPABASE_KEY", "")

@@ -8,7 +8,6 @@ const tabs = [
   { id: 'psychologue', label: 'Psychologue', agent: agents.psychologue, group: 'entree' },
   { id: 'stratege', label: 'Ariane', agent: agents.stratege, group: 'prolongements' },
   { id: 'createur', label: 'Créateur', agent: agents.createur, group: 'prolongements' },
-  { id: 'prospect', label: 'Prospect', icon: 'briefcase', group: 'acquisition' },
   { id: 'conversation', label: 'Conversation', icon: 'message', group: 'suivi' },
   { id: 'activity', label: 'Activité', icon: 'activity', group: 'suivi' },
   { id: 'memory', label: 'Mémoire', icon: 'archive', group: 'suivi' },

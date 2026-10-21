@@ -44,7 +44,7 @@ export function isAgentTab(id) {
 export const DEFAULT_TAB = 'psychologue';
 
 function isAddressableTab(id) {
-  return isAgentTab(id) || id === 'conversation' || id === 'prospect';
+  return isAgentTab(id) || id === 'conversation';
 }
 
 export function tabFromUrl(href) {
