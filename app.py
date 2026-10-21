@@ -4564,7 +4564,7 @@ def stripe_checkout():
     price_id = _STRIPE_PLANS.get(plan)
 
     if not _STRIPE_SECRET or not price_id:
-        return jsonify({'error': 'Paiement non encore configuré pour ce plan. Contactez outilsagencechretienne@gmail.com.'}), 503
+        return jsonify({'error': 'Paiement non encore configuré pour ce plan. Contactez gabrielaigithub@gmail.com.'}), 503
 
     uid = (current_user() or {}).get('user_id', '')
     try:

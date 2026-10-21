@@ -120,7 +120,7 @@ export function TarifsView() {
 
     <p className="gv2-tarifs-note">
       Paiement sécurisé par Stripe · Annulable à tout moment · Sans engagement<br />
-      Vous hésitez encore ? <a href="mailto:outilsagencechretienne@gmail.com?subject=Demande%20d'audit%20Gabriel">Demandez une démo gratuite ou un audit personnalisé</a>.
+      Vous hésitez encore ? <a href="mailto:gabrielaigithub@gmail.com?subject=Demande%20d'audit%20Gabriel">Demandez une démo gratuite ou un audit personnalisé</a>.
     </p>
   </div>;
 }

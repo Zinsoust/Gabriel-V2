@@ -44,7 +44,7 @@
 
 ## 4. Comment signaler un bug
 
-**Canal prioritaire** : Email direct à `outilsagencechretienne@gmail.com`
+**Canal prioritaire** : Email direct à `gabrielaigithub@gmail.com`
 
 **Format de signalement** :
 ```
