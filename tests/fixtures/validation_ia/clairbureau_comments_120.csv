@@ -1,0 +1,121 @@
+comment_id,theme,comment,likes
+CB-001,surcharge_administrative,"Entre les devis, les relances et les comptes rendus, je termine souvent ma journée par une deuxième journée de paperasse.",7
+CB-002,surcharge_administrative,"Je passe d'un tableur à ma messagerie puis à mes notes, et je perds le fil de ce que je dois faire.",4
+CB-003,surcharge_administrative,"Le conseil me plaît, mais toute l'administration autour de chaque mission finit par m'épuiser.",6
+CB-004,surcharge_administrative,"Chaque nouveau client ajoute des documents, des rappels et des petites tâches que je dois suivre à la main.",3
+CB-005,surcharge_administrative,"Je reporte la facturation au vendredi soir parce que je n'ai jamais le temps de m'en occuper entre deux rendez-vous.",5
+CB-006,surcharge_administrative,"Recopier les mêmes coordonnées dans trois outils différents n'apporte rien à mes clients.",2
+CB-007,surcharge_administrative,"Mon suivi administratif repose encore sur des dossiers, des post-it et plusieurs onglets ouverts en permanence.",8
+CB-008,surcharge_administrative,"Je voudrais arrêter de vérifier chaque matin si j'ai oublié une relance ou un document à envoyer.",4
+CB-009,surcharge_administrative,"Les tâches de gestion s'accumulent vite dès que plusieurs missions démarrent la même semaine.",6
+CB-010,surcharge_administrative,"Préparer une proposition commerciale me prend presque autant d'énergie que préparer l'intervention elle-même.",5
+CB-011,surcharge_administrative,"Je note les prochaines actions pendant les appels, puis je dois encore les ressaisir ailleurs après le rendez-vous.",7
+CB-012,surcharge_administrative,"Le soir, je cherche dans mes mails pour reconstruire ce qui a été décidé avec chaque client.",9
+CB-013,surcharge_administrative,"J'aimerais centraliser les demandes sans transformer mon activité en usine à procédures.",3
+CB-014,surcharge_administrative,"Mon agenda est clair, mais tout ce qui se passe avant et après les rendez-vous reste dispersé.",4
+CB-015,surcharge_administrative,"Les relances de devis sont faciles à oublier quand je suis concentré sur une mission urgente.",6
+CB-016,surcharge_administrative,"Je perds beaucoup de temps à renommer, classer et retrouver des fichiers liés à une même mission.",5
+CB-017,surcharge_administrative,"À chaque fin de mois, je dois rapprocher mes notes, mes factures et mes échanges client manuellement.",8
+CB-018,surcharge_administrative,"Mon activité est simple sur le papier, mais le nombre de petites opérations quotidiennes devient lourd.",3
+CB-019,surcharge_administrative,"Je voudrais voir les tâches administratives à faire sans devoir ouvrir quatre applications.",7
+CB-020,surcharge_administrative,"Les demandes de modifications arrivent par mail, téléphone et messagerie, puis je dois tout consolider moi-même.",6
+CB-021,surcharge_administrative,"Je consacre trop de créneaux facturables à vérifier des informations déjà saisies quelque part.",5
+CB-022,surcharge_administrative,"Le suivi des acomptes, des livrables et des validations me demande une vigilance constante.",4
+CB-023,surcharge_administrative,"Quand une mission se termine, il reste toujours plusieurs actions administratives éparpillées à clôturer.",3
+CB-024,surcharge_administrative,"Je fais encore mes listes de suivi à la main parce que mes outils ne communiquent pas entre eux.",7
+CB-025,surcharge_administrative,"Une semaine chargée suffit pour que mon classement et mes relances prennent du retard.",5
+CB-026,surcharge_administrative,"Je voudrais consacrer mes matinées à mes clients, pas à trier des notifications et des documents.",8
+CB-027,surcharge_administrative,"Même avec peu de clients, chaque dossier génère une quantité surprenante de micro-tâches.",2
+CB-028,surcharge_administrative,"Je dois régulièrement relire toute une conversation pour savoir quelle version du livrable est validée.",6
+CB-029,surcharge_administrative,"Les outils actuels enregistrent des informations, mais ils ne m'aident pas à savoir quoi traiter ensuite.",4
+CB-030,surcharge_administrative,"Je cherche surtout à réduire la charge mentale liée au suivi, pas à ajouter un tableau de bord de plus.",9
+CB-031,surcharge_administrative,"Les tâches répétitives de préparation et de clôture des missions grignotent mes journées.",5
+CB-032,surcharge_administrative,"Je veux une méthode légère pour suivre mes clients sans passer mon temps à entretenir le système.",7
+CB-033,perte_demande_client,"Une demande reçue pendant un déplacement peut rester enfouie dans ma boîte mail jusqu'à ce que le client me relance.",8
+CB-034,perte_demande_client,"J'ai peur qu'un message important se perde entre les échanges commerciaux et les conversations de projet.",5
+CB-035,perte_demande_client,"Quand un prospect écrit sur un autre canal que d'habitude, je risque de ne pas intégrer sa demande à mon suivi.",6
+CB-036,perte_demande_client,"Il me manque un endroit unique où chaque nouvelle sollicitation devient immédiatement visible.",7
+CB-037,perte_demande_client,"Je prends parfois une capture d'écran d'une demande en attendant de la traiter, ce qui n'est pas vraiment fiable.",3
+CB-038,perte_demande_client,"Une petite précision client peut disparaître au milieu d'un long fil de messages.",4
+CB-039,perte_demande_client,"Je voudrais être certain que toute demande reçue a un statut et une prochaine action.",9
+CB-040,perte_demande_client,"Quand deux clients écrivent en même temps, je réponds au plus urgent et l'autre demande peut sortir de mon radar.",6
+CB-041,perte_demande_client,"Les messages marqués comme non lus ne suffisent pas pour suivre ce qui attend réellement une réponse.",5
+CB-042,perte_demande_client,"Je me suis déjà aperçu trop tard qu'une demande de devis était restée dans un dossier secondaire.",7
+CB-043,perte_demande_client,"Un prospect qui attend plusieurs jours peut croire que je ne suis pas intéressé alors que je n'ai simplement pas vu son message.",8
+CB-044,perte_demande_client,"Il suffit d'une journée de rendez-vous pour que les nouvelles demandes s'empilent sans tri clair.",3
+CB-045,perte_demande_client,"Je veux distinguer ce qui a été lu de ce qui a réellement été pris en charge.",6
+CB-046,perte_demande_client,"Mon principal stress est de promettre un retour puis de perdre la note qui devait me le rappeler.",9
+CB-047,perte_demande_client,"Les formulaires du site arrivent par mail et se mélangent aux newsletters et aux notifications ordinaires.",4
+CB-048,perte_demande_client,"Je n'ai pas besoin d'un gros CRM, seulement d'une garantie qu'aucune demande ne reste sans suite.",7
+CB-049,perte_demande_client,"Quand un client répond plusieurs semaines plus tard, je dois retrouver le contexte avant de savoir quoi faire.",5
+CB-050,perte_demande_client,"Les demandes vocales sont les plus risquées, car je les note vite et je peux oublier de les reporter.",6
+CB-051,perte_demande_client,"Je voudrais transformer chaque message entrant en action sans copier-coller son contenu partout.",8
+CB-052,perte_demande_client,"Une relance de prospect peut être manquée si elle arrive dans une conversation déjà archivée.",4
+CB-053,perte_demande_client,"Je veux pouvoir vérifier en quelques secondes quelles demandes attendent encore une réponse.",9
+CB-054,perte_demande_client,"Les urgences clients sont visibles, mais les demandes moins pressantes finissent parfois par être oubliées.",5
+CB-055,perte_demande_client,"Le risque n'est pas seulement de perdre un message, c'est de perdre la confiance qui allait avec.",8
+CB-056,perte_demande_client,"Je cherche un filet de sécurité pour mes demandes entrantes, surtout pendant les périodes très chargées.",6
+CB-057,rejet_outils_complexes,"Je renonce vite quand un logiciel demande de construire dix colonnes avant de pouvoir suivre un premier client.",7
+CB-058,rejet_outils_complexes,"Les CRM que j'ai testés semblent conçus pour une équipe commerciale, pas pour une personne seule.",8
+CB-059,rejet_outils_complexes,"Je ne veux pas suivre une formation complète juste pour organiser mes demandes.",6
+CB-060,rejet_outils_complexes,"Si je dois paramétrer chaque étape du processus, je sais que l'outil finira abandonné.",5
+CB-061,rejet_outils_complexes,"Les menus trop nombreux me font perdre plus de temps qu'un simple tableau.",4
+CB-062,rejet_outils_complexes,"Je cherche quelque chose que je peux comprendre dès la première utilisation.",9
+CB-063,rejet_outils_complexes,"Les fonctions avancées sont séduisantes en démonstration, mais elles deviennent vite une contrainte au quotidien.",3
+CB-064,rejet_outils_complexes,"Je préfère trois actions évidentes à un logiciel capable de tout faire.",8
+CB-065,rejet_outils_complexes,"Les automatisations avec des règles imbriquées me donnent l'impression de devoir devenir technicien.",6
+CB-066,rejet_outils_complexes,"Je n'ai pas envie de personnaliser un pipeline commercial pour chaque type de mission.",5
+CB-067,rejet_outils_complexes,"Un outil utile devrait s'adapter à mon rythme sans me demander de revoir toute mon organisation.",7
+CB-068,rejet_outils_complexes,"Je me méfie des interfaces remplies de graphiques que je ne consulterai jamais.",4
+CB-069,rejet_outils_complexes,"Mon besoin tient en une phrase, alors pourquoi les solutions proposées ont-elles autant d'écrans ?",8
+CB-070,rejet_outils_complexes,"Je veux pouvoir ajouter une demande, la retrouver et savoir quoi faire ensuite, rien de plus compliqué.",9
+CB-071,rejet_outils_complexes,"Les outils trop flexibles me laissent souvent face à une page vide sans savoir comment les configurer.",5
+CB-072,rejet_outils_complexes,"Si l'installation prend tout un après-midi, je préfère rester avec mes notes actuelles.",6
+CB-073,rejet_outils_complexes,"Je n'ai pas besoin de rapports sophistiqués, seulement d'un suivi clair et rapide.",7
+CB-074,rejet_outils_complexes,"Les solutions pensées pour les grandes entreprises ajoutent des étapes qui n'existent pas dans mon activité.",4
+CB-075,rejet_outils_complexes,"Je voudrais tester le fonctionnement réel sans passer d'abord par une démonstration interminable.",6
+CB-076,rejet_outils_complexes,"La simplicité est plus importante pour moi que la quantité de fonctionnalités annoncées.",9
+CB-077,objection_prix,"Un abonnement supplémentaire doit remplacer plusieurs tâches, sinon il devient juste une dépense de plus.",7
+CB-078,objection_prix,"Je voudrais connaître le prix total avant d'investir du temps dans la configuration.",5
+CB-079,objection_prix,"Pour une activité irrégulière, un tarif mensuel élevé est difficile à justifier.",6
+CB-080,objection_prix,"Le gain de temps doit être visible rapidement pour que l'abonnement ait du sens.",8
+CB-081,objection_prix,"Je crains les options indispensables qui ne sont disponibles que dans une formule plus chère.",4
+CB-082,objection_prix,"Un essai limité ne suffit pas toujours pour savoir si l'outil vaut réellement son prix.",5
+CB-083,objection_prix,"Je préfère un tarif simple à plusieurs paliers dont les différences sont difficiles à comprendre.",7
+CB-084,objection_prix,"Le prix peut être acceptable si je peux mesurer les demandes récupérées ou le temps économisé.",9
+CB-085,objection_prix,"Je ne veux pas payer pour des fonctions destinées à des équipes alors que je travaille seul.",6
+CB-086,objection_prix,"Les hausses de tarif après quelques mois me rendent prudent au moment de choisir un nouvel outil.",3
+CB-087,objection_prix,"J'ai besoin de savoir si je peux arrêter facilement si mon activité ralentit.",5
+CB-088,objection_prix,"Un paiement annuel me bloque tant que je n'ai pas éprouvé l'outil sur une vraie période de travail.",4
+CB-089,objection_prix,"Le coût est moins gênant que l'incertitude sur l'usage que j'en ferai réellement.",8
+CB-090,objection_prix,"Je compare ce type d'abonnement au temps administratif qu'il me permet vraiment de récupérer.",7
+CB-091,objection_prix,"Si le tarif dépend du nombre de contacts, j'ai peur de payer davantage au moment où mon activité redémarre.",5
+CB-092,objection_prix,"Je veux éviter les frais cachés liés aux intégrations ou au stockage des documents.",6
+CB-093,visibilite_temps,"J'aimerais commencer la semaine avec une vue claire des demandes, relances et livrables prioritaires.",9
+CB-094,visibilite_temps,"Voir tout ce qui est en attente au même endroit m'aiderait à libérer de l'espace mental.",8
+CB-095,visibilite_temps,"Je veux savoir quels clients nécessitent mon attention sans relire tout mon agenda.",7
+CB-096,visibilite_temps,"Une synthèse quotidienne courte serait plus utile qu'une accumulation de notifications.",6
+CB-097,visibilite_temps,"Si je récupère du temps, je veux le consacrer à préparer mes missions et à développer mon expertise.",5
+CB-098,visibilite_temps,"Une vue par prochaine action me permettrait de planifier mes journées avec moins d'hésitation.",8
+CB-099,visibilite_temps,"Je cherche surtout à réduire le temps passé à décider par quoi commencer.",7
+CB-100,visibilite_temps,"Pouvoir repérer immédiatement les dossiers bloqués éviterait beaucoup d'allers-retours inutiles.",6
+CB-101,visibilite_temps,"Je voudrais une vision fiable de ma charge avant d'accepter une nouvelle mission.",5
+CB-102,visibilite_temps,"Le vrai bénéfice serait de fermer l'ordinateur en sachant que rien d'important n'est oublié.",9
+CB-103,visibilite_temps,"Un résumé des échéances et des réponses attendues m'aiderait à protéger mes plages de concentration.",7
+CB-104,visibilite_temps,"Je veux pouvoir retrouver l'état d'un dossier avant un appel sans préparer un récapitulatif à la main.",6
+CB-105,visibilite_temps,"Une vue simple de l'activité m'éviterait de faire des points de contrôle permanents dans la journée.",8
+CB-106,visibilite_temps,"Gagner du temps compte, mais retrouver une sensation de maîtrise serait encore plus important.",9
+CB-107,mefiance_automatisation,"Je veux toujours valider un message avant qu'il parte à un client.",8
+CB-108,mefiance_automatisation,"Une automatisation qui se trompe de contexte peut faire plus de dégâts qu'un oubli manuel.",7
+CB-109,mefiance_automatisation,"Je ne confierais pas une réponse commerciale à un système sans pouvoir voir exactement ce qu'il utilise.",6
+CB-110,mefiance_automatisation,"Les actions automatiques doivent être faciles à suspendre dès qu'une situation devient inhabituelle.",5
+CB-111,mefiance_automatisation,"Je préfère recevoir une suggestion plutôt qu'une décision prise à ma place.",9
+CB-112,mefiance_automatisation,"J'ai besoin de comprendre pourquoi une demande est classée urgente avant de lui faire confiance.",7
+CB-113,mefiance_automatisation,"Si l'outil envoie des relances tout seul, je veux pouvoir contrôler le ton et le moment.",6
+CB-114,mefiance_automatisation,"L'automatisation m'intéresse seulement si elle reste réversible et transparente.",8
+CB-115,positif,"Une boîte de réception unique pour les demandes me ferait déjà gagner beaucoup de sérénité.",9
+CB-116,positif,"Le positionnement pour les indépendants me parle davantage que les CRM habituels.",7
+CB-117,positif,"Si la prise en main est vraiment rapide, je serais prêt à l'essayer sur mes prochaines missions.",8
+CB-118,positif,"J'aime l'idée d'un suivi centré sur la prochaine action plutôt que sur des tableaux complexes.",9
+CB-119,positif,"Pouvoir garder le contrôle tout en automatisant les rappels serait un bon équilibre.",8
+CB-120,positif,"Une vue claire des demandes et des échéances répond exactement à mon besoin actuel.",10

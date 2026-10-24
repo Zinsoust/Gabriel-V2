@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "fixture_id": "validation-ia-scenario-b-brief-v1",
+  "fictional": true,
+  "provenance": "Analyse historique synthétique créée pour tester le contrat psychologue.brief.v1. Aucun élément ne provient d'un utilisateur, d'un client ou d'une analyse réelle.",
+  "load_contract": {
+    "local_seed_adapter": "api.db.save_analysis",
+    "application_read_route": "/history/validation-b-legacy-001/load",
+    "public_import_route_available": false,
+    "remote_insertion_authorized": false
+  },
+  "entry": {
+    "analysis_id": "validation-b-legacy-001",
+    "video_title": "Fixture historique — OrbiteCalme",
+    "source": "validation_fixture_local_only",
+    "nb_commentaires": 0,
+    "date": "2026-10-24T00:00:00Z",
+    "folder_id": "validation-b-legacy-folder",
+    "full_result": {
+      "analysis_id": "validation-b-legacy-001",
+      "source_label": "Fixture synthétique historique",
+      "video_context": "OrbiteCalme est un service fictif d'ateliers de planification pour petites équipes associatives.",
+      "brief": {
+        "synthese": "De petites équipes associatives engagées cherchent un cadre léger pour décider sans multiplier les réunions.",
+        "insight_cle": "Leur difficulté n'est pas un manque d'idées mais l'absence d'un moment partagé où une priorité devient un engagement clair.",
+        "action_prioritaire": "Proposer un atelier court qui transforme les sujets dispersés en une priorité commune et en responsabilités explicites."
+      },
+      "psychologie": {
+        "frustrations": ["Réunions sans décision", "Priorités qui changent", "Responsabilités floues"],
+        "peurs_implicites": ["Épuiser les bénévoles", "Décider sans consensus"],
+        "desirs_caches": ["Retrouver un cap commun", "Avancer sans rigidité"],
+        "motivations_profondes": ["Utilité collective", "Confiance mutuelle", "Continuité de l'action"]
+      },
+      "emotions": {
+        "repartition": [
+          {"emotion": "Frustration", "pourcentage": 45},
+          {"emotion": "Espoir", "pourcentage": 35},
+          {"emotion": "Prudence", "pourcentage": 20}
+        ],
+        "dominante": "Frustration",
+        "intensite": "Présente mais orientée vers la recherche d'une solution praticable.",
+        "espoir_decu": "Les réunions devaient aligner l'équipe mais elles déplacent souvent les décisions.",
+        "aspiration_nourrie": "Un cadre simple peut restaurer la confiance dans l'action collective.",
+        "commentaires_revelateurs": []
+      },
+      "aspirations": {
+        "ce_qu_ils_veulent_devenir": "Une équipe capable de décider sereinement et de tenir ses engagements.",
+        "ce_qu_ils_veulent_construire": "Une organisation légère où chacun sait ce qu'il porte.",
+        "ce_qu_ils_veulent_transmettre": "Une manière de travailler respectueuse du temps bénévole.",
+        "freins_aux_aspirations": ["Sujets trop nombreux", "Décisions implicites", "Suivi irrégulier"]
+      },
+      "marketing": {
+        "objections_visibles": ["Encore une méthode", "Pas le temps pour un accompagnement long"],
+        "positionnement_recommande": "Un atelier de décision léger, pas une transformation organisationnelle lourde.",
+        "opportunites_offre": ["Atelier ponctuel", "Support de suivi simple"],
+        "opportunites_contenu": ["Décider sans rallonger les réunions", "Rendre une responsabilité explicite"]
+      },
+      "kpis": {
+        "engagement": {"score": 64},
+        "opportunite": {"score": 71}
+      },
+      "distribution": {
+        "positif": 35,
+        "negatif": 45,
+        "total": 100
+      },
+      "personas": [
+        {
+          "nom": "La coordinatrice prudente",
+          "poids": 55,
+          "emotion_dominante_mesuree": "Frustration",
+          "frustrations": ["Réunions sans décision"],
+          "peurs": ["Imposer une méthode trop lourde"],
+          "desirs": ["Un cap partagé"],
+          "aspirations": ["Préserver l'engagement collectif"],
+          "objection_principale": "Nous n'avons pas le temps d'ajouter un processus.",
+          "ce_qui_le_ferait_acheter": "Un atelier court avec une sortie immédiatement utilisable.",
+          "message_a_lui_dire": "Décider plus clairement sans alourdir votre fonctionnement.",
+          "histoire_interieure": "Je veux faire avancer le projet sans user l'équipe."
+        }
+      ],
+      "dashboard": {},
+      "meta": {
+        "total_commentaires": 0,
+        "commentaires_analyses": 0,
+        "fixture_historique": true
+      }
+    }
+  }
+}

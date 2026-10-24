@@ -1,5 +1,9 @@
 # Validation réelle du cœur Gabriel — scénarios préparés
 
+Les fixtures reproductibles, leurs empreintes, les prompts exacts et le
+manifeste maximal des appels sont décrits dans
+[`VALIDATION_FIXTURES_COEUR.md`](VALIDATION_FIXTURES_COEUR.md).
+
 Ces scénarios ne doivent être exécutés qu'après autorisation explicite des appels IA et confirmation des modèles/tarifs actifs. Ils utilisent un compte de test et des données fictives ou dont l'utilisation est autorisée.
 
 ## Prérequis communs

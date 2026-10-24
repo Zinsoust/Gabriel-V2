@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "fixture_id": "validation-ia-scenario-a-clairbureau-v1",
+  "fictional": true,
+  "provenance": "Contenu synthétique rédigé exclusivement pour la validation locale de Gabriel. ClairBureau, son activité et tous les commentaires sont fictifs et ne décrivent aucun témoignage réel.",
+  "folder": {
+    "folder_id": "validation-a-clairbureau",
+    "title": "Validation A — ClairBureau"
+  },
+  "product": {
+    "name": "ClairBureau",
+    "description": "Outil fictif de suivi des demandes, prochaines actions et échéances pour consultants indépendants.",
+    "status": "Prototype fictif sans client réel",
+    "promise_boundary": "Aucune promesse chiffrée, aucun témoignage et aucune autonomie d'envoi ne sont autorisés dans les contenus de validation."
+  },
+  "business_context": {
+    "offer": "Un espace simple qui centralise les demandes client, les prochaines actions et les échéances.",
+    "target": "Consultants indépendants qui gèrent seuls plusieurs missions et leurs tâches administratives.",
+    "format": "Application web en libre-service avec accompagnement de prise en main optionnel.",
+    "long_term_goal": "Devenir l'outil de suivi quotidien le plus simple pour les consultants indépendants francophones.",
+    "destination": "Valider une proposition de valeur claire avant toute ouverture commerciale.",
+    "client_transformation": "Passer d'un suivi dispersé et anxiogène à une vue maîtrisée des demandes et prochaines actions.",
+    "non_negotiables": "Simplicité, contrôle humain, transparence des automatisations et absence de promesse non prouvée.",
+    "revenue_sources": "Abonnement mensuel résiliable, sans revenu existant dans cette fixture.",
+    "offers_sold": "Une offre unique fictive donnant accès au suivi des demandes et aux rappels contrôlables.",
+    "pricing": "Tarif non fixé ; il doit être testé sans inventer de montant.",
+    "conversion_path": "Découverte du produit, démonstration courte, essai volontaire, puis décision d'abonnement.",
+    "founder_time_dependency": "La démonstration et l'accompagnement initial reposent encore sur la personne qui porte le prototype.",
+    "budget": "Budget de validation limité ; aucun budget média n'est engagé.",
+    "team": "Une personne porte le prototype fictif, sans équipe commerciale.",
+    "time": "Deux demi-journées par semaine sont disponibles pour la validation du positionnement.",
+    "tools": "Prototype ClairBureau, site de démonstration et documentation de test.",
+    "skills": "Conseil indépendant, organisation de missions et rédaction de contenus pédagogiques.",
+    "audience": "Aucune audience propriétaire réelle ; uniquement le jeu fictif de validation.",
+    "network": "Aucun réseau commercial réel n'est utilisé pour cette campagne.",
+    "financial": "Ne pas engager de dépense autre que le plafond IA autorisé séparément.",
+    "human": "Une seule personne peut conduire les entretiens et évaluer les sorties.",
+    "operational": "Le test doit rester reproductible avec un seul dossier et une seule création LinkedIn.",
+    "technical": "Aucune intégration externe ni envoi automatique pendant la validation.",
+    "time_constraint": "La campagne doit être interrompue dès qu'un critère NO-GO apparaît.",
+    "actions_tried": "Maquettes et formulation de la proposition de valeur, sans commercialisation réelle.",
+    "results_observed": "Les données disponibles sont exclusivement les 120 commentaires fictifs de la fixture.",
+    "failures": "Les formulations trop techniques et les promesses vagues ne sont pas retenues.",
+    "successes": "La formulation centrée sur une prochaine action claire est comprise dans le cadre fictif.",
+    "assumed_reasons": "La simplicité et le contrôle humain répondent aux thèmes dominants du jeu de validation.",
+    "expected_result": "Obtenir une stratégie cohérente puis un unique post LinkedIn fidèle aux données fictives.",
+    "deadline": "Pendant la campagne de validation autorisée.",
+    "priority_level": "Haute pour la certification, sans enjeu commercial réel.",
+    "success_indicators": "Continuité des identifiants, reprise des thèmes dominants, présence des deux décisions attendues et absence de fait inventé."
+  },
+  "interview_answers": [
+    {
+      "dimension": "identity",
+      "answer": "ClairBureau est une application web fictive pour les consultants indépendants. Elle réunit les demandes client, les prochaines actions et les échéances dans une interface volontairement simple."
+    },
+    {
+      "dimension": "vision",
+      "answer": "Nous voulons valider une proposition de valeur fondée sur la maîtrise et la simplicité. Le contrôle humain, la transparence et l'absence de promesse non prouvée sont non négociables."
+    },
+    {
+      "dimension": "business_model",
+      "answer": "Le modèle envisagé est un abonnement mensuel résiliable avec une seule offre. Aucun tarif n'est fixé et aucun montant ne doit être inventé ; le parcours serait démonstration courte, essai volontaire puis décision."
+    },
+    {
+      "dimension": "resources",
+      "answer": "Une personne, deux demi-journées par semaine, le prototype et la documentation de test sont disponibles. Il n'existe ni audience ni réseau commercial réels pour cette fixture."
+    },
+    {
+      "dimension": "constraints",
+      "answer": "Le budget est limité au plafond IA autorisé séparément. Il ne faut utiliser aucune intégration externe, aucun envoi automatique et une seule création LinkedIn."
+    },
+    {
+      "dimension": "history",
+      "answer": "Seules des maquettes et des formulations ont été préparées. Les données observables de la campagne sont les 120 commentaires fictifs ; les formulations techniques et les promesses vagues sont considérées comme des échecs."
+    },
+    {
+      "dimension": "objective",
+      "answer": "Nous voulons une stratégie cohérente puis un seul post LinkedIn. Le succès exige la continuité des identifiants, les deux décisions attendues, les thèmes dominants et aucun fait inventé."
+    }
+  ],
+  "thomas_request": {
+    "content_type": "linkedin",
+    "channel": "LinkedIn",
+    "generate_variant": false,
+    "use_psycho": true,
+    "use_strategy": true,
+    "prompt": "Rédige un seul post LinkedIn destiné aux consultants indépendants. Ouvre sur une scène de fin de journée où les demandes client, relances et prochaines actions sont dispersées. Présente ClairBureau comme un point d'entrée simple qui aide à voir ce qui attend une réponse, tout en laissant chaque action sous contrôle humain. N'invente aucun chiffre, témoignage, client, résultat mesuré, prix ni fonctionnalité absente du contexte. Termine par une invitation sobre à expliquer comment le lecteur suit aujourd'hui ses demandes."
+  },
+  "expected_strategy_decisions": [
+    {
+      "id": "A-D1",
+      "decision": "Positionner ClairBureau comme l'alternative simple aux CRM complexes, centrée sur une demande visible et une prochaine action claire.",
+      "evidence_themes": ["rejet_outils_complexes", "perte_demande_client"]
+    },
+    {
+      "id": "A-D2",
+      "decision": "Faire du contrôle humain et de la visibilité quotidienne les preuves principales de valeur, sans promettre d'automatisation autonome ni de gain chiffré.",
+      "evidence_themes": ["mefiance_automatisation", "visibilite_temps"]
+    }
+  ]
+}

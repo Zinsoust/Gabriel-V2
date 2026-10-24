@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "fixture_id": "validation-ia-scenario-b-compatibilite-v1",
+  "fictional": true,
+  "provenance": "Tous les produits, dossiers, contextes et prompts sont synthétiques et réservés à la validation locale.",
+  "folders": {
+    "legacy": "validation-b-legacy-folder",
+    "ariane_autonomous": "validation-b-ariane-autonomous-folder",
+    "thomas_alone": "validation-b-thomas-alone-folder",
+    "mismatch_source": "validation-b-mismatch-source-folder",
+    "mismatch_target": "validation-b-mismatch-target-folder"
+  },
+  "ariane_autonomous": {
+    "product_name": "OrbiteCalme",
+    "analysis_id": null,
+    "business_context": {
+      "offer": "Un atelier fictif de planification qui aide une petite équipe associative à choisir une priorité et des responsabilités explicites.",
+      "target": "Petites équipes associatives dont les décisions restent dispersées entre plusieurs réunions.",
+      "format": "Atelier à distance suivi d'un support récapitulatif simple.",
+      "long_term_goal": "Valider une méthode légère de décision collective.",
+      "destination": "Obtenir un positionnement clair sans prétendre transformer toute l'organisation.",
+      "client_transformation": "Passer de sujets dispersés à une priorité commune et des responsabilités explicites.",
+      "non_negotiables": "Respect du temps bénévole, décisions transparentes et aucune promesse chiffrée.",
+      "revenue_sources": "Ateliers ponctuels fictifs, sans vente réelle dans cette validation.",
+      "offers_sold": "Un atelier unique et un support de suivi.",
+      "pricing": "Prix non défini ; aucun montant ne doit être inventé.",
+      "conversion_path": "Présentation du cadre, échange de qualification, puis décision explicite de réserver ou non.",
+      "founder_time_dependency": "L'atelier dépend entièrement de la personne qui l'anime.",
+      "budget": "Aucun budget commercial ; uniquement le plafond IA de validation séparé.",
+      "team": "Une personne anime le service fictif.",
+      "time": "Une journée par semaine serait disponible dans ce scénario fictif.",
+      "tools": "Visioconférence et support de synthèse fictif.",
+      "skills": "Facilitation, synthèse et planification collective.",
+      "audience": "Aucune audience réelle.",
+      "network": "Aucun réseau réel utilisé.",
+      "financial": "Ne fixer aucun prix pendant cette campagne.",
+      "human": "Capacité limitée à un atelier à la fois.",
+      "operational": "Le livrable doit rester court et actionnable.",
+      "technical": "Aucune intégration externe.",
+      "time_constraint": "Interrompre le scénario au premier critère NO-GO.",
+      "actions_tried": "Une trame fictive d'atelier a été écrite, sans utilisateur réel.",
+      "results_observed": "Aucun résultat client réel n'existe.",
+      "failures": "Les présentations trop longues brouillent la décision.",
+      "successes": "Une formulation centrée sur une priorité commune est plus claire.",
+      "assumed_reasons": "La simplicité réduit la peur d'ajouter une méthode lourde.",
+      "expected_result": "Une stratégie autonome fondée uniquement sur l'entretien complet.",
+      "deadline": "Pendant la campagne de validation autorisée.",
+      "priority_level": "Moyenne, limitée au test de compatibilité.",
+      "success_indicators": "Ariane fonctionne sans analysis_id, reste sur OrbiteCalme et n'emploie aucune donnée ClairBureau ou JalonVert."
+    },
+    "interview_answers": [
+      {"dimension": "identity", "answer": "OrbiteCalme est un atelier fictif à distance pour de petites équipes associatives. Il les aide à choisir une priorité et à rendre les responsabilités explicites."},
+      {"dimension": "vision", "answer": "Nous voulons valider une méthode légère, respectueuse du temps bénévole, avec des décisions transparentes et sans promesse chiffrée."},
+      {"dimension": "business_model", "answer": "Le scénario prévoit un atelier ponctuel et un support de suivi. Le prix n'est pas défini et le parcours va d'une présentation du cadre à une décision explicite de réserver ou non."},
+      {"dimension": "resources", "answer": "Une personne, une journée par semaine, la visioconférence et un support de synthèse sont disponibles. Il n'existe ni audience ni réseau réels."},
+      {"dimension": "constraints", "answer": "Aucune intégration externe, aucun prix inventé et un seul atelier à la fois. Le scénario s'arrête au premier NO-GO."},
+      {"dimension": "history", "answer": "Une trame fictive a été écrite sans utilisateur réel. Les présentations longues ont brouillé la décision, tandis qu'une priorité commune rend le message plus clair."},
+      {"dimension": "objective", "answer": "Nous attendons une stratégie autonome sans analysis_id, exclusivement fondée sur cet entretien et sans donnée ClairBureau ou JalonVert."}
+    ]
+  },
+  "thomas_alone": {
+    "product_name": "JalonVert",
+    "folder_id": "validation-b-thomas-alone-folder",
+    "use_psycho": false,
+    "use_strategy": false,
+    "content_type": "linkedin",
+    "channel": "LinkedIn",
+    "generate_variant": false,
+    "business_context": {
+      "offer": "Un carnet numérique fictif qui aide les jardiniers urbains débutants à noter leurs observations saisonnières.",
+      "target": "Jardiniers urbains débutants cultivant quelques plantes sur un balcon.",
+      "format": "Carnet numérique autonome sans conseil personnalisé.",
+      "non_negotiables": "Ne jamais présenter une observation fictive comme un résultat horticole réel."
+    },
+    "prompt": "Rédige un seul post LinkedIn pour présenter JalonVert, carnet numérique fictif destiné aux jardiniers urbains débutants qui veulent noter leurs observations saisonnières. Le post doit expliquer l'intérêt d'observer avant d'agir, sans citer ClairBureau, OrbiteCalme, une analyse d'audience, une stratégie antérieure, un client, un résultat réel, un chiffre ou un témoignage. Termine par une question simple sur la manière dont le lecteur conserve aujourd'hui ses observations."
+  },
+  "mismatch": {
+    "request_folder_id": "validation-b-mismatch-target-folder",
+    "strategy_folder_id": "validation-b-mismatch-source-folder",
+    "use_strategy": true,
+    "expected_status": 409,
+    "expected_error": "strategy_context_mismatch",
+    "expected_mistral_attempt_delta": 0
+  },
+  "contamination_checks": [
+    {
+      "target": "legacy_and_ariane_autonomous",
+      "required_markers": ["OrbiteCalme"],
+      "forbidden_markers": ["ClairBureau", "JalonVert", "consultants indépendants", "demandes client"]
+    },
+    {
+      "target": "thomas_alone",
+      "required_markers": ["JalonVert", "jardiniers urbains"],
+      "forbidden_markers": ["ClairBureau", "OrbiteCalme", "consultants indépendants", "équipes associatives", "brief.v1"]
+    }
+  ],
+  "network_interruption": {
+    "operation": "Une génération Thomas seule dans validation-b-thomas-alone-folder.",
+    "expected_ui": "Une erreur actionnable indique de relancer explicitement.",
+    "expected_behavior": "Le rechargement consulte le job existant et ne crée aucun nouveau job ni aucune nouvelle génération sans action utilisateur.",
+    "evidence": ["job_id initial", "nombre de requêtes POST /creator/generate", "statut final", "delta du ledger"]
+  }
+}

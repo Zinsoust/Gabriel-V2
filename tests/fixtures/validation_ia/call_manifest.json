@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "manifest_id": "gabriel-validation-ia-call-manifest-20261024",
+  "scope": "Une campagne complète A puis B avec un même run_id et un même ledger.",
+  "provider": "mistral",
+  "sdk_retries_disabled": true,
+  "other_provider_fallback_allowed": false,
+  "recommended_global_attempt_cap": 160,
+  "fixed_max_physical_attempts": 108,
+  "conditional_attempt_allowance": 52,
+  "non_generative_model_metadata_gets": 2,
+  "retry_policies": {
+    "psychologue": {
+      "max_attempts_per_logical_call": 6,
+      "policy": "RETRY_RESILIENT"
+    },
+    "ariane": {
+      "max_attempts_per_logical_call": 2,
+      "policy": "RETRY_SIMPLE"
+    },
+    "thomas": {
+      "max_attempts_per_logical_call": 2,
+      "policy": "RETRY_SIMPLE"
+    }
+  },
+  "scenario_a": {
+    "fixed_max_physical_attempts": 82,
+    "operations": [
+      {
+        "operation": "Psychologue sur 120 commentaires",
+        "logical_calls": 10,
+        "max_attempts_each": 6,
+        "fixed_max_physical_attempts": 60,
+        "labels": [
+          "main_a",
+          "main_b",
+          "persona[Cluster 0]",
+          "persona[Cluster 1]",
+          "persona[hybride]",
+          "recommandations",
+          "brief",
+          "livrables_ia",
+          "interp_psycho",
+          "interp_socio"
+        ]
+      },
+      {
+        "operation": "Ariane depuis l'analyse ClairBureau",
+        "logical_calls": 2,
+        "max_attempts_each": 2,
+        "fixed_max_physical_attempts": 4,
+        "labels": ["strategie", "critique"],
+        "conditional_calls": "Réécritures du garde des chiffres, au plus deux passes et un appel par lot de huit feuilles fautives."
+      },
+      {
+        "operation": "Thomas — un post LinkedIn, sans variante",
+        "logical_calls_including_quality_loop_and_legacy_fallback": 9,
+        "max_attempts_each": 2,
+        "fixed_max_physical_attempts": 18,
+        "labels": [
+          "intent",
+          "planning",
+          "writing",
+          "dialectic",
+          "optimization",
+          "quality",
+          "optimization#2",
+          "quality#2",
+          "legacy_creator_fallback"
+        ],
+        "conditional_calls": "Le fact guard appelle une réécriture par lot de huit extraits fautifs, pendant la passe initiale et éventuellement la passe d'amélioration."
+      }
+    ]
+  },
+  "scenario_b": {
+    "fixed_max_physical_attempts": 26,
+    "operations": [
+      {
+        "operation": "Chargement du brief.v1",
+        "logical_calls": 0,
+        "fixed_max_physical_attempts": 0
+      },
+      {
+        "operation": "Ariane depuis le brief.v1",
+        "logical_calls": 2,
+        "max_attempts_each": 2,
+        "fixed_max_physical_attempts": 4,
+        "conditional_calls": "Réécritures éventuelles du garde des chiffres."
+      },
+      {
+        "operation": "Ariane autonome depuis l'entretien complet",
+        "logical_calls": 2,
+        "max_attempts_each": 2,
+        "fixed_max_physical_attempts": 4,
+        "conditional_calls": "Réécritures éventuelles du garde des chiffres."
+      },
+      {
+        "operation": "Thomas seul — un post LinkedIn, sans variante, avec interruption couverte par les retries",
+        "logical_calls_including_quality_loop_and_legacy_fallback": 9,
+        "max_attempts_each": 2,
+        "fixed_max_physical_attempts": 18,
+        "conditional_calls": "Réécritures éventuelles du fact guard. Le rechargement ne doit pas créer une seconde génération."
+      },
+      {
+        "operation": "Couple folder_id/strategy_id incohérent",
+        "logical_calls": 0,
+        "fixed_max_physical_attempts": 0,
+        "expected_status": 409,
+        "expected_error": "strategy_context_mismatch"
+      }
+    ]
+  },
+  "conditional_bound": {
+    "reason": "Le nombre de feuilles fautives dépend de sorties modèles encore inconnues ; le code ne fixe pas de nombre statique de lots de réécriture.",
+    "enforcement": "Les appels conditionnels partagent les 52 tentatives restantes. Toute tentative au-delà de 160 est refusée atomiquement par le ledger avant l'appel fournisseur.",
+    "go_condition": "Si les 52 tentatives conditionnelles disponibles sont épuisées, la campagne passe NO-GO et ne doit pas être relancée avec le même run_id."
+  }
+}
