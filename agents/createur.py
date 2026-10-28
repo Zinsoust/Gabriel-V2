@@ -24,6 +24,7 @@ import re
 from core.security import wrap_untrusted_content, PROMPT_INJECTION_GUARD
 from core import llm_client as _llm
 from core.ai_json import parse_ai_json
+from core.provider_cost_guard import submit_with_financial_context
 from agents.base import BaseAgent
 
 # ─── Mapping RAG : (format, tone) → sources à chercher ──────────────────────
@@ -1213,8 +1214,10 @@ class Createur(BaseAgent):
         if generate_variant:
             from concurrent.futures import ThreadPoolExecutor
             with ThreadPoolExecutor(max_workers=2) as pool:
-                main_future    = pool.submit(_call_llm, prompt, 3000)
-                variant_future = pool.submit(self._generate_variant, content_type, brief_text, rag_block, tone, fmt_key)
+                main_future = submit_with_financial_context(pool, _call_llm, prompt, 3000)
+                variant_future = submit_with_financial_context(
+                    pool, self._generate_variant, content_type, brief_text, rag_block, tone, fmt_key
+                )
                 raw = main_future.result()
                 try:
                     variant = variant_future.result()

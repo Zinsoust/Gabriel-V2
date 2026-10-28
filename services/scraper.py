@@ -8,6 +8,12 @@ import requests
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from core.provider_cost_guard import (
+    FinancialGuardError,
+    begin_provider_attempt,
+    settle_provider_failure,
+    settle_provider_success,
+)
 
 # Même délai que les appels RapidAPI de ce fichier (timeout=15 plus bas).
 # Sans timeout explicite, httplib2 n'en applique aucun par défaut : une
@@ -104,6 +110,29 @@ _YOUTUBE_ERROR_MESSAGES = {
 _YOUTUBE_NETWORK_ERRORS = (socket.timeout, TimeoutError, ConnectionError, httplib2.HttpLib2Error)
 
 
+def _guarded_provider_call(provider, model, input_text, fn):
+    """Run one externally billable request behind the shared financial guard."""
+    attempt = begin_provider_attempt(
+        provider=provider,
+        model=model,
+        input_text=input_text,
+        max_output_tokens=1,
+        label=model,
+    )
+    try:
+        result = fn()
+    except BaseException:
+        settle_provider_failure(attempt)
+        raise
+    settle_provider_success(
+        attempt,
+        response_model=model,
+        input_tokens=None,
+        output_tokens=None,
+    )
+    return result
+
+
 def _youtube_error_reason(http_error):
     """Lit le motif structuré de l'erreur (format standard des API Google),
     plutôt que de se rabattre uniquement sur le code HTTP générique."""
@@ -117,14 +146,16 @@ def _youtube_error_reason(http_error):
     return ''
 
 
-def _call_youtube_with_retry(fn, *, max_attempts=3):
+def _call_youtube_with_retry(fn, *, input_text="youtube", max_attempts=3):
     """Rejoue une erreur transitoire avec un backoff court ; échoue
     immédiatement — avec un message identifiant la cause — sur une erreur
     permanente qu'aucun nouvel essai ne résoudrait."""
     last_exc = None
     for attempt in range(max_attempts):
         try:
-            return fn()
+            return _guarded_provider_call(
+                "youtube", "youtube_data_api", input_text, fn
+            )
         except HttpError as exc:
             last_exc = exc
             reason = _youtube_error_reason(exc)
@@ -199,7 +230,12 @@ def scrape_youtube(url_or_id, max_comments=150):
         # 'statistics' et 'contentDetails' ajoutés : vues/likes/nb commentaires
         # et durée n'étaient jamais capturés (seul 'snippet' était demandé),
         # alors que le contrat SourceAnalysis les prévoit explicitement.
-        vr = youtube.videos().list(part='snippet,statistics,contentDetails', id=video_id).execute()
+        vr = _guarded_provider_call(
+            'youtube', 'youtube_data_api', video_id,
+            lambda: youtube.videos().list(
+                part='snippet,statistics,contentDetails', id=video_id
+            ).execute(),
+        )
         if vr.get('items'):
             item = vr['items'][0]
             snip = item.get('snippet', {})
@@ -219,6 +255,8 @@ def scrape_youtube(url_or_id, max_comments=150):
                 # ici pour rester une donnée brute, pas une interprétation.
                 'duration': details.get('duration', ''),
             })
+    except FinancialGuardError:
+        raise
     except Exception:
         pass
 
@@ -227,14 +265,17 @@ def scrape_youtube(url_or_id, max_comments=150):
         page_token = None
         while len(result) < target:
             batch = min(target - len(result), 100)
-            resp = _call_youtube_with_retry(lambda: youtube.commentThreads().list(
-                part='snippet',
-                videoId=video_id,
-                maxResults=batch,
-                pageToken=page_token,
-                textFormat='plainText',
-                order=order
-            ).execute())
+            resp = _call_youtube_with_retry(
+                lambda: youtube.commentThreads().list(
+                    part='snippet',
+                    videoId=video_id,
+                    maxResults=batch,
+                    pageToken=page_token,
+                    textFormat='plainText',
+                    order=order
+                ).execute(),
+                input_text=f'{video_id}:{order}:{page_token or "first"}',
+            )
             for item in resp.get('items', []):
                 top_level = item['snippet']['topLevelComment']
                 top = top_level['snippet']
@@ -302,11 +343,14 @@ def scrape_instagram_rapidapi(url):
     }
 
     try:
-        response = requests.get(
-            "https://instagram-scraper-api2.p.rapidapi.com/v1/comments",
-            headers=headers,
-            params={"code_or_id_or_url": shortcode},
-            timeout=15
+        response = _guarded_provider_call(
+            'rapidapi', 'instagram_comments', shortcode,
+            lambda: requests.get(
+                "https://instagram-scraper-api2.p.rapidapi.com/v1/comments",
+                headers=headers,
+                params={"code_or_id_or_url": shortcode},
+                timeout=15,
+            ),
         )
         if response.status_code in (401, 403):
             print(f"[SCRAPER] RapidAPI Instagram {response.status_code} — clé non abonnée à instagram-scraper-api2.")
@@ -328,7 +372,7 @@ def scrape_instagram_rapidapi(url):
         # Zéro commentaire ici est un vrai résultat : la collecte a réussi et
         # la publication n'en a pas. C'est le seul cas qui mérite un vide.
         return comments, {}
-    except (RapidAPIUnavailable, SocialCollectionError):
+    except (RapidAPIUnavailable, SocialCollectionError, FinancialGuardError):
         raise
     except Exception as error:
         print(f"[SCRAPER] Instagram échec réseau : {error}")
@@ -374,11 +418,14 @@ def scrape_tiktok_rapidapi(url):
 
     # 1. Infos vidéo (titre + auteur) pour le contexte d'analyse
     try:
-        meta = requests.get(
-            "https://tiktok-api23.p.rapidapi.com/api/post/detail",
-            headers=headers,
-            params={"url": canonical},
-            timeout=15
+        meta = _guarded_provider_call(
+            'rapidapi', 'tiktok_detail', canonical,
+            lambda: requests.get(
+                "https://tiktok-api23.p.rapidapi.com/api/post/detail",
+                headers=headers,
+                params={"url": canonical},
+                timeout=15,
+            ),
         )
         if meta.status_code in (401, 403):
             print(f"[SCRAPER] RapidAPI TikTok {meta.status_code} — clé non abonnée à tiktok-api23.")
@@ -390,7 +437,7 @@ def scrape_tiktok_rapidapi(url):
             aweme  = item.get('id', '')
             if desc or author:
                 video_info = {'title': desc, 'channel': f"@{author}"}
-    except RapidAPIUnavailable:
+    except (RapidAPIUnavailable, FinancialGuardError):
         raise
     except Exception:
         pass
@@ -412,11 +459,14 @@ def scrape_tiktok_rapidapi(url):
     premier_appel = True
     while len(comments) < 100:
         try:
-            resp = requests.get(
-                "https://tiktok-api23.p.rapidapi.com/api/comment/list",
-                headers=headers,
-                params={"aweme_id": aweme, "count": 50, "cursor": cursor},
-                timeout=15
+            resp = _guarded_provider_call(
+                'rapidapi', 'tiktok_comments', f'{aweme}:{cursor}',
+                lambda: requests.get(
+                    "https://tiktok-api23.p.rapidapi.com/api/comment/list",
+                    headers=headers,
+                    params={"aweme_id": aweme, "count": 50, "cursor": cursor},
+                    timeout=15,
+                ),
             )
             if resp.status_code != 200:
                 # Échouer au tout premier appel n'est pas la même chose que
@@ -442,7 +492,7 @@ def scrape_tiktok_rapidapi(url):
                 break
             cursor = data.get('data', {}).get('cursor', cursor + 50)
             premier_appel = False
-        except SocialCollectionError:
+        except (SocialCollectionError, FinancialGuardError):
             raise
         except Exception as error:
             if premier_appel and lien:

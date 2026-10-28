@@ -35,6 +35,17 @@ def test_une_cle_secrete_faible_ou_d_exemple_est_refusee_en_deploiement():
     assert production_safety_problems({**base, 'FLASK_SECRET_KEY': SECRET_OK}) == []
 
 
+def test_les_appels_payants_deployes_exigent_la_securite_financiere_complete():
+    env = {
+        'RENDER': '1', 'AUTH_ENABLED': 'true', 'FLASK_SECRET_KEY': SECRET_OK,
+        'GABRIEL_PAID_AI_ENABLED': 'true',
+    }
+    problemes = production_safety_problems(env)
+    assert any('GABRIEL_PAID_AI_ENABLED' in p for p in problemes)
+    assert any('SUPABASE_URL' in p for p in problemes)
+    assert any('SUPABASE_SERVICE_ROLE_KEY' in p for p in problemes)
+
+
 def _importer_app(env_supplementaire):
     """Importe vraiment l'application dans un processus neuf, comme le ferait gunicorn."""
     import subprocess

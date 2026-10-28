@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)s %(message)s
 # and hashed contact identifiers, so keep those transport details out of the
 # application logs while preserving warnings and errors.
 logging.getLogger('httpx').setLevel(logging.WARNING)
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response, send_file, Response
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, make_response, send_file, Response, g
 from dotenv import load_dotenv
 
 _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
@@ -37,6 +37,20 @@ from core.llm_budget import (
     MistralBudgetGuard,
     validation_budget_enabled,
 )
+from core.provider_cost_guard import (
+    FinancialGuardError,
+    FinancialLimitExceeded,
+    FinancialReplayBlocked,
+    create_financial_operation,
+    begin_provider_attempt,
+    load_financial_config,
+    paid_provider_calls_enabled,
+    provider_cost_guard_enabled,
+    request_fingerprint,
+    settle_provider_failure,
+    settle_provider_success,
+)
+from core.credit_ledger import credit_ledger_enabled
 from core.memory import GabrielMemory
 from core.business_context import (
     get_user_profile as _get_user_profile,
@@ -173,6 +187,23 @@ def production_safety_problems(env=None):
     secret = str(env.get('FLASK_SECRET_KEY', ''))
     if len(secret) < 24 or secret.startswith('VOTRE_'):
         problems.append("FLASK_SECRET_KEY est trop courte ou reste celle de l'exemple : les sessions pourraient être falsifiées.")
+    if paid_provider_calls_enabled(env):
+        try:
+            financial_config = load_financial_config(env)
+            if financial_config is None:
+                problems.append(
+                    "GABRIEL_PAID_AI_ENABLED exige "
+                    "GABRIEL_PROVIDER_COST_GUARD_ENABLED=true."
+                )
+        except FinancialGuardError as exc:
+            problems.append(
+                "GABRIEL_PAID_AI_ENABLED exige un ledger et un garde financier "
+                f"completement configures : {exc}"
+            )
+        if not str(env.get('SUPABASE_URL', '') or '').strip():
+            problems.append("SUPABASE_URL est requis pour les plafonds financiers persistants.")
+        if not str(env.get('SUPABASE_SERVICE_ROLE_KEY', '') or '').strip():
+            problems.append("SUPABASE_SERVICE_ROLE_KEY est requis pour les RPC financieres.")
     return problems
 
 
@@ -231,6 +262,168 @@ def _credit_error_response(user_id, error):
         'error': 'Le solde de crédits est temporairement indisponible. Réessayez dans quelques instants.',
         'error_code': 'credits_unavailable',
     }), 503
+
+
+_FINANCIAL_ENDPOINTS = {
+    'analyze': 'psychologue',
+    'launch_psychologue_cross_analysis': 'psychologue_cross',
+    'strategize': 'stratege',
+    'creator_generate': 'createur',
+    'creator_refine': 'createur_refine',
+    'context_chat': 'context_chat',
+    'voice_transcribe': 'voice_stt',
+    'voice_speak': 'voice_tts',
+    'strategy_session_step': 'strategy_session',
+    'strategy_chat': 'strategy_chat',
+    'orchestrator_chat': 'orchestrator',
+}
+
+
+def _financial_error_response(exc):
+    if isinstance(exc, FinancialLimitExceeded):
+        code = 402
+    elif isinstance(exc, FinancialReplayBlocked):
+        code = 409
+    else:
+        code = 503
+    error_code = (
+        'financial_limit_reached' if code == 402 else
+        'financial_operation_replayed' if code == 409 else
+        'financial_guard_unavailable'
+    )
+    message = (
+        "Le plafond financier de cette operation est atteint."
+        if code == 402 else
+        "Cette operation a deja ete soumise. Aucun nouvel appel IA n'a ete lance."
+        if code == 409 else
+        "La securite financiere ne peut pas etre verifiee. Aucun appel IA n'a ete lance."
+    )
+    safe_log_event('financial_guard_blocked', user_id=(current_user() or {}).get('user_id'), error=exc)
+    return make_response(jsonify({
+        'success': False,
+        'error': message,
+        'error_code': error_code,
+        'message': message,
+    }), code)
+
+
+@app.before_request
+def _prepare_financial_operation():
+    """Bind a lazy operation to every route capable of paid provider I/O.
+
+    With the guard enabled, an unlisted provider call is rejected by the common
+    provider boundary.  The operation only reserves credits immediately before
+    the first physical attempt, so validation-only responses remain free.
+    """
+    operation_type = _FINANCIAL_ENDPOINTS.get(request.endpoint)
+    if not operation_type:
+        return None
+    if request.endpoint == 'analyze':
+        body = request.get_json(silent=True) or {}
+        if bool(body.get('preview_only')):
+            operation_type = 'psychologue_preview'
+    idempotency_key = (request.headers.get('Idempotency-Key') or '').strip()[:128]
+    if provider_cost_guard_enabled() and not idempotency_key:
+        return make_response(jsonify({
+            'success': False,
+            'error': "Cette action sécurisée n'a pas pu démarrer. Rechargez la page puis réessayez.",
+            'error_code': 'idempotency_key_required',
+            'message': "Une cle Idempotency-Key stable est requise avant tout appel payant.",
+        }), 428)
+    try:
+        user_id = (current_user() or {}).get('user_id')
+        operation = create_financial_operation(
+            user_id=user_id,
+            operation_type=operation_type,
+            idempotency_key=idempotency_key or None,
+            request_hash=request_fingerprint(
+                request.method, request.path, request.get_data(cache=True)
+            ),
+        )
+        g.financial_operation = operation
+        g.financial_operation_binding = operation.bind()
+        g.financial_operation_binding.__enter__()
+        g.financial_operation_detached = False
+    except FinancialGuardError as exc:
+        return _financial_error_response(exc)
+    return None
+
+
+@app.after_request
+def _finalize_financial_operation(response):
+    operation = getattr(g, 'financial_operation', None)
+    if operation is None or getattr(g, 'financial_operation_detached', False):
+        return response
+    try:
+        if response.status_code < 400:
+            operation.finalize_success()
+        else:
+            operation.finalize_failure()
+    except FinancialGuardError as exc:
+        return _financial_error_response(exc)
+    finally:
+        binding = getattr(g, 'financial_operation_binding', None)
+        if binding is not None:
+            binding.__exit__(None, None, None)
+            g.financial_operation_binding = None
+    return response
+
+
+@app.teardown_request
+def _teardown_financial_operation(error):
+    operation = getattr(g, 'financial_operation', None)
+    binding = getattr(g, 'financial_operation_binding', None)
+    if operation is not None and error is not None and not getattr(g, 'financial_operation_detached', False):
+        try:
+            operation.finalize_failure()
+        except FinancialGuardError as exc:
+            safe_log_event('financial_finalize_error', user_id=(current_user() or {}).get('user_id'), error=exc)
+    if binding is not None:
+        if error is None:
+            binding.__exit__(None, None, None)
+        else:
+            binding.__exit__(type(error), error, getattr(error, '__traceback__', None))
+        g.financial_operation_binding = None
+
+
+def _financial_background_target(target, success_predicate):
+    operation = getattr(g, 'financial_operation', None)
+    if operation is None:
+        return target
+    g.financial_operation_detached = True
+    operation.detached = True
+
+    def run():
+        with operation.bind():
+            try:
+                target()
+                if success_predicate():
+                    operation.finalize_success()
+                else:
+                    operation.finalize_failure()
+            except BaseException:
+                operation.finalize_failure()
+                raise
+    return run
+
+
+def _deduct_legacy_credits(user_id, credits, reason):
+    """Keep the historical balance until the guarded ledger is activated.
+
+    Both flags are required for cutover.  This prevents a double debit when the
+    new operation is captured while preserving today's behaviour by default.
+    """
+    if provider_cost_guard_enabled() and credit_ledger_enabled():
+        return None
+    return _db.deduct_credits(user_id, credits, reason=reason)
+
+
+def _has_enough_operation_credits(user_id, credits, email=None):
+    if provider_cost_guard_enabled() and credit_ledger_enabled():
+        # The authoritative atomic check happens in gabriel_credit_reserve
+        # immediately before the first physical provider attempt.
+        return True
+    return _db.has_enough_credits(user_id, credits, email=email)
 
 
 # ── Cache-busting des assets statiques ────────────────────────────────────────
@@ -408,6 +601,13 @@ def _budgeted_mistral_complete(client, *, model, max_tokens, messages, label):
             label=label,
             attempt_number=1,
         )
+    financial_attempt = begin_provider_attempt(
+        provider='mistral',
+        model=model,
+        input_text=json.dumps(messages, ensure_ascii=False, separators=(',', ':')),
+        max_output_tokens=max_tokens,
+        label=label,
+    )
     try:
         response = client.chat.complete(
             model=model,
@@ -418,19 +618,21 @@ def _budgeted_mistral_complete(client, *, model, max_tokens, messages, label):
             retries=None,
         )
     except BaseException as exc:
+        settle_provider_failure(financial_attempt)
         if guard and reservation:
             guard.mark_uncertain(reservation, type(exc).__name__)
         raise
 
-    if guard and reservation:
-        usage = getattr(response, 'usage', None) or {}
+    usage = getattr(response, 'usage', None) or {}
 
-        def _usage_value(*names):
-            for name in names:
-                value = usage.get(name) if isinstance(usage, dict) else getattr(usage, name, None)
-                if value is not None:
-                    return value
-            return None
+    def _usage_value(*names):
+        for name in names:
+            value = usage.get(name) if isinstance(usage, dict) else getattr(usage, name, None)
+            if value is not None:
+                return value
+        return None
+
+    if guard and reservation:
 
         guard.settle(
             reservation,
@@ -438,6 +640,12 @@ def _budgeted_mistral_complete(client, *, model, max_tokens, messages, label):
             input_tokens=_usage_value('prompt_tokens', 'input_tokens'),
             output_tokens=_usage_value('completion_tokens', 'output_tokens'),
         )
+    settle_provider_success(
+        financial_attempt,
+        response_model=getattr(response, 'model', None) or model,
+        input_tokens=_usage_value('prompt_tokens', 'input_tokens'),
+        output_tokens=_usage_value('completion_tokens', 'output_tokens'),
+    )
     return response
 
 # ── RAG — lazy loading (Render : le port doit s'ouvrir avant tout chargement) ─
@@ -905,7 +1113,7 @@ def analyze():
         try:
             _psycho_has_credits = (
                 not uid_early
-                or _db.has_enough_credits(uid_early, _cost_psycho, email=email_early)
+                or _has_enough_operation_credits(uid_early, _cost_psycho, email=email_early)
             )
             _psycho_balance = _db.get_user_credits(uid_early) if uid_early and not _psycho_has_credits else None
         except _db.CreditError as exc:
@@ -1039,7 +1247,7 @@ def analyze():
                 print(f"[PSYCHO_TIMING] total_request={time.perf_counter()-_t_request_start:.2f}s")
 
                 if uid:
-                    _db.deduct_credits(uid, _cost_psycho, reason='psychologue')
+                    _deduct_legacy_credits(uid, _cost_psycho, reason='psychologue')
                 if job_id in _jobs:
                     _jobs[job_id]['result'] = result
                     _jobs[job_id]['status'] = 'done'
@@ -1063,9 +1271,17 @@ def analyze():
                                    error_message="Erreur d'analyse. Réessayez dans quelques instants.")
                 print(f"[JOB] failed job_id={job_id}")
 
-        threading.Thread(target=_run_analysis, daemon=True).start()
+        threading.Thread(
+            target=_financial_background_target(
+                _run_analysis,
+                lambda: (_jobs.get(job_id) or {}).get('status') == 'done',
+            ),
+            daemon=True,
+        ).start()
         return jsonify({'job_id': job_id, 'status': 'running'})
 
+    except FinancialGuardError as exc:
+        return _financial_error_response(exc)
     except SocialCollectionError as e:
         # Cause identifiée : l'utilisateur apprend s'il doit corriger son lien
         # ou réessayer plus tard, au lieu de recevoir un écran vide.
@@ -1235,7 +1451,7 @@ def launch_psychologue_cross_analysis():
     cost_per_source = _db.CREDIT_COSTS['psychologue']
     maximum_cost = cost_per_source * len(sources)
     try:
-        _cross_has_credits = _db.has_enough_credits(uid, maximum_cost, email=email)
+        _cross_has_credits = _has_enough_operation_credits(uid, maximum_cost, email=email)
         _cross_balance = _db.get_user_credits(uid) if not _cross_has_credits else None
     except _db.CreditError as exc:
         return _credit_error_response(uid, exc)
@@ -1424,7 +1640,7 @@ def launch_psychologue_cross_analysis():
                 if isinstance(item, dict) and not item.get('analysis_cache_hit')
             )
             if billable_sources:
-                _db.deduct_credits(uid, cost_per_source * billable_sources, reason='psychologue_cross')
+                _deduct_legacy_credits(uid, cost_per_source * billable_sources, reason='psychologue_cross')
             completed_status = cross_result.get('status', 'completed')
             persisted = _db.update_cross_analysis(
                 cross_analysis_id, uid, status=completed_status,
@@ -1484,7 +1700,14 @@ def launch_psychologue_cross_analysis():
                 _db.update_job(job_id, user_id=uid, status='failed', step=step, completed=True,
                                error_message='Erreur lors de la Cross Analyse.')
 
-    threading.Thread(target=_run_cross_analysis, daemon=True, name=f'cross-{job_id}').start()
+    threading.Thread(
+        target=_financial_background_target(
+            _run_cross_analysis,
+            lambda: (_jobs.get(job_id) or {}).get('status') == 'done',
+        ),
+        daemon=True,
+        name=f'cross-{job_id}',
+    ).start()
     return jsonify({
         'success': True,
         'analysis_mode': 'cross',
@@ -1796,7 +2019,7 @@ def strategize():
     try:
         _strategy_has_credits = (
             not _uid_strat_credits
-            or _db.has_enough_credits(
+            or _has_enough_operation_credits(
                 _uid_strat_credits, _cost_stratege,
                 email=_cu_strat_early.get('email', ''),
             )
@@ -1862,7 +2085,7 @@ def strategize():
             if strategy_id:
                 user_mem.add_case(strategy_id, psycho_data, strategie, effective_profile, user_id=uid)
             if uid:
-                _db.deduct_credits(uid, _cost_stratege, reason='stratege_cb')
+                _deduct_legacy_credits(uid, _cost_stratege, reason='stratege_cb')
             return jsonify({**strategie, 'success': True, 'strategy_id': strategy_id, 'memory': memory_summary})
         except Exception as e:
             import traceback; traceback.print_exc()
@@ -1964,7 +2187,7 @@ def strategize():
                 _db.update_folder(folder_id_strat, uid, strategy_id=strategy_id, step='stratege')
             user_mem.add_case(analysis_id, psycho_data, strat_data, effective_profile, user_id=uid)
             if uid:
-                _db.deduct_credits(uid, _cost_stratege, reason='stratege')
+                _deduct_legacy_credits(uid, _cost_stratege, reason='stratege')
             job_result = {'success': True, 'data': result, 'memory': memory_summary,
                           'strategy_id': strategy_id, 'analysis_id': analysis_id}
             _jobs[job_id] = {'status': 'done', 'result': job_result, 'user_id': uid}
@@ -1979,7 +2202,12 @@ def strategize():
                            error_message='Erreur lors de la génération stratégique.')
             safe_log_event('strategize_error', user_id=uid, error=e)
 
-    threading.Thread(target=_run, daemon=True).start()
+    threading.Thread(
+        target=_financial_background_target(
+            _run, lambda: (_jobs.get(job_id) or {}).get('status') == 'done'
+        ),
+        daemon=True,
+    ).start()
     return jsonify({'job_id': job_id, 'status': 'running'})
 
 
@@ -2130,7 +2358,7 @@ def creator_generate():
     try:
         _creator_has_credits = (
             not uid
-            or _db.has_enough_credits(
+            or _has_enough_operation_credits(
                 uid, _cost_createur, email=(current_user() or {}).get('email', ''),
             )
         )
@@ -2271,7 +2499,7 @@ def creator_generate():
         try:
             result = _job()
             if uid:
-                _db.deduct_credits(uid, _cost_createur, reason='createur')
+                _deduct_legacy_credits(uid, _cost_createur, reason='createur')
             _jobs[job_id] = {'status': 'done', 'result': result, 'user_id': uid}
             _db.update_job(job_id, user_id=uid, status='completed',
                            progress=100, step='termine',
@@ -2286,7 +2514,12 @@ def creator_generate():
                            error_message='Erreur génération contenu.')
             safe_log_event('creator_error', user_id=uid, error=e)
 
-    threading.Thread(target=_run, daemon=True).start()
+    threading.Thread(
+        target=_financial_background_target(
+            _run, lambda: (_jobs.get(job_id) or {}).get('status') == 'done'
+        ),
+        daemon=True,
+    ).start()
     return jsonify({'job_id': job_id, 'status': 'running'})
 
 
@@ -3749,17 +3982,28 @@ def _call_openai_orchestrator(messages, max_output_tokens, reasoning_effort,
     if use_web:
         payload['tools'] = [{'type': 'web_search'}]
 
-    response = requests.post(
-        'https://api.openai.com/v1/responses',
-        headers={
-            'Authorization': f'Bearer {api_key}',
-            'Content-Type': 'application/json',
-        },
-        json=payload,
-        timeout=90,
+    financial_attempt = begin_provider_attempt(
+        provider='openai',
+        model=_ORCHESTRATOR_OPENAI_MODEL,
+        input_text=json.dumps(messages, ensure_ascii=False, separators=(',', ':')),
+        max_output_tokens=int(max_output_tokens),
+        label='orchestrator_openai',
     )
-    response.raise_for_status()
-    data = response.json()
+    try:
+        response = requests.post(
+            'https://api.openai.com/v1/responses',
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+            },
+            json=payload,
+            timeout=90,
+        )
+        response.raise_for_status()
+        data = response.json()
+    except BaseException:
+        settle_provider_failure(financial_attempt)
+        raise
 
     parts = []
     for item in data.get('output') or []:
@@ -3772,10 +4016,17 @@ def _call_openai_orchestrator(messages, max_output_tokens, reasoning_effort,
                     parts.append(str(text))
     reply = '\n'.join(parts).strip()
     if not reply:
+        settle_provider_failure(financial_attempt)
         raise RuntimeError('Réponse OpenAI vide')
+    usage = data.get('usage') if isinstance(data.get('usage'), dict) else {}
+    settle_provider_success(
+        financial_attempt,
+        response_model=str(data.get('model') or _ORCHESTRATOR_OPENAI_MODEL),
+        input_tokens=int(usage.get('input_tokens') or 0),
+        output_tokens=int(usage.get('output_tokens') or 0),
+    )
     if not return_metadata:
         return reply
-    usage = data.get('usage') if isinstance(data.get('usage'), dict) else {}
     return {
         'reply': reply,
         'response_id': data.get('id'),

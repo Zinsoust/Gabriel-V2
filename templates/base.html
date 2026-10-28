@@ -17,6 +17,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="{{ static_v('css/gabriel.css') }}">
   <link rel="stylesheet" href="{{ static_v('css/gabriel-onboarding.css') }}">
+  <script type="module">
+    import { installGabrielIdempotency } from "{{ static_v('js/gabriel-idempotency.js') }}";
+    installGabrielIdempotency(window);
+  </script>
   {% block head %}{% endblock %}
   <link rel="stylesheet" href="{{ static_v('css/gabriel-light.css') }}">
   <link rel="stylesheet" href="{{ static_v('css/gabriel-ux.css') }}">

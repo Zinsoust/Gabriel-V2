@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Tuple
 
 from core.planner import ExecutionPlan, PlanStep
+from core.provider_cost_guard import submit_with_financial_context
 
 
 class ExecutionError(RuntimeError):
@@ -176,7 +177,11 @@ class Executor:
         for vague in plan.waves():
             if parallel and len(vague) > 1:
                 with ThreadPoolExecutor(max_workers=len(vague)) as pool:
-                    resultats = list(pool.map(lambda s: self._run_step(s, ctx), vague))
+                    futures = [
+                        submit_with_financial_context(pool, self._run_step, step, ctx)
+                        for step in vague
+                    ]
+                    resultats = [future.result() for future in futures]
             else:
                 resultats = [self._run_step(step, ctx) for step in vague]
             trace.steps.extend(resultats)

@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from core import llm_client as _llm
 from core.ai_json import parse_ai_json
 from core.security import wrap_untrusted_content, PROMPT_INJECTION_GUARD
+from core.provider_cost_guard import submit_with_financial_context
 from tools import registry as tool_registry
 
 _logger = logging.getLogger(__name__)
@@ -1120,8 +1121,8 @@ Reponds UNIQUEMENT avec ce JSON :
     # (core/llm_client.py MODEL_TIERS) pour ne pas dégrader ce qui marche
     # déjà ailleurs. À retirer une fois le compte Mistral mis à niveau.
     with ThreadPoolExecutor(max_workers=2) as executor:
-        fut_a = executor.submit(call_llm, prompt_a, max_tokens=5000, fast=True, label="main_a")
-        fut_b = executor.submit(call_llm, prompt_b, max_tokens=7500, fast=True, label="main_b")
+        fut_a = submit_with_financial_context(executor, call_llm, prompt_a, max_tokens=5000, fast=True, label="main_a")
+        fut_b = submit_with_financial_context(executor, call_llm, prompt_b, max_tokens=7500, fast=True, label="main_b")
         data_a = _parse_json(fut_a.result())
         data_b = _parse_json(fut_b.result())
 
@@ -1331,7 +1332,7 @@ Reponds UNIQUEMENT avec ce JSON (un seul persona) :
 
     personas = []
     with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = [executor.submit(_one_persona, src, mission) for src, mission in persona_briefs]
+        futures = [submit_with_financial_context(executor, _one_persona, src, mission) for src, mission in persona_briefs]
         for fut in futures:
             try:
                 personas.append(fut.result())
@@ -2636,21 +2637,21 @@ def analyze_comments(comments, brain_context="", video_context="", title="",
     _t_block = time.perf_counter()
 
     with ThreadPoolExecutor(max_workers=6) as executor:
-        fut_personas = executor.submit(
+        fut_personas = submit_with_financial_context(executor,
             _analyze_personas, filtered, brain_context, main_data, kpis,
             nlp_data=nlp_data, dashboard=dashboard)
-        fut_reco = executor.submit(
+        fut_reco = submit_with_financial_context(executor,
             _analyze_recommendations, filtered, brain_context, main_data, kpis)
-        fut_brief = executor.submit(
+        fut_brief = submit_with_financial_context(executor,
             _generate_brief, main_data, kpis, brain_context, video_context)
-        fut_livrables = executor.submit(
+        fut_livrables = submit_with_financial_context(executor,
             _generate_livrables_ia,
             filtered, brain_context, video_context,
             main_data, nlp_data, stat_deliverables, layer1_agg
         )
-        fut_interp_psycho = executor.submit(
+        fut_interp_psycho = submit_with_financial_context(executor,
             _generate_interpretation_psychologique, main_data, rag_psycho_context)
-        fut_interp_socio = executor.submit(
+        fut_interp_socio = submit_with_financial_context(executor,
             _generate_interpretation_socioculturelle, main_data, rag_socio_context)
 
         try:

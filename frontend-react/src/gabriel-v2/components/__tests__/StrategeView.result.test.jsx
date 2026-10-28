@@ -108,6 +108,22 @@ describe('Génération classique depuis une analyse existante', () => {
     await user.click(screen.getByRole('button', { name: 'Générer la stratégie' }));
     await waitFor(() => expect(screen.getByText(/Il vous faut 5 crédits/)).toBeInTheDocument());
   });
+
+  it('affiche clairement le refus 428 au lieu du code technique', async () => {
+    global.fetch = routeFetch([
+      [/^\/strategize$/, () => ({ status: 428, json: {
+        error: "Cette action sécurisée n'a pas pu démarrer. Rechargez la page puis réessayez.",
+        error_code: 'idempotency_key_required',
+      } })],
+    ]);
+    const user = userEvent.setup();
+    render(<StrategeView workspace={WORKSPACE_NEW} />);
+    await waitFor(() => screen.getByRole('button', { name: 'Générer la stratégie' }));
+    await user.click(screen.getByRole('button', { name: 'Générer la stratégie' }));
+
+    await waitFor(() => expect(screen.getByText(/Rechargez la page puis réessayez/)).toBeInTheDocument());
+    expect(screen.queryByText('idempotency_key_required')).not.toBeInTheDocument();
+  });
 });
 
 describe('Aucun déclencheur disponible : l’entretien démarre directement', () => {

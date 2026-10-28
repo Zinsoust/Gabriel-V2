@@ -212,6 +212,12 @@ class TestFournisseurOpenAI:
         assert capture["payload"]["model"] == OpenAIProvider.MODELS["fast"]
         assert "mistral" not in capture["payload"]["model"]
 
+    def test_modele_facture_correspond_au_modele_openai_reel(self):
+        from core.llm_client import OpenAIProvider
+        provider = OpenAIProvider()
+        assert provider.billing_model(MODEL_TIERS["fast"]) == provider.MODELS["fast"]
+        assert provider.billing_model(MODEL_TIERS["deep"]) == provider.MODELS["deep"]
+
     def test_separe_la_consigne_de_la_demande(self, monkeypatch):
         import requests
         from core.llm_client import OpenAIProvider

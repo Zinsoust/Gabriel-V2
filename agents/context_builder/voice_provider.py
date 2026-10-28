@@ -10,6 +10,12 @@
 
 import os
 
+from core.provider_cost_guard import (
+    begin_provider_attempt,
+    settle_provider_failure,
+    settle_provider_success,
+)
+
 
 class VoiceProvider:
     """Interface commune — toute implémentation doit fournir ces deux
@@ -111,6 +117,13 @@ def check_voice_compatibility(voice_id: str, api_key: str = None) -> dict:
     key = api_key or os.environ.get("ELEVENLABS_API_KEY")
     if not key:
         return {"ok": False, "status_code": None, "error": "ELEVENLABS_API_KEY manquante."}
+    financial_attempt = begin_provider_attempt(
+        provider="elevenlabs",
+        model=GABRIEL_VOICE_CONFIG["model_id"],
+        input_text="characters:5",
+        max_output_tokens=1,
+        label="voice_compatibility",
+    )
     try:
         resp = requests.post(
             f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
@@ -119,7 +132,17 @@ def check_voice_compatibility(voice_id: str, api_key: str = None) -> dict:
             timeout=15,
         )
     except requests.RequestException as e:
+        settle_provider_failure(financial_attempt)
         return {"ok": False, "status_code": None, "error": str(e)}
+    if resp.status_code == 200:
+        settle_provider_success(
+            financial_attempt,
+            response_model=GABRIEL_VOICE_CONFIG["model_id"],
+            input_tokens=None,
+            output_tokens=None,
+        )
+    else:
+        settle_provider_failure(financial_attempt)
     return {"ok": resp.status_code == 200, "status_code": resp.status_code,
             "error": None if resp.status_code == 200 else resp.text[:200]}
 
@@ -135,6 +158,13 @@ class ElevenLabsVoiceProvider(VoiceProvider):
 
     def transcribe(self, audio_bytes: bytes, mime_type: str) -> str:
         import requests
+        financial_attempt = begin_provider_attempt(
+            provider="elevenlabs",
+            model="scribe_v1",
+            input_text=f"audio_bytes:{len(audio_bytes)}",
+            max_output_tokens=1,
+            label="voice_stt",
+        )
         try:
             resp = requests.post(
                 f"{self._BASE}/speech-to-text",
@@ -144,15 +174,30 @@ class ElevenLabsVoiceProvider(VoiceProvider):
                 timeout=60,
             )
         except requests.RequestException as e:
+            settle_provider_failure(financial_attempt)
             raise VoiceProviderError(f"Connexion à ElevenLabs impossible : {e}") from e
         if resp.status_code != 200:
+            settle_provider_failure(financial_attempt)
             raise VoiceProviderError(f"ElevenLabs STT a répondu {resp.status_code} : {resp.text[:300]}")
         data = resp.json()
+        settle_provider_success(
+            financial_attempt,
+            response_model="scribe_v1",
+            input_tokens=None,
+            output_tokens=None,
+        )
         return (data.get("text") or "").strip()
 
     def _synthesize_once(self, text: str, voice_id: str, speed: float) -> bytes:
         import requests
         cfg = GABRIEL_VOICE_CONFIG
+        financial_attempt = begin_provider_attempt(
+            provider="elevenlabs",
+            model=self._tts_model_id,
+            input_text=f"characters:{len(text)}",
+            max_output_tokens=1,
+            label="voice_tts",
+        )
         try:
             resp = requests.post(
                 f"{self._BASE}/text-to-speech/{voice_id}",
@@ -180,9 +225,17 @@ class ElevenLabsVoiceProvider(VoiceProvider):
                 timeout=cfg["timeout_s"],
             )
         except requests.RequestException as e:
+            settle_provider_failure(financial_attempt)
             raise VoiceProviderError(f"Connexion à ElevenLabs impossible : {e}") from e
         if resp.status_code != 200:
+            settle_provider_failure(financial_attempt)
             raise VoiceProviderError(f"ElevenLabs TTS a répondu {resp.status_code} : {resp.text[:300]}")
+        settle_provider_success(
+            financial_attempt,
+            response_model=self._tts_model_id,
+            input_tokens=None,
+            output_tokens=None,
+        )
         return resp.content
 
     def synthesize(self, text: str, voice_id: str = None, pace: str = None) -> bytes:

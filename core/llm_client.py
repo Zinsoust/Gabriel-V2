@@ -45,6 +45,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from core.llm_budget import MistralBudgetGuard
+from core.provider_cost_guard import (
+    begin_provider_attempt,
+    settle_provider_failure,
+    settle_provider_success,
+)
 
 
 # ── Politique de modèle ──────────────────────────────────────────────────────
@@ -184,6 +189,10 @@ class LLMProvider(ABC):
 
     name: str = "abstract"
 
+    def billing_model(self, requested_model: str) -> str:
+        """Return the concrete model whose configured price must be reserved."""
+        return requested_model
+
     @abstractmethod
     def complete(self, prompt: str, *, model: str, max_tokens: int,
                  temperature: Optional[float] = None,
@@ -283,6 +292,9 @@ class OpenAIProvider(LLMProvider):
         "deep": os.environ.get("OPENAI_MODEL_DEEP", "gpt-4o"),
     }
 
+    def billing_model(self, requested_model: str) -> str:
+        return self.MODELS.get(_tier_of_model(requested_model), self.MODELS["deep"])
+
     def complete(self, prompt: str, *, model: str, max_tokens: int,
                  temperature: Optional[float] = None,
                  timeout_ms: int = 300_000,
@@ -298,7 +310,7 @@ class OpenAIProvider(LLMProvider):
 
         # ``model`` arrive traduit par le palier Mistral : on retraduit vers
         # l'équivalent OpenAI plutôt que d'envoyer un nom que l'API refuserait.
-        target = self.MODELS.get(_tier_of_model(model), self.MODELS["deep"])
+        target = self.billing_model(model)
 
         messages = []
         if system:
@@ -416,6 +428,12 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
     """
     engine = provider or _default_provider
     model = model_for_tier(tier)
+    billing_model_resolver = getattr(engine, "billing_model", None)
+    billing_model = (
+        billing_model_resolver(model)
+        if callable(billing_model_resolver)
+        else model
+    )
     budget_guard = MistralBudgetGuard.from_env()
     if budget_guard:
         budget_guard.require_mistral_provider(engine.name)
@@ -433,6 +451,7 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
                           f"({_MAX_CONCURRENCY} créneaux partagés par toute l'app)")
             try:
                 reservation = None
+                financial_attempt = None
                 if budget_guard:
                     reservation = budget_guard.reserve(
                         model=model,
@@ -441,6 +460,13 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
                         label=label,
                         attempt_number=attempt + 1,
                     )
+                financial_attempt = begin_provider_attempt(
+                    provider=engine.name,
+                    model=billing_model,
+                    input_text=budget_input,
+                    max_output_tokens=max_tokens,
+                    label=label,
+                )
                 # json_mode n'est transmis qu'aux fournisseurs qui le connaissent :
                 # un fournisseur tiers continue de fonctionner à l'identique (la
                 # réparation JSON tolérante reste alors le filet de sécurité).
@@ -452,6 +478,7 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
                         system=system, **extra,
                     )
                 except BaseException as exc:
+                    settle_provider_failure(financial_attempt)
                     if budget_guard and reservation:
                         budget_guard.mark_uncertain(reservation, type(exc).__name__)
                     raise
@@ -462,6 +489,12 @@ def complete(prompt: str, *, tier: str = "deep", max_tokens: int = 5000,
                         input_tokens=response.prompt_tokens,
                         output_tokens=response.completion_tokens,
                     )
+                settle_provider_success(
+                    financial_attempt,
+                    response_model=response.model,
+                    input_tokens=response.prompt_tokens,
+                    output_tokens=response.completion_tokens,
+                )
             finally:
                 if throttled:
                     _semaphore.release()

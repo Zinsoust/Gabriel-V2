@@ -12,6 +12,10 @@
   <title>Gabriel.ai</title>
   <link rel="icon" type="image/png" href="{{ static_v('brand/gabriel-mark-gold.png') }}">
   <link rel="stylesheet" href="{{ static_v('gabriel-v2/app.css') }}">
+  <script type="module">
+    import { installGabrielIdempotency } from "{{ static_v('js/gabriel-idempotency.js') }}";
+    installGabrielIdempotency(window);
+  </script>
 </head>
 <body>
   <div id="gabriel-v2-root"></div>

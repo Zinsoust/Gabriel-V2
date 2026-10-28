@@ -21,6 +21,7 @@ from core.cross_analysis import (
     build_source_analysis,
     clean_and_deduplicate_source_comments,
 )
+from core.provider_cost_guard import submit_with_financial_context
 from services.youtube_provider import YouTubeProvider
 
 
@@ -208,7 +209,8 @@ class CrossAnalysisPipeline:
                     cache_offered.add(source.get('source_id', ''))
                 # L'appelant décide toujours de l'identité et de la persistance,
                 # qu'un résultat récent soit disponible ou non.
-                future = executor.submit(
+                future = submit_with_financial_context(
+                    executor,
                     analyze_source, source, collected_source["retained_comments"], cached_result
                 )
                 futures[future] = collected_source
