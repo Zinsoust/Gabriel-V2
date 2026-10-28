@@ -398,8 +398,14 @@ def test_expiration_removes_only_available_credits(ledger):
         source_key="period-1",
         expires_at=expiry,
     )
-    assert ledger.expire_grants(now=expiry + timedelta(seconds=1)) == 1
-    assert ledger.expire_grants(now=expiry + timedelta(days=1)) == 0
+    assert ledger.expire_grants(
+        now=expiry + timedelta(seconds=1),
+        future_cutoff_approval="test:phase1-expiration",
+    ) == 1
+    assert ledger.expire_grants(
+        now=expiry + timedelta(days=1),
+        future_cutoff_approval="test:phase1-repeat",
+    ) == 0
     account = ledger.get_account(USER)
     assert account["available_credits"] == 0
     assert account["reserved_credits"] == 0

@@ -151,10 +151,17 @@ class SQLiteCreditLedger:
                     reserved_credits INTEGER NOT NULL DEFAULT 0 CHECK (reserved_credits >= 0),
                     starts_at TEXT NOT NULL,
                     expires_at TEXT,
+                    expired_at TEXT,
+                    expiration_cutoff TEXT,
                     metadata TEXT NOT NULL DEFAULT '{}',
                     created_at TEXT NOT NULL,
                     UNIQUE (user_id, source_key),
-                    CHECK (remaining_credits + reserved_credits <= granted_credits)
+                    CHECK (remaining_credits + reserved_credits <= granted_credits),
+                    CHECK (
+                        (expired_at IS NULL AND expiration_cutoff IS NULL)
+                        OR
+                        (expired_at IS NOT NULL AND expiration_cutoff IS NOT NULL)
+                    )
                 );
 
                 CREATE TABLE IF NOT EXISTS legacy_snapshots (
@@ -190,8 +197,12 @@ class SQLiteCreditLedger:
                     reserved_credits INTEGER NOT NULL CHECK (reserved_credits > 0),
                     captured_credits INTEGER NOT NULL DEFAULT 0 CHECK (captured_credits >= 0),
                     released_credits INTEGER NOT NULL DEFAULT 0 CHECK (released_credits >= 0),
+                    expired_credits INTEGER NOT NULL DEFAULT 0 CHECK (expired_credits >= 0),
                     PRIMARY KEY (reservation_id, grant_id),
-                    CHECK (captured_credits + released_credits <= reserved_credits)
+                    CHECK (
+                        captured_credits + released_credits + expired_credits
+                        <= reserved_credits
+                    )
                 );
 
                 CREATE TABLE IF NOT EXISTS provider_usage (
@@ -239,6 +250,43 @@ class SQLiteCreditLedger:
                     SELECT RAISE(ABORT, 'credit ledger is append-only');
                 END;
                 """
+            )
+            grant_columns = {
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(credit_grants)").fetchall()
+            }
+            if "expired_at" not in grant_columns:
+                conn.execute("ALTER TABLE credit_grants ADD COLUMN expired_at TEXT")
+            if "expiration_cutoff" not in grant_columns:
+                conn.execute("ALTER TABLE credit_grants ADD COLUMN expiration_cutoff TEXT")
+
+            allocation_columns = {
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(credit_allocations)").fetchall()
+            }
+            if "expired_credits" not in allocation_columns:
+                conn.execute(
+                    """ALTER TABLE credit_allocations
+                       ADD COLUMN expired_credits INTEGER NOT NULL DEFAULT 0
+                       CHECK (expired_credits >= 0)"""
+                )
+
+            conn.execute(
+                """UPDATE credit_grants
+                   SET expired_at = (
+                           SELECT MIN(event.created_at)
+                           FROM credit_ledger_events AS event
+                           WHERE event.grant_id = credit_grants.grant_id
+                             AND event.event_type = 'expire'
+                       ),
+                       expiration_cutoff = expires_at
+                   WHERE expired_at IS NULL
+                     AND EXISTS (
+                         SELECT 1
+                         FROM credit_ledger_events AS event
+                         WHERE event.grant_id = credit_grants.grant_id
+                           AND event.event_type = 'expire'
+                     )"""
             )
         finally:
             conn.close()
@@ -733,7 +781,6 @@ class SQLiteCreditLedger:
         reservation_id: str,
     ) -> dict[str, Any]:
         owner = self._authorise(authenticated_user_id, user_id)
-        now = _utcnow()
         with self._transaction() as conn:
             reservation = self._owned_reservation(conn, owner, reservation_id)
             if reservation["status"] == "released":
@@ -746,6 +793,7 @@ class SQLiteCreditLedger:
             ).fetchone()["total"]
             if attempts:
                 raise InvalidLedgerState("provider activity prevents a pre-call release")
+            now = _utcnow()
             self._finalise(
                 conn,
                 reservation=reservation,
@@ -768,7 +816,6 @@ class SQLiteCreditLedger:
     ) -> dict[str, Any]:
         owner = self._authorise(authenticated_user_id, user_id)
         provider_spent_micros = int(provider_spent_micros)
-        now = _utcnow()
         with self._transaction() as conn:
             reservation = self._owned_reservation(conn, owner, reservation_id)
             amount = (
@@ -810,6 +857,7 @@ class SQLiteCreditLedger:
                 raise InvalidLedgerState(
                     "provider spend exceeds settled provider usage"
                 )
+            now = _utcnow()
             self._finalise(
                 conn,
                 reservation=reservation,
@@ -820,6 +868,58 @@ class SQLiteCreditLedger:
             )
             row = self._owned_reservation(conn, owner, reservation_id)
             return {**dict(row), "idempotent": False}
+
+    def _mark_grant_expired(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        grant: sqlite3.Row,
+        cutoff: str,
+        event_now: str,
+        future_cutoff_approval: str | None = None,
+    ) -> bool:
+        """Persist an authoritative expiration exactly once.
+
+        ``cutoff`` is authoritative rather than inferred later from the wall
+        clock.  This also makes an explicitly approved administrative future
+        cutoff durable.  Reserved credits are expired when their reservation
+        is finalised; only currently available credits are removed here.
+        """
+
+        if grant["expired_at"] is not None:
+            return False
+        if grant["expires_at"] is None or grant["expires_at"] > cutoff:
+            return False
+
+        available_expired = grant["remaining_credits"]
+        conn.execute(
+            """UPDATE credit_grants
+               SET remaining_credits = 0, expired_at = ?, expiration_cutoff = ?
+               WHERE grant_id = ? AND expired_at IS NULL""",
+            (event_now, cutoff, grant["grant_id"]),
+        )
+        conn.execute(
+            """UPDATE credit_accounts
+               SET available_credits = available_credits - ?, updated_at = ?
+               WHERE user_id = ?""",
+            (available_expired, event_now, grant["user_id"]),
+        )
+        self._event(
+            conn,
+            user_id=grant["user_id"],
+            event_type="expire",
+            grant_id=grant["grant_id"],
+            delta_available=-available_expired,
+            metadata={
+                "phase": "grant_expiration",
+                "cutoff": cutoff,
+                "future_cutoff_approval": future_cutoff_approval,
+                "available_expired": available_expired,
+                "reserved_at_expiration": grant["reserved_credits"],
+            },
+            now=event_now,
+        )
+        return True
 
     def _finalise(
         self,
@@ -833,23 +933,58 @@ class SQLiteCreditLedger:
     ) -> None:
         to_capture = capture_credits
         released_total = 0
+        expired_total = 0
         allocations = conn.execute(
-            """SELECT * FROM credit_allocations
-               WHERE reservation_id = ? ORDER BY rowid""",
+            """SELECT allocation.*,
+                      grant.user_id AS grant_user_id,
+                      grant.remaining_credits AS grant_remaining_credits,
+                      grant.reserved_credits AS grant_reserved_credits,
+                      grant.expires_at AS grant_expires_at,
+                      grant.expired_at AS grant_expired_at,
+                      grant.expiration_cutoff AS grant_expiration_cutoff,
+                      grant.created_at AS grant_created_at
+                 FROM credit_allocations AS allocation
+                 JOIN credit_grants AS grant
+                   ON grant.grant_id = allocation.grant_id
+                WHERE allocation.reservation_id = ?
+                ORDER BY CASE WHEN grant.expires_at IS NULL THEN 1 ELSE 0 END,
+                         grant.expires_at, grant.created_at, grant.grant_id""",
             (reservation["reservation_id"],),
         ).fetchall()
         for allocation in allocations:
+            grant = conn.execute(
+                "SELECT * FROM credit_grants WHERE grant_id = ?",
+                (allocation["grant_id"],),
+            ).fetchone()
+            if not grant:
+                raise InvalidLedgerState("allocation grant is missing")
+            self._mark_grant_expired(
+                conn,
+                grant=grant,
+                cutoff=now,
+                event_now=now,
+            )
+            grant = conn.execute(
+                "SELECT * FROM credit_grants WHERE grant_id = ?",
+                (allocation["grant_id"],),
+            ).fetchone()
+
             captured = min(to_capture, allocation["reserved_credits"])
-            released = allocation["reserved_credits"] - captured
+            unconsumed = allocation["reserved_credits"] - captured
+            expired = unconsumed if grant["expired_at"] is not None else 0
+            released = unconsumed - expired
             to_capture -= captured
             released_total += released
+            expired_total += expired
             conn.execute(
                 """UPDATE credit_allocations
-                   SET captured_credits = ?, released_credits = ?
+                   SET captured_credits = ?, released_credits = ?,
+                       expired_credits = ?
                    WHERE reservation_id = ? AND grant_id = ?""",
                 (
                     captured,
                     released,
+                    expired,
                     reservation["reservation_id"],
                     allocation["grant_id"],
                 ),
@@ -861,8 +996,26 @@ class SQLiteCreditLedger:
                    WHERE grant_id = ?""",
                 (allocation["reserved_credits"], released, allocation["grant_id"]),
             )
+            if expired:
+                self._event(
+                    conn,
+                    user_id=reservation["user_id"],
+                    event_type="expire",
+                    grant_id=allocation["grant_id"],
+                    reservation_id=reservation["reservation_id"],
+                    delta_reserved=-expired,
+                    metadata={
+                        "phase": "reserved_finalisation",
+                        "final_status": final_status,
+                        "expiration_cutoff": grant["expiration_cutoff"],
+                        "reserved_expired": expired,
+                    },
+                    now=now,
+                )
         if to_capture:
             raise InvalidLedgerState("allocation total is lower than capture amount")
+        if capture_credits + released_total + expired_total != reservation["quoted_credits"]:
+            raise InvalidLedgerState("allocation finalisation does not conserve credits")
         conn.execute(
             """UPDATE credit_accounts
                SET available_credits = available_credits + ?,
@@ -902,7 +1055,7 @@ class SQLiteCreditLedger:
                 provider_micros=provider_spent_micros,
                 now=now,
             )
-        if released_total:
+        if final_status == "released" or released_total:
             self._event(
                 conn,
                 user_id=reservation["user_id"],
@@ -910,6 +1063,10 @@ class SQLiteCreditLedger:
                 reservation_id=reservation["reservation_id"],
                 delta_available=released_total,
                 delta_reserved=-released_total,
+                metadata={
+                    "returned_to_available": released_total,
+                    "expired_instead_of_released": expired_total,
+                },
                 now=now,
             )
 
@@ -951,39 +1108,37 @@ class SQLiteCreditLedger:
             row = self._owned_reservation(conn, owner, reservation_id)
             return {**dict(row), "idempotent": False}
 
-    def expire_grants(self, *, now: datetime | str | None = None) -> int:
-        cutoff = _normalise_expiry(now) or _utcnow()
+    def expire_grants(
+        self,
+        *,
+        now: datetime | str | None = None,
+        future_cutoff_approval: str | None = None,
+    ) -> int:
+        wall_time = _utcnow()
+        cutoff = _normalise_expiry(now) or wall_time
+        approval = str(future_cutoff_approval or "").strip() or None
+        if cutoff > wall_time and (approval is None or len(approval) > 200):
+            raise InvalidLedgerState(
+                "future expiration cutoff requires explicit approval"
+            )
         expired_count = 0
-        event_now = _utcnow()
         with self._transaction() as conn:
             rows = conn.execute(
                 """SELECT * FROM credit_grants
                    WHERE expires_at IS NOT NULL AND expires_at <= ?
-                     AND remaining_credits > 0
+                     AND expired_at IS NULL
                    ORDER BY user_id, expires_at, grant_id""",
                 (cutoff,),
             ).fetchall()
             for grant in rows:
-                amount = grant["remaining_credits"]
-                conn.execute(
-                    "UPDATE credit_grants SET remaining_credits = 0 WHERE grant_id = ?",
-                    (grant["grant_id"],),
-                )
-                conn.execute(
-                    """UPDATE credit_accounts
-                       SET available_credits = available_credits - ?, updated_at = ?
-                       WHERE user_id = ?""",
-                    (amount, event_now, grant["user_id"]),
-                )
-                self._event(
+                if self._mark_grant_expired(
                     conn,
-                    user_id=grant["user_id"],
-                    event_type="expire",
-                    grant_id=grant["grant_id"],
-                    delta_available=-amount,
-                    now=event_now,
-                )
-                expired_count += 1
+                    grant=grant,
+                    cutoff=cutoff,
+                    event_now=_utcnow(),
+                    future_cutoff_approval=approval if cutoff > wall_time else None,
+                ):
+                    expired_count += 1
         return expired_count
 
     def get_account(self, user_id: str) -> dict[str, Any] | None:
