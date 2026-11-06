@@ -23,7 +23,6 @@ import threading
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation, ROUND_CEILING
 from typing import Any, Iterator, Mapping, Optional
 
@@ -66,12 +65,6 @@ class ModelPrice:
 
 
 @dataclass(frozen=True)
-class ProviderLimit:
-    user_limit_microusd: int
-    global_limit_microusd: int
-
-
-@dataclass(frozen=True)
 class OperationQuote:
     credits: int
     provider_budget_microusd: int
@@ -80,9 +73,7 @@ class OperationQuote:
 
 @dataclass(frozen=True)
 class FinancialConfig:
-    period: str
     input_margin: Decimal
-    providers: Mapping[str, ProviderLimit]
     prices: Mapping[str, Mapping[str, ModelPrice]]
     operations: Mapping[str, OperationQuote]
 
@@ -170,9 +161,6 @@ def load_financial_config(env: Optional[Mapping[str, str]] = None) -> Optional[F
             "le budget de validation Mistral et le garde applicatif ne peuvent pas etre actifs ensemble"
         )
 
-    period = str(source.get("GABRIEL_PROVIDER_BUDGET_PERIOD", "month")).strip().lower()
-    if period not in {"day", "month"}:
-        raise FinancialConfigurationError("GABRIEL_PROVIDER_BUDGET_PERIOD doit valoir day ou month")
     try:
         margin = Decimal(str(source.get("GABRIEL_PROVIDER_INPUT_TOKEN_MARGIN", "1.25")))
     except InvalidOperation as exc:
@@ -180,25 +168,11 @@ def load_financial_config(env: Optional[Mapping[str, str]] = None) -> Optional[F
     if not margin.is_finite() or margin < 1:
         raise FinancialConfigurationError("GABRIEL_PROVIDER_INPUT_TOKEN_MARGIN doit etre >= 1")
 
-    raw_limits = _load_json(source, "GABRIEL_PROVIDER_BUDGETS_JSON")
-    limits: dict[str, ProviderLimit] = {}
-    for provider, values in raw_limits.items():
-        if not isinstance(values, dict):
-            raise FinancialConfigurationError(f"budget fournisseur invalide: {provider}")
-        name = str(provider).strip().lower()
-        if not name:
-            raise FinancialConfigurationError("nom de fournisseur vide")
-        user_limit = _usd_to_microusd(values.get("user_period_usd"), f"{name}.user_period_usd")
-        global_limit = _usd_to_microusd(values.get("global_period_usd"), f"{name}.global_period_usd")
-        if user_limit > global_limit:
-            raise FinancialConfigurationError(f"le plafond utilisateur {name} depasse le plafond global")
-        limits[name] = ProviderLimit(user_limit, global_limit)
-
     raw_prices = _load_json(source, "GABRIEL_PROVIDER_PRICING_JSON")
     prices: dict[str, dict[str, ModelPrice]] = {}
     for provider, models in raw_prices.items():
         name = str(provider).strip().lower()
-        if name not in limits or not isinstance(models, dict) or not models:
+        if not name or not isinstance(models, dict) or not models:
             raise FinancialConfigurationError(f"tarifs fournisseur invalides: {name}")
         prices[name] = {}
         for model, values in models.items():
@@ -248,21 +222,7 @@ def load_financial_config(env: Optional[Mapping[str, str]] = None) -> Optional[F
             pricing_version=version,
         )
 
-    return FinancialConfig(period, margin, limits, prices, operations)
-
-
-def _period_bounds(period: str, now: Optional[datetime] = None) -> tuple[str, str]:
-    current = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
-    if period == "day":
-        start = current.replace(hour=0, minute=0, second=0, microsecond=0)
-        end = start + timedelta(days=1)
-    else:
-        start = current.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        if start.month == 12:
-            end = start.replace(year=start.year + 1, month=1)
-        else:
-            end = start.replace(month=start.month + 1)
-    return start.isoformat(), end.isoformat()
+    return FinancialConfig(margin, prices, operations)
 
 
 class SupabaseFinancialBackend:
@@ -420,8 +380,6 @@ class FinancialOperation:
     def begin_attempt(self, *, provider: str, model: str, input_text: str,
                       max_output_tokens: int, label: str) -> AttemptHandle:
         provider_name = str(provider).strip().lower()
-        if provider_name not in self.config.providers:
-            raise FinancialConfigurationError(f"plafonds absents pour le fournisseur {provider_name}")
         price = self._price(provider_name, model)
         max_cost = self._max_cost(price, input_text, max_output_tokens)
         with self._attempt_lock:
@@ -431,8 +389,6 @@ class FinancialOperation:
             attempt_no = self.attempts_started + 1
             if self._attempt_max_total_microusd + max_cost > self.quote.provider_budget_microusd:
                 raise FinancialLimitExceeded("plafond fournisseur de l'operation atteint")
-            period_start, period_end = _period_bounds(self.config.period)
-            limits = self.config.providers[provider_name]
             self.backend.reserve_attempt(
                 p_authenticated_user_id=self.user_id,
                 p_user_id=self.user_id,
@@ -442,10 +398,6 @@ class FinancialOperation:
                 p_model=model,
                 p_max_cost_micros=max_cost,
                 p_provider_request_id=None,
-                p_period_start=period_start,
-                p_period_end=period_end,
-                p_user_limit_micros=limits.user_limit_microusd,
-                p_global_limit_micros=limits.global_limit_microusd,
             )
             self.attempts_started = attempt_no
             self._attempt_max_total_microusd += max_cost

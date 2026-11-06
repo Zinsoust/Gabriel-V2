@@ -30,6 +30,17 @@ def test_every_paid_http_route_has_an_explicit_financial_operation():
     assert "'error_code': 'idempotency_key_required'" in app_source
 
 
+def test_financial_identity_comes_from_verified_backend_context_not_request_body():
+    app_source = (ROOT / "app.py").read_text(encoding="utf-8")
+    preparation = app_source.split("def _prepare_financial_operation", 1)[1].split(
+        "def _finalize_financial_operation", 1
+    )[0]
+    assert "user_id = (current_user() or {}).get('user_id')" in preparation
+    assert "create_financial_operation(\n            user_id=user_id" in preparation
+    assert "body.get('user_id')" not in preparation
+    assert "request.args.get('user_id')" not in preparation
+
+
 def test_direct_provider_paths_call_the_common_guard_before_network_io():
     app_source = (ROOT / "app.py").read_text(encoding="utf-8")
     mistral = app_source.split("def _budgeted_mistral_complete", 1)[1].split(

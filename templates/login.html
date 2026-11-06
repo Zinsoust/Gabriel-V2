@@ -108,6 +108,11 @@
     <div class="flash-error">{{ error }}</div>
     {% endif %}
 
+    {% if not accounts_enabled %}
+    <div class="login-sub" style="margin-bottom:0;">
+      La présentation publique reste accessible. La connexion et les fonctions privées seront ouvertes séparément après validation de l'environnement.
+    </div>
+    {% else %}
     {% if google_enabled and mode != 'register' %}
     <form action="/auth/google" method="get" style="margin-bottom: 16px;">
       {% if plan %}<input type="hidden" name="plan" value="{{ plan }}">{% endif %}
@@ -161,6 +166,7 @@
       <a href="/register{{ '?plan=' + plan if plan else '' }}">Créer un compte</a>
       {% endif %}
     </div>
+    {% endif %}
   </div>
 
   <div class="login-security">

@@ -25,18 +25,10 @@ from core.provider_cost_guard import (
 MODEL = "mistral-versioned-test"
 
 
-def _configure(monkeypatch, *, operation_budget="1", user_budget="1", global_budget="2"):
+def _configure(monkeypatch, *, operation_budget="1"):
     monkeypatch.setenv("GABRIEL_CREDIT_LEDGER_ENABLED", "true")
     monkeypatch.setenv("GABRIEL_PROVIDER_COST_GUARD_ENABLED", "true")
-    monkeypatch.setenv("GABRIEL_PROVIDER_BUDGET_PERIOD", "month")
     monkeypatch.setenv("GABRIEL_PROVIDER_INPUT_TOKEN_MARGIN", "1.25")
-    monkeypatch.setenv("GABRIEL_PROVIDER_BUDGETS_JSON", json.dumps({
-        "mistral": {"user_period_usd": user_budget, "global_period_usd": global_budget},
-        "openai": {"user_period_usd": user_budget, "global_period_usd": global_budget},
-        "elevenlabs": {"user_period_usd": user_budget, "global_period_usd": global_budget},
-        "youtube": {"user_period_usd": user_budget, "global_period_usd": global_budget},
-        "rapidapi": {"user_period_usd": user_budget, "global_period_usd": global_budget},
-    }))
     monkeypatch.setenv("GABRIEL_PROVIDER_PRICING_JSON", json.dumps({
         "mistral": {MODEL: {
             "input_usd_per_million": "1.0",
@@ -185,14 +177,14 @@ def test_deployed_paid_calls_are_disabled_before_provider_by_default(monkeypatch
     assert fake.calls == 0
 
 
-def test_enabled_guard_requires_ledger_and_all_explicit_limits(monkeypatch):
+def test_enabled_guard_requires_ledger_and_explicit_prices(monkeypatch):
     monkeypatch.setenv("GABRIEL_PROVIDER_COST_GUARD_ENABLED", "true")
     monkeypatch.setenv("GABRIEL_CREDIT_LEDGER_ENABLED", "false")
     with pytest.raises(FinancialConfigurationError, match="LEDGER_ENABLED"):
         load_financial_config()
 
     monkeypatch.setenv("GABRIEL_CREDIT_LEDGER_ENABLED", "true")
-    with pytest.raises(FinancialConfigurationError, match="BUDGETS_JSON"):
+    with pytest.raises(FinancialConfigurationError, match="PRICING_JSON"):
         load_financial_config()
 
 
@@ -221,6 +213,19 @@ def test_success_reserves_attempt_settles_and_captures_once(monkeypatch):
     capture = backend.calls[-1][1]
     assert capture["p_captured_credits"] == 10
     assert capture["p_provider_spent_micros"] > 0
+
+    reserve = next(params for name, params in backend.calls if name == "reserve_attempt")
+    assert set(reserve) == {
+        "p_authenticated_user_id",
+        "p_user_id",
+        "p_reservation_id",
+        "p_attempt_no",
+        "p_provider",
+        "p_model",
+        "p_max_cost_micros",
+        "p_provider_request_id",
+    }
+    assert not any("limit" in key or "period" in key for key in reserve)
 
 
 def test_user_without_credits_never_reaches_provider(monkeypatch):

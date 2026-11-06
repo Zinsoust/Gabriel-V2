@@ -187,6 +187,12 @@ def production_safety_problems(env=None):
     secret = str(env.get('FLASK_SECRET_KEY', ''))
     if len(secret) < 24 or secret.startswith('VOTRE_'):
         problems.append("FLASK_SECRET_KEY est trop courte ou reste celle de l'exemple : les sessions pourraient être falsifiées.")
+    accounts_enabled = str(env.get('GABRIEL_ACCOUNTS_ENABLED', 'false')).lower() == 'true'
+    if accounts_enabled:
+        if not str(env.get('SUPABASE_URL', '') or '').strip():
+            problems.append("GABRIEL_ACCOUNTS_ENABLED exige SUPABASE_URL : aucun compte ne doit utiliser le disque éphémère de Render.")
+        if not str(env.get('SUPABASE_KEY', '') or '').strip():
+            problems.append("GABRIEL_ACCOUNTS_ENABLED exige SUPABASE_KEY pour le stockage serveur des comptes.")
     if paid_provider_calls_enabled(env):
         try:
             financial_config = load_financial_config(env)

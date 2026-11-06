@@ -43,6 +43,27 @@ _supabase      = None
 _google_enabled = False
 
 _PASSWORD_HASH_METHOD = 'pbkdf2:sha256'
+_TRUE_VALUES = {'1', 'true', 'yes', 'on'}
+
+
+def _is_deployed():
+    return (
+        bool(os.environ.get('RENDER'))
+        or bool(os.environ.get('RENDER_EXTERNAL_URL'))
+        or os.environ.get('GABRIEL_ENV', '').lower() == 'production'
+    )
+
+
+def accounts_enabled():
+    """Return whether visitors may use authentication and protected features.
+
+    A deployed service defaults to public-site-only mode.  This keeps the
+    landing pages available while preventing Render's ephemeral ``users.json``
+    fallback from becoming an accidental production account store.  Local
+    development preserves the historical behaviour unless explicitly disabled.
+    """
+    default = 'false' if _is_deployed() else 'true'
+    return os.environ.get('GABRIEL_ACCOUNTS_ENABLED', default).strip().lower() in _TRUE_VALUES
 
 
 # ── Initialisation ────────────────────────────────────────────────────────────
@@ -53,7 +74,7 @@ def init_auth(app):
 
     client_id     = os.environ.get('GOOGLE_CLIENT_ID')
     client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
-    if client_id and client_secret:
+    if accounts_enabled() and client_id and client_secret:
         _google_enabled = True
         oauth.register(
             name='google',
@@ -141,12 +162,7 @@ _dev_user_provisioned = False
 def _is_local_development():
     """Return whether the shared fictitious identity is safe to provision."""
     auth_disabled = os.environ.get('AUTH_ENABLED', 'false').lower() != 'true'
-    deployed = (
-        bool(os.environ.get('RENDER'))
-        or bool(os.environ.get('RENDER_EXTERNAL_URL'))
-        or os.environ.get('GABRIEL_ENV', '').lower() == 'production'
-    )
-    return auth_disabled and not deployed
+    return auth_disabled and not _is_deployed()
 
 
 def _ensure_dev_user_row():
@@ -218,6 +234,13 @@ _AUTH_401_PAYLOAD = {
     'redirect':   '/login',
 }
 
+_ACCOUNTS_DISABLED_PAYLOAD = {
+    'success': False,
+    'error': "L'accès aux comptes n'est pas encore ouvert sur cet environnement.",
+    'error_code': 'accounts_disabled',
+    'redirect': '/login',
+}
+
 
 def _is_api_request():
     """True si la requête attend du JSON (pas une page HTML)."""
@@ -234,6 +257,10 @@ def login_required(f):
     def decorated(*args, **kwargs):
         if os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
             return f(*args, **kwargs)
+        if not accounts_enabled():
+            if _is_api_request():
+                return jsonify(_ACCOUNTS_DISABLED_PAYLOAD), 503
+            return redirect('/login?error=accounts_disabled')
         if not session.get('user_id'):
             if _is_api_request():
                 return jsonify(_AUTH_401_PAYLOAD), 401
@@ -248,6 +275,8 @@ def login_required_api(f):
     def decorated(*args, **kwargs):
         if os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
             return f(*args, **kwargs)
+        if not accounts_enabled():
+            return jsonify(_ACCOUNTS_DISABLED_PAYLOAD), 503
         if not session.get('user_id'):
             return jsonify(_AUTH_401_PAYLOAD), 401
         return f(*args, **kwargs)
@@ -260,6 +289,8 @@ def login_required_page(f):
     def decorated(*args, **kwargs):
         if os.environ.get('AUTH_ENABLED', 'false').lower() != 'true':
             return f(*args, **kwargs)
+        if not accounts_enabled():
+            return redirect('/login?error=accounts_disabled')
         if not session.get('user_id'):
             return redirect('/login')
         return f(*args, **kwargs)
@@ -305,6 +336,8 @@ def _sb_upsert_google(info):
 
 def register_email_user(email, password, name=''):
     """Crée un compte email. Retourne (user_dict, None) ou (None, error_str)."""
+    if not accounts_enabled():
+        return None, "L'accès aux comptes n'est pas encore ouvert."
     email = email.strip().lower()
     if not email or not password:
         return None, 'Email et mot de passe requis.'
@@ -349,6 +382,8 @@ def register_email_user(email, password, name=''):
 
 def verify_email_user(email, password):
     """Vérifie email+mot de passe. Retourne (user_dict, None) ou (None, error_str)."""
+    if not accounts_enabled():
+        return None, "L'accès aux comptes n'est pas encore ouvert."
     email = email.strip().lower()
     if _supabase:
         res = _supabase.table(_TABLE).select('*').eq('email', email).execute()
@@ -421,20 +456,26 @@ def login_page():
     error_msg = {
         'not_configured': 'Connexion Google non configurée.',
         'auth_failed':    'Connexion Google échouée. Réessayez.',
+        'accounts_disabled': "L'accès à l'application n'est pas encore ouvert sur cet environnement.",
     }.get(error, error)
-    return render_template('login.html', error=error_msg, mode=mode, plan=plan, google_enabled=_google_enabled)
+    return render_template(
+        'login.html', error=error_msg, mode=mode, plan=plan,
+        google_enabled=_google_enabled, accounts_enabled=accounts_enabled(),
+    )
 
 
 @auth_bp.route('/login/email', methods=['POST'])
 @rate_limit(_RL_LOGIN)
 def login_email():
+    if not accounts_enabled():
+        return jsonify(_ACCOUNTS_DISABLED_PAYLOAD), 503
     email    = request.form.get('email', '')
     password = request.form.get('password', '')
     plan     = request.form.get('plan', '')
     user, err = verify_email_user(email, password)
     if err:
         return render_template('login.html', error=err, mode='email', prefill_email=email, plan=plan,
-                               google_enabled=_google_enabled)
+                               google_enabled=_google_enabled, accounts_enabled=True)
     _open_session(user)
     return _post_login_redirect(plan)
 
@@ -442,9 +483,14 @@ def login_email():
 @auth_bp.route('/register', methods=['GET', 'POST'])
 @rate_limit(_RL_LOGIN)
 def register():
+    if not accounts_enabled():
+        if request.method == 'GET':
+            return redirect('/login?error=accounts_disabled')
+        return jsonify(_ACCOUNTS_DISABLED_PAYLOAD), 503
     if request.method == 'GET':
         plan = request.args.get('plan', '') if request.args.get('plan') in _REDIRECT_PLANS else ''
-        return render_template('login.html', mode='register', plan=plan, google_enabled=_google_enabled)
+        return render_template('login.html', mode='register', plan=plan, google_enabled=_google_enabled,
+                               accounts_enabled=True)
     name     = request.form.get('name', '')
     email    = request.form.get('email', '')
     password = request.form.get('password', '')
@@ -452,17 +498,21 @@ def register():
     plan     = request.form.get('plan', '')
     if password != confirm:
         return render_template('login.html', error='Les mots de passe ne correspondent pas.', mode='register',
-                               prefill_email=email, prefill_name=name, plan=plan, google_enabled=_google_enabled)
+                               prefill_email=email, prefill_name=name, plan=plan, google_enabled=_google_enabled,
+                               accounts_enabled=True)
     user, err = register_email_user(email, password, name)
     if err:
         return render_template('login.html', error=err, mode='register',
-                               prefill_email=email, prefill_name=name, plan=plan, google_enabled=_google_enabled)
+                               prefill_email=email, prefill_name=name, plan=plan, google_enabled=_google_enabled,
+                               accounts_enabled=True)
     _open_session(user)
     return _post_login_redirect(plan)
 
 
 @auth_bp.route('/auth/google')
 def auth_google():
+    if not accounts_enabled():
+        return redirect('/login?error=accounts_disabled')
     if not os.environ.get('GOOGLE_CLIENT_ID'):
         return redirect('/login?error=not_configured')
     # Le round-trip OAuth ne peut pas transporter notre propre query string —
@@ -478,6 +528,8 @@ def auth_google():
 
 @auth_bp.route('/auth/google/callback')
 def auth_google_callback():
+    if not accounts_enabled():
+        return redirect('/login?error=accounts_disabled')
     safe_log_event('oauth_callback_received', metadata={'has_state': bool(request.args.get('state'))})
     plan = session.pop('pending_plan', '')
     try:
@@ -515,6 +567,8 @@ def logout():
 
 @auth_bp.route('/me')
 def me():
+    if not accounts_enabled():
+        return jsonify(_ACCOUNTS_DISABLED_PAYLOAD), 503
     user = current_user()
     if not user:
         return jsonify({'authenticated': False}), 401
